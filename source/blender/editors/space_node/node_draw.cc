@@ -3642,13 +3642,19 @@ static void node_comment_edit_button_cb(bContext *C, void *node_argv, void * /*a
   WM_operator_properties_free(&props_ptr);
 }
 
+static bool comment_node_is_edit(const SpaceNode &snode, const bNode &node)
+{
+  return snode.runtime->comment_identifier_to_edit == node.identifier;
+}
+
 static void comment_node_prepare_for_draw(const bContext &C,
                                           bNodeTree &ntree,
                                           bNode &node,
                                           ui::Block &block)
 {
+  SpaceNode &snode = *CTX_wm_space_node(&C);
   NodeComment &storage = *static_cast<NodeComment *>(node.storage);
-  const bool is_edit = bool(storage.flag & NodeCommentFlag::Edit);
+  const bool is_edit = comment_node_is_edit(snode, node);
   const StringRef text = storage.text;
 
   const float2 loc = node_to_view(node.location);
@@ -3667,7 +3673,7 @@ static void comment_node_prepare_for_draw(const bContext &C,
     /* Same approach to detecting when a text property is not active anymore is used elsewhere
      * (e.g. #outliner_buttons) */
     if (!ui::button_active_only(&C, CTX_wm_region(&C), &block, but)) {
-      storage.flag &= ~NodeCommentFlag::Edit;
+      snode.runtime->comment_identifier_to_edit.reset();
       WM_event_add_notifier(&C, NC_NODE | ND_DISPLAY, nullptr);
     }
     bottom_y = loc.y - but_h;
@@ -4219,8 +4225,7 @@ static void node_draw_comment(const bContext &C,
 
   node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
 
-  const NodeComment &storage = *static_cast<const NodeComment *>(node.storage);
-  const bool is_edit = bool(storage.flag & NodeCommentFlag::Edit);
+  const bool is_edit = comment_node_is_edit(snode, node);
 
   if (!is_edit) {
     ColorTheme4f color;

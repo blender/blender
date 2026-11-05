@@ -1252,7 +1252,6 @@ static void node_comment_blend_read(bNodeTree & /*ntree*/, bNode &node, BlendDat
 {
   NodeComment *data = static_cast<NodeComment *>(node.storage);
   BLO_read_string(&reader, &data->text);
-  data->flag &= ~NodeCommentFlag::Edit;
 }
 
 void register_node_type_comment()

@@ -4032,18 +4032,12 @@ struct NodeStoreBundleItem {
   char _pad = {};
 };
 
-enum class NodeCommentFlag : uint8_t {
-  /** Whether the text is being edited inside of the node. */
-  Edit = (1 << 0),
-};
-ENUM_OPERATORS(NodeCommentFlag)
-
 struct NodeComment {
   char *text = nullptr;
   TextboxState textbox_state_node;
   TextboxState textbox_state_panel;
-  NodeCommentFlag flag = {};
-  char _pad[7] = {};
+  /* NOTE: This had a "flag" property before, and the first bit may be set in older .blend files.
+   * Therefore, if a new flag is added, this might need to be zeroed in versioning. */
 };
 
 }  // namespace blender
