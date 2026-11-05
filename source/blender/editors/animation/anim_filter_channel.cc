@@ -1278,24 +1278,26 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
 
   this->source_set(fcurve_ptr);
 
+  /* This base priority ensures that when they appear under the same SummaryChannel, F-Curves are
+   * sorted lower than Groups. This can happen when some but not all F-Curves are in groups. */
   FCurve &fcurve = *fcurve_ptr.data_as<FCurve>();
+  sorting_priority_ = -10000 - fcurve.array_index;
+
   const ParsedRNAPathRef rna_path = fcurve.rna_path_parsed();
   const std::optional<StringRefNull> last_member = last_rna_path_member(rna_path);
   if (!last_member) {
     return;
   }
 
+  /* Group loc/rot/scale together, in that order. */
   if (last_member.value() == "location") {
-    sorting_priority_ = 300 - fcurve.array_index;
+    sorting_priority_ += 300;
   }
   else if (animrig::is_rotation_path(rna_path)) {
-    sorting_priority_ = 200 - fcurve.array_index;
+    sorting_priority_ += 200;
   }
   else if (last_member.value() == "scale") {
-    sorting_priority_ = 100 - fcurve.array_index;
-  }
-  else {
-    sorting_priority_ = -fcurve.array_index;
+    sorting_priority_ += 100;
   }
 }
 
