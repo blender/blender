@@ -291,6 +291,11 @@ void mesh_set_custom_normals_normalized(Mesh &mesh, MutableSpan<float3> corner_n
 void mesh_set_custom_normals_from_verts(Mesh &mesh, MutableSpan<float3> vert_normals);
 void mesh_set_custom_normals_from_verts_normalized(Mesh &mesh, MutableSpan<float3> vert_normals);
 
+/** Convert tangent-space custom normals to free custom normals. */
+void mesh_custom_normals_to_free(Mesh &mesh);
+/** Convert free custom normals to tangent-space custom normals. */
+void mesh_custom_normals_to_tangent_space(Mesh &mesh);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

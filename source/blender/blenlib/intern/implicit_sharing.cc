@@ -27,8 +27,16 @@ class MEMFreeImplicitSharing : public ImplicitSharingInfo {
  private:
   void delete_self_with_data() override
   {
-    MEM_delete_void(data);
+    if (data != nullptr) {
+      MEM_delete_void(data);
+    }
     MEM_delete(this);
+  }
+
+  void delete_data_only() override
+  {
+    MEM_delete_void(data);
+    data = nullptr;
   }
 };
 

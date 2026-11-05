@@ -19,6 +19,7 @@
 #include "util/log.h"
 #include "util/simd.h"
 #include "util/tbb.h"
+#include "util/types_image.h"
 
 #include <OpenImageIO/thread.h>
 
@@ -508,8 +509,8 @@ void ImageCache::load_image_tiled(const ImageMetaData &metadata, KernelImageText
   int num_tiles = 0;
 
   for (int miplevel = 0; max_miplevels; miplevel++) {
-    const int mip_width = std::max(1, tex.width >> miplevel);
-    const int mip_height = std::max(1, tex.height >> miplevel);
+    const int mip_width = image_dimension_at_mip_level(tex.width, miplevel);
+    const int mip_height = image_dimension_at_mip_level(tex.height, miplevel);
 
     num_levels++;
     num_tiles += divide_up(mip_width, tile_size) * divide_up(mip_height, tile_size);
@@ -581,8 +582,8 @@ void ImageCache::load_image_tiled_descriptors(DeviceScene &dscene,
     for (int miplevel = 0; miplevel < tex.tile_levels; miplevel++) {
       descr_data[miplevel] = tex.tile_levels + num_tiles;
 
-      const int mip_width = std::max(1, tex.width >> miplevel);
-      const int mip_height = std::max(1, tex.height >> miplevel);
+      const int mip_width = image_dimension_at_mip_level(tex.width, miplevel);
+      const int mip_height = image_dimension_at_mip_level(tex.height, miplevel);
       num_tiles += divide_up(mip_width, tile_size) * divide_up(mip_height, tile_size);
     }
 
@@ -606,8 +607,8 @@ void ImageCache::load_tile(Device &device,
                            const size_t bit_index,
                            KernelTileDescriptor &r_tile_descriptor)
 {
-  const int width = std::max(int64_t(1), metadata.width >> miplevel);
-  const int height = std::max(int64_t(1), metadata.height >> miplevel);
+  const int width = image_dimension_at_mip_level(metadata.width, miplevel);
+  const int height = image_dimension_at_mip_level(metadata.height, miplevel);
   const int tile_size = metadata.tile_size;
   const size_t w = min(size_t(width - x), size_t(tile_size));
   const size_t h = min(size_t(height - y), size_t(tile_size));
@@ -747,7 +748,7 @@ void ImageCache::load_requested_tiles(Device &device,
     size_t level_start;
     const int miplevel = image_tile_find_miplevel(levels, tex.tile_levels, tile_idx, level_start);
     const size_t idx_in_level = tile_idx - level_start;
-    const int mip_width = std::max(1, tex.width >> miplevel);
+    const int mip_width = image_dimension_at_mip_level(tex.width, miplevel);
     const size_t tiles_x = divide_up(mip_width, tile_size);
     const size_t tile_y = idx_in_level / tiles_x;
     const size_t tile_x = idx_in_level % tiles_x;
@@ -836,8 +837,8 @@ void ImageCache::collect_statistics(DeviceScene &dscene,
   const size_t tile_bytes = tile_size * tile_size * pixel_bytes;
 
   for (int miplevel = 0; miplevel < tex.tile_levels; miplevel++) {
-    const int width = std::max(1, tex.width >> miplevel);
-    const int height = std::max(1, tex.height >> miplevel);
+    const int width = image_dimension_at_mip_level(tex.width, miplevel);
+    const int height = image_dimension_at_mip_level(tex.height, miplevel);
     const int tiles_x = divide_up(width, tile_size);
     const int tiles_y = divide_up(height, tile_size);
     const int tiles_total = tiles_x * tiles_y;

@@ -35,6 +35,7 @@
 #include "BLI_fftw.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_system.hh"
 #include "BLI_task_c.hh"
 #include "BLI_threads.hh"
@@ -429,8 +430,8 @@ int main(int argc,
     }
     else {
       const char *unknown = "date-unknown";
-      STRNCPY(build_commit_date, unknown);
-      STRNCPY(build_commit_time, unknown);
+      STRNCPY_UTF8(build_commit_date, unknown);
+      STRNCPY_UTF8(build_commit_time, unknown);
     }
   }
 #endif

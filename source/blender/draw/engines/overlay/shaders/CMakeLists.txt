@@ -81,7 +81,6 @@ set(SRC_GLSL_VERT
   overlay_viewer_attribute_curves_vert.glsl
   overlay_viewer_attribute_mesh_vert.glsl
   overlay_viewer_attribute_pointcloud_vert.glsl
-  overlay_wireframe_vert.glsl
 )
 
 set(SRC_GLSL_FRAG
@@ -112,7 +111,6 @@ set(SRC_GLSL_FRAG
   # TODO(fclem): rename to overlay_varying_color_frag.glsl
   overlay_varying_color.glsl
   overlay_viewer_attribute_frag.glsl
-  overlay_wireframe_frag.glsl
 )
 
 

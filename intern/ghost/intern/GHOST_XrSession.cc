@@ -1080,8 +1080,11 @@ void GHOST_XrSession::enablePassthrough()
   passthrough_create_info.flags |= XR_PASSTHROUGH_IS_RUNNING_AT_CREATION_BIT_FB;
 
   XrPassthroughFB passthrough_handle;
-  CHECK_XR(g_xrCreatePassthroughFB(oxr_->session, &passthrough_create_info, &passthrough_handle),
-           "Failed to create passthrough handle.");
+  if (XR_FAILED(
+          g_xrCreatePassthroughFB(oxr_->session, &passthrough_create_info, &passthrough_handle)))
+  {
+    return;
+  }
 
   XrPassthroughLayerCreateInfoFB passthrough_layer_create_info = {};
   passthrough_layer_create_info.type = XR_TYPE_PASSTHROUGH_LAYER_CREATE_INFO_FB;
@@ -1091,9 +1094,11 @@ void GHOST_XrSession::enablePassthrough()
   passthrough_layer_create_info.purpose = XR_PASSTHROUGH_LAYER_PURPOSE_RECONSTRUCTION_FB;
 
   XrPassthroughLayerFB passthrough_layer_handle;
-  CHECK_XR(g_xrCreatePassthroughLayerFB(
-               oxr_->session, &passthrough_layer_create_info, &passthrough_layer_handle),
-           "Failed to create passthrough layer handle.");
+  if (XR_FAILED(g_xrCreatePassthroughLayerFB(
+          oxr_->session, &passthrough_layer_create_info, &passthrough_layer_handle)))
+  {
+    return;
+  }
 
   g_xrPassthroughStartFB(passthrough_handle);
   g_xrPassthroughLayerResumeFB(passthrough_layer_handle);

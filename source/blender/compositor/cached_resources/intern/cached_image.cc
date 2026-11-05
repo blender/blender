@@ -365,6 +365,10 @@ CachedImage::CachedImage(Context &context,
         math::from_location<float3x3>(float2(int2(image_buffer->display_offset))));
   }
 
+  if (this->result.meta_data.is_cryptomatte_layer()) {
+    this->result.domain().realization_options.interpolation = Interpolation::Nearest;
+  }
+
   IMB_freeImBuf(linear_image_buffer);
   BKE_image_release_ibuf(&image, image_buffer, nullptr);
 }

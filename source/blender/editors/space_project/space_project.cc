@@ -8,6 +8,7 @@
 
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_screen.hh"
 
@@ -197,7 +198,7 @@ void ED_spacetype_project()
   ARegionType *art;
 
   st->spaceid = SPACE_PROJECT;
-  STRNCPY(st->name, "Project Settings");
+  STRNCPY_UTF8(st->name, "Project Settings");
   st->struct_size = sizeof(SpaceProject);
 
   st->create = project_create;
@@ -217,7 +218,6 @@ void ED_spacetype_project()
   art->draw = project_main_region_draw;
   art->listener = project_main_region_listener;
   art->keymapflag = ED_KEYMAP_UI;
-  project_asset_panel_register(*art);
 
   BLI_addhead(&st->regiontypes, art);
 

@@ -1119,6 +1119,7 @@ inline bool socket_data_to_static_type(const eNodeSocketDatatype type, Fn &&fn)
     case SOCK_GEOMETRY:
     case SOCK_BUNDLE:
     case SOCK_CLOSURE:
+    case SOCK_DYNAMIC:
       return true;
   }
   return false;

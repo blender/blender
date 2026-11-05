@@ -16,7 +16,7 @@
 /* Pass. */
 #else
 #  ifdef WITH_PYTHON
-#    include "BLI_string.hh"
+#    include "BLI_string_utf8.hh"
 
 #    include "BKE_context.hh"
 
@@ -70,10 +70,10 @@ bool WM_platform_associate_set(bool do_register, bool all_users, char **r_error_
     };
     char expr_buf[128];
 
-    SNPRINTF(expr_buf,
-             "_bpy_internal.platform.freedesktop.%s(all_users=%d)",
-             do_register ? "register" : "unregister",
-             int(all_users));
+    SNPRINTF_UTF8(expr_buf,
+                  "_bpy_internal.platform.freedesktop.%s(all_users=%d)",
+                  do_register ? "register" : "unregister",
+                  int(all_users));
 
     /* NOTE: this could be null, however the running a script without `bpy.context` access
      * is a rare enough situation that it's better to keep this a requirement of the API and

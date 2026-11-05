@@ -48,16 +48,16 @@ static void event_ids_from_flag(MutableCStr str,
                                 const uint flag)
 {
   int ofs = 0;
-  ofs += STRNCPY_RLEN(str.drop_front(ofs), "{");
+  ofs += STRNCPY_UTF8_RLEN(str.drop_front(ofs), "{");
   for (int i = 0; i < flag_data_len; i++) {
     if (flag & flag_data[i].flag) {
       if (ofs != 1) {
-        ofs += STRNCPY_RLEN(str.drop_front(ofs), "|");
+        ofs += STRNCPY_UTF8_RLEN(str.drop_front(ofs), "|");
       }
-      ofs += STRNCPY_RLEN(str.drop_front(ofs), flag_data[i].id);
+      ofs += STRNCPY_UTF8_RLEN(str.drop_front(ofs), flag_data[i].id);
     }
   }
-  ofs += STRNCPY_RLEN(str.drop_front(ofs), "}");
+  ofs += STRNCPY_UTF8_RLEN(str.drop_front(ofs), "}");
   UNUSED_VARS(ofs); /* Quiet warning. */
 }
 

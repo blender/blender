@@ -16,6 +16,7 @@
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "GHOST_Xr-api.hh"
 
@@ -400,7 +401,7 @@ bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name, bool
   if (delayed) {
     /* Save name to activate action set later, before next actions sync
      * (see #wm_xr_session_actions_update()). */
-    STRNCPY(xr->runtime->session_state.active_action_set_next, action_set_name);
+    STRNCPY_UTF8(xr->runtime->session_state.active_action_set_next, action_set_name);
     return true;
   }
 

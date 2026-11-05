@@ -330,8 +330,10 @@ static void do_tiled(const Depsgraph &depsgraph,
 
   /* Position of the "prototype" stroke for tiling. */
   float orgLoc[3];
+  float original_last_location[3];
   float original_initial_location[3];
   copy_v3_v3(orgLoc, cache->location_symm);
+  copy_v3_v3(original_last_location, cache->last_location_symm);
   copy_v3_v3(original_initial_location, cache->initial_location_symm);
 
   for (int dim = 0; dim < 3; dim++) {
@@ -361,10 +363,11 @@ static void do_tiled(const Depsgraph &depsgraph,
         ++cache->tile_pass;
 
         for (int dim = 0; dim < 3; dim++) {
-          cache->location_symm[dim] = cur[dim] * step[dim] + orgLoc[dim];
           cache->plane_offset[dim] = cur[dim] * step[dim];
+          cache->location_symm[dim] = cur[dim] * step[dim] + orgLoc[dim];
           cache->initial_location_symm[dim] = cur[dim] * step[dim] +
                                               original_initial_location[dim];
+          cache->last_location_symm[dim] = cur[dim] * step[dim] + original_last_location[dim];
         }
         action_fn(depsgraph, scene, brush, object, paint_mode_data);
       }

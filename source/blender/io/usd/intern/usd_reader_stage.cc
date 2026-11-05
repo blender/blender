@@ -287,16 +287,13 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   return nullptr;
 }
 
-USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
+USDPrimReader *USDStageReader::create_reader_for_cache(const pxr::UsdPrim &prim)
 {
   if (params_.support_scene_instancing && prim.IsInstance()) {
     return new USDInstanceReader(prim, params_, settings_);
   }
   if (is_primitive_prim(prim)) {
     return new USDShapeReader(prim, params_, settings_);
-  }
-  if (prim.IsA<pxr::UsdGeomCamera>()) {
-    return new USDCameraReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomBasisCurves>()) {
     return new USDBasisCurvesReader(prim, params_, settings_);
@@ -307,21 +304,8 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
   if (prim.IsA<pxr::UsdGeomMesh>()) {
     return new USDMeshReader(prim, params_, settings_);
   }
-  if (prim.IsA<pxr::UsdLuxDomeLight>() || prim.IsA<pxr::UsdLuxDomeLight_1>()) {
-    /* We don't handle dome lights. */
-    return nullptr;
-  }
-  if (prim.IsA<pxr::UsdLuxBoundableLightBase>() || prim.IsA<pxr::UsdLuxNonboundableLightBase>()) {
-    return new USDLightReader(prim, params_, settings_);
-  }
-  if (prim.IsA<pxr::UsdVolVolume>()) {
-    return new USDVolumeReader(prim, params_, settings_);
-  }
   if (prim.IsA<pxr::UsdVolParticleField3DGaussianSplat>()) {
     return new USDParticleFieldReader(prim, params_, settings_);
-  }
-  if (prim.IsA<pxr::UsdSkelSkeleton>()) {
-    return new USDSkeletonReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomPoints>()) {
     return new USDPointsReader(prim, params_, settings_);
@@ -329,6 +313,15 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
   if (prim.IsA<pxr::UsdGeomPointInstancer>()) {
     return new USDPointInstancerReader(prim, params_, settings_);
   }
+
+  /* Special case dome lights since they are outside the typical Xform/Geom reader hierarchy but
+   * are still considered imageable by USD. These do not support any form of cache reader. */
+  if (prim.IsA<pxr::UsdLuxDomeLight>() || prim.IsA<pxr::UsdLuxDomeLight_1>()) {
+    return nullptr;
+  }
+
+  /* The generic `UsdGeomImageable` check must be done last. If the USD prim is imageable, and
+   * doesn't need a type-specific reader, then the USDXformReader can be used. */
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     return new USDXformReader(prim, params_, settings_);
   }

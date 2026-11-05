@@ -126,13 +126,13 @@ std::optional<float2x2> RealizeOnDomainOperation::compute_jacobian(const float3x
 
 void RealizeOnDomainOperation::realize_on_domain_gpu(const float3x3 &transformation)
 {
+  Result &input = this->get_input();
   gpu::Shader *shader = this->context().get_shader(
-      this->get_realization_shader_name(transformation));
+      this->get_realization_shader_name(transformation), input.precision());
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_mat3_as_mat4(shader, "transformation", transformation.ptr());
 
-  Result &input = this->get_input();
   const RealizationOptions realization_options = input.get_realization_options();
 
   if (!GPU_texture_has_integer_format(input)) {
@@ -157,6 +157,7 @@ void RealizeOnDomainOperation::realize_on_domain_gpu(const float3x3 &transformat
 
   const Domain domain = this->compute_domain();
   Result &output = this->get_result();
+  output.set_precision(input.precision());
   output.allocate_texture(domain);
   output.bind_as_image(shader, "domain_img");
 

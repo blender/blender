@@ -74,7 +74,7 @@ void AbstractView::update_from_old(Block &new_block)
 /** \name State Management
  * \{ */
 
-void AbstractView::change_state_delayed()
+void AbstractView::change_state_delayed(const bContext &C)
 {
   BLI_assert_msg(
       this->is_reconstructed(),
@@ -93,7 +93,7 @@ void AbstractView::change_state_delayed()
   });
 #endif
 
-  this->foreach_view_item([](AbstractViewItem &item) { item.change_state_delayed(); });
+  this->foreach_view_item([&](AbstractViewItem &item) { item.change_state_delayed(C); });
 }
 
 /** \} */

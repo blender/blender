@@ -135,7 +135,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   for (const int i : required_items.index_range()) {
     const int item_i = required_items[i];
     const CPPType *expected_type = bke::socket_type_to_geo_nodes_base_cpp_type(
-        items[i].socket_type);
+        items[item_i].socket_type);
     const std::string identifier = ItemsAccessor::input_socket_identifier_for_item(items[item_i]);
     fn::GField field = params.extract_input<fn::GField>(UString(identifier));
     if (!expected_type || field.cpp_type() != *expected_type) {

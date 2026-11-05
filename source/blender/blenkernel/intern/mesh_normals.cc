@@ -1711,6 +1711,31 @@ void mesh_set_custom_normals_from_verts_normalized(Mesh &mesh, MutableSpan<float
   mesh::mesh_set_custom_normals(mesh, vert_normals, true);
 }
 
+void mesh_custom_normals_to_free(Mesh &mesh)
+{
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (!attributes.contains("custom_normal")) {
+    return;
+  }
+  auto *normals = new ImplicitSharedValue<Array<float3>>(mesh.corner_normals());
+  attributes.add_override("custom_normal",
+                          AttrDomain::Corner,
+                          AttrType::Float3,
+                          AttributeInitShared(normals->data.data(), *normals));
+  normals->remove_user_and_delete_if_last();
+}
+
+void mesh_custom_normals_to_tangent_space(Mesh &mesh)
+{
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  if (!attributes.contains("custom_normal")) {
+    return;
+  }
+  Array<float3> corner_normals(mesh.corner_normals());
+  attributes.remove("custom_normal");
+  mesh_set_custom_normals_normalized(mesh, corner_normals);
+}
+
 namespace mesh {
 
 constexpr AttributeMetaData CORNER_FAN_META_DATA{AttrDomain::Corner, AttrType::Int16_2D};

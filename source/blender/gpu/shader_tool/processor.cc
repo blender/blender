@@ -303,7 +303,6 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
     lower_printf(parser);
 
     /* Linting phase. Detect valid syntax with invalid usage. */
-    lint_reserved_tokens(parser);
     lint_attributes_ast(parser);
 
     lower_srt_accessor_templates_ast(parser);   /* Legacy. To remove. */
@@ -325,6 +324,9 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
 
     parser.language = Language::IL;
     parser.apply_mutations();
+
+    /* Lint reserved tokens after lowering. */
+    lint_reserved_tokens(parser);
 
     /* GLSL syntax compatibility. */
     lower_reference_arguments(parser);
@@ -1435,6 +1437,10 @@ void SourceProcessor::lower_pipeline_definition(Parser &parser, const string &fi
       };
       scope.foreach_match(".A=A", process_constant);
       scope.foreach_match(".A=1", process_constant);
+      scope.foreach_match(".A=-1", [&](const vector<Token> &toks) {
+        create_info_decl += "COMPILATION_CONSTANT(int, " + string(toks[1].str()) + ", -" +
+                            string(toks[4].str()) + ")\n";
+      });
       tok = scope.back().next();
     }
 

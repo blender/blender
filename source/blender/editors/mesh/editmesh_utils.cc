@@ -328,10 +328,17 @@ void EDBM_mesh_make_from_mesh(Object *ob,
   /* we need to flush selection because the mode may have changed from when last in editmode */
   EDBM_selectmode_flush(bm, select_mode);
 
-  /* The select mode may also have changed to face only, where a separate UV selection can't be
-   * represented, matching what #EDBM_selectmode_set does when switching mode in edit-mode. */
-  if (bm->uv_select_sync_valid && !(select_mode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE))) {
-    EDBM_uvselect_clear(bm);
+  if (bm->uv_select_sync_valid) {
+    if (select_mode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+      /* Flush the UV selection too, so it matches the mesh. */
+      BM_mesh_uvselect_mode_flush(bm);
+    }
+    else {
+      /* The select mode may also have changed to face only, where a separate UV selection can't
+       * be represented, matching what #EDBM_selectmode_set does when switching mode in edit-mode.
+       */
+      EDBM_uvselect_clear(bm);
+    }
   }
 
   /* Conversion to edit-mesh may have modified the attribute layers.
@@ -1843,6 +1850,16 @@ void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 
 void EDBM_update_extern(Mesh *mesh, const bool do_tessellation, const bool is_destructive)
 {
+  /* Python may assign `BMesh.select_mode`, apply it to the edit-mesh.
+   * Since Python doesn't expose the edit-mesh, see: #166007. */
+  EditMesh *em = mesh->runtime->edit_mesh.get();
+  const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
+  if (em->selectmode != bm->selectmode) {
+    em->selectmode = bm->selectmode;
+    DEG_id_tag_update(&mesh->id, ID_RECALC_SELECT);
+    WM_main_add_notifier(NC_GEOM | ND_SELECT, &mesh->id);
+  }
+
   EDBMUpdate_Params params{};
   params.calc_looptris = do_tessellation;
   params.calc_normals = false;

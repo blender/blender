@@ -1238,6 +1238,7 @@ static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
 
     if (changed) {
       EDBM_selectmode_flush(bm, em->selectmode);
+      EDBM_uvselect_clear(bm);
       EDBMUpdate_Params params{};
       params.calc_looptris = false;
       params.calc_normals = false;

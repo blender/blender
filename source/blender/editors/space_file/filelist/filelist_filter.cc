@@ -269,7 +269,7 @@ static void filelist_filter_and_sort_assets(FileList *filelist,
 
   /* `filter->filter_search` contains "*the search text*". */
   char filter_search_buf[sizeof(FileListFilter::filter_search)];
-  const size_t string_length = STRNCPY_RLEN(filter_search_buf, filter.filter_search);
+  const size_t string_length = STRNCPY_UTF8_RLEN(filter_search_buf, filter.filter_search);
 
   /* When doing a name comparison, get rid of the leading/trailing asterisks. */
   filter_search_buf[string_length - 1] = '\0';

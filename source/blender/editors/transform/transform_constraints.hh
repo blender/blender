@@ -42,7 +42,7 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]);
 /**
  * Set the constraint according to the user defined orientation
  *
- * `ftext` is a format string passed to #BLI_snprintf. It will add the name of
+ * `ftext` is a format string passed to #SNPRINTF_UTF8. It will add the name of
  * the orientation where %s is (logically).
  */
 void setUserConstraint(TransInfo *t, int mode, const char text_[]);

@@ -19,11 +19,11 @@
 #endif
 
 @class CAMetalLayer;
-@class CocoaMetalView;
-@class CocoaOpenGLView;
-@class BlenderWindow;
 @class NSCursor;
 @class NSScreen;
+
+@class BlenderWindow;
+@class BlenderWindowView;
 @class GHOST_GestureHandlerCocoa;
 
 class GHOST_SystemCocoa;
@@ -299,15 +299,14 @@ class GHOST_WindowCocoa : public GHOST_Window {
                                             const int hot_spot[2],
                                             bool can_invert_color) override;
 
-  /** The window containing the view */
+  /** The window containing the view. */
   BlenderWindow *window_;
 
-  /** The view, either Metal or OpenGL */
-  CocoaOpenGLView *opengl_view_;
-  CocoaMetalView *metal_view_;
+  /** The window view and Metal layer. */
+  BlenderWindowView *window_view_;
   CAMetalLayer *metal_layer_;
 
-  /** The mother SystemCocoa class to send events */
+  /** The mother SystemCocoa class to send events. */
   GHOST_SystemCocoa *system_cocoa_;
 
   /** Gesture recognizers handler for Sidecar touch support. */
@@ -341,7 +340,8 @@ class GHOST_EventIME : public GHOST_Event {
   }
 };
 
-typedef int GHOST_ImeStateFlagCocoa;
+using GHOST_ImeStateFlagCocoa = int;
+
 enum {
   GHOST_IME_INPUT_FOCUSED = (1 << 0),
   GHOST_IME_ENABLED = (1 << 1),
@@ -350,4 +350,5 @@ enum {
   GHOST_IME_COMPOSITION_EVENT = (1 << 4),  // For Korean input
   GHOST_IME_RESULT_EVENT = (1 << 5)        // For Korean input
 };
+
 #endif /* WITH_INPUT_IME */

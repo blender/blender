@@ -180,10 +180,177 @@ class S {
   }
 };
 )";
-    string expect = R"(
-)";
     auto [output, _, error] = process_test_string(input);
     EXPECT_EQ(error, "Method name matching swizzles accessor are forbidden.");
+  }
+}
+
+TEST(shader_tool, VirtualMethods)
+{
+  const string base = R"(
+struct A {
+  virtual int foo() = 0;
+  virtual void baz() {}
+  virtual void bzz() {}
+  void buz() {}
+};
+
+struct B : A {
+  int foo()
+  {
+    return 0;
+  }
+  virtual void test() final {}
+};
+
+struct C : B {
+  int foo()
+  {
+    return 0;
+  }
+  void bzz() final {}
+  void buz() {}
+};
+)";
+  {
+    string input = base + R"(void f(A &a) { a.foo(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error,
+              "Call to virtual function 'foo' is not allowed, manually call the final "
+              "override instead");
+  }
+  {
+    string input = base + R"(void f(A &a) { a.baz(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = base + R"(void f(A &a) { a.bzz(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error,
+              "Call to virtual function 'bzz' is not allowed, manually call the final "
+              "override instead");
+  }
+  {
+    string input = base + R"(void f(A &a) { a.buz(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = base + R"(void f(B &b) { b.foo(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(
+        error,
+        "Call to virtual function 'foo' is not allowed, manually call the final override instead");
+  }
+  {
+    string input = base + R"(void f(B &b) { b.baz(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = base + R"(void f(B &b) { b.bzz(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(
+        error,
+        "Call to virtual function 'bzz' is not allowed, manually call the final override instead");
+  }
+  {
+    string input = base + R"(void f(B &b) { b.buz(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = base + R"(void f(B &b) { b.test(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = base + R"(void f(B &b) { b.baz(); })";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = base + R"(
+void f(C &c) {
+  c.foo();
+  c.baz();
+  c.bzz();
+  c.buz();
+  c.test();
+})";
+    string expect = R"(
+struct A {
+  int _pad;
+#line 7
+};
+#line 2
+A A_ctor_() {A r;r._pad=0;return r;}
+
+#ifndef GPU_METAL
+        void _baz(A this_);
+void _buz(A this_);
+#endif
+#line 4
+          void _baz(A this_) {
+#line 4
+                      }
+
+  void _buz(A this_) {
+#line 6
+              }
+
+
+struct B {
+  int _pad;
+#line 15
+};
+#line 9
+B B_ctor_() {B r;r._pad=0;return r;}
+
+#ifndef GPU_METAL
+        void _test(B this_)      ;
+#endif
+          void _test(B this_)       {
+#line 14
+                             }
+
+
+struct C {
+  int _pad;
+#line 24
+};
+#line 17
+C C_ctor_() {C r;r._pad=0;return r;}
+
+#ifndef GPU_METAL
+int _foo(C this_);
+void _bzz(C this_)      ;
+void _buz(C this_);
+#endif
+#line 18
+  int _foo(C this_)
+  {
+    return 0;
+  }
+  void _bzz(C this_)       {
+#line 22
+                    }
+  void _buz(C this_) {
+#line 23
+              }
+
+
+void f(C  c) {
+  _foo(c);
+  _baz(A_ctor_());
+  _bzz(c);
+  _buz(c);
+  _test(B_ctor_());
+})";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
   }
 }
 

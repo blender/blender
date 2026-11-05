@@ -894,6 +894,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
   cleanup_duplicates(specialized_info.batch_resources_);
   cleanup_duplicates(specialized_info.geometry_resources_);
   cleanup_duplicates(specialized_info.push_constants_);
+  cleanup_duplicates(specialized_info.vertex_inputs_);
   cleanup_duplicates(specialized_info.fragment_outputs_);
   cleanup_duplicates(specialized_info.subpass_inputs_);
   cleanup_duplicates(specialized_info.geometry_out_interfaces_);

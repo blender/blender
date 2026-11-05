@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup spuserpref
+ * \ingroup edinterface
  */
 
 #include "BKE_blender_project.hh"
@@ -21,9 +21,7 @@
 
 #include "ED_asset_library_ui.hh"
 
-#include "project_intern.hh"
-
-namespace blender {
+namespace blender::ui {
 
 static Vector<AnyAssetLibraryDefinition> project_ui_asset_libraries()
 {
@@ -44,22 +42,6 @@ static Vector<AnyAssetLibraryDefinition> project_ui_asset_libraries()
   }
 
   return result;
-}
-
-std::optional<int> project_ui_asset_libraries_index_from_user_library(
-    const bUserAssetLibrary &user_library)
-{
-  int i = 0;
-
-  const Vector<AnyAssetLibraryDefinition> libraries = project_ui_asset_libraries();
-  for (const AnyAssetLibraryDefinition &library : libraries) {
-    if (library.user_library && library.user_library == &user_library) {
-      return i;
-    }
-    i++;
-  }
-
-  return std::nullopt;
 }
 
 struct ProjectAssetLibraryListItem : public AssetLibraryListItemCommon {
@@ -126,7 +108,7 @@ struct ProjectAssetLibraryListItem : public AssetLibraryListItemCommon {
   }
 };
 
-static void project_asset_panel_draw(const bContext *C, Panel *panel)
+void template_project_asset_libraries_tree(Layout *layout, bContext *C)
 {
   const bke::BlenderProject *project = BKE_blender_project_get(CTX_data_main(C));
   if (!project) {
@@ -137,9 +119,7 @@ static void project_asset_panel_draw(const bContext *C, Panel *panel)
   Vector<AnyAssetLibraryDefinition> libraries = project_ui_asset_libraries();
   int active_asset_library = project->active_asset_library_index;
 
-  ui::Layout &layout = *panel->layout;
-
-  ui::Layout &row = layout.row(false);
+  ui::Layout &row = layout->row(false);
 
   draw_library_list<ProjectAssetLibraryListItem>(
       *C, row, libraries, "Project Asset Library Preferences");
@@ -166,24 +146,9 @@ static void project_asset_panel_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  layout.separator();
+  layout->separator();
 
-  draw_active_library_settings(C, layout, libraries[active_asset_library]);
+  draw_active_library_settings(C, *layout, libraries[active_asset_library]);
 }
 
-void project_asset_panel_register(ARegionType &region_type)
-{
-  PanelType *panel_type = MEM_new_zeroed<PanelType>(__func__);
-  STRNCPY_UTF8(panel_type->idname, "PROJECT_PT_asset_libraries");
-  STRNCPY_UTF8(panel_type->label, N_("Asset Libraries"));
-  STRNCPY_UTF8(panel_type->category, N_("Asset Libraries"));
-  STRNCPY_UTF8(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-  STRNCPY(panel_type->context, "assets");
-  panel_type->space_type = SPACE_PROJECT;
-  panel_type->region_type = RGN_TYPE_WINDOW;
-  panel_type->draw = project_asset_panel_draw;
-  panel_type->order = 10; /* Make sure the category are put after the other base categories. */
-  BLI_addtail(&region_type.paneltypes, panel_type);
-}
-
-}  // namespace blender
+}  // namespace blender::ui

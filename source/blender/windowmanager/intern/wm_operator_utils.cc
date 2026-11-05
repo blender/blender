@@ -12,6 +12,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -139,7 +140,7 @@ static bool interactive_value_update(ValueInteraction *inter,
   if (changed) {
     /* Set the property for the operator and call its modal function. */
     char str[64];
-    SNPRINTF(str, "%.4f", value_final);
+    SNPRINTF_UTF8(str, "%.4f", value_final);
     ED_area_status_text(inter->context_vars.area, str);
   }
 

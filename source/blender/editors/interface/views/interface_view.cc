@@ -204,7 +204,7 @@ bool block_view_persistent_active_item_apply(const bContext &C,
     item_to_apply->set_state_active();
     if (item_to_apply->is_active()) {
       /* Selected as #activate does, so it's operated on as a clicked item is. */
-      item_to_apply->set_selected(true);
+      item_to_apply->set_selected(C, true);
       active_index = index_to_apply;
     }
   }

@@ -518,6 +518,25 @@ class Extend : public SocketDeclaration {
 
 class ExtendBuilder : public SocketDeclarationBuilder<Extend> {};
 
+class DynamicBuilder;
+
+class Dynamic : public SocketDeclaration {
+ private:
+  friend DynamicBuilder;
+
+ public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_CUSTOM;
+
+  using Builder = DynamicBuilder;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
+};
+
+class DynamicBuilder : public SocketDeclarationBuilder<Dynamic> {};
+
 class CustomTypeBuilder;
 
 class Custom : public SocketDeclaration {

@@ -583,25 +583,15 @@ static PyObject *bpy_op_fn_str(BPyOpFunction *self)
   char idname_py[OP_MAX_TYPENAME];
   WM_operator_py_idname(idname_py, self->idname);
 
-  /* Extract module and function from idname_py. */
-  const char *dot_pos = strchr(idname_py, '.');
+  /* Split module and function in-place. */
+  char *dot_pos = strchr(idname_py, '.');
   if (!dot_pos) {
     return PyUnicode_FromFormat(
         "<function bpy.ops.%s at %p>", idname_py, static_cast<void *>(self));
   }
-
-  size_t op_mod_str_len = dot_pos - idname_py;
-  char op_mod_str[OP_MAX_TYPENAME];
-  char op_fn_str[OP_MAX_TYPENAME];
-
-  /* Copy with bounds checking. */
-  if (op_mod_str_len >= sizeof(op_mod_str)) {
-    /* Truncate if necessary. */
-    op_mod_str_len = sizeof(op_mod_str) - 1;
-  }
-  memcpy(op_mod_str, idname_py, op_mod_str_len);
-  op_mod_str[op_mod_str_len] = '\0';
-  STRNCPY(op_fn_str, dot_pos + 1);
+  *dot_pos = '\0';
+  const char *op_mod_str = idname_py;
+  const char *op_fn_str = dot_pos + 1;
 
   return PyUnicode_FromFormat(
       "<function bpy.ops.%s.%s at %p>", op_mod_str, op_fn_str, static_cast<void *>(self));
@@ -838,8 +828,10 @@ PyObject *pyop_create_function(PyObject * /*self*/, PyObject *args)
   }
 
   /* Validate operator name lengths before constructing strings. */
-  size_t bl_len = strlen(op_mod_str) + 4 + strlen(op_fn_str) + 1; /* "_OT_" + null terminator */
-  if (bl_len > OP_MAX_TYPENAME) {
+  const size_t op_mod_str_len = strlen(op_mod_str);
+  const size_t op_fn_str_len = strlen(op_fn_str);
+  /* "_OT_" + null terminator. */
+  if (op_mod_str_len + 4 + op_fn_str_len + 1 > OP_MAX_TYPENAME) {
     PyErr_Format(PyExc_ValueError, "Operator name too long: %s.%s", op_mod_str, op_fn_str);
     return nullptr;
   }
@@ -851,15 +843,15 @@ PyObject *pyop_create_function(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  /* Construct the Blender `idname` (e.g., `OBJECT_OT_select_all`). */
-  char op_mod_str_upper[OP_MAX_TYPENAME];
-  STRNCPY(op_mod_str_upper, op_mod_str);
-  BLI_str_toupper_ascii(op_mod_str_upper, sizeof(op_mod_str_upper));
-
-  const size_t idname_len = SNPRINTF(op_fn->idname, "%s_OT_%s", op_mod_str_upper, op_fn_str);
-  /* Prevented by the #OP_MAX_TYPENAME check. */
-  BLI_assert(idname_len < sizeof(op_fn->idname));
-  UNUSED_VARS_NDEBUG(idname_len);
+  /* Construct the Blender `idname` (e.g., `OBJECT_OT_select_all`),
+   * the #OP_MAX_TYPENAME check prevents overflow. */
+  char *idname = op_fn->idname;
+  memcpy(idname, op_mod_str, op_mod_str_len);
+  BLI_str_toupper_ascii(idname, op_mod_str_len);
+  idname += op_mod_str_len;
+  memcpy(idname, "_OT_", 4);
+  idname += 4;
+  memcpy(idname, op_fn_str, op_fn_str_len + 1);
   return reinterpret_cast<PyObject *>(op_fn);
 }
 

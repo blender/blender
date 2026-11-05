@@ -15,6 +15,11 @@
 #include "overlay_common.bsl.hh"
 #include "overlay_shader_shared.hh"
 
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
+
 /* TODO(fclem): Move it to Gpencil lib. */
 float3 ray_plane_intersection(float3 ray_ori, float3 ray_dir, float4 plane)
 {
@@ -383,11 +388,6 @@ struct Wire {
 
 [[vertex]]
 void vert_main([[resource_table]] const Wire &srt,
-               [[resource_table]] const Uniform &uni,
-               [[resource_table]] const draw::Resource &resources,
-               [[resource_table]] const draw::Model &models,
-               [[resource_table]] const draw::Infos &infos,
-               [[resource_table]] const draw::View &views,
                [[resource_table]] const Clipping &clip,
                [[instance_index]] const int inst_index,
                [[vertex_id]] const int vert_id,
@@ -426,9 +426,9 @@ void vert_main([[resource_table]] const Wire &srt,
   vert_out[2] = srt.vertex_main(vert_in[2], inst_index);
   vert_out[3] = srt.vertex_main(vert_in[3], inst_index);
 
-  float3 world_pos;
   /* Discard by default. */
   out_pos = float4(NAN_FLT);
+  float3 world_pos = float3(NAN_FLT);
   srt.geometry_main(
       vert_out, out_vertex_id, out_primitive_id, out_invocation_id, v_out, out_pos, world_pos);
 
@@ -455,10 +455,15 @@ PipelineGraphic prepass_curves_clipped(    vert_main, frag_main, ClippingConstan
 PipelineGraphic prepass_pointcloud_clipped(vert_main, frag_main, ClippingConstant{.use_clipping = true}, Prepass{.object_type = 2 /*PrepassType::POINTCLOUD */});
 
 PipelineGraphic prepass_gpencil(        gpencil::vert_main, gpencil::frag_main, ClippingConstant{.use_clipping = false});
-PipelineGraphic prepass_gpencil_clipped(gpencil::vert_main, gpencil::frag_main, ClippingConstant{.use_clipping = false});
+PipelineGraphic prepass_gpencil_clipped(gpencil::vert_main, gpencil::frag_main, ClippingConstant{.use_clipping = true});
 
 PipelineGraphic prepass_wire(        wire::vert_main, frag_main, ClippingConstant{.use_clipping = false});
-PipelineGraphic prepass_wire_clipped(wire::vert_main, frag_main, ClippingConstant{.use_clipping = false});
+PipelineGraphic prepass_wire_clipped(wire::vert_main, frag_main, ClippingConstant{.use_clipping = true});
 /* clang-format on */
 
 }  // namespace overlay::outline
+
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  undef const
+#endif

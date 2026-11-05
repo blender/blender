@@ -21,6 +21,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "UI_tree_view.hh"
 
@@ -237,7 +238,7 @@ std::optional<uiViewState> AbstractTreeView::persistent_state() const
   SET_FLAG_FROM_TEST(state.flag, *show_display_options_, UI_VIEW_SHOW_FILTER_OPTIONS);
   SET_FLAG_FROM_TEST(state.flag, *sort_alpha_, UI_VIEW_SORT_ALPHA);
   SET_FLAG_FROM_TEST(state.flag, *invert_search_filter_, UI_VIEW_FILTER_INVERT);
-  STRNCPY(state.search_string, search_string_.get());
+  STRNCPY_UTF8(state.search_string, search_string_.get());
 
   if (!custom_height_ && !scroll_value_) {
     return {};
@@ -266,7 +267,7 @@ void AbstractTreeView::persistent_state_apply(const uiViewState &state)
   *show_display_options_ = (state.flag & UI_VIEW_SHOW_FILTER_OPTIONS) != 0;
   *sort_alpha_ = (state.flag & UI_VIEW_SORT_ALPHA) != 0;
   *invert_search_filter_ = (state.flag & UI_VIEW_FILTER_INVERT) != 0;
-  BLI_strncpy(search_string_.get(), state.search_string, UI_MAX_NAME_STR);
+  BLI_strncpy_utf8(search_string_.get(), state.search_string, UI_MAX_NAME_STR);
   *invert_sort_type_ = TreeViewSortOrder(state.invert_sort_type);
 }
 
@@ -937,10 +938,10 @@ bool AbstractTreeViewItem::is_collapsible() const
   return this->supports_collapsing();
 }
 
-void AbstractTreeViewItem::change_state_delayed()
+void AbstractTreeViewItem::change_state_delayed(const bContext &C)
 {
   const bool prev_active_state = is_active();
-  AbstractViewItem::change_state_delayed();
+  AbstractViewItem::change_state_delayed(C);
 
   if (prev_active_state != is_active()) {
     this->get_tree_view().scroll_active_into_view_on_draw_ = true;
@@ -1339,7 +1340,7 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
   }
 #endif
   tree_view.update_from_old(block);
-  tree_view.change_state_delayed();
+  tree_view.change_state_delayed(C);
   if (block_view_persistent_active_item_apply(C, block, tree_view)) {
     tree_view.scroll_active_into_view_on_draw_ = true;
   }

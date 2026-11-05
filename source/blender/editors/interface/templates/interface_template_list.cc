@@ -273,7 +273,7 @@ void uilist_filter_and_sort_items(uiList *ui_list,
 
       if (do_order) {
         names[order_idx].org_idx = order_idx;
-        STRNCPY(names[order_idx++].name, name);
+        STRNCPY_UTF8(names[order_idx++].name, name);
       }
 
       /* free name */

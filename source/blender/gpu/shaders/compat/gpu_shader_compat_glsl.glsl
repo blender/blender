@@ -274,7 +274,7 @@ float4 unpackSnorm3x10_1x2(uint data)
   /* Sign-extension for 10-bit and 2-bit values. */
   int4 iv = int4(
       int(v.x << 22) >> 22, int(v.y << 22) >> 22, int(v.z << 22) >> 22, int(v.w << 30) >> 30);
-  return float4(v) / float4(0x1FF, 0x1FF, 0x1FF, 0x1);
+  return float4(iv) / float4(0x1FF, 0x1FF, 0x1FF, 0x1);
 }
 
 #define FLT_MAX uintBitsToFloat(0x7F7FFFFFu)

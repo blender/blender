@@ -28,6 +28,7 @@
 namespace blender::bke::bake {
 
 static Vector<NodesModifierBakeFile> pack_files_from_directory(const StringRefNull directory,
+                                                               const StringRef required_suffix,
                                                                ReportList *reports)
 {
   if (!BLI_is_dir(directory.c_str())) {
@@ -44,7 +45,7 @@ static Vector<NodesModifierBakeFile> pack_files_from_directory(const StringRefNu
     const direntry &dir_entry = dir_entries[i];
     const StringRefNull dir_entry_path = dir_entry.path;
     const StringRefNull name = dir_entry.relname;
-    if (FILENAME_IS_CURRPAR(name.c_str())) {
+    if (FILENAME_IS_CURRPAR(name.c_str()) || !name.endswith(required_suffix)) {
       continue;
     }
     NodesModifierBakeFile bake_file;
@@ -60,14 +61,15 @@ static Vector<NodesModifierBakeFile> pack_files_from_directory(const StringRefNu
 
 NodesModifierPackedBake *pack_bake_from_disk(const BakePath &bake_path, ReportList *reports)
 {
+  /* Other files in this directory are not frames, see #find_sorted_meta_files. */
   const Vector<NodesModifierBakeFile> meta_bake_files = pack_files_from_directory(
-      bake_path.meta_dir, reports);
+      bake_path.meta_dir, ".json", reports);
   if (meta_bake_files.is_empty()) {
     return nullptr;
   }
 
   const Vector<NodesModifierBakeFile> blob_bake_files = pack_files_from_directory(
-      bake_path.blobs_dir, reports);
+      bake_path.blobs_dir, "", reports);
 
   NodesModifierPackedBake *packed_bake = MEM_new<NodesModifierPackedBake>(__func__);
   packed_bake->meta_files_num = meta_bake_files.size();
@@ -96,8 +98,12 @@ bool unpack_bake_to_disk(const NodesModifierPackedBake &packed_bake,
       return false;
     }
     fstream fs(file_path, std::ios::out | std::ios::binary);
-    fs.write(static_cast<const char *>(bake_file.packed_file->data), bake_file.packed_file->size);
-    if (fs.bad()) {
+    if (bake_file.packed_file) {
+      fs.write(static_cast<const char *>(bake_file.packed_file->data),
+               bake_file.packed_file->size);
+    }
+    fs.close();
+    if (fs.fail()) {
       BKE_reportf(reports, RPT_ERROR, "Cannot write file: %s", file_path);
       return false;
     }
@@ -144,24 +150,9 @@ PackGeometryNodesBakeResult pack_geometry_nodes_bake(Main &bmain,
   return PackGeometryNodesBakeResult::Success;
 }
 
-static bool directory_is_empty(const StringRefNull path)
-{
-  direntry *entries = nullptr;
-  const int entries_num = BLI_filelist_dir_contents(path.c_str(), &entries);
-  BLI_SCOPED_DEFER([&]() { BLI_filelist_free(entries, entries_num); });
-  for (const int i : IndexRange(entries_num)) {
-    const direntry &entry = entries[i];
-    if (FILENAME_IS_CURRPAR(entry.relname)) {
-      continue;
-    }
-    return false;
-  }
-  return true;
-}
-
 static bool disk_bake_exists(const bke::bake::BakePath &path)
 {
-  return !directory_is_empty(path.meta_dir);
+  return !find_sorted_meta_files(path.meta_dir).is_empty();
 }
 
 UnpackGeometryNodesBakeResult unpack_geometry_nodes_bake(Main &bmain,

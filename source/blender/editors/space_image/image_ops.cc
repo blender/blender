@@ -25,6 +25,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_time.hh"
 #include "BLI_utildefines.hh"
 
@@ -739,10 +740,10 @@ static void image_zoom_apply(ViewZoomData *vpd,
   }
   char str[10];
   if (precision) {
-    SNPRINTF(str, "%4.2f%%", vpd->sima->zoom * 100.0f);
+    SNPRINTF_UTF8(str, "%4.2f%%", vpd->sima->zoom * 100.0f);
   }
   else {
-    SNPRINTF(str, "%i%%", int(round(vpd->sima->zoom * 100.0f)));
+    SNPRINTF_UTF8(str, "%i%%", int(round(vpd->sima->zoom * 100.0f)));
   }
 
   ED_area_status_text(vpd->area, str);

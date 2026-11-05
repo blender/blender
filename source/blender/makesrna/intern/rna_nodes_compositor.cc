@@ -1233,7 +1233,7 @@ static void def_cmp_cryptomatte(BlenderRNA *brna, StructRNA *srna)
                                  nullptr,
                                  "rna_NodeCryptomatte_image_poll");
   RNA_def_property_struct_type(prop, "Image");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Image", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");

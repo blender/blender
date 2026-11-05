@@ -6,14 +6,10 @@
 
 #include "GHOST_ContextNone.hh"
 #include "GHOST_Debug.hh"
+
 #include "GHOST_GestureHandlerCocoa.hh"
 #include "GHOST_SystemCocoa.hh"
-
-/* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
- * solvable in a short term. */
-#ifdef __clang__
-#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
+#include "GHOST_WindowViewCocoa.hh"
 
 #ifdef WITH_METAL_BACKEND
 #  include "GHOST_ContextMTL.hh"
@@ -206,7 +202,7 @@
     if ([[draggingPBoard types] containsObject:NSPasteboardTypeTIFF]) {
       dragged_object_type_ = GHOST_kDragnDropTypeBitmap;
     }
-    else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType]) {
+    else if ([[draggingPBoard types] containsObject:NSPasteboardTypeFileURL]) {
       dragged_object_type_ = GHOST_kDragnDropTypeFilenames;
     }
     else if ([[draggingPBoard types] containsObject:NSPasteboardTypeString]) {
@@ -277,9 +273,19 @@
         data = droppedImg;
         break;
       }
-      case GHOST_kDragnDropTypeFilenames:
-        data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
+      case GHOST_kDragnDropTypeFilenames: {
+        /* Request URLs from pasteboard, restricted to file URLs only. */
+        NSArray<NSURL *> *urls = [draggingPBoard
+            readObjectsForClasses:@[ [NSURL class] ]
+                          options:@{NSPasteboardURLReadingFileURLsOnlyKey : @YES}];
+        if (urls.count == 0) {
+          return NO;
+        }
+
+        /* Turn the NSArray of NSURL into an NSArray of file path strings. */
+        data = [urls valueForKey:@"path"];
         break;
+      }
       case GHOST_kDragnDropTypeString:
         data = [draggingPBoard stringForType:NSPasteboardTypeString];
         break;
@@ -301,19 +307,6 @@
 
 @end
 
-/* NSView for handling input and drawing. */
-#define COCOA_VIEW_CLASS CocoaOpenGLView
-#define COCOA_VIEW_BASE_CLASS NSOpenGLView
-#include "GHOST_WindowViewCocoa.hh"
-#undef COCOA_VIEW_CLASS
-#undef COCOA_VIEW_BASE_CLASS
-
-#define COCOA_VIEW_CLASS CocoaMetalView
-#define COCOA_VIEW_BASE_CLASS NSView
-#include "GHOST_WindowViewCocoa.hh"
-#undef COCOA_VIEW_CLASS
-#undef COCOA_VIEW_BASE_CLASS
-
 /* --------------------------------------------------------------------
  * Initialization / Finalization.
  */
@@ -331,8 +324,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                                      GHOST_WindowCocoa *parent_window,
                                      const GHOST_GPUDevice &preferred_device)
     : GHOST_Window(width, height, state, context_params, false),
-      opengl_view_(nil),
-      metal_view_(nil),
+      window_(nil),
+      window_view_(nil),
       metal_layer_(nil),
       system_cocoa_(systemCocoa),
       gesture_handler_(nil),
@@ -375,65 +368,65 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
     /* Create NSView inside the window. */
     id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
-    NSView *view;
 
-    if (metalDevice) {
-      /* Create metal layer and view if supported. */
-      metal_layer_ = [[CAMetalLayer alloc] init];
-      metal_layer_.edgeAntialiasingMask = 0;
-      metal_layer_.masksToBounds = NO;
-      metal_layer_.opaque = YES;
-      metal_layer_.framebufferOnly = YES;
-      metal_layer_.presentsWithTransaction = NO;
-      [metal_layer_ removeAllAnimations];
-      metal_layer_.device = metalDevice;
+    GHOST_ASSERT(metalDevice != nullptr, "Failed to obtain default macOS Metal device.");
 
-      if (context_params.vsync != GHOST_kVSyncModeUnset) {
-        metal_layer_.displaySyncEnabled = (context_params.vsync == GHOST_kVSyncModeOff) ? NO : YES;
-      }
+    metal_layer_ = [[CAMetalLayer alloc] init];
+    metal_layer_.edgeAntialiasingMask = 0;
+    metal_layer_.masksToBounds = NO;
+    metal_layer_.opaque = YES;
+    metal_layer_.framebufferOnly = YES;
+    metal_layer_.presentsWithTransaction = NO;
+    [metal_layer_ removeAllAnimations];
+    metal_layer_.device = metalDevice;
 
-      if (type == GHOST_kDrawingContextTypeMetal) {
-        /* Enable EDR support. This is done by:
-         * 1. Using a floating point render target, so that values outside 0..1 can be used
-         * 2. Informing the OS that we are EDR aware, and intend to use values outside 0..1
-         * 3. Setting the extended sRGB color space so that the OS knows how to interpret the
-         *    values.
-         */
-        metal_layer_.wantsExtendedDynamicRangeContent = YES;
-        metal_layer_.pixelFormat = MTLPixelFormatRGBA16Float;
-        const CFStringRef name = kCGColorSpaceExtendedSRGB;
-        CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
-        metal_layer_.colorspace = colorspace;
-        CGColorSpaceRelease(colorspace);
-
-        /* For Blender to know if this window supports HDR. */
-        hdr_info_.hdr_enabled = true;
-        hdr_info_.wide_gamut_enabled = true;
-        hdr_info_.sdr_white_level = 1.0f;
-      }
-
-      metal_view_ = [[CocoaMetalView alloc] initWithSystemCocoa:systemCocoa
-                                                    windowCocoa:this
-                                                          frame:rect];
-      metal_view_.wantsLayer = YES;
-      metal_view_.layer = metal_layer_;
-      view = metal_view_;
+    if (context_params.vsync != GHOST_kVSyncModeUnset) {
+      metal_layer_.displaySyncEnabled = (context_params.vsync == GHOST_kVSyncModeOff) ? NO : YES;
     }
-    else {
-      /* Fall back to OpenGL view if there is no Metal support. */
-      opengl_view_ = [[CocoaOpenGLView alloc] initWithSystemCocoa:systemCocoa
+
+    /* Enable EDR support. This is done by:
+     * 1. Using a floating point render target, so that values outside 0..1 can be used
+     * 2. Informing the OS that we are EDR aware, and intend to use values outside 0..1
+     * 3. Setting the extended sRGB color space so that the OS knows how to interpret the
+     *    values.
+     */
+    metal_layer_.wantsExtendedDynamicRangeContent = YES;
+    metal_layer_.pixelFormat = MTLPixelFormatRGBA16Float;
+    const CFStringRef name = kCGColorSpaceExtendedSRGB;
+    CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
+    metal_layer_.colorspace = colorspace;
+    CGColorSpaceRelease(colorspace);
+
+    /* For Blender to know if this window supports HDR. */
+    hdr_info_.hdr_enabled = true;
+    hdr_info_.wide_gamut_enabled = true;
+    hdr_info_.sdr_white_level = 1.0f;
+
+    window_view_ = [[BlenderWindowView alloc] initWithSystemCocoa:systemCocoa
                                                       windowCocoa:this
                                                             frame:rect];
-      view = opengl_view_;
-    }
+    window_view_.wantsLayer = YES;
+    window_view_.layer = metal_layer_;
 
-    window_.contentView = view;
-    window_.initialFirstResponder = view;
+    window_.contentView = window_view_;
+    window_.initialFirstResponder = window_view_;
 
+    BlenderWindowDelegate *windowDelegate = [[BlenderWindowDelegate alloc]
+        initWithSystemCocoa:systemCocoa
+                windowCocoa:this];
+    window_.delegate = windowDelegate;
+
+    window_.acceptsMouseMovedEvents = YES;
+
+    /* Fullscreen must be restored before updateDrawingSize() is called for correct drawing size
+     * computation. */
     if (state == GHOST_kWindowStateFullScreen) {
       setState(GHOST_kWindowStateFullScreen);
     }
 
+    /* Make window key before computing drawing size, not doing so causes drawing offsets on
+     * certain setups, presumably due to this function refreshing the window bounds as a side
+     * effect (see #161048). */
     [window_ makeKeyAndOrderFront:nil];
 
     updateDrawingSize();
@@ -446,17 +439,10 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
     tablet_ = GHOST_TABLET_DATA_NONE;
 
-    BlenderWindowDelegate *windowDelegate = [[BlenderWindowDelegate alloc]
-        initWithSystemCocoa:systemCocoa
-                windowCocoa:this];
-    window_.delegate = windowDelegate;
-
-    window_.acceptsMouseMovedEvents = YES;
-
     NSView *contentview = window_.contentView;
     contentview.allowedTouchTypes = (NSTouchTypeMaskDirect | NSTouchTypeMaskIndirect);
 
-    [window_ registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
+    [window_ registerForDraggedTypes:[NSArray arrayWithObjects:NSPasteboardTypeFileURL,
                                                                NSPasteboardTypeString,
                                                                NSPasteboardTypeTIFF,
                                                                nil]];
@@ -489,13 +475,9 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 
     releaseNativeHandles();
 
-    if (opengl_view_) {
-      [opengl_view_ release];
-      opengl_view_ = nil;
-    }
-    if (metal_view_) {
-      [metal_view_ release];
-      metal_view_ = nil;
+    if (window_view_) {
+      [window_view_ release];
+      window_view_ = nil;
     }
     if (metal_layer_) {
       [metal_layer_ release];
@@ -525,8 +507,7 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 
 bool GHOST_WindowCocoa::getValid() const
 {
-  NSView *view = (opengl_view_) ? opengl_view_ : metal_view_;
-  return GHOST_Window::getValid() && window_ != nullptr && view != nullptr;
+  return GHOST_Window::getValid() && window_ != nullptr && window_view_ != nullptr;
 }
 
 void *GHOST_WindowCocoa::getOSWindow() const
@@ -807,8 +788,7 @@ void GHOST_WindowCocoa::setNativePixelSize()
   GHOST_Rect rect;
   getClientBounds(rect);
 
-  CAMetalLayer *metalLayer = (CAMetalLayer *)metal_view_.layer;
-  native_pixel_size_ = float(metalLayer.drawableSize.width) / float(rect.getWidth());
+  native_pixel_size_ = float(metal_layer_.drawableSize.width) / float(rect.getWidth());
 }
 
 /**
@@ -899,14 +879,14 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 
 void GHOST_WindowCocoa::updateDrawingSize()
 {
-  NSSize viewSize = metal_view_.bounds.size;
+  NSSize viewSize = window_view_.bounds.size;
   NSSize backingSize = viewSize;
 
   if (system_cocoa_->native_pixel_) {
-    backingSize = [metal_view_ convertSizeToBacking:viewSize];
+    backingSize = [window_view_ convertSizeToBacking:viewSize];
   }
 
-  CAMetalLayer *metalLayer = (CAMetalLayer *)metal_view_.layer;
+  CAMetalLayer *metalLayer = (CAMetalLayer *)window_view_.layer;
 
   metalLayer.contentsScale = backingSize.height / viewSize.height;
   metalLayer.drawableSize = NSSizeToCGSize(backingSize);
@@ -930,7 +910,7 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
 #ifdef WITH_METAL_BACKEND
     case GHOST_kDrawingContextTypeMetal: {
       GHOST_Context *context = new GHOST_ContextMTL(
-          want_context_params_, metal_view_, metal_layer_);
+          want_context_params_, window_view_, metal_layer_);
       if (context->initializeDrawingContext()) {
         return context;
       }
@@ -954,8 +934,7 @@ GHOST_TSuccess GHOST_WindowCocoa::invalidate()
   GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::invalidate(): window invalid");
 
   @autoreleasepool {
-    NSView *view = (opengl_view_) ? opengl_view_ : metal_view_;
-    view.needsDisplay = YES;
+    window_view_.needsDisplay = YES;
   }
   return GHOST_kSuccess;
 }
@@ -1252,21 +1231,11 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(const uint8_t *bitm
 #ifdef WITH_INPUT_IME
 void GHOST_WindowCocoa::beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed)
 {
-  if (opengl_view_) {
-    [opengl_view_ beginIME:x y:y w:w h:h completed:completed];
-  }
-  else {
-    [metal_view_ beginIME:x y:y w:w h:h completed:completed];
-  }
+  [window_view_ beginIME:x y:y w:w h:h completed:completed];
 }
 
 void GHOST_WindowCocoa::endIME()
 {
-  if (opengl_view_) {
-    [opengl_view_ endIME];
-  }
-  else {
-    [metal_view_ endIME];
-  }
+  [window_view_ endIME];
 }
 #endif /* WITH_INPUT_IME */

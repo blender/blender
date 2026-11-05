@@ -321,6 +321,10 @@ class RuntimeToBakeValue {
           GeometrySet &geometry = reference.geometry_set();
           this->runtime_to_bake__GeometrySet(geometry);
         }
+        else {
+          /* Don't leave dangling pointers for non-geometry object instances (e.g. lights). */
+          reference = bke::InstanceReference();
+        }
       }
     }
     if (geometry.has_mesh()) {

@@ -36,6 +36,7 @@
 #  include "BLI_fileops.hh"
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.hh"
+#  include "BLI_string_utf8.hh"
 #  include "BLI_system.hh"
 #  include BLI_SYSTEM_PID_H
 
@@ -99,14 +100,14 @@ static void crashlog_file_generate(const char *filepath, const void *os_info)
   fflush(stdout);
 
 #  ifndef BUILD_DATE
-  SNPRINTF(header, "# " BLEND_VERSION_FMT ", Unknown revision\n", BLEND_VERSION_ARG);
+  SNPRINTF_UTF8(header, "# " BLEND_VERSION_FMT ", Unknown revision\n", BLEND_VERSION_ARG);
 #  else
-  SNPRINTF(header,
-           "# " BLEND_VERSION_FMT ", Commit date: %s %s, Hash %s\n",
-           BLEND_VERSION_ARG,
-           build_commit_date,
-           build_commit_time,
-           build_hash);
+  SNPRINTF_UTF8(header,
+                "# " BLEND_VERSION_FMT ", Commit date: %s %s, Hash %s\n",
+                BLEND_VERSION_ARG,
+                build_commit_date,
+                build_commit_time,
+                build_hash);
 #  endif
 
   /* Open the crash log. */

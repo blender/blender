@@ -482,11 +482,61 @@ struct BSLParser {
     expression(true, true);
   }
 
+  void virtual_qualifier_optional()
+  {
+    if (peek() == "virtual") {
+      NODE(VirtualStmt);
+      match(Word);
+    }
+  }
+
+  void virtual_specifiers_optional()
+  {
+    /* Note that override and final are only keywords in this context. Match them individually. */
+    while (peek() == "override" || peek() == "final") {
+      NODE(VirtualSpecifier);
+      match(Word);
+    }
+  }
+
+  void func_specifier_optional()
+  {
+    if (peek() != '=') {
+      return;
+    }
+    switch (peek_next(1).type()) {
+      case Number: {
+        /* Assume the literal is a 0 and is a pure specifier. The C++ linter ensures that. */
+        NODE(PureSpecifier);
+        match('=');
+        match(Number);
+        break;
+      }
+      case Default: {
+        NODE(DefaultedBody);
+        match('=');
+        match(Default);
+        break;
+      }
+      case Delete: {
+        NODE(DeletedBody);
+        match('=');
+        match(Delete);
+        break;
+      }
+      default:
+        error("Unexpected token \"" + to_str(peek_next(1).type()) +
+              "\", expected 'default', 'delete' or pure specifier");
+        break;
+    }
+  }
+
   bool func_decl(bool expect_template_params = false, bool expect_body = true)
   {
     NODE(FuncDecl);
     attribute_optional();
     static_qualifier_optional();
+    virtual_qualifier_optional();
     match_if(Inline);
     {
       NODE(IdType);
@@ -495,6 +545,8 @@ struct BSLParser {
     qualified_id(expect_template_params);
     function_argument_list();
     const_qualifier_optional();
+    virtual_specifiers_optional();
+    func_specifier_optional();
     if (!expect_body) {
       nodes[curr_node].type = NodeType::FuncForwardDecl;
       return match(';').is_valid();

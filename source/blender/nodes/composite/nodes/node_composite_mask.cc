@@ -133,7 +133,7 @@ class MaskOperation : public NodeOperation {
       return domain;
     }
 
-    return this->context().get_compositing_domain();
+    return this->context().get_compositing_domain().realize_transformation();
   }
 
   int2 get_size()

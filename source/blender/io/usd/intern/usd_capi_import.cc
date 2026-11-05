@@ -623,7 +623,7 @@ CacheReader *CacheReader_open_usd_object(CacheArchiveHandle *handle,
   }
 
   /* TODO(makowalski): The handle does not have the proper import params or settings. */
-  USDPrimReader *usd_reader = archive->create_reader(prim);
+  USDPrimReader *usd_reader = archive->create_reader_for_cache(prim);
 
   if (usd_reader == nullptr) {
     /* This object is not supported. */

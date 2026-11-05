@@ -19,6 +19,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
@@ -143,7 +144,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
                                                           arm->collection_array,
                                                           arm->collection_array_num,
                                                           false);
-  STRNCPY(uarm->active_collection_name, arm->active_collection_name);
+  STRNCPY_UTF8(uarm->active_collection_name, arm->active_collection_name);
   uarm->collection_root_count = arm->collection_root_count;
 
   /* Point the new edit bones at the new collections. */

@@ -9,6 +9,8 @@
 
 #include "abc_reader_object.h"
 
+#include "BLI_string_ref.hh"
+
 #include <Alembic/Abc/Foundation.h>
 #include <Alembic/Abc/ICompoundProperty.h>
 #include <Alembic/Abc/IObject.h>
@@ -44,6 +46,13 @@ static inline const std::string ABC_ACTIVE_COLOR_ATTRIBUTE_PROPNAME =
     "blender:active_color_attribute";
 static inline const std::string ABC_DEFAULT_COLOR_ATTRIBUTE_PROPNAME =
     "blender:default_color_attribute";
+
+/* ORCO, Generated Coordinates, and Reference Points ("Pref") are all terms for the same thing.
+ * Other applications (Maya, Houdini) write these to a property called "Pref". */
+static inline const std::string propNameOriginalCoordinates = "Pref";
+
+/* This should only return true if the attribute (or property) is exported in .arbGeomParams. */
+bool is_reserved_attribute_name(const StringRefNull name);
 
 std::string get_valid_abc_name(const char *name);
 

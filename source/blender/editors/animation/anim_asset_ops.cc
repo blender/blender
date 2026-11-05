@@ -723,7 +723,10 @@ static void update_pose_action_from_scene(Main *bmain,
 static wmOperatorStatus pose_asset_modify_exec(bContext *C, wmOperator *op)
 {
   bAction *action = get_action_of_selected_asset(C);
-  BLI_assert_msg(action, "Poll should have checked action exists");
+  if (!action) {
+    BKE_report(op->reports, RPT_ERROR, "Failed to load pose asset");
+    return OPERATOR_CANCELLED;
+  }
 
   if (ID_IS_LINKED(action) && !is_pose_asset_blend_editable(*action, op->reports)) {
     return OPERATOR_CANCELLED;

@@ -13,6 +13,7 @@
 #include "BLI_implicit_sharing.hh"
 #include "BLI_mutex.hh"
 #include "BLI_serialize.hh"
+#include "BLI_vector.hh"
 
 #include "BKE_bake_values.hh"
 
@@ -192,6 +193,10 @@ class DiskBlobWriter : public BlobWriter {
   int64_t current_offset_ = 0;
   /** Used to generate file names for bake data that is stored in independent files. */
   int independent_file_count_ = 0;
+  /** Names of all files that have been created. */
+  Vector<std::string> file_names_;
+  /** Once something could not be written, all further writes are skipped. */
+  bool has_error_ = false;
 
  public:
   DiskBlobWriter(std::string blob_dir, std::string base_name);
@@ -200,6 +205,16 @@ class DiskBlobWriter : public BlobWriter {
 
   BlobSlice write_as_stream(StringRef file_extension,
                             FunctionRef<void(std::ostream &)> fn) override;
+
+  /**
+   * Close all files. Some errors are only detected at this point, so this has to be called before
+   * any slice returned by this writer is used.
+   * \return True if all data has been written. Otherwise the returned slices must not be used.
+   */
+  [[nodiscard]] bool finish();
+
+  /** Remove all files that have been created by this writer. #finish has to be called before. */
+  void remove_files();
 };
 
 /**

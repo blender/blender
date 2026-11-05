@@ -90,8 +90,7 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
   AssetWeakReference brush_asset_reference = asset->make_weak_reference();
   Paint *paint = BKE_paint_get_active_from_context(C);
   std::optional<AssetWeakReference> asset_to_save;
-  if (use_toggle) {
-    BLI_assert(paint->brush_asset_reference);
+  if (use_toggle && paint->brush_asset_reference) {
     if (brush_asset_reference == *paint->brush_asset_reference) {
       if (paint->runtime->previous_active_brush_reference != nullptr) {
         brush_asset_reference = *paint->runtime->previous_active_brush_reference;
@@ -103,6 +102,12 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
   }
   Brush *brush = reinterpret_cast<Brush *>(
       bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
+  if (!brush) {
+    /* The asset may have been removed or renamed externally (e.g. in another Blender session),
+     * leaving a stale reference behind. */
+    BKE_reportf(op->reports, RPT_ERROR, "Brush asset '%s' not found", asset->get_name().c_str());
+    return OPERATOR_CANCELLED;
+  }
 
   /* Activate brush through tool system rather than calling #BKE_paint_brush_set() directly, to let
    * the tool system switch tools if necessary, and update which brush was the last recently used
@@ -255,6 +260,12 @@ static wmOperatorStatus brush_asset_save_as_exec(bContext *C, wmOperator *op)
 
     brush = reinterpret_cast<Brush *>(
         bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
+    if (!brush) {
+      BKE_report(op->reports, RPT_ERROR, "Failed to load saved brush asset");
+      asset::refresh_asset_library(C, library_reference);
+      WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_ADDED, nullptr);
+      return OPERATOR_FINISHED;
+    }
     brush->has_unsaved_changes = false;
   }
 

@@ -436,7 +436,7 @@ void register_scene_compositor_effects_panel(ARegionType *region_type)
 
 static void effect_panel_id(void * /*effect_link*/, char *r_name)
 {
-  BLI_strncpy(r_name, SCENE_COMPOSITOR_EFFECT_PANEL_IDNAME, MAX_NAME);
+  BLI_strncpy_utf8(r_name, SCENE_COMPOSITOR_EFFECT_PANEL_IDNAME, MAX_NAME);
 }
 
 void template_scene_compositor_effects(Layout * /*layout*/, bContext *C)

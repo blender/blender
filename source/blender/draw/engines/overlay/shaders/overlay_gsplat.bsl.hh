@@ -54,8 +54,7 @@ struct FragOut {
   [[frag_color(1)]] float4 line;
 };
 
-[[vertex]] void vert([[resource_table]] const PipelineResources &pipe,
-                     [[resource_table]] const Resources &srt,
+[[vertex]] void vert([[resource_table]] const Resources &srt,
                      [[resource_table]] const Clipping &clip,
                      [[resource_table]] const draw::gsplat::ShapeResource &shape,
                      [[resource_table]] const draw::Model &models,
@@ -115,191 +114,6 @@ struct FragOut {
 
 }  // namespace viewer_attribute
 
-namespace wireframe {
-
-struct Resources {
-  [[uniform(OVERLAY_GLOBALS_SLOT)]] const UniformData &uniform_buf;
-
-  [[push_constant]] const float ndc_offset_factor;
-  [[push_constant]] const float wire_opacity;
-  [[push_constant]] const int color_type;
-  [[push_constant]] const bool use_coloring;
-  [[push_constant]] const bool is_transform;
-};
-struct VertOut {
-  [[flat]] uint select_id;
-  [[flat]] float4 final_color;
-  [[flat]] float4 final_color_inner;
-};
-struct FragOut {
-  [[frag_color(0)]] float4 color;
-  [[frag_color(1)]] float4 line;
-};
-
-namespace detail {
-
-float3 hsv_to_rgb(float3 hsv)
-{
-  float3 nrgb = abs(hsv.x * 6.0f - float3(3.0f, 2.0f, 4.0f)) * float3(1, -1, -1) +
-                float3(-1, 2, 2);
-  nrgb = clamp(nrgb, 0.0f, 1.0f);
-  return ((nrgb - 1.0f) * hsv.y + 1.0f) * hsv.z;
-}
-
-void wire_color_get(float3 &rim_col,
-                    float3 &wire_col,
-                    const ObjectInfos &ob_infos,
-                    [[resource_table]] const Resources &srt)
-{
-  bool is_selected = flag_test(ob_infos.flag, OBJECT_SELECTED);
-  bool is_from_set = flag_test(ob_infos.flag, OBJECT_FROM_SET);
-  bool is_active = flag_test(ob_infos.flag, OBJECT_ACTIVE);
-
-  if (is_from_set) {
-    rim_col = srt.uniform_buf.colors.wire.rgb;
-    wire_col = srt.uniform_buf.colors.wire.rgb;
-  }
-  else if (is_selected && srt.use_coloring) {
-    if (srt.is_transform) {
-      rim_col = srt.uniform_buf.colors.transform.rgb;
-    }
-    else if (is_active) {
-      rim_col = srt.uniform_buf.colors.active_object.rgb;
-    }
-    else {
-      rim_col = srt.uniform_buf.colors.object_select.rgb;
-    }
-    wire_col = srt.uniform_buf.colors.wire.rgb;
-  }
-  else {
-    rim_col = srt.uniform_buf.colors.wire.rgb;
-    wire_col = srt.uniform_buf.colors.background.rgb;
-  }
-}
-
-void wire_object_color_get(float3 &rim_col,
-                           float3 &wire_col,
-                           const ObjectInfos &ob_infos,
-                           [[resource_table]] const Resources &srt)
-{
-  if (srt.color_type == V3D_SHADING_OBJECT_COLOR) {
-    rim_col = wire_col = ob_infos.ob_color.rgb * 0.5f;
-  }
-  else {
-    float3 hsv = float3(ob_infos.random, 0.75f, 0.8f);
-    rim_col = wire_col = hsv_to_rgb(hsv);
-  }
-
-  if (flag_test(ob_infos.flag, OBJECT_SELECTED) && srt.use_coloring) {
-    wire_col += 1e-4f; /* Avoid division by 0. */
-    float brightness = max(wire_col.x, max(wire_col.y, wire_col.z));
-    wire_col *= 0.5f / brightness;
-    rim_col += 0.75f;
-  }
-  else {
-    rim_col *= 0.5f;
-    wire_col += 0.5f;
-  }
-}
-
-}  // namespace detail
-
-[[vertex]] void vert([[resource_table]] const PipelineResources &pipe,
-                     [[resource_table]] const Resources &srt,
-                     [[resource_table]] const draw::gsplat::ShapeResource &shape,
-                     [[resource_table]] const draw::Model &models,
-                     [[resource_table]] const draw::Infos &infos,
-                     [[resource_table]] const draw::View &views,
-                     [[resource_table, condition(selectable)]] const draw::Select & /* select */,
-                     [[resource_table, condition(!selectable)]] const draw::Resource &res_id,
-                     [[resource_table,
-                       condition(selectable)]] const draw::ResourceCustomID &custom_id,
-                     [[vertex_id]] const int vert_id,
-                     [[instance_index]] const int inst_index,
-                     [[position]] float4 &out_position,
-                     [[point_size]] float &out_pointsize,
-                     [[resource_table]] const Clipping &clip,
-                     [[clip_distance, condition(use_clipping)]] float (&clip_distances)[6],
-                     [[out]] VertOut &v_out)
-{
-  draw::ID id;
-  if (pipe.selectable) [[static_branch]] {
-    v_out.select_id = custom_id.get_custom_id(inst_index);
-    id = custom_id.get(inst_index);
-  }
-  else {
-    id = res_id.get(inst_index);
-  }
-  uint view_id = 0;
-  uint resource_id = id.resource_id<1>();
-
-  const ViewMatrices view = views.get(view_id);
-  const ObjectMatrices obj = models.get(resource_id);
-  const ObjectInfos ob_infos = infos.get(resource_id);
-
-  const draw::gsplat::PointShape gs = shape.get_point(uint(vert_id), obj, view);
-  if (gs.is_culled()) {
-    out_position = float4(NAN_FLT);
-    return;
-  }
-
-  out_position = gs.hP;
-  out_pointsize = srt.uniform_buf.sizes.vert * 2.0f;
-  out_position.z -= srt.ndc_offset_factor * 0.5f;
-
-  /* Get wire object color */
-  float3 rim_col;
-  float3 wire_col;
-  if (srt.color_type == V3D_SHADING_OBJECT_COLOR || srt.color_type == V3D_SHADING_RANDOM_COLOR) {
-    detail::wire_object_color_get(rim_col, wire_col, ob_infos, srt);
-  }
-  else {
-    detail::wire_color_get(rim_col, wire_col, ob_infos, srt);
-  }
-
-  v_out.final_color = float4(wire_col * srt.wire_opacity, srt.wire_opacity);
-  v_out.final_color_inner = float4(rim_col * srt.wire_opacity, srt.wire_opacity);
-
-  if (clip.constants.use_clipping) [[static_branch]] {
-    clip.set_clipping_distances(gs.wP,
-                                clip_distances[0],
-                                clip_distances[1],
-                                clip_distances[2],
-                                clip_distances[3],
-                                clip_distances[4],
-                                clip_distances[5]);
-  }
-}
-
-[[fragment]] void frag([[resource_table]] const PipelineResources &pipe,
-                       [[resource_table]] const Resources & /* srt */,
-                       [[resource_table, condition(selectable)]] draw::Select &select,
-                       [[point_coord]] const float2 &in_pointcoord,
-                       [[frag_coord]] const float4 frag_coordinate,
-                       [[in]] const VertOut &v_in,
-                       [[out]] FragOut &f_out)
-{
-  float2 centered = abs(in_pointcoord - float2(0.5f));
-  float dist = max(centered.x, centered.y);
-
-  /* Create a small gradient so that dense objects have a small fresnel effect. */
-  /* Non linear blend. */
-  float fac = dist * dist * 4.0f;
-  float3 rim_col = sqrt(v_in.final_color_inner.rgb);
-  float3 wire_col = sqrt(v_in.final_color.rgb);
-  float3 final_front_col = mix(rim_col, wire_col, 0.35f);
-  float3 color = mix(final_front_col, rim_col, saturate(fac));
-
-  f_out.color = float4(color * color, v_in.final_color.a);
-  f_out.line = float4(0.0f);
-
-  if (pipe.selectable) [[static_branch]] {
-    select.select_id_output(v_in.select_id, frag_coordinate);
-  }
-}
-
-}  // namespace wireframe
-
 namespace edit_vert {
 
 struct Resources {
@@ -313,8 +127,7 @@ struct FragOut {
   [[frag_color(1)]] float4 line;
 };
 
-[[vertex]] void vert([[resource_table]] const PipelineResources &pipe,
-                     [[resource_table]] const Resources &srt,
+[[vertex]] void vert([[resource_table]] const Resources &srt,
                      [[resource_table]] const draw::gsplat::ShapeResource &shape,
                      [[resource_table]] const draw::Resource &res_id,
                      [[resource_table]] const draw::Model &models,
@@ -335,10 +148,6 @@ struct FragOut {
   const ViewMatrices view = views.get(view_id);
 
   const draw::gsplat::PointShape gs = shape.get_point(uint(vert_id), obj, view);
-  if (gs.is_culled()) {
-    out_position = float4(NAN_FLT);
-    return;
-  }
 
   /* NOTE: could just offset homogeneous z by a tiny bit instead? */
   float3 wP = gs.wP;
@@ -593,11 +402,6 @@ PipelineGraphic outline_prepass_gsplat(outline_prepass::vert, outline_prepass::f
 PipelineGraphic outline_prepass_gsplat_selectable(outline_prepass::vert, outline_prepass::frag, ClippingConstant{.use_clipping = false}, PipelineResources{.selectable = true});
 PipelineGraphic outline_prepass_gsplat_clipped(outline_prepass::vert, outline_prepass::frag, ClippingConstant{.use_clipping = true}, PipelineResources{.selectable = false});
 PipelineGraphic outline_prepass_gsplat_selectable_clipped(outline_prepass::vert, outline_prepass::frag, ClippingConstant{.use_clipping = true}, PipelineResources{.selectable = true});
-
-PipelineGraphic wireframe_gsplat(wireframe::vert, wireframe::frag, ClippingConstant{.use_clipping = false}, PipelineResources{.selectable = false});
-PipelineGraphic wireframe_gsplat_selectable(wireframe::vert, wireframe::frag, ClippingConstant{.use_clipping = false}, PipelineResources{.selectable = true});
-PipelineGraphic wireframe_gsplat_clipped(wireframe::vert, wireframe::frag, ClippingConstant{.use_clipping = true}, PipelineResources{.selectable = false});
-PipelineGraphic wireframe_gsplat_selectable_clipped(wireframe::vert, wireframe::frag, ClippingConstant{.use_clipping = true}, PipelineResources{.selectable = true});
 /* clang-format on */
 
 }  // namespace overlay

@@ -65,6 +65,7 @@ static int node_gpu_material(GPUMaterial *material,
   CurveMapping *curve_mapping = get_curve_mapping(*node);
 
   BKE_curvemapping_init(curve_mapping);
+  BKE_curvemapping_premultiply(curve_mapping, true);
   float *band_values;
   int band_size;
   BKE_curvemapping_table_RGBA(curve_mapping, &band_values, &band_size);

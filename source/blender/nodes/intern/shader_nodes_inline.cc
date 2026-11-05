@@ -26,6 +26,7 @@
 #include "NOD_node_in_compute_context.hh"
 #include "NOD_shader_nodes_inline.hh"
 #include "NOD_shader_nodes_multi_function.hh"
+#include "NOD_socket.hh"
 
 namespace blender::nodes {
 namespace {
@@ -1854,6 +1855,8 @@ class ShaderNodesInliner {
     }
     bNode *not_node = this->add_node("FunctionNodeBooleanMath"_ustr);
     not_node->custom1 = NODE_BOOLEAN_MATH_NOT;
+    /* Remove the second input that only exists for binary operations. */
+    update_node_declaration_and_sockets(dst_tree_, *not_node);
     this->set_input_socket_value(node, *not_node, *not_node->inputs.first(), value);
     return {LinkedSocketValue{not_node, not_node->outputs.first()}};
   }

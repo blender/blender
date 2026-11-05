@@ -80,7 +80,7 @@ void AbstractViewItem::activate(bContext &C)
 
   /* Make sure active item is selected. */
   if (is_active()) {
-    set_selected(true);
+    set_selected(C, true);
   }
 }
 
@@ -109,7 +109,7 @@ std::optional<bool> AbstractViewItem::should_be_selected() const
   return std::nullopt;
 }
 
-void AbstractViewItem::set_selected(const bool select)
+void AbstractViewItem::set_selected(const bContext & /*C*/, const bool select)
 {
   is_selected_ = select;
 }
@@ -120,7 +120,7 @@ void AbstractViewItem::set_selected(const bool select)
 /** \name General State Management
  * \{ */
 
-void AbstractViewItem::change_state_delayed()
+void AbstractViewItem::change_state_delayed(const bContext &C)
 {
   if (const std::optional<bool> should_be_active = this->should_be_active()) {
     if (*should_be_active) {
@@ -134,7 +134,7 @@ void AbstractViewItem::change_state_delayed()
     }
   }
   if (std::optional<bool> is_selected = should_be_selected()) {
-    set_selected(is_selected.value_or(false));
+    set_selected(C, is_selected.value_or(false));
   }
 }
 

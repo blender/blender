@@ -301,6 +301,7 @@ static const bNodeSocketStaticTypeInfo node_socket_subtypes[] = {
     {"NodeSocketText", "NodeTreeInterfaceSocketText", SOCK_TEXT_ID, PROP_NONE},
     {"NodeSocketMask", "NodeTreeInterfaceSocketMask", SOCK_MASK, PROP_NONE},
     {"NodeSocketSound", "NodeTreeInterfaceSocketSound", SOCK_SOUND, PROP_NONE},
+    {"NodeSocketDynamic", "NodeTreeInterfaceSocketDynamic", SOCK_DYNAMIC, PROP_NONE},
 };
 
 template<typename Fn> bool socket_data_to_static_type(const StringRef socket_type, const Fn &fn)

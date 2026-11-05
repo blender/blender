@@ -316,9 +316,13 @@ void entry([[resource_table]] [[condition(v)]] SRT &srt)
 }
 
 PipelineCompute test(entry, SRT{.c = SRT::A});
+PipelineCompute test_negative(entry, SRT{.c = -1});
 )";
-    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    auto [output, metadata, error] = process_test_string(input, shader::Language::BSL);
     EXPECT_EQ(error, "");
+    const auto &infos = metadata.create_infos_declarations;
+    EXPECT_NE(infos[infos.size() - 2].find("COMPILATION_CONSTANT(int, c, 0)"), string::npos);
+    EXPECT_NE(infos[infos.size() - 1].find("COMPILATION_CONSTANT(int, c, -1)"), string::npos);
   }
 }
 

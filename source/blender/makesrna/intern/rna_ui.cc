@@ -2611,6 +2611,12 @@ static void rna_def_file_handler(BlenderRNA *brna)
       "start with a \".\" and be separated by \";\"."
       "\nFor Example: ``\".blend;.ble\"``");
 
+  prop = RNA_def_property(srna, "bl_collection_import_enabled", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "type->collection_import_enabled", 0);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop, "Collection Import Enabled", "Can the file handler be used for collection import");
+
   PropertyRNA *parm;
   FunctionRNA *func;
 

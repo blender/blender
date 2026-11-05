@@ -125,7 +125,7 @@ enum TokenType : uint8_t {
   LShift = 'w',
   RShift = 'W',
   Protected = 'x',
-  // Unused = 'X',
+  Delete = 'X',
   Default = 'y',
   TemplateOpen = 'Y',
   TemplateClose = 'z',

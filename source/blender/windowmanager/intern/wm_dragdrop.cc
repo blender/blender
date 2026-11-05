@@ -147,7 +147,7 @@ wmDropBox *WM_dropbox_add(ListBaseT<wmDropBox> *lb,
   drop->cancel = cancel;
   drop->tooltip = tooltip;
   drop->ot = ot;
-  STRNCPY(drop->opname, idname);
+  STRNCPY_UTF8(drop->opname, idname);
 
   WM_operator_properties_alloc(&(drop->ptr), &(drop->properties), idname);
   WM_operator_properties_sanitize(drop->ptr, true);

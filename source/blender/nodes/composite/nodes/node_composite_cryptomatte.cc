@@ -11,6 +11,7 @@
 
 #include "BLI_assert.hh"
 #include "BLI_listbase.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
@@ -45,6 +46,7 @@
 #include "NOD_node_extra_info.hh"
 
 #include "COM_node_operation.hh"
+#include "COM_realize_on_domain_operation.hh"
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
@@ -718,7 +720,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
           pass_result.release();
           return layers;
         }
-        layers.append(std::move(pass_result));
+        layers.append(this->realize_layer_transformation(pass_result));
       }
 
       /* The target view later was processed already, no need to check other view layers. */
@@ -797,14 +799,40 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
 
       /* The layers will be released by the caller, so return a wrapper around the cached image
        * instead. */
-      Result layer_result = this->context().create_result(pass_result.type(),
-                                                          pass_result.precision());
-      layer_result.share_data(pass_result);
+      Result layer = this->context().create_result(pass_result.type(), pass_result.precision());
+      layer.share_data(pass_result);
 
-      layers.append(std::move(layer_result));
+      const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
+      layer.domain().transformation = math::from_scale<float3x3>(pixel_size) *
+                                      layer.domain().transformation;
+      layer.domain().pixel_size = pixel_size;
+
+      layers.append(this->realize_layer_transformation(layer));
     }
 
     return layers;
+  }
+
+  Result realize_layer_transformation(Result &layer)
+  {
+    const InputDescriptor input_descriptor = {layer.type(), InputRealizationMode::Transforms};
+    std::unique_ptr<SimpleOperation> realization_operation(
+        RealizeOnDomainOperation::construct_if_needed(
+            this->context(), layer, input_descriptor, layer.domain()));
+
+    if (!realization_operation) {
+      return layer;
+    }
+
+    realization_operation->map_input_to_result(&layer);
+    realization_operation->evaluate();
+
+    Result &realized_result = realization_operation->get_result();
+    Result realized_layer = this->context().create_result(layer.type(), layer.precision());
+    realized_layer.share_data(realized_result);
+    realized_result.release();
+
+    return realized_layer;
   }
 
   /* Returns the combined name of the render layer and pass using the EXR convention of a period
@@ -834,7 +862,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   {
     switch (get_source()) {
       case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER:
-        return context().get_compositing_domain();
+        return this->context().get_compositing_domain().realize_transformation();
       case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
         return compute_image_domain();
     }
@@ -862,7 +890,11 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
 
     const int2 image_size = int2(image_buffer->x, image_buffer->y);
     BKE_image_release_ibuf(image, image_buffer, nullptr);
-    return Domain(image_size);
+
+    const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
+    Domain domain = Domain(image_size, math::from_scale<float3x3>(pixel_size));
+    domain.pixel_size = pixel_size;
+    return domain.realize_transformation();
   }
 
   ImageUser get_image_user()

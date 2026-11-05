@@ -178,8 +178,10 @@ class Context : public compositor::Context {
 
   compositor::Domain get_compositing_domain() const override
   {
-    compositor::Domain domain = compositor::Domain(this->get_render_size());
-    domain.pixel_size *= this->get_proxy_scale();
+    const float2 proxy_scale = float2(this->get_proxy_scale());
+    compositor::Domain domain = compositor::Domain(this->get_render_size(),
+                                                   math::from_scale<float3x3>(proxy_scale));
+    domain.pixel_size *= proxy_scale;
     if (flag_is_set(this->get_render_data().compositor_proxy_flags,
                     CompositorProxyFlags::AdaptToRenderScale))
     {
@@ -582,9 +584,9 @@ class Context : public compositor::Context {
       pass_data.release();
     }
 
-    pass.domain().pixel_size = this->get_compositing_domain().pixel_size;
-    pass.domain().transformation *= math::from_scale<float3x3>(float2(this->get_proxy_scale())) *
-                                    pass.domain().transformation;
+    const compositor::Domain compositing_domain = this->get_compositing_domain();
+    pass.domain().pixel_size = compositing_domain.pixel_size;
+    pass.domain().transformation = compositing_domain.transformation;
 
     /* We assume the given pass is a Cryptomatte pass and retrieve its layer name. If it wasn't a
      * Cryptomatte pass, the checks below will fail anyway. */
@@ -624,6 +626,10 @@ class Context : public compositor::Context {
           }
         },
         false);
+
+    if (pass.meta_data.is_cryptomatte_layer()) {
+      pass.domain().realization_options.interpolation = compositor::Interpolation::Nearest;
+    }
 
     return pass;
   }

@@ -180,7 +180,7 @@ void BKE_mesh_foreach_mapped_loop(const Mesh *mesh,
         func(user_data,
              v_idx,
              f_idx,
-             positions.is_empty() ? positions[v_idx] : float3(eve->co),
+             positions.is_empty() ? float3(eve->co) : positions[v_idx],
              corner_normals.is_empty() ? nullptr : &corner_normals[BM_elem_index_get(l_iter)].x);
       } while ((l_iter = l_iter->next) != l_first);
     }

@@ -265,7 +265,7 @@ inline void evaluate_chunked_varray_impl(TypeSequence<ParamTags...> /*param_tags
                using T = typename ParamTag::base_type;
                [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
                T *tmp_buffer = std::get<I>(temporary_buffers);
-               auto &soa_buffer = std::get<I>(soa_buffers);
+               [[maybe_unused]] auto &soa_buffer = std::get<I>(soa_buffers);
                if constexpr (ParamTag::category == ParamCategory::Input) {
                  if (arg_info.mode == MaterializeArgMode::Single) {
                    /* The single value has been filled into a buffer already reused for every
@@ -356,7 +356,7 @@ inline void evaluate_chunked_varray_impl(TypeSequence<ParamTags...> /*param_tags
           using T = typename ParamTag::base_type;
           [[maybe_unused]] MaterializeArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
           T *tmp_buffer = std::get<I>(temporary_buffers).ptr();
-          auto &soa_buffer = std::get<I>(soa_buffers);
+          [[maybe_unused]] auto &soa_buffer = std::get<I>(soa_buffers);
           if constexpr (ParamTag::category == ParamCategory::Input) {
             if (arg_info.mode == MaterializeArgMode::Materialized) {
               destruct_n(tmp_buffer, chunk_size);

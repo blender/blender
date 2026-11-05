@@ -59,6 +59,7 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
     {SOCK_MASK, "MASK", ICON_NODE_SOCKET_MASK, "Mask", ""},
     {SOCK_SOUND, "SOUND", ICON_NODE_SOCKET_SOUND, "Sound", ""},
     {SOCK_INT_VECTOR, "INT_VECTOR", ICON_NODE_SOCKET_INT_VECTOR, "Integer Vector", ""},
+    {SOCK_DYNAMIC, "DYNAMIC", ICON_NODE_SOCKET_DYNAMIC, "Dynamic", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

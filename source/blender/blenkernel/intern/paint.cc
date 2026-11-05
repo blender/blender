@@ -84,6 +84,8 @@
 
 #include "IMB_colormanagement.hh"
 
+#include "WM_api.hh"
+
 #include "bmesh.hh"
 
 namespace blender {
@@ -726,6 +728,7 @@ bool BKE_paint_brush_set(Main *bmain,
     if (brush != nullptr) {
       BLI_assert(bke::asset_edit_weak_reference_from_id(brush->id) == brush_asset_reference);
       paint->brush_asset_reference = MEM_new<AssetWeakReference>(__func__, brush_asset_reference);
+      WM_main_add_notifier(NC_BRUSH | NA_SELECTED, nullptr);
     }
   }
 

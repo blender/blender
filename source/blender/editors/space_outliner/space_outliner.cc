@@ -333,6 +333,13 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_BRUSH:
+      if (wmn->action == NA_SELECTED) {
+        if (space_outliner->outlinevis == SO_DATA_API) {
+          ED_region_tag_redraw(region);
+        }
+      }
+      break;
   }
 }
 

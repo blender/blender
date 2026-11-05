@@ -922,6 +922,11 @@ static void image_main_region_listener(const wmRegionListenerParams *params)
 
   /* context changes */
   switch (wmn->category) {
+    case NC_SCENE:
+      if (wmn->data == ND_TOOLSETTINGS) {
+        ED_region_tag_redraw(region);
+      }
+      break;
     case NC_GEOM:
       if (ELEM(wmn->data, ND_DATA, ND_SELECT)) {
         WM_gizmomap_tag_refresh(region->runtime->gizmo_map);

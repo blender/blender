@@ -11,6 +11,7 @@
 #include "BLI_colorspace.hh"
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
@@ -117,7 +118,7 @@ static wmOperatorStatus wm_set_working_color_space_exec(bContext *C, wmOperator 
                                               depsgraph_tag);
   }
 
-  STRNCPY(bmain->colorspace.scene_linear_name, working_space);
+  STRNCPY_UTF8(bmain->colorspace.scene_linear_name, working_space);
   bmain->colorspace.scene_linear_to_xyz = colorspace::scene_linear_to_xyz;
 
   /* Free all render, compositor and sequencer caches. */

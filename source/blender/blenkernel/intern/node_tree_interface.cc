@@ -1410,6 +1410,7 @@ bNode *create_proxy_const_input_node(const eNodeSocketDatatype socket_type,
     case SOCK_TEXT_ID:
     case SOCK_MASK:
     case SOCK_SOUND:
+    case SOCK_DYNAMIC:
       return nullptr;
 
     case SOCK_FLOAT: {
@@ -1605,6 +1606,7 @@ bNode *create_proxy_implicit_input_node(const eNodeSocketDatatype socket_type,
     case SOCK_ROTATION:
     case SOCK_MENU:
     case SOCK_FONT:
+    case SOCK_DYNAMIC:
       return nullptr;
 
     case SOCK_OBJECT: {

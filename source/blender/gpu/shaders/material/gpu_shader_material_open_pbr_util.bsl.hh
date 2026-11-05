@@ -279,8 +279,9 @@ void openpbr_eval_diffuse(KernelGlobals &kg,
                           ClosureDiffuse &diffuse_data,
                           ClosureOrenNayar &oren_nayar_data)
 {
+  diffuse_data.N = N;
+
   if (oren_nayar_data.roughness == 0.0f) {
-    diffuse_data.N = N;
     diffuse_data.color += weight * color;
   }
   else {

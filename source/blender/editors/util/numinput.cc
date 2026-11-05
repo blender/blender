@@ -143,8 +143,8 @@ void outputNumInput(NumInput *n, char *str, const UnitSettings &unit_settings)
               val, double(n->val[i] * fac), prec, n->unit_sys, n->unit_type[i], true, false, true);
         }
 
-        /* +1 because of trailing '\0' */
-        BLI_strncpy_utf8(before_cursor, n->str, n->str_cur + 1);
+        memcpy(before_cursor, n->str, n->str_cur);
+        before_cursor[n->str_cur] = '\0';
         BLI_snprintf_utf8(&str[j * ln],
                           ln,
                           "[%s%s|%s%s] = %s",

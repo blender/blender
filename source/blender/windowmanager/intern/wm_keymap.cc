@@ -334,7 +334,7 @@ void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 {
   BLI_assert(BLI_findindex(&wm->runtime->keyconfigs, keyconf) != -1);
   if (STREQLEN(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr))) {
-    STRNCPY(U.keyconfigstr, wm->runtime->defaultconf->idname);
+    STRNCPY_UTF8(U.keyconfigstr, wm->runtime->defaultconf->idname);
     U.runtime.is_dirty = true;
     WM_keyconfig_update_tag(nullptr, nullptr);
   }
@@ -390,7 +390,7 @@ void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname)
 
   WM_keyconfig_update(wm);
 
-  STRNCPY(U.keyconfigstr, idname);
+  STRNCPY_UTF8(U.keyconfigstr, idname);
   if (wm->init_flag & WM_INIT_FLAG_KEYCONFIG) {
     U.runtime.is_dirty = true;
   }
@@ -418,7 +418,7 @@ static wmKeyMap *wm_keymap_new(const char *idname, int spaceid, int regionid)
   {
     const char *owner_id = RNA_struct_state_owner_get();
     if (owner_id) {
-      STRNCPY(km->owner_id, owner_id);
+      STRNCPY_UTF8(km->owner_id, owner_id);
     }
   }
   return km;
@@ -567,7 +567,7 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
   wmKeyMapItem *kmi = MEM_new<wmKeyMapItem>("keymap entry");
 
   BLI_addtail(&keymap->items, kmi);
-  STRNCPY(kmi->idname, idname);
+  STRNCPY_UTF8(kmi->idname, idname);
 
   keymap_event_set(kmi, params);
   wm_keymap_item_properties_set(kmi);
@@ -1032,7 +1032,7 @@ wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km,
   wmKeyMapItem *kmi = MEM_new<wmKeyMapItem>("keymap entry");
 
   BLI_addtail(&km->items, kmi);
-  STRNCPY(kmi->propvalue_str, value);
+  STRNCPY_UTF8(kmi->propvalue_str, value);
 
   keymap_event_set(kmi, params);
 
@@ -2120,7 +2120,7 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
   if (orig) {
     /* Restore to original. */
     if (!STREQ(orig->idname, kmi->idname)) {
-      STRNCPY(kmi->idname, orig->idname);
+      STRNCPY_UTF8(kmi->idname, orig->idname);
       WM_keymap_item_properties_reset(kmi, nullptr);
     }
 

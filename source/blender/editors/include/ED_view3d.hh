@@ -1095,6 +1095,10 @@ bool ED_view3d_context_user_region(bContext *C, View3D **r_v3d, ARegion **r_regi
  * Also works if \a v3d is not the active space.
  */
 bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion **r_region);
+/**
+ * Get the main window region with 3D viewport. In quad view, this is the camera region.
+ */
+ARegion *ED_view3d_area_main_region(const ScrArea *area, const View3D *v3d);
 bool ED_operator_rv3d_user_region_poll(bContext *C);
 
 /**

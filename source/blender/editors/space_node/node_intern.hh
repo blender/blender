@@ -285,6 +285,9 @@ struct SpaceNode_Runtime {
 
   std::optional<int> frame_identifier_to_highlight;
 
+  /** Identifier of the comment node currently being edited in this node editor. */
+  std::optional<int> comment_identifier_to_edit;
+
   /** Temporary data for modal linking operator. */
   std::unique_ptr<bNodeLinkDrag> linkdrag;
 

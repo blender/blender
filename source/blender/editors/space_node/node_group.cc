@@ -707,7 +707,7 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
    * new group node. This also keeps animation data working. */
   std::string old_node_name = src_node.name;
   bke::node_remove_node(&bmain, ntree, src_node, true, false);
-  STRNCPY(gnode->name, old_node_name.c_str());
+  STRNCPY_UTF8(gnode->name, old_node_name.c_str());
 
   /* Clear already created nested node refs to create new stable ones below. */
   MEM_SAFE_DELETE(wrapper_group->nested_node_refs);

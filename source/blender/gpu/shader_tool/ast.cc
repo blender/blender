@@ -370,6 +370,16 @@ static std::string to_string(ast::NodeType type)
       return "ArrayDecl";
     case ast::NodeType::Pointer:
       return "Pointer";
+    case ast::NodeType::PureSpecifier:
+      return "PureSpecifier";
+    case ast::NodeType::VirtualSpecifier:
+      return "VirtualSpecifier";
+    case ast::NodeType::DefaultedBody:
+      return "DefaultedBody";
+    case ast::NodeType::DeletedBody:
+      return "DeletedBody";
+    case ast::NodeType::VirtualStmt:
+      return "VirtualStmt";
   }
   return "Error";
 }
@@ -506,6 +516,16 @@ static bool display_type(ast::NodeType type)
     case ast::NodeType::ArrayDecl:
       return false;
     case ast::NodeType::Pointer:
+      return false;
+    case ast::NodeType::PureSpecifier:
+      return false;
+    case ast::NodeType::VirtualSpecifier:
+      return false;
+    case ast::NodeType::DefaultedBody:
+      return false;
+    case ast::NodeType::DeletedBody:
+      return false;
+    case ast::NodeType::VirtualStmt:
       return false;
   }
   return false;

@@ -408,6 +408,9 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   eGPUMaterialFlag flag = GPU_MATFLAG_GLOSSY;
   if (use_diffuse) {
     flag |= GPU_MATFLAG_DIFFUSE;
+    if (in[SOCK_DIFFUSE_ROUGHNESS_ID].socket_not_zero()) {
+      flag |= GPU_MATFLAG_DIFFUSE_ROUGHNESS;
+    }
   }
   if (use_refract) {
     flag |= GPU_MATFLAG_REFRACT;
@@ -464,6 +467,9 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   }
   if (!use_refract && in[SOCK_TRANSMISSION_WEIGHT_ID].link == nullptr) {
     in[SOCK_TRANSMISSION_WEIGHT_ID].link = GPU_constant(&zero);
+  }
+  if ((flag & GPU_MATFLAG_DIFFUSE_ROUGHNESS) != GPU_MATFLAG_DIFFUSE_ROUGHNESS) {
+    in[SOCK_DIFFUSE_ROUGHNESS_ID].link = GPU_constant(&zero);
   }
 
   float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;

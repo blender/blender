@@ -222,8 +222,7 @@ static const auto &builtin_attributes()
     static const auto knots_mode_clamp = mf::build::SI1_SO<int8_t, int8_t>(
         "Knots Mode Validate",
         [](int8_t value) {
-          return std::clamp<int8_t>(
-              value, NURBS_KNOT_MODE_NORMAL, NURBS_KNOT_MODE_ENDPOINT_BEZIER);
+          return std::clamp<int8_t>(value, NURBS_KNOT_MODE_NORMAL, NURBS_KNOT_MODE_CUSTOM);
         },
         mf::build::exec_presets::AllSpanOrSingle());
     AttrBuiltinInfo knots_mode(AttrDomain::Curve, AttrType::Int8);
@@ -233,7 +232,7 @@ static const auto &builtin_attributes()
     static const auto curve_type_clamp = mf::build::SI1_SO<int8_t, int8_t>(
         "Curve Type Validate",
         [](int8_t value) {
-          return std::clamp<int8_t>(value, CURVE_TYPE_CATMULL_ROM, CURVE_TYPES_NUM);
+          return std::clamp<int8_t>(value, CURVE_TYPE_CATMULL_ROM, CURVE_TYPE_NURBS);
         },
         mf::build::exec_presets::AllSpanOrSingle());
     AttrBuiltinInfo curve_type(AttrDomain::Curve, AttrType::Int8);

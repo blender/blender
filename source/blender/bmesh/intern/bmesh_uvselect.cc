@@ -456,7 +456,10 @@ void BM_mesh_uvselect_set_elem_shared(BMesh *bm,
       /* If any of the vertices from the edges are no longer connected to a selected edge
        * de-select the entire vertex.. */
       for (BMLoop *l_edge_vert : {l_edge, l_edge->next}) {
-        if (!BM_loop_vert_uvselect_check_other_loop_edge(
+        /* The other edge of this loop connected to the vertex. */
+        const BMLoop *l_edge_other = (l_edge_vert == l_edge) ? l_edge->prev : l_edge->next;
+        if (!BM_elem_flag_test(l_edge_other, BM_ELEM_SELECT_UV_EDGE) &&
+            !BM_loop_vert_uvselect_check_other_loop_edge(
                 l_edge_vert, BM_ELEM_SELECT_UV_EDGE, cd_loop_uv_offset))
         {
           BM_loop_vert_uvselect_set_shared(bm, l_edge_vert, false, cd_loop_uv_offset);
@@ -473,7 +476,7 @@ void BM_mesh_uvselect_set_elem_shared(BMesh *bm,
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
-        if (!BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV)) {
+        if (!BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV_EDGE)) {
           /* Already handled. */
           continue;
         }
@@ -492,8 +495,14 @@ void BM_mesh_uvselect_set_elem_shared(BMesh *bm,
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
-        if (!BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV_EDGE)) {
+        if (!BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV)) {
           /* Already handled. */
+          continue;
+        }
+        /* Keep vertices of selected edges. */
+        if (BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV_EDGE) ||
+            BM_elem_flag_test(l_iter->prev, BM_ELEM_SELECT_UV_EDGE))
+        {
           continue;
         }
         if (!BM_loop_vert_uvselect_check_other_loop_edge(
@@ -636,7 +645,18 @@ static void bm_edge_uvselect_set_pick(BMesh *bm,
     return;
   }
 
-  /* Must be connected to faces. */
+  if (select == false) {
+    if (bm->selectmode & SCE_SELECT_VERTEX) {
+      /* Match #BM_edge_select_set which de-selects the vertices in this mode. */
+      bm_vert_uvselect_set_pick(bm, e->v1, false, uv_pick_params, false);
+      bm_vert_uvselect_set_pick(bm, e->v2, false, uv_pick_params, false);
+      return;
+    }
+  }
+
+  /* Must be connected to faces.
+   * NOTE: this check runs after de-selecting vertices as wire edges have no loops
+   * although de-selecting them still de-selects their vertices. */
   if (e->l == nullptr) {
     return;
   }
@@ -724,8 +744,8 @@ static void bm_edge_uvselect_set_pick(BMesh *bm,
 
       BM_loop_edge_uvselect_set_noflush(bm, l_iter, true);
 
-      BM_loop_vert_uvselect_set_noflush(bm, l_iter, true);
-      BM_loop_vert_uvselect_set_noflush(bm, l_iter->next, true);
+      BM_loop_vert_uvselect_set_shared(bm, l_iter, true, uv_pick_params.cd_loop_uv_offset);
+      BM_loop_vert_uvselect_set_shared(bm, l_iter->next, true, uv_pick_params.cd_loop_uv_offset);
 
       if (any_faces_unselected == false) {
         if (!BM_elem_flag_test(l_iter->f, BM_ELEM_SELECT_UV)) {
@@ -803,6 +823,24 @@ static void bm_face_uvselect_set_pick(BMesh *bm,
   }
 
   BMLoop *l_iter, *l_first;
+
+  if (select == false) {
+    /* Match #BM_face_select_set which de-selects the vertices or edges in these modes. */
+    if (bm->selectmode & SCE_SELECT_VERTEX) {
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        bm_vert_uvselect_set_pick(bm, l_iter->v, false, uv_pick_params, false);
+      } while ((l_iter = l_iter->next) != l_first);
+      return;
+    }
+    if (bm->selectmode & SCE_SELECT_EDGE) {
+      l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+      do {
+        bm_edge_uvselect_set_pick(bm, l_iter->e, false, uv_pick_params, false);
+      } while ((l_iter = l_iter->next) != l_first);
+      return;
+    }
+  }
 
   if (uv_pick_params.shared == false) {
     BM_face_uvselect_set(bm, f, select);
@@ -1007,6 +1045,10 @@ void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
 {
   const bool check_verts = !verts.is_empty();
   const bool check_edges = !edges.is_empty();
+  const bool check_faces = !faces.is_empty();
+  if (!(check_verts || check_edges || check_faces)) {
+    return;
+  }
 
   /* TODO(@ideasman42): select picking may be slow because it does flushing too.
    * Although in practice it seems fast-enough. This should be handled more efficiently. */
@@ -1019,6 +1061,11 @@ void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
   }
   for (BMFace *f : faces) {
     bm_face_uvselect_set_pick(bm, f, select, params);
+  }
+
+  if (select) {
+    /* Match the mesh selection which flushes up. */
+    BM_mesh_uvselect_mode_flush_only_select(bm);
   }
 
   bm_mesh_uvselect_mode_flush_down_deselect_only(
@@ -1034,6 +1081,10 @@ void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
 {
   const bool check_verts = !verts.is_empty();
   const bool check_edges = !edges.is_empty();
+  const bool check_faces = !faces.is_empty();
+  if (!(check_verts || check_edges || check_faces)) {
+    return;
+  }
 
   for (BMVert *v : verts) {
     BM_vert_uvselect_set_pick(bm, v, select, params);
@@ -1043,6 +1094,11 @@ void BM_mesh_uvselect_set_elem_from_mesh(BMesh *bm,
   }
   for (BMFace *f : faces) {
     BM_face_uvselect_set_pick(bm, f, select, params);
+  }
+
+  if (select) {
+    /* Match the mesh selection which flushes up. */
+    BM_mesh_uvselect_mode_flush_only_select(bm);
   }
 
   bm_mesh_uvselect_mode_flush_down_deselect_only(
@@ -1541,6 +1597,9 @@ void BM_mesh_uvselect_flush_post_subdivide(BMesh *bm, const int cd_loop_uv_offse
         BMLoop *l_radial_iter, *l_radial_first;
         l_radial_iter = l_radial_first = e->l;
         do {
+          if (BM_elem_flag_test(l_radial_iter->f, BM_ELEM_HIDDEN)) {
+            continue;
+          }
           BM_loop_edge_uvselect_set(bm, l_radial_iter, true);
         } while ((l_radial_iter = l_radial_iter->radial_next) != l_radial_first);
       }
@@ -2076,7 +2135,7 @@ static bool bm_mesh_uvselect_check_viewport_sync(BMesh *bm, UVSelectValidateInfo
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
         if (BM_elem_flag_test(l_iter, BM_ELEM_SELECT_UV_EDGE)) {
-          if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+          if (!BM_elem_flag_test(l_iter->e, BM_ELEM_SELECT)) {
             INCF_MAYBE_ASSERT(error_count);
           }
         }

@@ -131,8 +131,6 @@ source/blender/functions/.*                @JacquesLucke
 source/blender/nodes/NOD_geometry_nodes.*  @JacquesLucke
 source/blender/nodes/geometry/.*           @JacquesLucke
 
-source/blender/nodes/geometry/.*           @LukasTonne
-
 scripts/startup/bl_ui/node_add_menu_geometry.py     @zazizizou
 
 # --------------------------------------------------
@@ -220,7 +218,6 @@ source/blender/gpu/shaders/.*                           @fclem
 source/blender/editors/space_console/.*   @ideasman42
 source/blender/editors/space_outliner/.*  @JulianEisel
 source/blender/editors/space_text/.*      @ideasman42
-source/blender/editors/space_node/.*      @LukasTonne
 
 # --------------------------------------------------
 # VSE.

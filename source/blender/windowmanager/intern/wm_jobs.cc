@@ -17,6 +17,7 @@
 #include "BLI_build_config.hh"
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_task_c.hh"
 #include "BLI_threads.hh"
 #include "BLI_time.hh"
@@ -240,7 +241,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
     wm_job->owner = owner;
     wm_job->flag = flag;
     wm_job->job_type = job_type;
-    STRNCPY(wm_job->name, name);
+    STRNCPY_UTF8(wm_job->name, name);
 
     wm_job->main_thread_mutex = BLI_ticket_mutex_alloc();
     WM_job_main_thread_lock_acquire(wm_job);

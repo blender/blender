@@ -376,7 +376,7 @@ static bool uv_texture_remove_poll(bContext *C)
   Object *ob = ed::object::context_object(C);
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   const StringRef active_name = mesh->active_uv_map_name();
-  if (const BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh)) {
+  if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh)) {
     if (!CustomData_has_layer_named(&bm->ldata, CD_PROP_FLOAT2, active_name)) {
       return false;
     }

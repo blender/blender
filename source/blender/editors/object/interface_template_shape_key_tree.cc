@@ -256,9 +256,9 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
     return shape_key_.kb->flag & KEYBLOCK_SEL;
   }
 
-  void set_selected(const bool select) override
+  void set_selected(const bContext &C, const bool select) override
   {
-    AbstractViewItem::set_selected(select);
+    AbstractViewItem::set_selected(C, select);
     SET_FLAG_FROM_TEST(shape_key_.kb->flag, select, KEYBLOCK_SEL);
   }
 

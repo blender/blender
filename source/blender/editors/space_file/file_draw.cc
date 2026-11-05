@@ -584,7 +584,7 @@ static void file_draw_string(int sx,
   const uiStyle *style = ui::style_get();
   fs = style->widget;
 
-  STRNCPY(filename, string);
+  STRNCPY_UTF8(filename, string);
   ui::text_clip_middle_ex(&fs, filename, width, UI_ICON_SIZE, '\0');
 
   /* no text clipping needed, fontstyle_draw does it but is a bit too strict

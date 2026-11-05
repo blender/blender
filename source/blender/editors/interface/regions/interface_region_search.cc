@@ -353,7 +353,13 @@ bool searchbox_apply(Button *but, ARegion *region)
     /* Search button with dynamic string properties may have their own method of applying
      * the search results, so only copy the result if there is a proper space for it. */
     if (but->hardmax != 0) {
-      BLI_strncpy(but->editstr, name, name_sep ? (name_sep - name) + 1 : data->items.maxstrlen);
+      const size_t name_maxncpy = name_sep ? (name_sep - name) + 1 : data->items.maxstrlen;
+      if (but_is_utf8(but)) {
+        BLI_strncpy_utf8(but->editstr, name, name_maxncpy);
+      }
+      else {
+        BLI_strncpy(but->editstr, name, name_maxncpy);
+      }
     }
 
     search_but->item_active = data->items.pointers[data->active];

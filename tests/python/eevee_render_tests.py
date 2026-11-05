@@ -105,14 +105,8 @@ BLOCKLIST_METAL = [
 ]
 
 BLOCKLIST_VULKAN = [
-    # Blocked due to UB in the background pixels (to be fixed).
-    "lightprobe_planar.blend",
     # Blocked due to texture interpolation differences (to be investigated).
     "principled_blackbody.blend",
-    # Blocked due to difference in indirect light (AMD linux) (to be investigated).
-    "sss_concave_clamp.blend",
-    # Blocked due to difference in screen space tracing (to be investigated).
-    "image.blend",
 ]
 
 BLOCKLIST_OPENGL = [
@@ -124,12 +118,6 @@ BLOCKLIST_INTEL = [
 BLOCKLIST_AMD_WINDOWS_VK = [
     # Fails inside driver during XML serialization (See #159880).
     "implicit_volume.blend"
-]
-
-# Block list for AMD official driver. On buildbot this driver can fail and the artifacts are likely
-# caused by incorrect index buffer synchronization or vertex shader execution.
-BLOCKLIST_AMD_VK = [
-    ".*"
 ]
 
 BLOCKLIST_AMD_GL = [
@@ -399,8 +387,6 @@ def main():
             blocklist += BLOCKLIST_AMD_GL
         if gpu_vendor == "AMD" and sys.platform == "win32" and args.gpu_backend == "vulkan":
             blocklist += BLOCKLIST_AMD_WINDOWS_VK
-        if gpu_vendor == "AMD" and args.gpu_backend == "vulkan":
-            blocklist += BLOCKLIST_AMD_VK
 
     report = EEVEEReport("EEVEE", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":

@@ -559,7 +559,7 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
                   strlen(basename));
       return false;
     }
-    STRNCPY(load_data->name, basename);
+    STRNCPY_UTF8(load_data->name, basename);
   }
   else if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
     std::string directory = RNA_string_get(op->ptr, "directory");
@@ -567,7 +567,7 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
     if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
         std::string filename = RNA_string_get(&itemptr, "name");
-        STRNCPY(load_data->name, filename.c_str());
+        STRNCPY_UTF8(load_data->name, filename.c_str());
         BLI_path_join(load_data->path, directory.c_str(), filename.c_str());
         break;
       }
@@ -1420,7 +1420,7 @@ static VectorSet<Strip *> sequencer_add_movie_strips(bContext *C,
       RNA_string_get(op->ptr, "directory", dir_only);
       RNA_string_get(&itemptr, "name", file_only);
       BLI_path_join(load_data->path, dir_only, file_only);
-      STRNCPY(load_data->name, file_only);
+      STRNCPY_UTF8(load_data->name, file_only);
       sequencer_add_movie_strips_single_file(C, op, load_data, strips_added, has_overlap);
     }
     RNA_PROP_END;
@@ -1585,7 +1585,7 @@ static void sequencer_add_sound_multiple_strips(bContext *C,
     RNA_string_get(op->ptr, "directory", dir_only);
     RNA_string_get(&itemptr, "name", file_only);
     BLI_path_join(load_data->path, dir_only, file_only);
-    STRNCPY(load_data->name, file_only);
+    STRNCPY_UTF8(load_data->name, file_only);
     Strip *strip = seq::add_sound_strip(bmain, scene, ed->current_strips(), load_data);
     if (strip == nullptr) {
       BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", load_data->path);
@@ -2062,7 +2062,7 @@ static wmOperatorStatus sequencer_add_text_strip_exec(bContext *C, wmOperator *o
       char filename[FILE_MAX];
       RNA_string_get(&itemptr, "name", filename);
       BLI_path_join(load_data.path, directory, filename);
-      STRNCPY(load_data.name, filename);
+      STRNCPY_UTF8(load_data.name, filename);
 
       const Strip *strip = sequencer_add_text_strip_from_file(C, op, &load_data);
       if (strip != nullptr) {

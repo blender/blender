@@ -545,7 +545,7 @@ class ShaderModule {
   StaticShader particle_dot = shader_selectable("overlay_particle_dot");
   StaticShader particle_shape = shader_selectable("overlay_particle_shape");
   StaticShader particle_hair = shader_selectable("overlay_particle_hair");
-  StaticShader wireframe_mesh = shader_selectable("overlay_wireframe");
+  StaticShader wireframe_mesh = shader_selectable("overlay_wireframe_mesh");
   /* Draw objects without edges for the wireframe overlay. */
   StaticShader wireframe_points = shader_selectable("overlay_wireframe_points");
   StaticShader wireframe_points_with_radius = shader_selectable(

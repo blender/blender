@@ -42,7 +42,8 @@ void ImplicitInputOperation::execute()
 
   switch (implicit_input_) {
     case ImplicitInputType::UniformImageCoordinates: {
-      const Domain domain = this->context().get_compositing_domain();
+      const Domain domain =
+          ImplicitInputOperation::get_domain(this->context(), implicit_input_).value();
       const Result &uniform_coordinates = this->context().cache_manager().image_coordinates.get(
           this->context(), domain, CoordinatesType::Uniform);
       result.share_data(uniform_coordinates);
@@ -66,7 +67,7 @@ std::optional<Domain> ImplicitInputOperation::get_domain(const Context &context,
 {
   switch (implicit_input) {
     case ImplicitInputType::UniformImageCoordinates:
-      return context.get_compositing_domain();
+      return context.get_compositing_domain().realize_transformation();
     case ImplicitInputType::SceneFrame:
       return std::nullopt;
   }

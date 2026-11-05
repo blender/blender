@@ -34,10 +34,14 @@
 #include "util/log.h"
 #include "util/md5.h"
 #include "util/path.h"
+#include "util/task_limiter.h"
 #include "util/tbb.h"
 #include "util/types_image.h"
 
 CCL_NAMESPACE_BEGIN
+
+/* The two file formats we save as .tx files, same as OpenImageIO. */
+enum class TxFileFormat { OpenEXR, TIFF };
 
 static std::string datestring(time_t t)
 {
@@ -461,7 +465,7 @@ bool resolve_tx(const string &filepath,
   return false;
 }
 
-static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
+static void write_stats_tx(OIIO::ImageBuf &buf, const TxFileFormat tx_file_format)
 {
   OIIO::ImageBufAlgo::PixelStats pixel_stats = OIIO::ImageBufAlgo::computePixelStats(buf);
 
@@ -507,16 +511,18 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
       OIIO::ImageBufAlgo::isMonochrome(buf))
   {
     LOG_INFO << "  Monochrome image detected. Converting to single channel texture.";
-    OIIO::ImageBuf new_buf(buf.spec());
-    OIIO::ImageBufAlgo::channels(new_buf,
-                                 buf,
-                                 1,
-                                 OIIO::cspan<int>(),
-                                 OIIO::cspan<float>(),
-                                 OIIO::cspan<std::string>(),
-                                 true);
-    new_buf.specmod().default_channel_names();
-    std::swap(buf, new_buf);
+    OIIO::ImageBuf new_buf;
+    if (OIIO::ImageBufAlgo::channels(new_buf,
+                                     buf,
+                                     1,
+                                     OIIO::cspan<int>(),
+                                     OIIO::cspan<float>(),
+                                     OIIO::cspan<std::string>(),
+                                     true))
+    {
+      new_buf.specmod().default_channel_names();
+      std::swap(buf, new_buf);
+    }
   }
 
   /* Image description for tiff, to store arbitrary metadata because it's not natively
@@ -529,7 +535,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
   std::string hash_digest = OIIO::ImageBufAlgo::computePixelHashSHA1(
       buf, extra_hash_data, OIIO::ROI::All(), sha1_blocksize);
   if (hash_digest.length()) {
-    if (use_openexr) {
+    if (tx_file_format == TxFileFormat::OpenEXR) {
       buf.specmod().attribute("oiio:SHA-1", hash_digest);
     }
     else {
@@ -545,7 +551,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
   /* Add constant color attribute. */
   if (is_constant_color) {
     std::string colstr = OIIO::Strutil::join(constant_color, ",", buf.spec().nchannels);
-    if (use_openexr) {
+    if (tx_file_format == TxFileFormat::OpenEXR) {
       buf.specmod().attribute("oiio:ConstantColor", colstr);
     }
     else {
@@ -556,7 +562,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
 
   /* Add average color attribute. */
   std::string avgstr = OIIO::Strutil::join(pixel_stats.avg, ",", buf.spec().nchannels);
-  if (use_openexr) {
+  if (tx_file_format == TxFileFormat::OpenEXR) {
     buf.specmod().attribute("oiio:AverageColor", avgstr);
   }
   else {
@@ -564,7 +570,7 @@ static void write_stats_tx(OIIO::ImageBuf &buf, const bool use_openexr)
   }
   LOG_DEBUG << "  AverageColor: " << avgstr;
 
-  if (!use_openexr) {
+  if (tx_file_format == TxFileFormat::TIFF) {
     buf.specmod().attribute("ImageDescription", desc);
   }
 }
@@ -660,7 +666,10 @@ static bool write_buf_tx(std::unique_ptr<ImageOutput> &out,
   }
   OIIO::ImageBuf srgb_buf;
   if (compress_as_srgb) {
-    srgb_buf.copy(buf);
+    if (!srgb_buf.copy(buf)) {
+      LOG_WARNING << "Failed to copy buffer: " << srgb_buf.geterror();
+      return false;
+    }
     convert_srgb_tx(srgb_buf, false, unassociate_alpha);
   }
   clamp_half_tx(buf, out_format);
@@ -684,21 +693,25 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
                             const ImageFormatType format_type,
                             const bool compress_as_srgb,
                             const bool unassociate_alpha,
-                            OIIO::ImageBuf &large_buf)
+                            OIIO::ImageBuf &large_buf,
+                            const std::function<bool()> &cancel)
 {
   const bool envlatlmode = format_type == IMAGE_FORMAT_EQUIANGULAR;
   const ImageOutput::OpenMode append_mode = out->supports("mipmap") ? ImageOutput::AppendMIPLevel :
                                                                       ImageOutput::AppendSubimage;
 
   /* Write top level. */
-  write_buf_tx(out,
-               out_filepath,
-               out_format,
-               format_type,
-               false,
-               false,
-               OIIO::ImageOutput::Create,
-               large_buf);
+  if (!write_buf_tx(out,
+                    out_filepath,
+                    out_format,
+                    format_type,
+                    false,
+                    false,
+                    OIIO::ImageOutput::Create,
+                    large_buf))
+  {
+    return false;
+  }
 
   /* When using sRGB, convert to linear before resizing, and convert to sRGB again in write_buf_tx.
    * for each mip level.
@@ -713,6 +726,11 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
   /* Write mip levels. */
   OIIO::ImageBuf small_buf;
   while (large_buf.spec().width > 1 || large_buf.spec().height > 1) {
+    if (cancel && cancel()) {
+      out->close();
+      return false;
+    }
+
     ImageSpec small_spec = large_buf.spec();
     small_spec.extra_attribs.free();
 
@@ -724,6 +742,11 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
       small_spec.height /= 2;
     }
     small_buf.reset(small_spec);
+    if (!small_buf.localpixels()) {
+      LOG_WARNING << "Failed to allocate mip level: " << small_buf.geterror();
+      out->close();
+      return false;
+    }
 
     /* TODO: Support other filters than box? If we do this, be sure to include them in the
      * hash like OIIO maketx does. */
@@ -738,14 +761,17 @@ static bool write_mipmap_tx(std::unique_ptr<ImageOutput> &out,
                    resize_block<float>(small_buf, large_buf, roi, envlatlmode);
                  });
 
-    write_buf_tx(out,
-                 out_filepath,
-                 out_format,
-                 format_type,
-                 compress_as_srgb,
-                 unassociate_alpha,
-                 append_mode,
-                 small_buf);
+    if (!write_buf_tx(out,
+                      out_filepath,
+                      out_format,
+                      format_type,
+                      compress_as_srgb,
+                      unassociate_alpha,
+                      append_mode,
+                      small_buf))
+    {
+      return false;
+    }
     std::swap(large_buf, small_buf);
   }
 
@@ -773,9 +799,11 @@ static bool make_tx(const string &filepath,
                     ImageMetaData &metadata,
                     const ImageAlphaType alpha_type,
                     const ImageFormatType format_type,
-                    const ImageSpec &in_spec)
+                    const ImageSpec &in_spec,
+                    const std::function<bool()> &cancel)
 {
-  const bool use_openexr = metadata.is_float();
+  const TxFileFormat tx_file_format = metadata.is_float() ? TxFileFormat::OpenEXR :
+                                                            TxFileFormat::TIFF;
   const TypeDesc out_format = metadata.typedesc();
 
   ImageSpec spec;
@@ -796,9 +824,11 @@ static bool make_tx(const string &filepath,
   /* Software info, version is used to detect if file format is known by old versions. */
   spec.attribute("Software", string_printf("Blender maketx v%d", TX_FILE_FORMAT_VERSION));
 
-  /* Compression. */
+  /* Compression is preserved for EXR to EXR, including lossy compression.
+   * Otherwise always use zip since it is parallelized and smaller than LZW or RLE. */
+  const bool is_openexr_source = strcmp(metadata.colorspace_file_format, "openexr") == 0;
   std::string in_compression = in_spec.get_string_attribute("compression", "none");
-  if (in_compression == "none") {
+  if (tx_file_format == TxFileFormat::TIFF || !is_openexr_source || in_compression == "none") {
     spec.attribute("compression", "zip");
   }
   spec.attribute("planarconfig", "contig");
@@ -824,7 +854,7 @@ static bool make_tx(const string &filepath,
   spec.attribute("oiio:UnassociatedAlpha", 0);
 
   /* Source image metadata. */
-  if (use_openexr) {
+  if (tx_file_format == TxFileFormat::OpenEXR) {
     spec.attribute("blender:SourceFile", filepath);
     spec.attribute("blender:SourceColorSpace", metadata.colorspace);
     spec.attribute("blender:SourceAlpha", alpha_type_string(alpha_type));
@@ -850,7 +880,7 @@ static bool make_tx(const string &filepath,
     case IMAGE_FORMAT_EQUIANGULAR:
       spec.attribute("textureformat", "LatLong Environment");
       spec.attribute("wrapmodes", "periodic,clamp");
-      if (use_openexr) {
+      if (tx_file_format == TxFileFormat::OpenEXR) {
         spec.attribute("oiio:updirection", "y");
         spec.attribute("oiio:sampleborder", 1);
       }
@@ -858,16 +888,24 @@ static bool make_tx(const string &filepath,
   }
 
   /* OpenEXR mipmap metadata. */
-  if (use_openexr) {
+  if (tx_file_format == TxFileFormat::OpenEXR) {
     spec.attribute("openexr:roundingmode", 0 /* ROUND_DOWN */);
     spec.erase_attribute("openexr:levelmode");
   }
 
   OIIO::ImageBuf buf(spec, OIIO::InitializePixels::No);
+  if (!buf.localpixels()) {
+    LOG_WARNING << "Failed to allocate pixels for " << filepath << ": " << buf.geterror();
+    return false;
+  }
   std::time_t in_time = OIIO::Filesystem::last_write_time(filepath);
 
   if (!metadata.oiio_load_pixels(filepath, buf.localpixels(), false)) {
     LOG_WARNING << "Failed to load pixels for " << filepath;
+    return false;
+  }
+
+  if (cancel && cancel()) {
     return false;
   }
 
@@ -878,6 +916,11 @@ static bool make_tx(const string &filepath,
   if (buf.spec().format != TypeFloat) {
     spec.set_format(TypeFloat);
     OIIO::ImageBuf float_buf(spec, OIIO::InitializePixels::No);
+    if (!float_buf.localpixels()) {
+      LOG_WARNING << "Failed to allocate float pixels for " << filepath << ": "
+                  << float_buf.geterror();
+      return false;
+    }
     OIIO::ImageBufAlgo::copy(float_buf, buf, TypeFloat);
     buf = std::move(float_buf);
   }
@@ -886,7 +929,7 @@ static bool make_tx(const string &filepath,
   buf.specmod().attribute("DateTime", datestring(in_time));
 
   /* Write pixel statistics. */
-  write_stats_tx(buf, use_openexr);
+  write_stats_tx(buf, tx_file_format);
 
   /* Write to temporary file, next to the final filepath for atomic rename. */
   /* TODO: Can we protect against leaving files on crashes? Two possibilities:
@@ -894,17 +937,28 @@ static bool make_tx(const string &filepath,
    *   the probability but does not eliminate it.
    * - Add an atexit handles that removes any temporary files we are writing. This
    *   does not help with a power outage or maybe some types of process killing. */
-  const char *tmp_extension = (use_openexr) ? ".%%%%%%%%.temp.exr" : ".%%%%%%%%.temp.tif";
+  const char *tmp_extension = (tx_file_format == TxFileFormat::OpenEXR) ? ".%%%%%%%%.temp.exr" :
+                                                                          ".%%%%%%%%.temp.tif";
   string tmp_filepath = OIIO::Filesystem::unique_path(out_filepath + tmp_extension);
 
   std::unique_ptr<ImageOutput> out = ImageOutput::create(tmp_filepath);
-  bool ok = write_mipmap_tx(out,
-                            tmp_filepath,
-                            out_format,
-                            format_type,
-                            metadata.is_compressible_as_srgb,
-                            !metadata.is_channel_packed,
-                            buf);
+  bool ok = false;
+  try {
+    ok = write_mipmap_tx(out,
+                         tmp_filepath,
+                         out_format,
+                         format_type,
+                         metadata.is_compressible_as_srgb,
+                         !metadata.is_channel_packed,
+                         buf,
+                         cancel);
+  }
+  catch (...) {
+    /* Don't leave temporary file behind, when e.g. out of memory. */
+    out.reset();
+    path_remove(tmp_filepath);
+    throw;
+  }
   out.reset();
 
   /* Stamp with same time as input image file to detect updates. */
@@ -921,8 +975,10 @@ static bool make_tx(const string &filepath,
   }
 
   path_remove(tmp_filepath);
-  assert(path_is_file(out_filepath));
-  LOG_INFO << "Wrote tx file: " << out_filepath;
+  if (ok) {
+    assert(path_is_file(out_filepath));
+    LOG_INFO << "Wrote tx file: " << out_filepath;
+  }
 
   return ok;
 }
@@ -931,7 +987,8 @@ bool make_tx(const string &filepath,
              const string &out_filepath,
              ustring colorspace,
              const ImageAlphaType alpha_type,
-             const ImageFormatType format_type)
+             const ImageFormatType format_type,
+             const std::function<bool()> &cancel)
 {
   LOG_INFO << "Generating tx file for: " << filepath;
 
@@ -949,7 +1006,30 @@ bool make_tx(const string &filepath,
   }
   metadata.finalize(alpha_type);
 
-  if (!make_tx(filepath, out_filepath, metadata, alpha_type, format_type, spec)) {
+  /* Memory usage is approximately two float buffers, plus a temporary buffer
+   * for images with > 4 channels. Use limiter so we don't run out of memory
+   * handling many high res images at the same time. */
+  const size_t num_pixels = size_t(metadata.width) * size_t(metadata.height);
+  size_t estimated_memory_size = num_pixels * (metadata.is_rgba() ? 4 : 1) * sizeof(float) * 2;
+  if (metadata.channels > 4) {
+    estimated_memory_size += num_pixels * metadata.channels * sizeof(float);
+  }
+
+  bool ok = false;
+  const auto generate = [&]() {
+    ok = make_tx(filepath, out_filepath, metadata, alpha_type, format_type, spec, cancel);
+  };
+  try {
+    if (!TaskLimiter::execute(estimated_memory_size, generate, cancel)) {
+      return false;
+    }
+  }
+  catch (const std::bad_alloc &) {
+    LOG_WARNING << "Out of memory generating tx file for " << filepath;
+    return false;
+  }
+
+  if (!ok) {
     LOG_WARNING << "Failed to write tx file";
     return false;
   }

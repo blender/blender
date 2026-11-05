@@ -29,6 +29,7 @@ set(SRC
   string.cpp
   system.cpp
   task.cpp
+  task_limiter.cpp
   thread.cpp
   time.cpp
   transform.cpp
@@ -118,6 +119,7 @@ set(SRC_HEADERS
   string.h
   system.h
   task.h
+  task_limiter.h
   tbb.h
   thread.h
   time.h

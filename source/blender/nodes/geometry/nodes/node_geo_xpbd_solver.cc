@@ -2959,7 +2959,8 @@ class XpbdSolverStep {
       return {};
     }
     GeometryData &geo_data = *geometries_.data[geo_data_i];
-    return geo_data.attributes.ensure_for_write_span<T>(name, domain);
+    /* User provided names may clash with builtin attributes, so lookup can fail. */
+    return geo_data.attributes.lookup_or_add_for_write_span<T>(name, domain);
   }
 
   const Bundle *get_previous_bundle(const Bundle &bundle) const
