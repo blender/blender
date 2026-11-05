@@ -1407,6 +1407,15 @@ struct CodegenContext : NodeErrorHandler {
     }
   }
 
+  SymbolClass &lookup_class(IdQualified id, const SymbolScope &scope, int nested_id)
+  {
+    if (id.is_valid()) {
+      return scope.lookup_class(table, id).unwrap(this);
+    }
+    SymbolClass *cls = scope.lookup_class("a" + to_string(nested_id));
+    return cls ? *cls : *table.err_cls;
+  }
+
   void class_decl(ClassDecl decl,
                   SymbolScope &scope,
                   int nested_id = 0,
@@ -1418,16 +1427,7 @@ struct CodegenContext : NodeErrorHandler {
       return;
     }
 
-    SymbolClass *cls_ptr = inst_cls;
-    if (!cls_ptr) {
-      if (decl.identifier().is_valid()) {
-        cls_ptr = &scope.lookup_class(table, decl.identifier()).unwrap(this);
-      }
-      else {
-        cls_ptr = scope.lookup_class("a" + to_string(nested_id));
-      }
-    }
-    SymbolClass &cls = *cls_ptr;
+    SymbolClass &cls = inst_cls ? *inst_cls : lookup_class(decl.identifier(), scope, nested_id);
     if (cls.is_error) {
       error(decl, Diag::UnknownClassInstantiation);
       return;
@@ -1515,6 +1515,11 @@ struct CodegenContext : NodeErrorHandler {
       return;
     }
 
+    if (cls.parent->as_class()) {
+      /* Do not emit member functions for nested classes, let the parent class do it. */
+      return;
+    }
+
     /* Member functions. */
 
     for (auto [id, base] : cls.base_classes) {
@@ -1538,6 +1543,15 @@ struct CodegenContext : NodeErrorHandler {
 
   void class_functions_prototypes(LocalScope body, SymbolClass &cls)
   {
+    /* Nested classes. */
+    for (auto decl : body.children_of_type<ClassDecl>()) {
+      /* Don't process anonymous classes. */
+      if (decl.identifier().is_valid()) {
+        SymbolClass &nested = cls.lookup_class(table, decl.identifier()).unwrap(this);
+        class_functions_prototypes(decl.body(), nested);
+      }
+    }
+
     if (!body.child_first(NodeType::FuncDecl).is_valid() &&
         !body.child_first(NodeType::FuncForwardDecl).is_valid())
     {
@@ -1560,6 +1574,15 @@ struct CodegenContext : NodeErrorHandler {
 
   void class_functions_decl(LocalScope body, SymbolClass &cls)
   {
+    /* Nested classes. */
+    for (auto decl : body.children_of_type<ClassDecl>()) {
+      /* Don't process anonymous classes. */
+      if (decl.identifier().is_valid()) {
+        SymbolClass &nested = cls.lookup_class(table, decl.identifier()).unwrap(this);
+        class_functions_decl(decl.body(), nested);
+      }
+    }
+
     /* Emit function members. */
     for (FuncDecl decl : body.children_of_type<FuncDecl>()) {
       func_decl(decl, cls);
