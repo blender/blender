@@ -1990,9 +1990,8 @@ static void text_clip_right_label(const uiFontStyle *fstyle, Button *but, const 
   const int border = UI_TEXT_CLIP_MARGIN + 1;
   const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
 
-  int drawstr_len = but->drawstr.size();
   char new_drawstr[UI_MAX_DRAW_STR];
-  STRNCPY_UTF8(new_drawstr, but->drawstr.c_str());
+  int drawstr_len = STRNCPY_UTF8_RLEN(new_drawstr, but->drawstr.c_str());
 
   const char *cpend = new_drawstr + drawstr_len;
 
@@ -2034,7 +2033,7 @@ static void text_clip_right_label(const uiFontStyle *fstyle, Button *but, const 
 
       /* shift the text after and including cp2 back by 1 char,
        * +1 to include null terminator */
-      memmove(cp2 - bytes, cp2, drawstr_len + 1);
+      memmove(cp2 - bytes, cp2, (new_drawstr + drawstr_len + 1) - cp2);
       cp2 -= bytes;
 
       drawstr_len -= bytes;
@@ -2076,7 +2075,7 @@ static void text_clip_right_label(const uiFontStyle *fstyle, Button *but, const 
   cpoin = strrchr(new_drawstr, ':');
   if (cpoin && (cpoin - new_drawstr > 0) && (drawstr_len < (sizeof(new_drawstr) - sep_len))) {
     /* We shortened the string and still have a colon, so insert ellipsis. */
-    memmove(cpoin + sep_len, cpoin, cpend - cpoin);
+    memmove(cpoin + sep_len, cpoin, (new_drawstr + drawstr_len + 1) - cpoin);
     memcpy(cpoin, sep, sep_len);
     but->strwidth = BLF_width(
         fstyle->uifont_id, new_drawstr + but->ofs, sizeof(new_drawstr) - but->ofs);
