@@ -105,14 +105,8 @@ BLOCKLIST_METAL = [
 ]
 
 BLOCKLIST_VULKAN = [
-    # Blocked due to UB in the background pixels (to be fixed).
-    "lightprobe_planar.blend",
     # Blocked due to texture interpolation differences (to be investigated).
     "principled_blackbody.blend",
-    # Blocked due to difference in indirect light (AMD linux) (to be investigated).
-    "sss_concave_clamp.blend",
-    # Blocked due to difference in screen space tracing (to be investigated).
-    "image.blend",
 ]
 
 BLOCKLIST_OPENGL = [
