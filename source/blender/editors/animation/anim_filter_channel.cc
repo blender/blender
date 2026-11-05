@@ -980,11 +980,7 @@ void SummaryChannel::gather_channel_data()
 
 void SummaryChannel::gather_channel_settings()
 {
-  if (this->children_.is_empty()) {
-    this->channel_settings_ = {};
-    return;
-  }
-
+  this->channel_settings_ = {};
   for (AnimationChannel *child : this->children_) {
     this->channel_settings_.merge(child->channel_settings());
   }

@@ -287,7 +287,7 @@ struct ChannelSettingState {
 };
 
 class ChannelSettings {
-  /* Array the length of `ChannelSetting::_MAX`. */
+  /* Array the length of `ChannelSettingKey::_MAX`. */
   Array<ChannelSettingState> states_;
 
  public:
