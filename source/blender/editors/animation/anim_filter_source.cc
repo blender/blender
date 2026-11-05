@@ -119,12 +119,12 @@ static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagSta
 }
 
 /**
- * \param rna_path_items: the RNA path that points to this channelbag.
+ * \param rna_path: the RNA path that points to this channelbag.
  */
 static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
                                     const int channelbag_index,
                                     ChannelTagStack &tags,
-                                    Vector<rna_path::Item> rna_path_items,
+                                    ParsedSourcePath &rna_path,
                                     const TimeMapping time_mapping,
                                     ChannelArena &arena)
 {
@@ -139,7 +139,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
   tags.push({ChannelTagType::ACTION_CHANNELBAG,
              "cbag",
              channelbag_ptr,
-             ParsedRNAPathRef(rna_path_items),
+             ParsedRNAPathRef(rna_path),
              channelbag_index});
 
   for (const int64_t fcurve_index : channelbag.fcurves().index_range()) {
@@ -149,19 +149,18 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
       /* TODO: optimize this a bit for consecutive F-Curves in the same group. */
       PointerRNA group_pointer = RNA_pointer_create_with_parent(
           channelbag_ptr, RNA_ActionGroup, fcu->grp);
-      rna_path_items.append(rna_path::Member{UString("groups")});
-      rna_path_items.append(rna_path::LookupKey{UString{fcu->grp->name}});
+      rna_path.append_member("groups");
+      rna_path.append_lookup(fcu->grp->name);
       tags.push({ChannelTagType::FCURVE_GROUP,
                  fcu->grp->name,
                  group_pointer,
-                 ParsedRNAPathRef(rna_path_items)});
-      rna_path_items.pop_last();
-      rna_path_items.pop_last();
+                 ParsedRNAPathRef(rna_path)});
+      rna_path.remove_last(2);
     }
 
     /* Append the FCurve to the RNA path. */
-    rna_path_items.append(rna_path::Member{UString("fcurves")});
-    rna_path_items.append(rna_path::LookupIndex{fcurve_index});
+    rna_path.append_member("fcurves");
+    rna_path.append_lookup(fcurve_index);
 
     PointerRNA pose_bone_pointer = pose_bone_for_fcurve(*fcu, tags);
 
@@ -193,7 +192,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     if (!skip_fcurve) {
       PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(channelbag_ptr, RNA_FCurve, fcu);
       FCurveChannel *channel = arena.allocate_data_channel<FCurveChannel>(
-          fcurve_ptr, ParsedRNAPathRef(rna_path_items));
+          fcurve_ptr, ParsedRNAPathRef(rna_path));
       channel->tags().set(tags.snapshot());
       channel->set_time_mapping(time_mapping);
 
@@ -208,8 +207,7 @@ static void channels_for_channelbag(const PointerRNA &channelbag_ptr,
     }
 
     /* Pop the FCurve off the RNA path. */
-    rna_path_items.pop_last();
-    rna_path_items.pop_last();
+    rna_path.remove_last(2);
 
     if (pose_bone_pointer.has_data()) {
       tags.pop();
@@ -240,36 +238,28 @@ static void channels_for_action_slot(animrig::Action &action,
   }
 
   /* Start building the RNA path from the Action. */
-  Vector<rna_path::Item> rna_path_items;
+  ParsedSourcePath rna_path;
 
   PointerRNA action_ptr = RNA_pointer_create_discrete(&action.id, RNA_Action, &action);
   tags.push({ChannelTagType::ACTION, action.id.name + 2, action_ptr, ParsedRNAPathRef()});
 
   PointerRNA slot_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionSlot, &slot);
 
-  rna_path_items.append(rna_path::Member{UString("slots")});
-  rna_path_items.append(rna_path::LookupKey{UString(slot.identifier)});
-  tags.push({ChannelTagType::ACTION_SLOT,
-             slot.identifier + 2,
-             slot_ptr,
-             ParsedRNAPathRef(rna_path_items)});
-  rna_path_items.pop_last();
-  rna_path_items.pop_last();
+  rna_path.append_member("slots");
+  rna_path.append_lookup(slot.identifier);
+  tags.push({ChannelTagType::ACTION_SLOT, slot.identifier + 2, slot_ptr, rna_path});
+  rna_path.remove_last(2);
 
   for (const int layer_index : action.layers().index_range()) {
     Layer *layer = action.layer(layer_index);
 
     /* Append the layer to the RNA path. */
-    rna_path_items.append(rna_path::Member{UString("layers")});
-    rna_path_items.append(rna_path::LookupKey{UString(layer->name)});
+    rna_path.append_member("layers");
+    rna_path.append_lookup(layer->name);
 
     PointerRNA layer_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionLayer, layer);
     /* Passing the layer index to guarantee layers are always sorted by their hierarchy. */
-    tags.push({ChannelTagType::ACTION_LAYER,
-               layer->name,
-               layer_ptr,
-               ParsedRNAPathRef(rna_path_items),
-               layer_index});
+    tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer_ptr, rna_path, layer_index});
 
     for (const int64_t strip_index : layer->strips().index_range()) {
       animrig::Strip *strip = layer->strip(strip_index);
@@ -284,40 +274,37 @@ static void channels_for_action_slot(animrig::Action &action,
       const TimeMapping strip_mapping = mapping.combine(strip->frame_offset, 1.0, 0.0);
 
       /* Append the strip to the RNA path. */
-      rna_path_items.append(rna_path::Member{UString("strips")});
-      rna_path_items.append(rna_path::LookupIndex{strip_index});
+      rna_path.append_member("strips");
+      rna_path.append_lookup(strip_index);
 
       Channelbag *channelbag = action_strip.channelbag(channelbag_index);
       PointerRNA strip_ptr = RNA_pointer_create_with_parent(
           layer_ptr, RNA_ActionKeyframeStrip, strip);
-      tags.push({ChannelTagType::ACTION_STRIP,
-                 "strip_name_placeholder",
-                 strip_ptr,
-                 ParsedRNAPathRef(rna_path_items)});
+      tags.push({ChannelTagType::ACTION_STRIP, "strip_name_placeholder", strip_ptr, rna_path});
 
       /* Append the channelbag to the RNA path. */
-      rna_path_items.append(rna_path::Member{UString("channelbags")});
-      rna_path_items.append(rna_path::LookupIndex{channelbag_index});
+      rna_path.append_member("channelbags");
+      rna_path.append_lookup(channelbag_index);
 
       PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
           strip_ptr, RNA_ActionChannelbag, channelbag);
       channels_for_channelbag(
-          channelbag_ptr, channelbag_index, tags, rna_path_items, strip_mapping, arena);
+          channelbag_ptr, channelbag_index, tags, rna_path, strip_mapping, arena);
 
       /* Pop the channelbag off the RNA path. */
-      rna_path_items.pop_last();
-      rna_path_items.pop_last();
+      rna_path.remove_last();
+      rna_path.remove_last();
 
       /* Pop the strip off the tags & RNA path. */
       tags.pop();
-      rna_path_items.pop_last();
-      rna_path_items.pop_last();
+      rna_path.remove_last();
+      rna_path.remove_last();
     }
 
     /* Pop the layer off the tags & RNA path. */
     tags.pop();
-    rna_path_items.pop_last();
-    rna_path_items.pop_last();
+    rna_path.remove_last();
+    rna_path.remove_last();
   }
 
   tags.pop();
@@ -647,7 +634,7 @@ static void collect_action_channels(Main &bmain,
   ChannelSourcingContext ctx(arena);
 
   /* Start building the RNA path from the Action. */
-  Vector<rna_path::Item> rna_path_items;
+  ParsedSourcePath rna_path;
   PointerRNA action_ptr = RNA_id_pointer_create(&action.id);
   tags.push({ChannelTagType::ACTION, action.id.name + 2, action_ptr, ParsedRNAPathRef()});
 
@@ -656,16 +643,12 @@ static void collect_action_channels(Main &bmain,
     Layer *layer = action.layer(layer_index);
 
     /* Append the layer to the RNA path. */
-    rna_path_items.append(rna_path::Member{UString("layers")});
-    rna_path_items.append(rna_path::LookupKey{UString(layer->name)});
+    rna_path.append_member("layers");
+    rna_path.append_lookup(layer->name);
 
     PointerRNA layer_ptr = RNA_pointer_create_id_subdata(action.id, RNA_ActionLayer, layer);
     /* Passing the layer index to guarantee layers are always sorted by their hierarchy. */
-    tags.push({ChannelTagType::ACTION_LAYER,
-               layer->name,
-               layer_ptr,
-               ParsedRNAPathRef(rna_path_items),
-               layer_index});
+    tags.push({ChannelTagType::ACTION_LAYER, layer->name, layer_ptr, rna_path, layer_index});
 
     for (const int strip_index : layer->strips().index_range()) {
       animrig::Strip *strip = layer->strip(strip_index);
@@ -676,8 +659,8 @@ static void collect_action_channels(Main &bmain,
       mapping.offset = strip->frame_offset;
 
       /* Append the strip to the RNA path. */
-      rna_path_items.append(rna_path::Member{UString("strips")});
-      rna_path_items.append(rna_path::LookupIndex{strip_index});
+      rna_path.append_member("strips");
+      rna_path.append_lookup(strip_index);
 
       /* Add tag for the strip. */
       PointerRNA strip_ptr = RNA_pointer_create_with_parent(
@@ -685,7 +668,7 @@ static void collect_action_channels(Main &bmain,
       tags.push({ChannelTagType::ACTION_STRIP,
                  "strip_name_placeholder",
                  strip_ptr,
-                 ParsedRNAPathRef(rna_path_items),
+                 rna_path,
                  strip_index});
 
       /* Loop over the Channelbags in this Strip. */
@@ -729,13 +712,12 @@ static void collect_action_channels(Main &bmain,
         }
 
         /* Append the channelbag to the RNA path (no tag for channelbags). */
-        rna_path_items.append(rna_path::Member{UString("channelbags")});
-        rna_path_items.append(rna_path::LookupIndex{channelbag_index});
+        rna_path.append_member("channelbags");
+        rna_path.append_lookup(channelbag_index);
 
         PointerRNA channelbag_ptr = RNA_pointer_create_with_parent(
             strip_ptr, RNA_ActionChannelbag, channelbag);
-        channels_for_channelbag(
-            channelbag_ptr, channelbag_index, tags, rna_path_items, mapping, arena);
+        channels_for_channelbag(channelbag_ptr, channelbag_index, tags, rna_path, mapping, arena);
 
         /* Pop the slot & user tags. */
         if (did_push_slot_user_tag) {
@@ -744,26 +726,23 @@ static void collect_action_channels(Main &bmain,
         tags.pop();
 
         /* Pop the channelbag off the RNA path. */
-        rna_path_items.pop_last();
-        rna_path_items.pop_last();
+        rna_path.remove_last(2);
       }
 
       /* Pop the strip off the tags & RNA path. */
       tags.pop();
-      rna_path_items.pop_last();
-      rna_path_items.pop_last();
+      rna_path.remove_last(2);
     }
 
     /* Pop the layer off the tags & RNA path. */
     tags.pop();
-    rna_path_items.pop_last();
-    rna_path_items.pop_last();
+    rna_path.remove_last(2);
   }
 
   /* Pop the Action off the tags. */
   tags.pop();
   BLI_assert(tags.is_empty());
-  BLI_assert(rna_path_items.is_empty());
+  BLI_assert(rna_path.items.is_empty());
 }
 
 void collect_action_editor_channels(const bContext &C, ChannelArena &arena)
