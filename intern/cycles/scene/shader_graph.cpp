@@ -736,7 +736,7 @@ void ShaderGraph::optimize_volume_output()
   if (!has_valid_volume) {
     /* We can remove the entire volume shader. */
     LOG_TRACE << "Disconnect meaningless volume output.";
-    disconnect(volume_in->link);
+    disconnect(volume_in);
   }
 }
 
