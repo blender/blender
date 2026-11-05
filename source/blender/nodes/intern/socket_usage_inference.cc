@@ -726,6 +726,11 @@ class SocketUsageInferencerImpl {
         break;
       }
       case GEO_NODE_MENU_SWITCH: {
+        if (socket->index() >= 1) {
+          /* The boolean outputs are always used. */
+          all_socket_disable_states_.add_new(socket, false);
+          break;
+        }
         this->disabled_output_task__output__generic_switch(
             socket, switch_node_inference_utils::is_socket_selected__menu_switch);
         break;
