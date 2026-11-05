@@ -675,19 +675,15 @@ static uint16_t find_free_localview_bit(const Main *bmain)
 static bool local_view_enter(bContext *C,
                              SpaceGraph &sipo,
                              const ARegion &region,
-                             const ListBaseT<bAnimListElem> &anim_data,
+                             const Span<FCurve *> fcurves,
                              const bool frame_selected)
 {
   bool is_selected = false;
   /* Find a free bit and set local view for graph editor in current context. */
   const uint16_t free_bit = find_free_localview_bit(CTX_data_main(C));
 
-  for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
-    if (ale.type != ANIMTYPE_FCURVE) {
-      continue;
-    }
-    if (ale.flag & FCURVE_SELECTED) {
+  for (FCurve *fcu : fcurves) {
+    if (fcu->flag & FCURVE_SELECTED) {
       /* Set bit for selected Fcurves to draw them in local view. */
       fcu->local_view_bits |= free_bit;
       is_selected = true;
@@ -714,15 +710,11 @@ static bool local_view_enter(bContext *C,
 static bool local_view_exit(bContext *C,
                             SpaceGraph &sipo,
                             ARegion &region,
-                            const ListBaseT<bAnimListElem> &anim_data,
+                            const Span<FCurve *> fcurves,
                             const bool frame_selected)
 {
   bool changed = false;
-  for (bAnimListElem &ale : anim_data) {
-    FCurve *fcu = static_cast<FCurve *>(ale.key_data);
-    if (ale.type != ANIMTYPE_FCURVE) {
-      continue;
-    }
+  for (FCurve *fcu : fcurves) {
     fcu->local_view_bits &= ~sipo.local_view_bit;
     changed = true;
   }
@@ -738,36 +730,62 @@ static bool local_view_exit(bContext *C,
 
 static wmOperatorStatus graph_local_view_exec(bContext *C, wmOperator *op)
 {
-  bAnimContext ac;
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   SpaceGraph *sipo = CTX_wm_space_graph(C);
   const bool frame_selected = RNA_boolean_get(op->ptr, "frame_selected");
   const bool enter_local_view = (sipo->local_view_bit == 0);
 
-  if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (ac.regiontype != RGN_TYPE_WINDOW) {
+  ARegion *window_region = CTX_wm_region(C);
+  if (window_region->regiontype != RGN_TYPE_WINDOW) {
+    ScrArea *area = CTX_wm_area(C);
     /* It is possible that operator is invoked from other regions like the Graph Editor's channel
      * list. Main region is required here for current bounds and smooth view function. */
-    for (ARegion &region : ac.area->regionbase) {
+    for (ARegion &region : area->regionbase) {
       if (region.regiontype == RGN_TYPE_WINDOW) {
-        ac.region = &region;
+        window_region = &region;
         break;
       }
     }
   }
+  if (window_region->regiontype != RGN_TYPE_WINDOW) {
+    return OPERATOR_CANCELLED;
+  }
 
-  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS |
-                                    ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
-  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+  Vector<FCurve *> fcurves;
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    using namespace ed::animfilter;
+    ChannelArena &arena = ed::graph::get_summary_tree(*C);
+    for (DataChannel *channel : arena.data_channels) {
+      if (channel->source_type() != DataChannelType::FCURVE) {
+        continue;
+      }
+      if (!channel->is_selected()) {
+        continue;
+      }
+      fcurves.append(channel->get_source<FCurve>());
+    }
+  }
+  else {
+    bAnimContext ac;
+    if (ANIM_animdata_get_context(C, &ac) == 0) {
+      return OPERATOR_CANCELLED;
+    }
+    ac.region = window_region;
+
+    const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+                                      ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
+    ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+    for (bAnimListElem &ale : anim_data) {
+      if (ale.type == ANIMTYPE_FCURVE) {
+        fcurves.append(static_cast<FCurve *>(ale.key_data));
+      }
+    }
+    ANIM_animdata_freelist(&anim_data);
+  }
 
   const bool changed = enter_local_view ?
-                           local_view_enter(C, *sipo, *ac.region, anim_data, frame_selected) :
-                           local_view_exit(C, *sipo, *ac.region, anim_data, frame_selected);
-
-  ANIM_animdata_freelist(&anim_data);
+                           local_view_enter(C, *sipo, *window_region, fcurves, frame_selected) :
+                           local_view_exit(C, *sipo, *window_region, fcurves, frame_selected);
 
   if (!changed) {
     return OPERATOR_CANCELLED;

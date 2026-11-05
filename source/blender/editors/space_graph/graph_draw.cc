@@ -1775,6 +1775,9 @@ void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
     if (!(fcurve->flag & FCURVE_VISIBLE)) {
       continue;
     }
+    if (space_graph.local_view_bit && !(fcurve->local_view_bits & space_graph.local_view_bit)) {
+      continue;
+    }
     if (!active_fcurve && fcurve->flag & FCURVE_ACTIVE) {
       active_fcurve = fcurve_channel;
       continue;
