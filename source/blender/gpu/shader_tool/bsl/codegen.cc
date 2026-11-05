@@ -1955,7 +1955,7 @@ struct CodegenContext : NodeErrorHandler {
                               bool do_mtl_guard,
                               bool do_jump_to)
   {
-    if (fn.is_virtual && fn.is_overridden()) {
+    if (fn.is_overridden() || fn.is_pure_virtual) {
       /* Virtual functions are not callable. No need to emit them. */
       return;
     }

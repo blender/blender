@@ -101,6 +101,8 @@ struct SymbolFunction : SymbolScope {
   bool is_defined = true;
   /* True if function is declared as virtual (makes it not callable under BSL rules). */
   bool is_virtual = false;
+  /* True if function is declared as pure virtual (makes it not callable under BSL rules). */
+  bool is_pure_virtual = false;
 
   /* Identifier of the temporary return variable.
    * The real identifier is then specialized per instantiation. */
@@ -121,6 +123,7 @@ struct SymbolFunction : SymbolScope {
         is_inline(decl.attributes().contains_attr("force_inline")),
         /* Note: We leave to the C++ linting to catch invalid keyword usage. */
         is_virtual(decl.virtual_qualifier().is_valid() || decl.virtual_specifier().is_valid()),
+        is_pure_virtual(is_virtual && decl.pure_specifier().is_valid()),
         fn_type(decl.is_method() ? (decl.is_static() ? STATIC : MEMBER) : GLOBAL),
         entry_point_type(EntryPointType::NONE)
   {
