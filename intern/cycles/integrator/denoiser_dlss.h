@@ -40,7 +40,7 @@ class DLSSDenoiser : public DenoiserGPU {
   NVSDK_NGX_CUDADevice *ngx_device_ = nullptr;
 
   struct CUDATexture {
-    void init(Device *device, int width, int height, int num_components);
+    bool init(Device *device, int width, int height, int num_components);
     void destroy();
 
     void *array = nullptr;

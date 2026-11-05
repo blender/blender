@@ -802,6 +802,15 @@ void PathTrace::update_display(const RenderWork &render_work)
   }
 
   if (display_) {
+    Device *const device = (big_tile_denoise_work_ && render_state_.has_denoised_result) ?
+                               big_tile_denoise_work_->get_device() :
+                               device_;
+    if (device->have_error()) {
+      /* Don't attempt to update GPU display if the device has errors: the error state will make
+       * wrong decisions to happen about interop, causing more chained bugs. */
+      return;
+    }
+
     LOG_DEBUG << "Perform copy to GPUDisplay work.";
 
     const PassType pass_type = film_->get_display_pass();
@@ -1179,10 +1188,8 @@ void PathTrace::process_full_buffer_from_disk(string_view filename)
     set_denoiser_params(denoise_params);
 
     /* Number of samples doesn't matter too much, since the samples count pass will be used. */
-    denoiser_->denoise_buffer(
+    render_state_.has_denoised_result = denoiser_->denoise_buffer(
         full_frame_buffers.params, full_frame_buffers.params, &full_frame_buffers, 0, false);
-
-    render_state_.has_denoised_result = true;
   }
 
   full_frame_state_.render_buffers = &full_frame_buffers;

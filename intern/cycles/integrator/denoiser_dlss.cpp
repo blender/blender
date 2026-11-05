@@ -27,7 +27,7 @@ static PassType get_actual_display_pass_type(const BufferParams &buffer_params)
   return buffer_params.get_actual_display_pass(PASS_COMBINED, PassMode::DENOISED)->type;
 }
 
-void DLSSDenoiser::CUDATexture::init(Device *device, int width, int height, int num_components)
+bool DLSSDenoiser::CUDATexture::init(Device *device, int width, int height, int num_components)
 {
   CUDA_ARRAY_DESCRIPTOR desc = {};
   desc.Width = width;
@@ -35,7 +35,12 @@ void DLSSDenoiser::CUDATexture::init(Device *device, int width, int height, int 
   desc.Format = CU_AD_FORMAT_FLOAT;
   desc.NumChannels = num_components;
 
-  cuda_device_assert(device, cuArrayCreate((CUarray *)&array, &desc));
+  CUresult result = cuArrayCreate((CUarray *)&array, &desc);
+  if (result != CUDA_SUCCESS) {
+    device->set_error(
+        string_printf("Failed to allocate CUDA texture for DLSS (%s)", cuewErrorString(result)));
+    return false;
+  }
 
   CUDA_TEXTURE_DESC tex_desc = {};
   tex_desc.addressMode[0] = CU_TR_ADDRESS_MODE_CLAMP;
@@ -50,6 +55,11 @@ void DLSSDenoiser::CUDATexture::init(Device *device, int width, int height, int 
   cuda_device_assert(
       device, cuTexObjectCreate((CUtexObject *)&texture_handle, &res_desc, &tex_desc, nullptr));
   cuda_device_assert(device, cuSurfObjectCreate((CUsurfObject *)&surface_handle, &res_desc));
+  if (!texture_handle || !surface_handle) {
+    return false;
+  }
+
+  return true;
 }
 void DLSSDenoiser::CUDATexture::destroy()
 {
@@ -284,20 +294,39 @@ bool DLSSDenoiser::denoise_create_if_needed(DenoiseContext &context)
    * in an interleaved buffer, so need to create these temporary textures and convert between the
    * two storage variants (in 'denoise_filter_color_preprocess',
    * 'denoise_filter_guiding_preprocess' and 'denoise_filter_color_postprocess'). */
-  tex_color_.init(cuda_device, context.buffer_params.width, context.buffer_params.height, 4);
-  tex_depth_.init(cuda_device, context.buffer_params.width, context.buffer_params.height, 1);
-  tex_diffuse_albedo_.init(
-      cuda_device, context.buffer_params.width, context.buffer_params.height, 4);
-  tex_specular_albedo_.init(
-      cuda_device, context.buffer_params.width, context.buffer_params.height, 4);
-  tex_normal_roughness_.init(
-      cuda_device, context.buffer_params.width, context.buffer_params.height, 4);
-  tex_motion_.init(cuda_device, context.buffer_params.width, context.buffer_params.height, 2);
-  tex_specular_motion_.init(
-      cuda_device, context.buffer_params.width, context.buffer_params.height, 2);
+  if (!tex_color_.init(
+          cuda_device, context.buffer_params.width, context.buffer_params.height, 4) ||
+      !tex_depth_.init(
+          cuda_device, context.buffer_params.width, context.buffer_params.height, 1) ||
+      !tex_diffuse_albedo_.init(
+          cuda_device, context.buffer_params.width, context.buffer_params.height, 4) ||
+      !tex_specular_albedo_.init(
+          cuda_device, context.buffer_params.width, context.buffer_params.height, 4) ||
+      !tex_normal_roughness_.init(
+          cuda_device, context.buffer_params.width, context.buffer_params.height, 4) ||
+      !tex_motion_.init(
+          cuda_device, context.buffer_params.width, context.buffer_params.height, 2) ||
+      !tex_specular_motion_.init(
+          cuda_device, context.buffer_params.width, context.buffer_params.height, 2) ||
+      !tex_output_.init(cuda_device,
+                        context.denoised_buffer_params.width,
+                        context.denoised_buffer_params.height,
+                        4))
+  {
+    NVSDK_NGX_CUDA_ReleaseFeature(handle_);
+    handle_ = nullptr;
 
-  tex_output_.init(
-      cuda_device, context.denoised_buffer_params.width, context.denoised_buffer_params.height, 4);
+    tex_color_.destroy();
+    tex_depth_.destroy();
+    tex_diffuse_albedo_.destroy();
+    tex_specular_albedo_.destroy();
+    tex_normal_roughness_.destroy();
+    tex_motion_.destroy();
+    tex_specular_motion_.destroy();
+    tex_output_.destroy();
+
+    return false;
+  }
 
   last_width_ = context.denoised_buffer_params.width;
   last_height_ = context.denoised_buffer_params.height;
