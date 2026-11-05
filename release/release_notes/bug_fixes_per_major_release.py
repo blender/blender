@@ -363,6 +363,15 @@ class CommitInfo:
 
         return False
 
+    def is_todo_or_design(self, labels: list[dict[Any, Any]]) -> bool:
+        # Figures out if a task is a TODO or Design task.
+        for label in labels:
+            lower_label = label['name'].lower()
+            if "todo" in lower_label or "design" in lower_label:
+                return True
+
+        return False
+
     def get_module(self, labels: list[dict[Any, Any]]) -> str:
         # Figures out what module the report that was fixed belongs too.
         for label in labels:
@@ -395,7 +404,16 @@ class CommitInfo:
                 continue
 
             report_title = report_information['title']
-            module = self.get_module(report_information['labels'])
+            report_labels = report_information['labels']
+            module = self.get_module(report_labels)
+
+            if self.is_todo_or_design(report_labels):
+                # If a commit claims to "fix" a TODO or Design task,
+                # then it didn't actually fix the issue, it implemented a new feature,
+                # and the "Fix #123" was there to automaitally close the TODO/Design task.
+                # In that case, ignore the commit.
+                self.override_report_info(IGNORED, report_title, module)
+                break
 
             if "pull" in report_information['html_url']:
                 # The fixed issue turns out to be a pull request.
