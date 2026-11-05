@@ -470,12 +470,12 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 static bool get_drag_path(const bContext * /*C*/, wmDrag *drag, char r_path[FILE_MAX])
 {
   if (drag->type == WM_DRAG_COLOR) {
-    BLI_strncpy(r_path, IFACE_("Color"), FILE_MAX);
+    BLI_strncpy_utf8(r_path, IFACE_("Color"), FILE_MAX);
     return false;
   }
 
   if (const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0)) {
-    BLI_strncpy(r_path, asset_drag->asset->get_name().c_str(), FILE_MAX);
+    BLI_strncpy_utf8(r_path, asset_drag->asset->get_name().c_str(), FILE_MAX);
     return false;
   }
 
@@ -496,7 +496,7 @@ static bool get_drag_path(const bContext * /*C*/, wmDrag *drag, char r_path[FILE
       BLI_strncpy(r_path, sound->filepath, FILE_MAX);
     }
     else {
-      BLI_strncpy(r_path, id->name + 2, FILE_MAX);
+      BLI_strncpy_utf8(r_path, id->name + 2, FILE_MAX);
       return false;
     }
     BLI_path_abs(r_path, ID_BLEND_PATH_FROM_GLOBAL(id));

@@ -16,6 +16,7 @@
 #include "BLI_array_utils_c.hh"
 #include "BLI_listbase.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -105,7 +106,7 @@ static void undolatt_to_editlatt(UndoLattice *ult,
   editlatt->latt->dv = ult->dv;
   editlatt->latt->dw = ult->dw;
 
-  STRNCPY(editlatt->latt->vgroup, ult->vgroup);
+  STRNCPY_UTF8(editlatt->latt->vgroup, ult->vgroup);
 
   vertex_group_names->free_no_destruct();
   BKE_defgroup_copy_list(vertex_group_names, &ult->vertex_group_names);
@@ -138,7 +139,7 @@ static void *undolatt_from_editlatt(UndoLattice *ult,
   ult->dv = editlatt->latt->dv;
   ult->dw = editlatt->latt->dw;
 
-  STRNCPY(ult->vgroup, editlatt->latt->vgroup);
+  STRNCPY_UTF8(ult->vgroup, editlatt->latt->vgroup);
 
   BKE_defgroup_copy_list(&ult->vertex_group_names, vertex_group_names);
   ult->vertex_group_active_index = vertex_group_active_index;

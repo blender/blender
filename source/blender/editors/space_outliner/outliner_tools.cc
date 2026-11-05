@@ -33,6 +33,7 @@
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
 #include "BLI_vector.hh"
 
@@ -816,7 +817,7 @@ static void merged_element_search_fn_recursive(const ListBaseT<TreeElement> *tre
 
     if (tree_element_id_type_to_index(&te) == type && tselem_type == tselem->type) {
       if (BLI_strcasestr(te.name, str)) {
-        STRNCPY(name, te.name);
+        STRNCPY_UTF8(name, te.name);
 
         iconid = tree_element_get_icon(tselem, &te).icon;
         if (outliner_is_collection_tree_element(&te)) {

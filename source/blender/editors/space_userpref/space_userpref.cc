@@ -207,7 +207,7 @@ bUserAssetLibrary *ED_userpref_asset_library_new(const bContext *C,
   bUserAssetLibrary *new_library;
 
   char final_name[FILE_MAX];
-  STRNCPY(final_name, name);
+  STRNCPY_UTF8(final_name, name);
 
   switch (library_type) {
     case bUserAssetLibraryAddType::Local: {
@@ -220,7 +220,7 @@ bUserAssetLibrary *ED_userpref_asset_library_new(const bContext *C,
         BLI_path_split_file_part(final_dirpath, final_name);
       }
       if (!final_name[0]) {
-        STRNCPY(final_name, DATA_("Local Asset Library"));
+        STRNCPY_UTF8(final_name, DATA_("Local Asset Library"));
       }
 
       if (is_project_defined) {
@@ -237,7 +237,7 @@ bUserAssetLibrary *ED_userpref_asset_library_new(const bContext *C,
         BKE_preferences_remote_to_name(dirpath, final_name);
       }
       if (!final_name[0]) {
-        STRNCPY(final_name, DATA_("Remote Asset Library"));
+        STRNCPY_UTF8(final_name, DATA_("Remote Asset Library"));
       }
 
       if (is_project_defined) {
@@ -318,7 +318,7 @@ static bool property_search_for_context(const bContext *C, ARegion *region, shor
   char lower[64] = {0};
   const char *name = nullptr;
   RNA_enum_id_from_value(rna_enum_preference_section_items, section, &name);
-  STRNCPY(lower, name);
+  STRNCPY_UTF8(lower, name);
   BLI_str_tolower_ascii(lower, sizeof(lower));
   const char *contexts[2] = {lower, nullptr};
   return ED_region_property_search(

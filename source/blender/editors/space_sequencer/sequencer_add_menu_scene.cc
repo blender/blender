@@ -14,6 +14,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "DNA_space_types.h"
 #include "DNA_workspace_types.h"
@@ -213,7 +214,7 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
 MenuType add_catalog_assets_menu_type()
 {
   MenuType type{};
-  STRNCPY(type.idname, "SEQUENCER_MT_scene_add_catalog_assets");
+  STRNCPY_UTF8(type.idname, "SEQUENCER_MT_scene_add_catalog_assets");
   type.poll = sequencer_add_menu_poll;
   type.draw = sequencer_add_catalog_assets_draw;
   type.listener = asset::list::asset_reading_region_listen_fn;
@@ -224,7 +225,7 @@ MenuType add_catalog_assets_menu_type()
 MenuType add_unassigned_assets_menu_type()
 {
   MenuType type{};
-  STRNCPY(type.idname, "SEQUENCER_MT_scene_add_unassigned_assets");
+  STRNCPY_UTF8(type.idname, "SEQUENCER_MT_scene_add_unassigned_assets");
   type.poll = sequencer_add_menu_poll;
   type.draw = sequencer_add_unassigned_assets_draw;
   type.listener = asset::list::asset_reading_region_listen_fn;
@@ -238,7 +239,7 @@ MenuType add_unassigned_assets_menu_type()
 MenuType add_scene_menu_type()
 {
   MenuType type{};
-  STRNCPY(type.idname, "SEQUENCER_MT_add_scene");
+  STRNCPY_UTF8(type.idname, "SEQUENCER_MT_add_scene");
   type.poll = sequencer_add_menu_poll;
   type.draw = sequencer_add_scene_draw;
   type.listener = asset::list::asset_reading_region_listen_fn;

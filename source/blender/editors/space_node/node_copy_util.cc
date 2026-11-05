@@ -17,6 +17,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_action.hh"
@@ -1052,7 +1053,7 @@ static void replace_interface_socket(
 
   if (proxy_node) {
     BLI_assert(proxy_node);
-    STRNCPY(proxy_node->label, io_socket.name().c_str());
+    STRNCPY_UTF8(proxy_node->label, io_socket.name().c_str());
 
     const float width = (proxy_node->is_reroute() ? 0.0f : proxy_node->width);
     const float height = (proxy_node->is_reroute() ? 0.0f : proxy_node->height);

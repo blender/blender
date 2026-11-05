@@ -5,6 +5,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_math_base_c.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -53,7 +54,7 @@ class TransformableTest : public testing::Test {
     bmain = BKE_main_new();
 
     Bone *bone = MEM_new<Bone>("BONE");
-    STRNCPY(bone->name, "Bone");
+    STRNCPY_UTF8(bone->name, "Bone");
 
     armature = BKE_armature_add(bmain, "Armature");
     BLI_addtail(&armature->bonebase, bone);

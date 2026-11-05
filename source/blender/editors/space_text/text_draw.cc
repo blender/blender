@@ -746,7 +746,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
   drawcache->showlinenrs = st->showlinenrs;
   drawcache->tabnumber = st->tabnumber;
 
-  STRNCPY(drawcache->text_id, txt->id.name + 2);
+  STRNCPY_UTF8(drawcache->text_id, txt->id.name + 2);
 
   /* Clear update flag. */
   drawcache->update = false;
@@ -1147,7 +1147,8 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 
     y -= line_height;
 
-    BLI_strncpy_utf8(str, item->name, len + 1);
+    memcpy(str, item->name, len);
+    str[len] = '\0';
 
     w = st->runtime->char_width_px * space_text_get_char_pos(st, str, len);
 

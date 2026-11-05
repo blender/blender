@@ -13,6 +13,7 @@
 
 #include "BLI_set.hh"
 #include "BLI_string.hh"
+#include "BLI_string_utf8.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_context.hh"
@@ -202,7 +203,7 @@ static void colorspaces_menu_draw(const bContext *C, Menu *menu)
 MenuType *UI_MT_color_space_select()
 {
   MenuType *type = MEM_new_zeroed<MenuType>(__func__);
-  STRNCPY(type->idname, COLORSPACE_MENU_ID);
+  STRNCPY_UTF8(type->idname, COLORSPACE_MENU_ID);
   type->draw = colorspaces_menu_draw;
   type->flag = MenuTypeFlag::ContextDependent;
   return type;

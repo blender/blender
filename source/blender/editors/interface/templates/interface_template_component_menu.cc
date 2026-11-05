@@ -8,6 +8,7 @@
 
 #include "BLI_string.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.hh"
 
 #include "RNA_access.hh"
 
@@ -54,7 +55,7 @@ void template_component_menu(Layout *layout,
   ComponentMenuArgs *args = MEM_new<ComponentMenuArgs>(__func__);
 
   args->ptr = *ptr;
-  STRNCPY(args->propname, propname.c_str());
+  STRNCPY_UTF8(args->propname, propname.c_str());
 
   Block *block = layout->block();
   block_align_begin(block);
