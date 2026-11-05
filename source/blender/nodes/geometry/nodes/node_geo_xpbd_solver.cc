@@ -2648,6 +2648,8 @@ class XpbdSolverStep {
     ChunkData &chunk_data = chunks_data_[chunk_i];
     chunk_data.external_face_contacts.lambdas_normal.fill(0.0f);
     chunk_data.external_face_contacts.lambdas_friction.fill(0.0f);
+    chunk_data.external_edge_contacts.lambdas_normal.fill(0.0f);
+    chunk_data.external_edge_contacts.lambdas_friction.fill(0.0f);
     for (xpbd::ConstraintSet *constraint : chunk_data.static_constraints) {
       constraint->reset_forces();
     }
