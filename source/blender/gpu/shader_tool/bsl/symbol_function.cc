@@ -159,7 +159,11 @@ Result<SymbolFunction *> SymbolFunction::lookup_overload(
   string candidates;
   for (const SymbolFunction *fn = this; fn; fn = fn->overload_next) {
     if (fn->is_complete) {
-      candidates += "\ncandidate: " + fn->return_type->original + " " + fn->original +
+      string cls_name;
+      if (const SymbolClass *cls = fn->parent_class(); cls) {
+        cls_name = cls->original + "::";
+      }
+      candidates += "\ncandidate: " + fn->return_type->original + " " + cls_name + fn->original +
                     to_str(fn->arg_types);
     }
   }

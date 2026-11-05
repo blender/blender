@@ -29,6 +29,10 @@ enum class NodeType : char {
   NamespaceSeparator,
   ClassDecl,
   AccessSpecifier,
+  PureSpecifier,
+  VirtualSpecifier,
+  DefaultedBody,
+  DeletedBody,
   EnumValue,
   Id,
   IdQualified,
@@ -42,6 +46,7 @@ enum class NodeType : char {
   VarDecl,
   Declarator,
   StaticStmt,
+  VirtualStmt,
   BitField,
   FuncDecl,
   FuncForwardDecl,
@@ -524,8 +529,28 @@ struct StaticStmt : Node {
   NODE_COMMON(StaticStmt);
 };
 
+struct VirtualStmt : Node {
+  NODE_COMMON(VirtualStmt);
+};
+
 struct AccessSpecifier : Node {
   NODE_COMMON(AccessSpecifier);
+};
+
+struct PureSpecifier : Node {
+  NODE_COMMON(PureSpecifier);
+};
+
+struct VirtualSpecifier : Node {
+  NODE_COMMON(VirtualSpecifier);
+};
+
+struct DefaultedBody : Node {
+  NODE_COMMON(DefaultedBody);
+};
+
+struct DeletedBody : Node {
+  NODE_COMMON(DeletedBody);
 };
 
 struct TemplateExplicit : Node {
@@ -1081,6 +1106,11 @@ struct FuncForwardDecl : Node {
     return child_first();
   }
 
+  VirtualStmt virtual_qualifier() const
+  {
+    return child_first(NodeType::VirtualStmt);
+  }
+
   IdType return_type() const
   {
     return child_first(NodeType::IdType);
@@ -1094,6 +1124,26 @@ struct FuncForwardDecl : Node {
   FuncArgList arguments() const
   {
     return child_first(NodeType::FuncArgList);
+  }
+
+  VirtualSpecifier virtual_specifier() const
+  {
+    return child_last(NodeType::VirtualSpecifier);
+  }
+
+  PureSpecifier pure_specifier() const
+  {
+    return child_last(NodeType::PureSpecifier);
+  }
+
+  DefaultedBody defaulted_body() const
+  {
+    return child_last(NodeType::DefaultedBody);
+  }
+
+  DeletedBody deleted_body() const
+  {
+    return child_last(NodeType::DeletedBody);
   }
 
   /* Associated class if this function is a class method. */
@@ -1128,6 +1178,11 @@ struct FuncDecl : Node {
     return child_first();
   }
 
+  VirtualStmt virtual_qualifier() const
+  {
+    return child_first(NodeType::VirtualStmt);
+  }
+
   IdType return_type() const
   {
     return child_first(NodeType::IdType);
@@ -1141,6 +1196,26 @@ struct FuncDecl : Node {
   FuncArgList arguments() const
   {
     return child_first(NodeType::FuncArgList);
+  }
+
+  VirtualSpecifier virtual_specifier() const
+  {
+    return child_last(NodeType::VirtualSpecifier);
+  }
+
+  PureSpecifier pure_specifier() const
+  {
+    return child_last(NodeType::PureSpecifier);
+  }
+
+  DefaultedBody defaulted_body() const
+  {
+    return child_last(NodeType::DefaultedBody);
+  }
+
+  DeletedBody deleted_body() const
+  {
+    return child_last(NodeType::DeletedBody);
   }
 
   /* Associated class if this function is a class method. */

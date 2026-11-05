@@ -288,6 +288,8 @@ static always_inline TokenType type_lookup(std::string_view s)
       return (s == "using") ? Using : Word;
     case perfect_hash("while"):
       return (s == "while") ? While : Word;
+    case perfect_hash("delete"):
+      return (s == "delete") ? Delete : Word;
     case perfect_hash("inline"):
       return (s == "inline") ? Inline : Word;
     case perfect_hash("public"):

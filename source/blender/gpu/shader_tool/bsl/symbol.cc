@@ -764,6 +764,13 @@ struct SymbolParser : NodeErrorHandler {
     fn.is_defined = false;
     fn.fwd = decl;
 
+    if (decl.defaulted_body().is_valid()) {
+      error(decl.defaulted_body(), Diag::UnsupportedDefaultedBody);
+    }
+    if (decl.deleted_body().is_valid()) {
+      error(decl.deleted_body(), Diag::UnsupportedDeletedBody);
+    }
+
     if (scope.poi) {
       /* Functions inherit the point of instantiation of their class. */
       fn.poi = scope.poi;
@@ -833,6 +840,30 @@ struct SymbolParser : NodeErrorHandler {
       bool is_overload = scope.function_emplace(fn);
       if (is_overload && fn->is_entry_point()) {
         error(func.identifier(), Diag::RedefinitionOfEntryPointFunction, func.identifier().str());
+      }
+    }
+
+    if (fn->fn_type == SymbolFunction::MEMBER) {
+      /* Virtual function override. */
+      const SymbolClass &cls = *fn->parent_class();
+      for (auto [_, base_cls] : cls.base_classes) {
+        if (auto it = base_cls->functions.find(fn->original); it != base_cls->functions.end()) {
+          SymbolFunction &base_fn = *it->second.second;
+          if (base_fn.is_virtual) {
+            base_fn.override_next = fn;
+            /* Function becomes virtual if at least one ancestor is virtual. */
+            fn->is_virtual = true;
+          }
+        }
+      }
+
+      /* Swizzle reserved identifier linting. */
+      if (fn->original.length() > 1 && fn->original.length() <= 4) {
+        if (fn->original.find_first_not_of("xyzw") == string::npos ||
+            fn->original.find_first_not_of("rgba") == string::npos)
+        {
+          error(func.identifier(), Diag::FunctionSwizzleReservedName, fn->original);
+        }
       }
     }
 

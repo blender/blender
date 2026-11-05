@@ -265,6 +265,7 @@ struct ScopeParser {
         case SemiColon:
         case Colon:
         case Ampersand: /* For references. */
+        case Delete:    /* For MSL / C++. */
         case Inline:    /* For MSL / C++. */
         case Typename:  /* For MSL / C++. */
         case Number:    /* For C++ bit-flags. */
@@ -442,6 +443,10 @@ struct ScopeParser {
   {
     function_argument_list();
     match_if(Const);
+    /* Note that override and final are only keywords in this context. Match them individually. */
+    while (curr.str() == "override" || curr.str() == "final") {
+      match(Word);
+    }
     if (match_if(';')) {
       /* Template instantiation or forward declaration. */
       return;
@@ -493,6 +498,7 @@ struct ScopeParser {
         case This:
         case Default:  /* For C++ constructor. */
         case Typename: /* For MSL / C++. */
+        case Delete:   /* For MSL / C++. */
         case Word:
         case String:
         case Number:

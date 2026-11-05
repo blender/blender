@@ -181,6 +181,7 @@ enum class Diag {
 
   FunctionCallNotAllowedInReferenceDefinition,
   FunctionOutOfClassDefinition,
+  FunctionSwizzleReservedName,
 
   ImplicitPadding12BytesArrayElement,
   ImplicitPaddingArrayElementStd140,
@@ -198,6 +199,7 @@ enum class Diag {
   InvalidSubscript,
   InvalidUnaryArgumentType,
   InvalidPointerCast,
+  InvalidVirtualFunctionCall,
 
   MissingParameterForCall,
 
@@ -303,6 +305,8 @@ enum class Diag {
   UnrolledLoopTooManyIterations,
 
   UnsupportedSymbolInExpr,
+  UnsupportedDefaultedBody,
+  UnsupportedDeletedBody,
 
   UsingNamespaceNotSupported,
 };
@@ -434,6 +438,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Function calls are not allowed in reference definition";
     case Diag::FunctionOutOfClassDefinition:
       return "Out-of-line definition of '{}' does not match any declaration in '{}'";
+    case Diag::FunctionSwizzleReservedName:
+      return "Method identifier '{}' is reserved for swizzle";
     case Diag::ImplicitPadding12BytesArrayElement:
       return "Implicit padding of 4 bytes per array element, do not use 12 bytes types in arrays";
     case Diag::ImplicitPaddingArrayElementStd140:
@@ -465,6 +471,9 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Invalid argument type '{0}' to unary expression ({0}'{1}')";
     case Diag::InvalidPointerCast:
       return "Cannot cast '{}' into '{}'";
+    case Diag::InvalidVirtualFunctionCall:
+      return "Call to virtual function '{}' is not allowed, manually call the final "
+             "override instead";
     case Diag::MissingParameterForCall:
       return "Missing parameter for call to '{}'";
     case Diag::ConditionAttributeDeclaredHere:
@@ -652,6 +661,10 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Loop unrolling generates too many iterations (over 64)";
     case Diag::UnsupportedSymbolInExpr:
       return "Unsupported symbol '{}' inside {}";
+    case Diag::UnsupportedDefaultedBody:
+      return "Defaulted body are not supported";
+    case Diag::UnsupportedDeletedBody:
+      return "Deleted functions are not supported";
     case Diag::UsingNamespaceNotSupported:
       return "Using namespace statements are not supported";
   }

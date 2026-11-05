@@ -77,6 +77,9 @@ struct SymbolFunction : SymbolScope {
   ast::FuncForwardDecl fwd = {};
   ast::FuncDecl decl = {};
 
+  /* If virtual, the last direct override of this method. */
+  const SymbolFunction *override_next = nullptr;
+
   vector<bool> arg_const;
   vector<const SymbolClass *> arg_types;
   vector<ast::Expr> arg_defaults;
@@ -96,6 +99,8 @@ struct SymbolFunction : SymbolScope {
   bool is_inline = false;
   /* False if this function was only forward declared. */
   bool is_defined = true;
+  /* True if function is declared as virtual (makes it not callable under BSL rules). */
+  bool is_virtual = false;
 
   /* Identifier of the temporary return variable.
    * The real identifier is then specialized per instantiation. */
@@ -114,6 +119,8 @@ struct SymbolFunction : SymbolScope {
         return_type(&return_type),
         decl(decl),
         is_inline(decl.attributes().contains_attr("force_inline")),
+        /* Note: We leave to the C++ linting to catch invalid keyword usage. */
+        is_virtual(decl.virtual_qualifier().is_valid() || decl.virtual_specifier().is_valid()),
         fn_type(decl.is_method() ? (decl.is_static() ? STATIC : MEMBER) : GLOBAL),
         entry_point_type(EntryPointType::NONE)
   {
@@ -134,6 +141,7 @@ struct SymbolFunction : SymbolScope {
     }
   }
 
+  /* For builtins or constructors. */
   SymbolFunction(SymbolScope &parent,
                  Token tok,
                  const SymbolClass &return_type,
@@ -169,6 +177,11 @@ struct SymbolFunction : SymbolScope {
   bool is_builtin_ctor() const
   {
     return is_builtin && allow_vector_promotion;
+  }
+
+  bool is_overridden() const
+  {
+    return override_next;
   }
 
   /* Only used for sorting purpose. Return a unique location. */

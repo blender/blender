@@ -567,6 +567,11 @@ struct CodegenContext : NodeErrorHandler {
         ctx.error(call, Diag::InvalidInlinedFunctionLocation);
       }
 
+      if (sym.is_virtual && sym.is_overridden()) {
+        ctx.error(call, Diag::InvalidVirtualFunctionCall, sym.original);
+        return {"", *ctx.table.err_cls};
+      }
+
       if (r_method) {
         *r_method = &sym;
       }
@@ -1950,6 +1955,10 @@ struct CodegenContext : NodeErrorHandler {
                               bool do_mtl_guard,
                               bool do_jump_to)
   {
+    if (fn.is_virtual && fn.is_overridden()) {
+      /* Virtual functions are not callable. No need to emit them. */
+      return;
+    }
     if (do_mtl_guard) {
       /* Prototypes are not needed with MSL wrapper class. */
       builder.ss << "\n#ifndef GPU_METAL\n";
@@ -1961,10 +1970,15 @@ struct CodegenContext : NodeErrorHandler {
       builder.curr = decl.front();
     }
     skip_node(decl.attributes());
+    skip_node(decl.virtual_qualifier());
     skip_if(Static);
     id_type(decl.return_type(), fn);
     builder << fn.identifier + trivia(decl.identifier());
     func_arg_list(decl.arguments(), fn, false);
+    skip_node(decl.virtual_specifier());
+    skip_node(decl.pure_specifier());
+    skip_node(decl.defaulted_body());
+    skip_node(decl.deleted_body());
     builder << string(";\n");
     if (do_mtl_guard) {
       builder.ss << "#endif\n";
@@ -2058,6 +2072,11 @@ struct CodegenContext : NodeErrorHandler {
       return;
     }
 
+    if (inst_fn->is_virtual && inst_fn->is_overridden()) {
+      /* Virtual functions are not callable. No need to emit them. */
+      return;
+    }
+
     if (inst_fn->fn_type == SymbolFunction::MEMBER && decl.is_template()) {
       if (SymbolClass *cls = inst_fn->parent_class(); cls) {
         /* Leave a breadcrumb for a mutation pass which will move the following forward declaration
@@ -2082,6 +2101,7 @@ struct CodegenContext : NodeErrorHandler {
 
     jump_to(decl.front());
     skip_node(decl.attributes());
+    skip_node(decl.virtual_qualifier());
     skip_if(Static);
     /* Note that we match the id type from inside the function scope in order to match template
      * argument aliases.  */
@@ -2097,6 +2117,10 @@ struct CodegenContext : NodeErrorHandler {
     else {
       func_arg_list(decl.arguments(), *inst_fn);
     }
+    skip_node(decl.virtual_specifier());
+    skip_node(decl.pure_specifier());
+    skip_node(decl.defaulted_body());
+    skip_node(decl.deleted_body());
 
     local_scope(body, *inst_fn);
 
