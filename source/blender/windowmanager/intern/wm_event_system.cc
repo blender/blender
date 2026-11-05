@@ -581,7 +581,7 @@ static void wm_event_timers_execute(bContext *C)
 static bool notifier_refreshes_node_group_operators(const wmNotifier &note)
 {
   if (note.category == NC_ASSET) {
-    if (ELEM(note.data, ND_ASSET_LIST, ND_ASSET_LIST_READING)) {
+    if (ELEM(note.data, ND_ASSET_LIST, ND_ASSET_LIST_READING, ND_ASSET_CATALOGS)) {
       return true;
     }
   }
