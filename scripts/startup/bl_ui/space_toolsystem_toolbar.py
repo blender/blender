@@ -2393,6 +2393,9 @@ class _defs_grease_pencil_paint:
 
     @staticmethod
     def grease_pencil_primitive_toolbar(context, layout, _tool, props):
+        if context.region.type != 'TOOL_HEADER':
+            return False
+
         paint = context.tool_settings.gpencil_paint
         brush = paint.brush
 
