@@ -164,7 +164,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     return this->channel_api_->is_selected();
   }
 
-  void set_selected(bool select) override;
+  void set_selected(const bContext &C, bool select) override;
   void on_activate(bContext &C) override;
 
  protected:
@@ -271,9 +271,9 @@ class ChannelTreeView : public ui::AbstractTreeView {
 };
 
 /* A few functions need to be defined after the ChannelTreeView class. */
-void ChannelItem::set_selected(const bool select)
+void ChannelItem::set_selected(const bContext &C, const bool select)
 {
-  AbstractTreeViewItem::set_selected(select);
+  AbstractTreeViewItem::set_selected(C, select);
 
   if (this->channel_api_->is_selected() == select) {
     /* No change to selection state. This can easily happen, as set_selected() is called on every
