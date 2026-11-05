@@ -340,7 +340,8 @@ class GHOST_EventIME : public GHOST_Event {
   }
 };
 
-typedef int GHOST_ImeStateFlagCocoa;
+using GHOST_ImeStateFlagCocoa = int;
+
 enum {
   GHOST_IME_INPUT_FOCUSED = (1 << 0),
   GHOST_IME_ENABLED = (1 << 1),
@@ -349,4 +350,5 @@ enum {
   GHOST_IME_COMPOSITION_EVENT = (1 << 4),  // For Korean input
   GHOST_IME_RESULT_EVENT = (1 << 5)        // For Korean input
 };
+
 #endif /* WITH_INPUT_IME */
