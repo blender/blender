@@ -1758,7 +1758,6 @@ void RNA_def_nodes_geometry(BlenderRNA *brna)
   /* clang-format off */
 
   define("GeometryNode", "GeometryNodeAccumulateField");
-  define("GeometryNode", "GeometryNodeApplySimulatedData");
   define("GeometryNode", "GeometryNodeAttributeDomainSize");
   define("GeometryNode", "GeometryNodeAttributeStatistic");
   define("GeometryNode", "GeometryNodeBake", rna_def_geo_bake);
