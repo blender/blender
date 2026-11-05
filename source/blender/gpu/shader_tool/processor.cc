@@ -893,19 +893,28 @@ void SourceProcessor::lower_namesless_parameters(Parser &parser)
 
 void SourceProcessor::lower_namesless_parameters_ast(Parser &parser)
 {
-  for (FuncDecl fn : parser.root().descendants_of_type<FuncDecl>()) {
+  auto lower_arguments = [&](FuncArgList arguments) {
     int i = 0;
-    for (FuncArg arg : fn.arguments().children_of_type<FuncArg>()) {
+    for (FuncArg arg : arguments.children_of_type<FuncArg>()) {
       if (!arg.identifier().is_valid()) {
-        bool is_ref = arg.is_reference();
-        ast::ArrayDecl arr = arg.array();
-        Token arg_back(is_ref ? arg.declarator().reference().back() :
-                                (arr.is_valid() ? arr.front().prev() : arg.back()));
+        /* Name goes after the type or `&`, before any array declarator or default value. */
+        const bool is_ref = arg.is_reference();
+        Token arg_back(is_ref ? arg.declarator().reference().back() : arg.type().back());
         /* Append a name for nameless argument. */
         parser.replace(arg_back.str_index_last_no_whitespace() + 1,
                        arg_back.str_index_last(),
                        " _" + std::to_string(i++));
       }
+    }
+  };
+
+  for (FuncDecl fn : parser.root().descendants_of_type<FuncDecl>()) {
+    lower_arguments(fn.arguments());
+  }
+  for (FuncForwardDecl fn : parser.root().descendants_of_type<FuncForwardDecl>()) {
+    /* Template instantiations are not emitted, they only select the template arguments. */
+    if (!TemplateInst(fn.parent()).is_valid()) {
+      lower_arguments(fn.arguments());
     }
   }
 }
