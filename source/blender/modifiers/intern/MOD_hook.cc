@@ -435,7 +435,14 @@ static void deform_verts_EM(ModifierData *md,
 {
   HookModifierData *hmd = reinterpret_cast<HookModifierData *>(md);
 
-  deformVerts_do(hmd, ctx, ctx->object, mesh, BKE_editmesh_bmesh_get(mesh), positions);
+  deformVerts_do(hmd,
+                 ctx,
+                 ctx->object,
+                 mesh,
+                 mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH ?
+                     BKE_editmesh_bmesh_get(mesh) :
+                     nullptr,
+                 positions);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

@@ -720,7 +720,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
                                             const CustomData_MeshMasks &dataMask)
 {
   const Mesh &mesh_input = *id_cast<const Mesh *>(ob.data);
-  BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(&mesh_input));
+  BMesh *bm = BKE_editmesh_bmesh_get_for_write(&ob);
 
   /* Mesh with constructive modifiers but no deformation applied. Tracked
    * along with final mesh if undeformed / orco coordinates are requested

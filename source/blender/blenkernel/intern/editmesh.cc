@@ -64,39 +64,24 @@ EditMesh *BKE_editmesh_from_object(Object *ob)
 
 const BMesh *BKE_editmesh_bmesh_get(const Object *ob)
 {
-  /* After evaluation, an evaluated object's data is the final mesh, not a copy of the original. */
-  BLI_assert(DEG_is_original(ob));
   const Mesh *mesh = id_cast<const Mesh *>(ob->data);
   return BKE_editmesh_bmesh_get(mesh);
 }
 
 const BMesh *BKE_editmesh_bmesh_get(const Mesh *mesh)
 {
-  const EditMesh *em = mesh->runtime->edit_mesh.get();
-  if (!em) {
-    /* The mesh is not in edit mode. */
+  if (!mesh->runtime->edit_mesh) {
     return nullptr;
   }
-  if ((mesh->id.tag & ID_TAG_NO_MAIN) && !(mesh->id.tag & ID_TAG_COPIED_ON_EVAL)) {
-    /* The mesh was created during evaluation and unless it wraps a #BMesh, it holds its own data
-     * and only references the original #EditMesh to map elements back to the original edit mode
-     * state. */
-    if (mesh->runtime->wrapper_type != ME_WRAPPER_TYPE_BMESH) {
-      return nullptr;
-    }
-  }
-  return em->bm;
+  return mesh->runtime->edit_mesh->bm;
 }
 
 BMesh *BKE_editmesh_bmesh_get_for_write(Mesh *mesh)
 {
-  EditMesh *em = mesh->runtime->edit_mesh.get();
-  if (!em) {
+  if (!mesh->runtime->edit_mesh) {
     return nullptr;
   }
-  /* Only original meshes can edit the #BMesh. Evaluated meshes share the original's #EditMesh. */
-  BLI_assert((mesh->id.tag & ID_TAG_NO_MAIN) == 0);
-  return em->bm;
+  return mesh->runtime->edit_mesh->bm;
 }
 
 BMesh *BKE_editmesh_bmesh_get_for_write(Object *ob)

@@ -145,8 +145,7 @@ static void deform_verts_EM(ModifierData *md,
                             Mesh *mesh,
                             MutableSpan<float3> positions)
 {
-  const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
-  if (!bm) {
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     deform_verts(md, ctx, mesh, positions);
     return;
   }
@@ -167,7 +166,7 @@ static void deform_verts_EM(ModifierData *md,
                                            std::nullopt,
                                            amd->deformflag,
                                            amd->defgrp_name,
-                                           *bm);
+                                           *BKE_editmesh_bmesh_get(mesh));
 
   /* free cache */
   MEM_SAFE_DELETE(amd->vert_coords_prev);

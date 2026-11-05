@@ -475,6 +475,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
                                                     Span<float3> *r_vert_normals)
 {
   /* Gather mesh info. */
+  EditMesh *em = BKE_editmesh_from_object(ob);
   const Mesh *mesh_eval;
 
   *r_bm = nullptr;
@@ -487,7 +488,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
   /* NOTE: Do direct access to the evaluated mesh: this function is used
    * during meta balls evaluation. But even without those all the objects
    * which are needed for correct instancing are already evaluated. */
-  if (const BMesh *bm = BKE_editmesh_bmesh_get(DEG_get_original(ob))) {
+  if (em != nullptr) {
     /* Note that this will only show deformation if #eModifierMode_OnCage is enabled.
      * We could change this but it matches 2.7x behavior. */
     mesh_eval = BKE_object_get_editmesh_eval_cage(ob);
@@ -496,7 +497,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
                                                    nullptr;
 
       /* Only assign the bmesh in the case we can't use `mesh_eval`. */
-      *r_bm = const_cast<BMesh *>(bm);
+      *r_bm = BKE_editmesh_bmesh_get_for_write(ob);
       mesh_eval = nullptr;
 
       if ((emd != nullptr) && !emd->vert_positions.is_empty()) {
