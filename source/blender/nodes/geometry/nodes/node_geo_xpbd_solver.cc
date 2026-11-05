@@ -1458,7 +1458,7 @@ class XpbdSolverStep {
         IndexRange(substeps_ + 1), std::max(1024 / verts_num, 1), [&](const IndexRange range) {
           TLS &tls = tls_.local();
           for (const int mesh_i : range) {
-            const float mix_factor = (mesh_i - 1) / float(substeps_) *
+            const float mix_factor = mesh_i / float(substeps_) *
                                          (interpolation_end_ - interpolation_begin_) +
                                      interpolation_begin_;
             const Mesh *substep_mesh = nullptr;
