@@ -303,7 +303,6 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
     lower_printf(parser);
 
     /* Linting phase. Detect valid syntax with invalid usage. */
-    lint_reserved_tokens(parser);
     lint_attributes_ast(parser);
 
     lower_srt_accessor_templates_ast(parser);   /* Legacy. To remove. */
@@ -325,6 +324,9 @@ SourceProcessor::Result SourceProcessor::convert_bsl()
 
     parser.language = Language::IL;
     parser.apply_mutations();
+
+    /* Lint reserved tokens after lowering. */
+    lint_reserved_tokens(parser);
 
     /* GLSL syntax compatibility. */
     lower_reference_arguments(parser);
