@@ -219,7 +219,7 @@ static void clg_str_vappendf(CLogStringBuf *cstr, const char *format, va_list ar
       break;
     }
 
-    if ((uint)retval <= len_avail) {
+    if ((uint)retval < len_avail) {
       /* Copy was successful. */
       cstr->len += (uint)retval;
       break;
@@ -227,7 +227,8 @@ static void clg_str_vappendf(CLogStringBuf *cstr, const char *format, va_list ar
 
     /* `vsnprintf` was not successful, due to lack of allocated space, `retval` contains expected
      * length of the formatted string, use it to allocate required amount of memory. */
-    uint len_alloc = cstr->len + (uint)retval;
+    /* +1 for the null terminator. */
+    uint len_alloc = cstr->len + (uint)retval + 1;
     if (len_alloc >= len_max) {
       /* Safe upper-limit, just in case... */
       break;
