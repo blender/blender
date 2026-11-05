@@ -311,13 +311,11 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
     for (i = 0; i < totframe; i++) {
       Frame *frame = frames[i];
 
-      if (!frame->detached) {
-        for (j = 0; j < 4; j++) {
-          if (frame->verts[j] == v) {
-            frame->inside_hull[j] = true;
-            frame->detached = true;
-            break;
-          }
+      for (j = 0; j < 4; j++) {
+        if (frame->verts[j] == v) {
+          frame->inside_hull[j] = true;
+          frame->detached = true;
+          break;
         }
       }
     }
