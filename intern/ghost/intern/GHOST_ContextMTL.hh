@@ -11,9 +11,9 @@
 #include "GHOST_Context.hh"
 #include "GHOST_Types.hh"
 
-#include <Cocoa/Cocoa.h>
-#include <Metal/Metal.h>
-#include <QuartzCore/QuartzCore.h>
+#import <Cocoa/Cocoa.h>
+#import <Metal/Metal.h>
+#import <QuartzCore/QuartzCore.h>
 
 @class CAMetalLayer;
 @class MTLCommandQueue;
