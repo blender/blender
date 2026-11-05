@@ -136,9 +136,9 @@ class NodeSocketViewItem : public BasicTreeViewItem {
     return socket_.flag & NODE_INTERFACE_SOCKET_SELECT;
   }
 
-  void set_selected(const bool select) override
+  void set_selected(const bContext &C, const bool select) override
   {
-    AbstractViewItem::set_selected(select);
+    AbstractViewItem::set_selected(C, select);
     SET_FLAG_FROM_TEST(socket_.flag, select, NODE_INTERFACE_SOCKET_SELECT);
   }
 
@@ -229,9 +229,9 @@ class NodePanelViewItem : public BasicTreeViewItem {
     return panel_.flag & NODE_INTERFACE_PANEL_SELECT;
   }
 
-  void set_selected(const bool select) override
+  void set_selected(const bContext &C, const bool select) override
   {
-    AbstractViewItem::set_selected(select);
+    AbstractViewItem::set_selected(C, select);
     SET_FLAG_FROM_TEST(panel_.flag, select, NODE_INTERFACE_PANEL_SELECT);
     /* `NodeSocketViewItem::set_selected` doesn't handle toggle sockets, so handle it here. */
     if (toggle_) {

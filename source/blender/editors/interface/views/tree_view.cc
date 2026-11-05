@@ -890,10 +890,10 @@ bool AbstractTreeViewItem::is_collapsible() const
   return this->supports_collapsing();
 }
 
-void AbstractTreeViewItem::change_state_delayed()
+void AbstractTreeViewItem::change_state_delayed(const bContext &C)
 {
   const bool prev_active_state = is_active();
-  AbstractViewItem::change_state_delayed();
+  AbstractViewItem::change_state_delayed(C);
 
   if (prev_active_state != is_active()) {
     this->get_tree_view().scroll_active_into_view_on_draw_ = true;
@@ -1290,7 +1290,7 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
   }
 #endif
   tree_view.update_from_old(block);
-  tree_view.change_state_delayed();
+  tree_view.change_state_delayed(C);
   if (block_view_persistent_active_item_apply(C, block, tree_view)) {
     tree_view.scroll_active_into_view_on_draw_ = true;
   }

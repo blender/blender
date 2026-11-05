@@ -629,7 +629,7 @@ void GridViewBuilder::build_grid_view(const bContext &C,
 
   grid_view.build_items();
   grid_view.update_from_old(block);
-  grid_view.change_state_delayed();
+  grid_view.change_state_delayed(C);
   if (block_view_persistent_active_item_apply(C, block, grid_view)) {
     grid_view.scroll_active_into_view_on_draw_ = true;
   }

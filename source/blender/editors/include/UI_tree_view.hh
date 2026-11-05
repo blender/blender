@@ -335,7 +335,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
    */
   void toggle_collapsed_from_view(bContext &C);
 
-  void change_state_delayed() override;
+  void change_state_delayed(const bContext &C) override;
 
   /** See #AbstractViewItem::matches(). */
   /* virtual */ bool matches(const AbstractViewItem &other) const override;

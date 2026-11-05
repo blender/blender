@@ -197,7 +197,7 @@ class AbstractView {
    *
    * Overrides should call the base class implementation.
    */
-  virtual void change_state_delayed();
+  virtual void change_state_delayed(const bContext &C);
 
   virtual void update_children_from_old(const AbstractView &old_view) = 0;
 
@@ -289,7 +289,7 @@ class AbstractViewItem {
   virtual std::optional<bool> should_be_active() const;
 
   virtual std::optional<bool> should_be_selected() const;
-  virtual void set_selected(const bool select);
+  virtual void set_selected(const bContext &C, const bool select);
   /**
    * Queries if the view item supports renaming in principle. Renaming may still fail, e.g. if
    * another item is already being renamed.
@@ -431,7 +431,7 @@ class AbstractViewItem {
    * See #AbstractView::change_state_delayed(). Overrides should call the base class
    * implementation.
    */
-  virtual void change_state_delayed();
+  virtual void change_state_delayed(const bContext &C);
 
   /**
    * \note Do not call this directly to avoid constantly rechecking the filter state. Instead use
