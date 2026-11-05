@@ -15,7 +15,7 @@
 
 namespace bsl {
 
-using Token = blender::gpu::shader::parser::Token;
+using blender::gpu::shader::parser::Token;
 
 using namespace blender::gpu::shader::parser;
 using namespace std;

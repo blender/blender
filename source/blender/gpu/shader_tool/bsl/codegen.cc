@@ -154,8 +154,8 @@ struct CodegenContext : NodeErrorHandler {
   struct CodegenExpressionParser
       : public PrattParser<CodegenExpressionParser, CodegenResult, ast::Node> {
     using Base = PrattParser<CodegenExpressionParser, CodegenResult, ast::Node>;
-    using ErrorType = Base::ErrorType;
-    using BindingPower = Base::BindingPower;
+    using Base::BindingPower;
+    using Base::ErrorType;
 
    private:
     CodegenContext &ctx;
@@ -596,7 +596,7 @@ struct CodegenContext : NodeErrorHandler {
             params_str += caller_class->get_path_to_base_class(*callee_class);
           }
         }
-        if (sym.arg_types.size() > 0) {
+        if (!sym.arg_types.empty()) {
           params_str += ", ";
         }
       }
@@ -2210,7 +2210,7 @@ struct CodegenContext : NodeErrorHandler {
         /* Change the mangled name of the argument. */
         var.identifier = id;
 
-        Expr init_expr = (param.is_valid()) ? param : fn->arg_defaults[arg_i];
+        Expr init_expr = param.is_valid() ? param : fn->arg_defaults[arg_i];
         builder.ss << fn->arg_types[arg_i]->identifier << " " << id;
         builder.ss << " = " << expr(init_expr, scope).str << "; ";
       }
@@ -3011,7 +3011,7 @@ struct CodegenContext : NodeErrorHandler {
     IdQualified id = decl.identifier();
     ArrayDecl array = decl.array();
 
-    SymbolVariable *var = (id.is_valid()) ? &scope.lookup_variable(table, id) : nullptr;
+    SymbolVariable *var = id.is_valid() ? &scope.lookup_variable(table, id) : nullptr;
 
     if (var == nullptr || var->is_error) {
       error(id, Diag::UnknownVariable, string(id.str()));
@@ -3472,71 +3472,85 @@ struct CodegenContext : NodeErrorHandler {
       case ResourceType::COMPILATION_CONST:
       case ResourceType::PUSH_CONST:
       case ResourceType::SHARED:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .contains_pointer = var.is_ptr};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .contains_pointer = var.is_ptr,
+        };
       case ResourceType::SPECIALIZATION_CONST:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_value = string(attr.param1.str()),
-                .res_condition = parse_condition(cls, attr.condition)};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_value = string(attr.param1.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+        };
       case ResourceType::ACCELERATION_STRUCTURE:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency)};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+        };
       case ResourceType::SAMPLER:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency)};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+        };
       case ResourceType::UNIFORM_BUF:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency),
-                .contains_pointer = var.is_ptr};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+            .contains_pointer = var.is_ptr,
+        };
       case ResourceType::STORAGE_BUF:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_qualifier = string(attr.param2.str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency),
-                .contains_pointer = var.is_ptr};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_qualifier = string(attr.param2.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+            .contains_pointer = var.is_ptr,
+        };
       case ResourceType::IMAGE:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_qualifier = string(attr.param2.str()),
-                .res_format = parse_image_format(cls, attr.param3),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency)};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_qualifier = string(attr.param2.str()),
+            .res_format = parse_image_format(cls, attr.param3),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+        };
         break;
       default:
         assert(0);
