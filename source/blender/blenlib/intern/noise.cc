@@ -24,15 +24,15 @@
 #include "BLI_noise_varray.hh"
 
 /* Some noise functions integer overflow as part of expected operation. */
-#ifdef __SANITIZE_ADDRESS__
-/* CLANG also supports GNU extensions. */
-#  if defined(__GNUC__) || defined(__clang__)
-#    define ATTR_NO_SIGNED_INT_OVERFLOW [[gnu::no_sanitize("signed-integer-overflow")]]
-#  else
-/* TODO: MSVC, others as needed. */
-#    define ATTR_NO_SIGNED_INT_OVERFLOW
+#if defined(__clang__)
+#  if __has_feature(address_sanitizer)
+#    define ATTR_NO_SIGNED_INT_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
 #  endif
-#else
+#elif defined(__GNUC__) && defined(__SANITIZE_ADDRESS__)
+#  define ATTR_NO_SIGNED_INT_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
+#endif
+/* TODO: MSVC, others as needed. */
+#ifndef ATTR_NO_SIGNED_INT_OVERFLOW
 #  define ATTR_NO_SIGNED_INT_OVERFLOW
 #endif
 
@@ -161,12 +161,15 @@ BLI_INLINE uint32_t float_as_uint(float f)
  * https://jcgt.org/published/0009/03/02/
  *
  * Slightly modified to only use signed integers,
- * so that they can also be implemented in OSL. */
+ * so that they can also be implemented in OSL.
+ *
+ * Avoid int2/3/4 usage, ATTR_NO_SIGNED_INT_OVERFLOW does not apply to them. */
 
 ATTR_NO_SIGNED_INT_OVERFLOW
 static inline int2 hash_pcg2d_i(int2 v)
 {
-  v = v * int2(1664525) + int2(1013904223);
+  v.x = v.x * 1664525 + 1013904223;
+  v.y = v.y * 1664525 + 1013904223;
   v.x += v.y * 1664525;
   v.y += v.x * 1664525;
   v = v ^ (v >> 16);
@@ -178,7 +181,9 @@ static inline int2 hash_pcg2d_i(int2 v)
 ATTR_NO_SIGNED_INT_OVERFLOW
 static inline int3 hash_pcg3d_i(int3 v)
 {
-  v = v * int3(1664525) + int3(1013904223);
+  v.x = v.x * 1664525 + 1013904223;
+  v.y = v.y * 1664525 + 1013904223;
+  v.z = v.z * 1664525 + 1013904223;
   v.x += v.y * v.z;
   v.y += v.z * v.x;
   v.z += v.x * v.y;
@@ -192,7 +197,10 @@ static inline int3 hash_pcg3d_i(int3 v)
 ATTR_NO_SIGNED_INT_OVERFLOW
 static inline int4 hash_pcg4d_i(int4 v)
 {
-  v = v * int4(1664525) + int4(1013904223);
+  v.x = v.x * 1664525 + 1013904223;
+  v.y = v.y * 1664525 + 1013904223;
+  v.z = v.z * 1664525 + 1013904223;
+  v.w = v.w * 1664525 + 1013904223;
   v.x += v.y * v.w;
   v.y += v.z * v.x;
   v.z += v.x * v.y;
