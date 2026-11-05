@@ -2404,12 +2404,11 @@ struct CodegenContext : NodeErrorHandler {
     builder.curr = list.front();
     match_if('(');
 
-    FuncDecl decl = list.parent();
     /* Check the symbol and not the declaration, out-of-class definitions are not marked static. */
     if (fn.fn_type == SymbolFunction::MEMBER) {
       const SymbolClass *cls = fn.parent_class();
 
-      if (decl.is_const()) {
+      if (fn.is_const) {
         builder.ss << "const ";
       }
 
