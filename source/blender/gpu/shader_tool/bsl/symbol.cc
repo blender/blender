@@ -954,8 +954,32 @@ struct SymbolParser : NodeErrorHandler {
     }
   }
 
+  /* Report template functions without a body, which are neither a function nor a class template.
+   * Return true if `decl` is one of them. */
+  bool is_invalid_template_decl(FuncForwardDecl decl)
+  {
+    if (!decl.is_valid()) {
+      /* Not a function forward decl. */
+      return false;
+    }
+
+    if (decl.defaulted_body().is_valid()) {
+      error(decl.defaulted_body(), Diag::UnsupportedDefaultedBody);
+    }
+    else if (decl.deleted_body().is_valid()) {
+      error(decl.deleted_body(), Diag::UnsupportedDeletedBody);
+    }
+    else {
+      error(decl.identifier(), Diag::TemplateMissingDefinition);
+    }
+    return true;
+  }
+
   void parse_template_decl(SymbolScope &scope, TemplateDecl decl)
   {
+    if (is_invalid_template_decl(decl.decl())) {
+      return;
+    }
     /* Do not parse. Only keep the symbol definition. The instantiation will do the parsing. */
     if (decl.is_function()) {
       FuncDecl fn_decl(decl.decl());
@@ -1081,6 +1105,9 @@ struct SymbolParser : NodeErrorHandler {
 
   void parse_template_spec(SymbolScope &scope, TemplateSpec temp, const std::string &prefix)
   {
+    if (is_invalid_template_decl(temp.decl())) {
+      return;
+    }
     TemplateParamList temp_params = temp.parameters();
     /* Instantiate the whole symbol into the current namespace. */
     if (temp.is_function()) {
