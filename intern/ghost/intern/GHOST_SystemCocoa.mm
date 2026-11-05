@@ -16,12 +16,6 @@
 #include "GHOST_WindowCocoa.hh"
 #include "GHOST_WindowManager.hh"
 
-/* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
- * solvable in a short term. */
-#ifdef __clang__
-#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
 #ifdef WITH_METAL_BACKEND
 #  include "GHOST_ContextMTL.hh"
 #endif
@@ -2057,7 +2051,7 @@ void GHOST_SystemCocoa::putClipboard(const char *buffer, bool selection) const
     NSPasteboard *pasteBoard = NSPasteboard.generalPasteboard;
     [pasteBoard declareTypes:@[ NSPasteboardTypeString ] owner:nil];
 
-    NSString *textToCopy = [NSString stringWithCString:buffer encoding:NSUTF8StringEncoding];
+    NSString *textToCopy = [NSString stringWithUTF8String:buffer];
     [pasteBoard setString:textToCopy forType:NSPasteboardTypeString];
   }
 }
@@ -2211,10 +2205,10 @@ GHOST_TSuccess GHOST_SystemCocoa::showMessageBox(const char *title,
     NSAlert *alert = [[[NSAlert alloc] init] autorelease];
     alert.accessoryView = [[[NSView alloc] initWithFrame:NSMakeRect(0, 0, 500, 0)] autorelease];
 
-    NSString *titleString = [NSString stringWithCString:title];
-    NSString *messageString = [NSString stringWithCString:message];
-    NSString *continueString = [NSString stringWithCString:continue_label];
-    NSString *helpString = [NSString stringWithCString:help_label];
+    NSString *titleString = [NSString stringWithUTF8String:title];
+    NSString *messageString = [NSString stringWithUTF8String:message];
+    NSString *continueString = [NSString stringWithUTF8String:continue_label];
+    NSString *helpString = [NSString stringWithUTF8String:help_label];
 
     if (dialog_options & GHOST_DialogError) {
       alert.alertStyle = NSAlertStyleCritical;
@@ -2236,7 +2230,7 @@ GHOST_TSuccess GHOST_SystemCocoa::showMessageBox(const char *title,
 
     const NSModalResponse response = [alert runModal];
     if (response == NSAlertSecondButtonReturn) {
-      NSString *linkString = [NSString stringWithCString:link];
+      NSString *linkString = [NSString stringWithUTF8String:link];
       [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:linkString]];
     }
   }

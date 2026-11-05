@@ -11,12 +11,6 @@
 #include "GHOST_SystemCocoa.hh"
 #include "GHOST_WindowViewCocoa.hh"
 
-/* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
- * solvable in a short term. */
-#ifdef __clang__
-#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
 #ifdef WITH_METAL_BACKEND
 #  include "GHOST_ContextMTL.hh"
 #endif
@@ -208,7 +202,7 @@
     if ([[draggingPBoard types] containsObject:NSPasteboardTypeTIFF]) {
       dragged_object_type_ = GHOST_kDragnDropTypeBitmap;
     }
-    else if ([[draggingPBoard types] containsObject:NSFilenamesPboardType]) {
+    else if ([[draggingPBoard types] containsObject:NSPasteboardTypeFileURL]) {
       dragged_object_type_ = GHOST_kDragnDropTypeFilenames;
     }
     else if ([[draggingPBoard types] containsObject:NSPasteboardTypeString]) {
@@ -279,9 +273,19 @@
         data = droppedImg;
         break;
       }
-      case GHOST_kDragnDropTypeFilenames:
-        data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
+      case GHOST_kDragnDropTypeFilenames: {
+        /* Request URLs from pasteboard, restricted to file URLs only. */
+        NSArray<NSURL *> *urls = [draggingPBoard
+            readObjectsForClasses:@[ [NSURL class] ]
+                          options:@{NSPasteboardURLReadingFileURLsOnlyKey : @YES}];
+        if (urls.count == 0) {
+          return NO;
+        }
+
+        /* Turn the NSArray of NSURL into an NSArray of file path strings. */
+        data = [urls valueForKey:@"path"];
         break;
+      }
       case GHOST_kDragnDropTypeString:
         data = [draggingPBoard stringForType:NSPasteboardTypeString];
         break;
@@ -438,7 +442,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     NSView *contentview = window_.contentView;
     contentview.allowedTouchTypes = (NSTouchTypeMaskDirect | NSTouchTypeMaskIndirect);
 
-    [window_ registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
+    [window_ registerForDraggedTypes:[NSArray arrayWithObjects:NSPasteboardTypeFileURL,
                                                                NSPasteboardTypeString,
                                                                NSPasteboardTypeTIFF,
                                                                nil]];
