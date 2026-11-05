@@ -861,6 +861,40 @@ VkFormat vk_extended_usage_storage_image_format(const VkFormat format)
   return format;
 }
 
+VkImageUsageFlags vk_image_usage_supported_by_format(const VkFormat format)
+{
+  const VKDevice &device = VKBackend::get().device;
+  VkFormatProperties3 format_properties3 = {VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3};
+  VkFormatProperties2 format_properties2 = {VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2,
+                                            &format_properties3};
+  vkGetPhysicalDeviceFormatProperties2(device.physical_device_get(), format, &format_properties2);
+  const VkFormatFeatureFlags2 features = format_properties3.optimalTilingFeatures;
+
+  VkImageUsageFlags usage = 0;
+  if (features & VK_FORMAT_FEATURE_2_TRANSFER_SRC_BIT) {
+    usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+  }
+  if (features & VK_FORMAT_FEATURE_2_TRANSFER_DST_BIT) {
+    usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+  }
+  if (features & VK_FORMAT_FEATURE_2_SAMPLED_IMAGE_BIT) {
+    usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+  }
+  if (features & VK_FORMAT_FEATURE_2_STORAGE_IMAGE_BIT) {
+    usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+  }
+  if (features & VK_FORMAT_FEATURE_2_COLOR_ATTACHMENT_BIT) {
+    usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+  }
+  if (features & VK_FORMAT_FEATURE_2_DEPTH_STENCIL_ATTACHMENT_BIT) {
+    usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+  }
+  if (features & VK_FORMAT_FEATURE_2_HOST_IMAGE_TRANSFER_BIT_EXT) {
+    usage |= VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT;
+  }
+  return usage;
+}
+
 VkImageCreateFlags to_vk_image_create(const GPUTextureType texture_type,
                                       const GPUTextureFormatFlag format_flag,
                                       eGPUTextureUsage usage)
