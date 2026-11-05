@@ -559,7 +559,7 @@ class NODE_MT_category_utilities_closure_base(node_add_menu.NodeMenu):
 
     def draw(self, _context):
         layout = self.layout
-        
+
         self.closure_zone(layout, label="Closure")
         self.node_operator(layout, "NodeEvaluateClosure")
 
