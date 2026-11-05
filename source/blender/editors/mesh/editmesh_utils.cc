@@ -1281,20 +1281,6 @@ UvElement *BM_uv_element_get_head(UvElementMap *element_map, UvElement *child)
 /** \name Data Layer Checks
  * \{ */
 
-BMFace *EDBM_uv_active_face_get(Mesh *mesh, const bool sloppy, const bool selected)
-{
-  if (!EDBM_uv_check(mesh)) {
-    return nullptr;
-  }
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
-  BMFace *efa = BM_mesh_active_face_get(bm, sloppy, selected);
-  if (efa) {
-    return efa;
-  }
-
-  return nullptr;
-}
-
 bool EDBM_uv_check(const Mesh *mesh)
 {
   if (!mesh->runtime->edit_mesh) {

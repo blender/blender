@@ -206,11 +206,6 @@ int *BM_uv_element_map_ensure_unique_index(UvElementMap *element_map);
  * Can we edit UVs for this mesh?
  */
 bool EDBM_uv_check(const Mesh *mesh);
-/**
- * last_sel, use em->act_face otherwise get the last selected face in the edit-selections
- * at the moment, last_sel is mainly useful for making sure the space image doesn't flicker.
- */
-BMFace *EDBM_uv_active_face_get(Mesh *mesh, bool sloppy, bool selected);
 
 void BM_uv_vert_map_free(UvVertMap *vmap);
 UvMapVert *BM_uv_vert_map_at_index(UvVertMap *vmap, unsigned int v);

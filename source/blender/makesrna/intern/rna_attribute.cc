@@ -406,7 +406,7 @@ static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
 {
   if (GS(ptr->owner_id->name) == ID_ME) {
     const Mesh *mesh = blender::id_cast<const Mesh *>(ptr->owner_id);
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
       return srna_by_custom_data_layer_type(eCustomDataType(layer->type));
     }
@@ -425,7 +425,7 @@ StringRefNull rna_Attribute_name_get(const PointerRNA &ptr)
   const AttributeOwner owner = AttributeOwner::from_id(owner_id);
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       const CustomDataLayer *layer = ptr.data_as<CustomDataLayer>();
       return layer->name;
     }
@@ -449,7 +449,7 @@ void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
       BKE_attribute_rename(owner, layer->name, value, nullptr);
       return;
@@ -465,7 +465,7 @@ static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_inf
   AttributeOwner owner = owner_from_attribute_pointer_rna(const_cast<PointerRNA *>(ptr));
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
       if (BKE_attribute_required(owner, layer->name)) {
         *r_info = N_("Cannot modify name of required geometry attribute");
@@ -488,7 +488,7 @@ static int rna_Attribute_type_get(PointerRNA *ptr)
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
       return layer->type;
     }
@@ -502,7 +502,7 @@ static int rna_Attribute_storage_type_get(PointerRNA *ptr)
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       return int(bke::AttrStorageType::Array);
     }
   }
@@ -885,7 +885,7 @@ static void rna_AttributeGroupID_remove(ID *id, ReportList *reports, PointerRNA 
   AttributeOwner owner = AttributeOwner::from_id(id);
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(attribute_ptr->data);
       BKE_attribute_remove(owner, layer->name, reports);
       attribute_ptr->invalidate();
@@ -981,7 +981,7 @@ PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter)
   AttributeOwner owner = owner_from_pointer_rna(&iter->parent);
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       CustomDataLayer *layer = *static_cast<CustomDataLayer **>(rna_iterator_array_get(iter));
       StructRNA *type = srna_by_custom_data_layer_type(eCustomDataType(layer->type));
       if (type == nullptr) {
@@ -1085,7 +1085,7 @@ static void rna_AttributeGroupID_active_set(PointerRNA *ptr,
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
       if (layer) {
         BKE_attributes_active_set(owner, layer->name);
@@ -1145,7 +1145,7 @@ static int rna_AttributeGroupID_domain_size(ID *id, const int domain)
   AttributeOwner owner = AttributeOwner::from_id(id);
   if (owner.type() == AttributeOwnerType::Mesh) {
     const Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
+    if (BKE_editmesh_bmesh_get(mesh)) {
       return BKE_attribute_domain_size(owner, domain);
     }
   }

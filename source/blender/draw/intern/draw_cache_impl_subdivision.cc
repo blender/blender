@@ -1542,7 +1542,9 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
   BMesh *bm = nullptr;
   if (mesh.runtime->edit_mesh) {
     mesh_eval = BKE_object_get_editmesh_eval_final(&ob);
-    bm = BKE_editmesh_bmesh_get_for_write(&mesh);
+    if (const Mesh *mesh_orig = BKE_object_get_pre_modified_mesh(&ob)) {
+      bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh_orig));
+    }
   }
 
 #ifdef WITH_OPENSUBDIV

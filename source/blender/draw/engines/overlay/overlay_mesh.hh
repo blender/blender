@@ -462,8 +462,12 @@ class Meshes : Overlay {
 
   static bool mesh_has_skin_roots(const Object *ob)
   {
-    Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
-    if (const BMesh *bm = BKE_editmesh_bmesh_get(&mesh)) {
+    /* The skin data is edited on the original mesh, the evaluated mesh may not have it. */
+    const Mesh *mesh_orig = BKE_object_get_pre_modified_mesh(ob);
+    if (!mesh_orig) {
+      return false;
+    }
+    if (const BMesh *bm = BKE_editmesh_bmesh_get(mesh_orig)) {
       if (CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius") == -1) {
         return false;
       }

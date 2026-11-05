@@ -119,7 +119,8 @@ static void deform_verts_EM(ModifierData *md,
                             Mesh *mesh,
                             MutableSpan<float3> positions)
 {
-  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
+  const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
+  if (!bm) {
     deform_verts(md, ctx, mesh, positions);
     return;
   }
@@ -144,7 +145,7 @@ static void deform_verts_EM(ModifierData *md,
                                           defgrp_index,
                                           cmd->flag,
                                           defaxis,
-                                          *BKE_editmesh_bmesh_get(mesh));
+                                          *bm);
   }
   else {
     BKE_curve_deform_coords(cmd->object,

@@ -23,8 +23,6 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
-#include "ED_mesh.hh"
-
 #include "DRW_render.hh"
 
 #include "mesh_extractors/extract_mesh.hh"
@@ -457,7 +455,9 @@ MeshRenderData mesh_render_data_create(Object &object,
     BM_mesh_elem_index_ensure(mr.bm, bm_ensure_types);
     BM_mesh_elem_table_ensure(mr.bm, bm_ensure_types & ~BM_LOOP);
 
-    mr.efa_act_uv = EDBM_uv_active_face_get(const_cast<Mesh *>(mr.mesh), false, false);
+    mr.efa_act_uv = CustomData_has_layer(&mr.bm->ldata, CD_PROP_FLOAT2) ?
+                        BM_mesh_active_face_get(mr.bm, false, false) :
+                        nullptr;
     mr.efa_act = BM_mesh_active_face_get(mr.bm, false, true);
     mr.eed_act = BM_mesh_active_edge_get(mr.bm);
     mr.eve_act = BM_mesh_active_vert_get(mr.bm);

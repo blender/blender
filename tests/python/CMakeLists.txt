@@ -1812,6 +1812,7 @@ if(WITH_UI_TESTS)
     test_sculpt.trim_gestures
     test_sculpt.primitive_tool_add
     test_tools.sculpt_mode_toolbar
+    test_mesh_edit_draw.view3d_mesh_edit_draw_modifiers
     test_transform.view3d_mesh_edit_snap_to_self
     test_transform.view3d_mesh_edit_snap_to_self_shape_key
     test_undo.compositor_make_group
