@@ -2473,11 +2473,11 @@ class XpbdSolverStep {
           this->simulate__update_velocities__chunk(chunk_i, solver_refs_i);
         });
         this->simulate__velocity_solve(solver_refs_i);
-        this->parallel_for_each_chunk(16, [&](const int chunk_i) {
-          this->simulate__ensure_final_data_in_outputs__chunk(chunk_i);
-        });
         solver_refs_i = 1 - solver_refs_i;
       }
+      this->parallel_for_each_chunk(16, [&](const int chunk_i) {
+        this->simulate__ensure_final_data_in_outputs__chunk(chunk_i);
+      });
     }
 
     return Result{math::sqrt(average_error_squared)};
