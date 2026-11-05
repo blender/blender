@@ -567,7 +567,7 @@ struct CodegenContext : NodeErrorHandler {
         ctx.error(call, Diag::InvalidInlinedFunctionLocation);
       }
 
-      if (sym.is_virtual && sym.is_overridden()) {
+      if (sym.is_virtual && (sym.is_overridden() || sym.is_pure_virtual)) {
         ctx.error(call, Diag::InvalidVirtualFunctionCall, sym.original);
         return {"", *ctx.table.err_cls};
       }

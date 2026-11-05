@@ -307,6 +307,7 @@ enum class Diag {
   UnsupportedSymbolInExpr,
   UnsupportedDefaultedBody,
   UnsupportedDeletedBody,
+  UnsupportedPureVirtualFunctionBody,
 
   UsingNamespaceNotSupported,
 };
@@ -665,6 +666,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Defaulted body are not supported";
     case Diag::UnsupportedDeletedBody:
       return "Deleted functions are not supported";
+    case Diag::UnsupportedPureVirtualFunctionBody:
+      return "Pure virtual function with body are not supported";
     case Diag::UsingNamespaceNotSupported:
       return "Using namespace statements are not supported";
   }

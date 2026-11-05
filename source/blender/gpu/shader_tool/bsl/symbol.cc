@@ -844,6 +844,10 @@ struct SymbolParser : NodeErrorHandler {
       fn->arg_defaults.clear();
       /* Also reset the identifier. */
       fn->identifier = id.name().str();
+
+      if (fn->is_pure_virtual) {
+        error(id.name(), Diag::UnsupportedPureVirtualFunctionBody);
+      }
     }
     else if (ns) {
       error(id.name(), Diag::FunctionOutOfClassDefinition, id.name().str(), ns->original);
