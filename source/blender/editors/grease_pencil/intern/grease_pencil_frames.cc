@@ -586,15 +586,16 @@ static void GREASE_PENCIL_OT_insert_blank_frame(wmOperatorType *ot)
   prop = RNA_def_boolean(
       ot->srna, "all_layers", false, "All Layers", "Insert a blank frame in all editable layers");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  RNA_def_int(ot->srna,
-              "duration",
-              0,
-              0,
-              MAXFRAME,
-              "Duration",
-              "WARNING: Has no effect currently, always behaves as if its value was `0`",
-              0,
-              100);
+  prop = RNA_def_int(ot->srna,
+                     "duration",
+                     0,
+                     0,
+                     MAXFRAME,
+                     "Duration",
+                     "WARNING: Has no effect currently, always behaves as if its value was `0`",
+                     0,
+                     100);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 static void GREASE_PENCIL_OT_frame_clean_duplicate(wmOperatorType *ot)
