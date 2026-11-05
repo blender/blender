@@ -29,6 +29,7 @@
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.hh"
 #  include "BLI_string_utf8.hh"
+#  include "BLI_string_utils.hh"
 #  include "BLI_system.hh"
 #  include "BLI_threads.hh"
 #  include "BLI_utildefines.hh"
@@ -1579,7 +1580,7 @@ static const char arg_handle_debug_gpu_scope_capture_set_doc[] =
 static int arg_handle_debug_gpu_scope_capture_set(int argc, const char **argv, void * /*data*/)
 {
   if (argc > 1) {
-    STRNCPY(G.gpu_debug_scope_name, argv[1]);
+    STRNCPY_UTF8(G.gpu_debug_scope_name, argv[1]);
     return 1;
   }
   fprintf(stderr, "\nError: you must specify a scope name to capture.\n");
@@ -1594,7 +1595,7 @@ static const char arg_handle_debug_gpu_shader_source_doc[] =
 static int arg_handle_debug_gpu_shader_source(int argc, const char **argv, void * /*data*/)
 {
   if (argc > 1) {
-    STRNCPY(G.gpu_debug_shader_source_name, argv[1]);
+    STRNCPY_UTF8(G.gpu_debug_shader_source_name, argv[1]);
     return 1;
   }
   fprintf(stderr, "\nError: you must specify a shader name to capture.\n");
@@ -2920,17 +2921,14 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
   /* Workaround for scripts not getting a `bpy.context.scene`, causes internal errors elsewhere. */
   if (argc > 1) {
 #  ifdef WITH_PYTHON
-    const char script_str[] =
+    char *str = BLI_string_joinN(
         "from _bpy_internal.addons.cli import set_from_cli\n"
-        "set_from_cli('%s')";
-    const int slen = strlen(argv[1]) + (sizeof(script_str) - 2);
-    char *str = static_cast<char *>(malloc(slen));
+        "set_from_cli('",
+        argv[1],
+        "')");
     bContext *C = static_cast<bContext *>(data);
-    BLI_snprintf(str, slen, script_str, argv[1]);
-
-    BLI_assert(strlen(str) + 1 == slen);
     BPY_CTX_SETUP(BPY_run_string_exec(C, nullptr, str));
-    free(str);
+    MEM_delete(str);
 #  else
     UNUSED_VARS(argv, data);
 #  endif /* WITH_PYTHON */
