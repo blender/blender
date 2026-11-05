@@ -271,6 +271,19 @@ class ShaderNodesInliner {
    */
   Set<const ComputeContext *> handled_side_effect_contexts_;
 
+  /**
+   * When error messages are first created, they are only "pending". That is because
+   * sometimes an error is produced by a node in a repeat zone before it was inlined. Later when
+   * the zone is inlined, the error might not happen anymore in which case the error should be
+   * discarded.
+   */
+  struct PendingError {
+    NodeInContext node;
+    std::string message;
+    NodeWarningType type;
+  };
+  Vector<PendingError> pending_errors_;
+
  public:
   ShaderNodesInliner(const bNodeTree &src_tree,
                      bNodeTree &dst_tree,
@@ -345,6 +358,7 @@ class ShaderNodesInliner {
 
     this->restore_zones_in_output_tree();
     this->position_nodes_in_output_tree();
+    this->flush_pending_errors();
     return true;
   }
 
@@ -1550,6 +1564,9 @@ class ShaderNodesInliner {
     const std::optional<PrimitiveSocketValue> primitive_show = show_value->to_primitive(
         *show_input_socket->typeinfo);
     if (!primitive_show) {
+      /* Don't use #report_required_constant_input_or_backtrack here because we don't want to break
+       * a preserved repeat zone just because of a warning node. This could cause significant
+       * slowdowns even if the warning is not triggered. */
       this->report_error(
           node, TIP_("Warnings only work when inputs are constant values"), NodeWarningType::Info);
       this->store_socket_value_fallback(socket);
@@ -2513,10 +2530,30 @@ class ShaderNodesInliner {
 
   void report_error(const NodeInContext &node, const StringRef message, const NodeWarningType type)
   {
+    pending_errors_.append({node, message, type});
+  }
+
+  void flush_pending_errors()
+  {
+    for (const PendingError &pending_error : pending_errors_) {
+      /* Skip errors which are not relevant anymore because the node which created them is not
+       * used. */
+      if (this->is_in_force_inlined_repeat_zone(pending_error.node.context)) {
+        continue;
+      }
+      this->flush_pending_error(pending_error);
+    }
+    pending_errors_.clear();
+  }
+
+  void flush_pending_error(const PendingError &pending_error)
+  {
     Vector<NodeInContext> nodes;
-    nodes.append(node);
-    for (const ComputeContext *context = node.context; context; context = context->parent()) {
-      if (!warning_is_propagated(nodes.last()->warning_propagation, type)) {
+    nodes.append(pending_error.node);
+    for (const ComputeContext *context = pending_error.node.context; context;
+         context = context->parent())
+    {
+      if (!warning_is_propagated(nodes.last()->warning_propagation, pending_error.type)) {
         break;
       }
       if (const auto *group_context = dynamic_cast<const bke::GroupNodeComputeContext *>(context))
@@ -2525,8 +2562,24 @@ class ShaderNodesInliner {
       }
     }
     for (const NodeInContext &node : nodes) {
-      params_.r_error_messages.append({&*node, message, type});
+      params_.r_error_messages.append({&*node, pending_error.message, pending_error.type});
     }
+  }
+
+  bool is_in_force_inlined_repeat_zone(const ComputeContext *context) const
+  {
+    for (const ComputeContext *ctx = context; ctx; ctx = ctx->parent()) {
+      const auto *repeat_zone_ctx = dynamic_cast<const bke::RepeatZoneComputeContext *>(ctx);
+      if (!repeat_zone_ctx || repeat_zone_ctx->iteration() != preserved_repeat_zone_iteration) {
+        continue;
+      }
+      if (repeat_zones_to_force_inline_.contains(
+              {repeat_zone_ctx->parent(), repeat_zone_ctx->output_node_id()}))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 };
 
