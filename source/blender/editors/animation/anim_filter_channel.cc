@@ -638,11 +638,10 @@ void KeyPoint::merge(const KeyPoint &other)
 
 void ChannelSettingState::merge(const ChannelSettingState &other)
 {
-  if (!other.exists) {
+  if (other.value == ChannelSettingValue::UNDEFINED) {
     return;
   }
-  if (!this->exists) {
-    this->exists = true;
+  if (this->value == ChannelSettingValue::UNDEFINED) {
     this->value = other.value;
     return;
   }
@@ -1316,7 +1315,6 @@ void FCurveChannel::gather_channel_settings()
 {
   const FCurve *fcurve = this->get_source<FCurve>();
   ChannelSettingState setting_state;
-  setting_state.exists = true;
 
   setting_state.value = fcurve->flag & FCURVE_VISIBLE ? ChannelSettingValue::ON :
                                                         ChannelSettingValue::OFF;
@@ -1471,7 +1469,6 @@ void GreasePencilChannel::gather_channel_settings()
   bke::greasepencil::Layer &layer = gp_layer->wrap();
 
   ChannelSettingState setting_state;
-  setting_state.exists = true;
 
   setting_state.value = layer.is_visible() ? ChannelSettingValue::ON : ChannelSettingValue::OFF;
   this->channel_settings_.set_state(ChannelSettingKey::VISIBLE, setting_state);

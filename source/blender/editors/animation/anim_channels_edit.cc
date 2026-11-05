@@ -6114,29 +6114,15 @@ static wmOperatorStatus channel_flush_flag_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  const ChannelSettingKey key = ChannelSettingKey(RNA_enum_get(op->ptr, "setting"));
+  const ChannelSettingKey key = ChannelSettingKey(RNA_int_get(op->ptr, "setting"));
   const ChannelSettings &channel_settings = channel_under_cursor->channel_settings();
   const ChannelSettingState state = channel_settings.get_state(key);
-  BLI_assert_msg(state.exists, "Non existent states shouldn't be drawn for a channel");
+  BLI_assert_msg(state.is_defined(), "Non existent states shouldn't be drawn for a channel");
   /* Turns on OFF and MIXED, turns off ON. */
   channel_under_cursor->set_setting(key, state.value != ChannelSettingValue::ON);
 
   return OPERATOR_FINISHED;
 }
-
-static const EnumPropertyItem channel_flush_setting_enum[] = {
-    {int(ed::animfilter::ChannelSettingKey::LOCKED),
-     "LOCKED",
-     0,
-     "Locked",
-     "Controls the lock of the channel"},
-    {int(ed::animfilter::ChannelSettingKey::VISIBLE),
-     "VISIBLE",
-     0,
-     "Visible",
-     "Controls the visibility of the channel"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
 
 static void ANIM_OT_channel_flush_flag(wmOperatorType *ot)
 {
@@ -6149,12 +6135,16 @@ static void ANIM_OT_channel_flush_flag(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(ot->srna,
-               "setting",
-               channel_flush_setting_enum,
-               int(ed::animfilter::ChannelSettingKey::LOCKED),
-               "Setting",
-               "Controls which setting to modify for the channel under the cursor");
+  /* This could be an enum for `ChannelSettingKey` but for now this works. */
+  RNA_def_int(ot->srna,
+              "setting",
+              0,
+              0,
+              int(ed::animfilter::ChannelSettingKey::_MAX) - 1,
+              "Setting",
+              "Controls which setting to modify for the channel under the cursor",
+              0,
+              int(ed::animfilter::ChannelSettingKey::_MAX) - 1);
 }
 
 /** \} */

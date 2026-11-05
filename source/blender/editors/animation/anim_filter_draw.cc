@@ -473,12 +473,12 @@ void ChannelItem::build_row(ui::Layout &layout)
   for (const int setting_int : IndexRange(int(ChannelSettingKey::_MAX))) {
     const ChannelSettingKey key = ChannelSettingKey(setting_int);
     ChannelSettingState state = settings.get_state(key);
-    if (!state.exists) {
+    if (!state.is_defined()) {
       continue;
     }
     PointerRNA op_ptr = layout.op(
         "ANIM_OT_channel_flush_flag", "", icon_for_channel_setting(key, state.value));
-    RNA_enum_set(&op_ptr, "setting", setting_int);
+    RNA_int_set(&op_ptr, "setting", setting_int);
   }
 
   if (channel_.type() == AnimationChannelType::DATA) {

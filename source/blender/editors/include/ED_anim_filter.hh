@@ -269,12 +269,16 @@ enum class ChannelSettingValue : uint8_t {
   OFF,
   ON,
   MIXED,
+  UNDEFINED,
 };
 
 struct ChannelSettingState {
-  bool exists = false;
-  ChannelSettingValue value = ChannelSettingValue::MIXED;
+  ChannelSettingValue value = ChannelSettingValue::UNDEFINED;
 
+  bool is_defined() const
+  {
+    return value != ChannelSettingValue::UNDEFINED;
+  }
   void merge(const ChannelSettingState &other);
 };
 
