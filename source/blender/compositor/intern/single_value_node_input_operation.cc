@@ -163,7 +163,6 @@ void SingleValueNodeInputOperation::execute()
       /* An undefined socket, its value does not matter. */
       break;
     default:
-      BLI_assert_unreachable();
       break;
   }
 }
