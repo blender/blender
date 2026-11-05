@@ -804,6 +804,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       edge_new++;
     }
   }
+  for (const StringRef name : {"skin_modifier_root", "skin_modifier_loose"}) {
+    bke::SpanAttributeWriter<bool> attr = attributes.lookup_for_write_span<bool>(name);
+    if (attr && attr.domain == bke::AttrDomain::Point) {
+      attr.span.drop_front(totvert).fill(false);
+      attr.finish();
+    }
+  }
 
   /* we can avoid if using vert alloc trick */
   if (vert_connect) {
