@@ -1241,6 +1241,19 @@ void DataChannel::datachannel_hash(UniqueHashBytes &hash) const
   hash.add(this->flags_);
 }
 
+template<> FCurve *DataChannel::get_source<FCurve>() const
+{
+  BLI_assert(this->source_type_ == DataChannelType::FCURVE);
+  return static_cast<FCurve *>(this->source().data);
+}
+
+template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
+{
+  BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
+  return static_cast<GreasePencilLayer *>(this->source().data);
+}
+
+/* ===== F-Curve Channel ===== */
 static std::optional<StringRefNull> last_rna_path_member(const ParsedRNAPathRef path)
 {
   if (path.is_empty()) {
@@ -1285,20 +1298,6 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
     sorting_priority_ = -fcurve.array_index;
   }
 }
-
-template<> FCurve *DataChannel::get_source<FCurve>() const
-{
-  BLI_assert(this->source_type_ == DataChannelType::FCURVE);
-  return static_cast<FCurve *>(this->source().data);
-}
-
-template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
-{
-  BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
-  return static_cast<GreasePencilLayer *>(this->source().data);
-}
-
-/* ===== F-Curve Channel ===== */
 
 static KeyframeHandleSummary handle_summary_from_key(const BezTriple &key)
 {
