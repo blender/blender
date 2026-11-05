@@ -785,6 +785,19 @@ struct SymbolParser : NodeErrorHandler {
     parse_function_arguments(fn, decl.arguments());
     /* Record as function prototype. */
     scope.function_prototypes.emplace_back(decl, &fn);
+
+    /* Set resolved identifier in case the declaration is emitted without the definition. */
+    switch (fn.fn_type) {
+      case SymbolFunction::GLOBAL:
+      case SymbolFunction::STATIC:
+        /* TODO(fclem) */
+        // fn.identifier = fn_prefix + fn.identifier;
+        break;
+      case SymbolFunction::MEMBER:
+        /* Member function use overload resolution. */
+        fn.identifier = "_" + fn.identifier;
+        break;
+    }
   }
 
   SymbolFunction *parse_func_decl(SymbolScope &def_scope,
@@ -825,6 +838,8 @@ struct SymbolParser : NodeErrorHandler {
       fn->arg_const.clear();
       fn->arg_types.clear();
       fn->arg_defaults.clear();
+      /* Also reset the identifier. */
+      fn->identifier = id.name().str();
     }
     else if (ns) {
       error(id.name(), Diag::FunctionOutOfClassDefinition, id.name().str(), ns->original);
