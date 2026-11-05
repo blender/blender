@@ -2026,7 +2026,7 @@ class XpbdSolverStep {
         const int face1_dir = face1_verts[(face1_i1 + 1) % face1_size] == edge_v0 ? 1 : -1;
         /* Some corners may be ignored if they if both faces have a different number of
          * corners. */
-        const int cross_edge_num = std::max(face0_size, face1_size) - 2;
+        const int cross_edge_num = std::min(face0_size, face1_size) - 2;
         for (const int i : IndexRange(cross_edge_num)) {
           const int cross_edge_v0 = face0_verts[mod_i(face0_i0 - face0_dir * (i + 1), face0_size)];
           const int cross_edge_v1 = face1_verts[mod_i(face1_i1 - face1_dir * (i + 1), face1_size)];
