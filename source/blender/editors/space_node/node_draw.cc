@@ -3652,6 +3652,7 @@ static void comment_node_prepare_for_draw(const bContext &C,
                                           bNode &node,
                                           ui::Block &block)
 {
+  Main &bmain = *CTX_data_main(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   NodeComment &storage = *static_cast<NodeComment *>(node.storage);
   const bool is_edit = comment_node_is_edit(snode, node);
@@ -3708,7 +3709,7 @@ static void comment_node_prepare_for_draw(const bContext &C,
   node.runtime->draw_bounds.ymin = loc.y - height;
   node.runtime->draw_bounds.ymax = loc.y;
 
-  if (!is_edit && node.is_selected()) {
+  if (!is_edit && node.is_selected() && BKE_id_is_editable(&bmain, &ntree.id)) {
     block_emboss_set(&block, ui::EmbossType::None);
     const int but_x = node.runtime->draw_bounds.xmax - icon_pad - NODE_HEADER_ICON_SIZE;
     const int but_y = node.runtime->draw_bounds.ymax - icon_pad - NODE_HEADER_ICON_SIZE;
