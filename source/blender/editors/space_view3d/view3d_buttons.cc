@@ -3358,10 +3358,11 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
                       status.start_cap.value_max * status.curve_count ==
                           status.start_cap.value_sum,
                       [&]() {
-                        ui::Button *but = uiDefMenuBut(
+                        ui::Button *but = uiDefIconTextMenuBut(
                             block,
                             grease_pencil_cap_menu,
                             &modified.start_cap,
+                            enum_grease_pencil_cap_items[modified.start_cap].icon,
                             CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL,
                                        enum_grease_pencil_cap_items[modified.start_cap].name),
                             0,
@@ -3377,10 +3378,11 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
     add_labeled_field(IFACE_("End Cap"),
                       status.end_cap.value_max * status.curve_count == status.end_cap.value_sum,
                       [&]() {
-                        ui::Button *but = uiDefMenuBut(
+                        ui::Button *but = uiDefIconTextMenuBut(
                             block,
                             grease_pencil_cap_menu,
                             &modified.end_cap,
+                            enum_grease_pencil_cap_items[modified.end_cap].icon,
                             CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL,
                                        enum_grease_pencil_cap_items[modified.end_cap].name),
                             0,
