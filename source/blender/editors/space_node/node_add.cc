@@ -606,8 +606,15 @@ static wmOperatorStatus node_swap_group_asset_invoke(bContext *C,
   RNA_collection_add(&ptr, "settings", &itemptr);
   RNA_string_set(&itemptr, "name", "node_tree");
 
-  std::string setting_value = "bpy.data.node_groups[\"" +
-                              std::string(BKE_id_name(node_group->id)) + "\"]";
+  /* Reference the node group by index.
+   *
+   * NOTE: #RNA_path_full_ID_py would be preferable, however its `(name, library-filepath)` key
+   * fails to resolve packed IDs (essentials assets for e.g.) since archive libraries share their
+   * file-path with the library they were packed from. As the expression is evaluated immediately,
+   * an index is reliable, so use it for now. */
+  const int node_group_index = BLI_findindex(&bmain.nodetrees, node_group);
+  BLI_assert(node_group_index != -1);
+  const std::string setting_value = fmt::format("bpy.data.node_groups[{}]", node_group_index);
   RNA_string_set(&itemptr, "value", setting_value.c_str());
 
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &ptr, nullptr);
