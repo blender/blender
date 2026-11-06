@@ -154,6 +154,7 @@ enum class Diag {
 
   ExpectedArrayMemberInitializer,
   ExpectedColon,
+  ExpectedDesignatedInitializer,
   ExpectedEntryPointResourceAttribute,
   ExpectedImageFormat,
   ExpectedNParametersForAttribute,
@@ -397,6 +398,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Expected colon ':'";
     case Diag::ExpectedComputeShaderEntryPoint:
       return "Expected compute shader entry point function";
+    case Diag::ExpectedDesignatedInitializer:
+      return "Expected designated initializer for compilation constant";
     case Diag::ExpectedEntryPointResourceAttribute:
       return "Expected entry point resource attribute but got '{}'";
     case Diag::ExpectedFragmentShaderEntryPoint:

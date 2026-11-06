@@ -904,6 +904,11 @@ struct CodegenContext : NodeErrorHandler {
       builder.ss << start.buf_->substr(start, end, true);
     };
 
+    /* A positional value doesn't name its constant, and would be dropped without an error. */
+    for (Initializer init : list.children_of_type<Initializer>()) {
+      error(init, Diag::ExpectedDesignatedInitializer);
+    }
+
     Token curr = list.front();
     for (DesignatedInitializer init : list.children_of_type<DesignatedInitializer>()) {
       Expr value = init.assign().child_first();
