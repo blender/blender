@@ -7,10 +7,10 @@
  */
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_math_vector_types.hh"
@@ -29,6 +29,28 @@ namespace blender::ed::transform {
 /** \name Edit Mesh Skin Modifier Radius Transform Creation
  * \{ */
 
+struct SkinTransformData {
+  int cd_skin_radius_offset;
+  /**
+   * Radii of #TransDataContainer::data, followed by those of #TransDataContainer::data_mirror.
+   * The generic transform code reads and writes three components through #TransDataBasic::loc,
+   * while the skin radius attribute only stores two.
+   */
+  Array<float3> radii;
+  Array<BMVert *> verts;
+};
+
+static SkinTransformData &create_transform_custom_data(TransCustomData &custom_data)
+{
+  SkinTransformData *transform_data = MEM_new<SkinTransformData>(__func__);
+  custom_data.data = transform_data;
+  custom_data.free_cb = [](TransInfo *, TransDataContainer *, TransCustomData *custom_data) {
+    MEM_delete(static_cast<SkinTransformData *>(custom_data->data));
+    custom_data->data = nullptr;
+  };
+  return *transform_data;
+}
+
 static float *mesh_skin_transdata_center(const TransIslandData *island_data,
                                          const int island_index,
                                          BMVert *eve)
@@ -40,6 +62,7 @@ static float *mesh_skin_transdata_center(const TransIslandData *island_data,
 }
 
 static void mesh_skin_transdata_create(TransDataBasic *td,
+                                       float3 &radius,
                                        BMVert *eve,
                                        const TransIslandData *island_data,
                                        const int island_index,
@@ -47,14 +70,11 @@ static void mesh_skin_transdata_create(TransDataBasic *td,
 {
   BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
   td->flag = 0;
-  if (cd_skin_radius_offset != -1) {
-    float2 *radius = static_cast<float2 *>(BM_ELEM_CD_GET_VOID_P(eve, cd_skin_radius_offset));
-    copy_v2_v2(td->iloc, *radius);
-    td->loc = *radius;
-  }
-  else {
-    td->flag |= TD_SKIP;
-  }
+  const float2 &radius_attr = *static_cast<float2 *>(
+      BM_ELEM_CD_GET_VOID_P(eve, cd_skin_radius_offset));
+  radius = float3(radius_attr, 0.0f);
+  copy_v3_v3(td->iloc, radius);
+  td->loc = radius;
 
   if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
     td->flag |= TD_SELECTED;
@@ -180,6 +200,13 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
     tc->data_len = data_len;
     tc->data = MEM_new_array_zeroed<TransData>(data_len, "TransObData(Mesh EditMode)");
 
+    SkinTransformData &transform_data = create_transform_custom_data(tc->custom.type);
+    transform_data.cd_skin_radius_offset = cd_skin_radius_offset;
+    transform_data.radii.reinitialize(data_len + tc->data_mirror_len);
+    transform_data.verts.reinitialize(data_len + tc->data_mirror_len);
+    int radius_i = 0;
+    int radius_mirror_i = data_len;
+
     TransData *td = tc->data;
     TransDataMirror *td_mirror = tc->data_mirror;
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
@@ -195,6 +222,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
 
       if (mirror_data.vert_map && mirror_data.vert_map[a].index != -1) {
         mesh_skin_transdata_create(static_cast<TransDataBasic *>(td_mirror),
+                                   transform_data.radii[radius_mirror_i],
                                    eve,
                                    &island_data,
                                    island_index,
@@ -207,10 +235,13 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
 
         td_mirror->flag |= mirror_data.vert_map[a].flag;
         td_mirror->loc_src = *radius_src;
+        transform_data.verts[radius_mirror_i] = eve;
         td_mirror++;
+        radius_mirror_i++;
       }
       else if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
         mesh_skin_transdata_create(static_cast<TransDataBasic *>(td),
+                                   transform_data.radii[radius_i],
                                    eve,
                                    &island_data,
                                    island_index,
@@ -245,7 +276,9 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
                 nullptr,
             td);
 
+        transform_data.verts[radius_i] = eve;
         td++;
+        radius_i++;
       }
     }
 
@@ -267,13 +300,22 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
 /** \name Recalc Mesh Data
  * \{ */
 
+static void skin_radius_write_bmesh(const Span<float3> radii,
+                                    const Span<BMVert *> verts,
+                                    const int cd_skin_radius_offset)
+{
+  for (const int i : radii.index_range()) {
+    *static_cast<float2 *>(BM_ELEM_CD_GET_VOID_P(verts[i], cd_skin_radius_offset)) = radii[i].xy();
+  }
+}
+
 static void mesh_skin_apply_to_mirror(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->use_mirror_axis_any) {
       TransDataMirror *td_mirror = tc->data_mirror;
       for (int i = 0; i < tc->data_mirror_len; i++, td_mirror++) {
-        copy_v3_v3(td_mirror->loc, td_mirror->loc_src);
+        copy_v2_v2(td_mirror->loc, td_mirror->loc_src);
       }
     }
   }
@@ -282,6 +324,16 @@ static void mesh_skin_apply_to_mirror(TransInfo *t)
 static void recalcData_mesh_skin(TransInfo *t)
 {
   bool is_canceling = t->state == TRANS_CANCEL;
+
+  /* Write back before mirroring, which reads the radii of the source vertices. */
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (const auto *data = static_cast<const SkinTransformData *>(tc->custom.type.data)) {
+      skin_radius_write_bmesh(data->radii.as_span().take_front(tc->data_len),
+                              data->verts.as_span().take_front(tc->data_len),
+                              data->cd_skin_radius_offset);
+    }
+  }
+
   /* Mirror modifier clipping? */
   if (!is_canceling) {
     if (!(t->flag & T_NO_MIRROR)) {
@@ -290,6 +342,11 @@ static void recalcData_mesh_skin(TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (const auto *data = static_cast<const SkinTransformData *>(tc->custom.type.data)) {
+      skin_radius_write_bmesh(data->radii.as_span().drop_front(tc->data_len),
+                              data->verts.as_span().drop_front(tc->data_len),
+                              data->cd_skin_radius_offset);
+    }
     DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
     EditMesh *em = BKE_editmesh_from_object(tc->obedit);
     BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_get_for_write(tc->obedit));
