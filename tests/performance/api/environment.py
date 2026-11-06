@@ -272,6 +272,7 @@ class TestEnvironment:
                         print(line_str, end='', flush=True)
                     if f:
                         f.write(line_str)
+                        f.flush()
         except KeyboardInterrupt as e:
             # Avoid processes that keep running when interrupting.
             proc.terminate()
