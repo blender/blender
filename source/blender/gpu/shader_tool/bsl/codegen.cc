@@ -913,7 +913,9 @@ struct CodegenContext : NodeErrorHandler {
       }
 
       auto result = table.expr_type_analysis(scope, value.child_first()).unwrap(this);
-      if (!result.is_constexpr()) {
+      if (!result.is_constexpr() || result.array_dim != 0 || !result.value.is_scalar() ||
+          result.value.comp_type() == ConstexprValue::FLOAT)
+      {
         error(value, Diag::ExprNotIntegralConstant);
         continue;
       }
