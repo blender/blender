@@ -2326,7 +2326,9 @@ static bool node_link_is_field_link(const SpaceNode &snode, const bNodeLink &lin
   if (!link.fromsock) {
     return false;
   }
-  if (!nodes::socket_type_supports_fields(link.fromsock->type)) {
+  if (!nodes::socket_type_supports_fields(link.fromsock->type) &&
+      link.fromsock->type != SOCK_DYNAMIC)
+  {
     /* Normally, StructureType::Dynamic would result in dashed links. We override that for socket
      * types we know currently can't be used as fields. */
     return false;

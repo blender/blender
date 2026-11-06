@@ -31,6 +31,10 @@ namespace rl = nodes::reference_lifetimes;
 static StructureType ensure_supported_structure_type(const eNodeSocketDatatype socket_type,
                                                      const StructureType structure_type)
 {
+  if (socket_type == SOCK_DYNAMIC) {
+    /* The data type is only known at runtime, so any structure type is possible. */
+    return structure_type;
+  }
   if (structure_type == StructureType::Field && !nodes::socket_type_supports_fields(socket_type)) {
     return StructureType::Single;
   }

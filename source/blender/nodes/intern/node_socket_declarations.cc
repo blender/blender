@@ -1098,26 +1098,33 @@ bNodeSocket &Dynamic::build(bNodeTree &ntree, bNode &node) const
 {
   bNodeSocket &socket = *bke::node_add_socket(
       ntree, node, this->in_out, "NodeSocketDynamic", this->identifier.ref(), this->name.ref());
+  this->set_common_flags(socket);
   return socket;
 }
 
 bool Dynamic::matches(const bNodeSocket &socket) const
 {
-  if (socket.identifier != this->identifier) {
+  if (!this->matches_common_data(socket)) {
+    return false;
+  }
+  if (socket.type != SOCK_DYNAMIC) {
     return false;
   }
   return true;
 }
 
-bool Dynamic::can_connect(const bNodeSocket & /*socket*/) const
+bool Dynamic::can_connect(const bNodeSocket &socket) const
 {
-  return false;
+  return sockets_can_connect(*this, socket);
 }
 
-bNodeSocket &Dynamic::update_or_build(bNodeTree & /*ntree*/,
-                                      bNode & /*node*/,
-                                      bNodeSocket &socket) const
+bNodeSocket &Dynamic::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const
 {
+  if (socket.type != SOCK_DYNAMIC) {
+    BLI_assert(socket.in_out == this->in_out);
+    return this->build(ntree, node);
+  }
+  this->set_common_flags(socket);
   return socket;
 }
 
