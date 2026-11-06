@@ -40,6 +40,7 @@ class PlanarProbeModule {
 
   struct PlanarResources : NonCopyable {
     Framebuffer prepass_fb = {"planar.prepass_fb"};
+    Framebuffer prepass_hide_from_raycast_fb = {"planar.prepass_hide_from_raycast_fb"};
     Framebuffer combined_fb = {"planar.combined_fb"};
     Framebuffer gbuffer_fb = {"planar.gbuffer_fb"};
     draw::View view = {"planar.view"};

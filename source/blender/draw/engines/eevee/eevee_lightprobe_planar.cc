@@ -138,6 +138,11 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
         with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.prepass_normal_tx) : GPU_ATTACHMENT_NONE,
         with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.object_id_tx) : GPU_ATTACHMENT_NONE,
         GPU_ATTACHMENT_NONE /* motion vectors */);
+    res.prepass_hide_from_raycast_fb.ensure(
+        GPU_ATTACHMENT_TEXTURE_LAYER(depth_tx_, resource_index),
+        GPU_ATTACHMENT_NONE,
+        GPU_ATTACHMENT_NONE,
+        GPU_ATTACHMENT_NONE);
 
     if (with_raycast) {
       rbufs.object_id_tx.clear(uint4(0));
@@ -162,6 +167,7 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
     inst_.pipelines.planar.render(res.view,
                                   depth_tx_.layer_view(resource_index),
                                   res.prepass_fb,
+                                  res.prepass_hide_from_raycast_fb,
                                   res.gbuffer_fb,
                                   res.combined_fb,
                                   extent);

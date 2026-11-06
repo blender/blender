@@ -108,6 +108,10 @@ void ShadingView::render()
       with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.prepass_normal_tx) : GPU_ATTACHMENT_NONE,
       with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.object_id_tx) : GPU_ATTACHMENT_NONE,
       GPU_ATTACHMENT_TEXTURE(rbufs.vector_tx));
+  prepass_hide_from_raycast_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
+                                       GPU_ATTACHMENT_NONE,
+                                       GPU_ATTACHMENT_NONE,
+                                       GPU_ATTACHMENT_TEXTURE(rbufs.vector_tx));
 
   GBuffer &gbuf = inst_.gbuffer;
   gbuf.acquire(extent_,
@@ -148,6 +152,7 @@ void ShadingView::render()
   inst_.pipelines.deferred.render(main_view_,
                                   render_view_,
                                   prepass_fb_,
+                                  prepass_hide_from_raycast_fb_,
                                   combined_fb_,
                                   gbuffer_fb_,
                                   extent_,
@@ -164,8 +169,13 @@ void ShadingView::render()
 
   inst_.ambient_occlusion.render_pass(render_view_);
 
-  inst_.pipelines.forward.render(
-      render_view_, rbufs.depth_tx, prepass_fb_, transparent_fb_, combined_fb_, extent_);
+  inst_.pipelines.forward.render(render_view_,
+                                 rbufs.depth_tx,
+                                 prepass_fb_,
+                                 prepass_hide_from_raycast_fb_,
+                                 transparent_fb_,
+                                 combined_fb_,
+                                 extent_);
 
   inst_.lights.shape_display_draw(render_view_, combined_fb_);
 
@@ -359,6 +369,7 @@ void CaptureView::render_world()
 void CaptureView::render_probes()
 {
   Framebuffer prepass_fb;
+  Framebuffer prepass_hide_from_raycast_fb;
   View view = {"Capture.View"};
 
   /* Any 90 degree FOV view will do it. */
@@ -392,6 +403,10 @@ void CaptureView::render_probes()
         with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.prepass_normal_tx) : GPU_ATTACHMENT_NONE,
         with_raycast ? GPU_ATTACHMENT_TEXTURE(rbufs.object_id_tx) : GPU_ATTACHMENT_NONE,
         GPU_ATTACHMENT_NONE /* Motion vectors not supported. */);
+    prepass_hide_from_raycast_fb.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
+                                        GPU_ATTACHMENT_NONE,
+                                        GPU_ATTACHMENT_NONE,
+                                        GPU_ATTACHMENT_NONE);
 
     inst_.gbuffer.acquire(extent,
                           inst_.pipelines.probe.header_layer_count(),
@@ -430,7 +445,8 @@ void CaptureView::render_probes()
       GPU_framebuffer_bind(combined_fb_);
       /* Alpha stores transmittance. So start at 1. */
       GPU_framebuffer_clear_color(combined_fb_, {0.0, 0.0, 0.0, 1.0});
-      inst_.pipelines.probe.render(view, prepass_fb, combined_fb_, gbuffer_fb_, extent);
+      inst_.pipelines.probe.render(
+          view, prepass_fb, prepass_hide_from_raycast_fb, combined_fb_, gbuffer_fb_, extent);
     }
 
     inst_.render_buffers.release();
