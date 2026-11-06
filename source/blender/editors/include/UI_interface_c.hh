@@ -2257,7 +2257,7 @@ struct AutoComplete;
 #define AUTOCOMPLETE_FULL_MATCH 1
 #define AUTOCOMPLETE_PARTIAL_MATCH 2
 
-AutoComplete *autocomplete_begin(const char *startname, size_t maxncpy);
+AutoComplete *autocomplete_begin(const char *startname, size_t maxncpy, bool is_utf8);
 void autocomplete_update_name(AutoComplete *autocpl, StringRef name);
 int autocomplete_end(AutoComplete *autocpl, char *autoname);
 
