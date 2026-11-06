@@ -691,7 +691,7 @@ struct ExpressionTypeParser
           return {type, [&]() {
                     if (contains_zero(rhs.value)) {
                       error(t, Diag::ConstexprDivisionByZero);
-                      return lhs.value * rhs.value;
+                      return decltype(lhs.value / rhs.value)(0);
                     }
                     if (contains_division_overflow(lhs.value, rhs.value)) {
                       error(t, Diag::ConstexprIntegerOverflow);
