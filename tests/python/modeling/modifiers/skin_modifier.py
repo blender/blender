@@ -32,6 +32,9 @@ def main():
         # Degenerate geometry when the root is inside an open chain, see: #66963.
         SpecMeshTest("SkinOpenChainRoot", "testSkinOpenChainRoot", "expectedSkinOpenChainRoot",
                      [ModifierSpec('skin', 'SKIN', {})]),
+        # Frame orientation resetting at root in open chains. see: !166215.
+        SpecMeshTest("SkinFrameOrientation", "testSkinFrameOrientation", "expectedSkinFrameOrientation",
+                     [ModifierSpec('skin', 'SKIN', {})]),
     ]
 
     modifiers_test = RunTest(tests)

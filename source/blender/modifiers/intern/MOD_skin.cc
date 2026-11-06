@@ -730,7 +730,6 @@ static void build_emats_stack(BLI_Stack *stack,
                               EMat *emat,
                               GroupedSpan<int> emap,
                               const Span<int2> edges,
-                              const VArray<bool> &is_root,
                               const Span<float3> vert_positions)
 {
   EdgeStackElem stack_elem;
@@ -751,7 +750,7 @@ static void build_emats_stack(BLI_Stack *stack,
 
   /* Process edge */
 
-  parent_is_branch = ((emap[parent_v].size() > 2) || is_root[parent_v]);
+  parent_is_branch = (emap[parent_v].size() > 2);
 
   v = bke::mesh::edge_other_vert(edges[e], parent_v);
   emat[e].origin = parent_v;
@@ -835,14 +834,14 @@ static EMat *build_edge_mats(const VArray<bool> &is_root,
          * outwards from the root which can cause degenerate geometry. In that case, traverse
          * from one of the endpoints of the chain. See #66963 */
         const int v_start = find_chain_start_vert(v, emap, edges);
-        const int2 &edge = edges[emap[v_start][0]];
-        calc_edge_mat(stack_elem.mat,
-                      vert_positions[v_start],
-                      vert_positions[bke::mesh::edge_other_vert(edge, v_start)]);
         stack_elem.parent_v = v_start;
 
         /* Add adjacent edges to stack */
         for (i = 0; i < emap[v_start].size(); i++) {
+          const int2 &edge = edges[emap[v_start][i]];
+          calc_edge_mat(stack_elem.mat,
+                        vert_positions[v_start],
+                        vert_positions[bke::mesh::edge_other_vert(edge, v_start)]);
           stack_elem.e = emap[v_start][i];
           BLI_stack_push(stack, &stack_elem);
         }
@@ -858,7 +857,7 @@ static EMat *build_edge_mats(const VArray<bool> &is_root,
   }
 
   while (!BLI_stack_is_empty(stack)) {
-    build_emats_stack(stack, visited_e, emat, emap, edges, is_root, vert_positions);
+    build_emats_stack(stack, visited_e, emat, emap, edges, vert_positions);
   }
 
   MEM_delete(visited_e);
