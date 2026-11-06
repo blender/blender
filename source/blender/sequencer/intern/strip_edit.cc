@@ -192,9 +192,17 @@ bool edit_move_strip_to_seqbase(Scene *scene,
                                 Strip *strip,
                                 ListBaseT<Strip> *dst_seqbase)
 {
+  Strip *old_meta = lookup_meta_by_strip(scene->ed, strip);
+  if (old_meta != nullptr) {
+    relations_invalidate_cache_raw(scene, old_meta);
+  }
+
   /* Move to meta. */
   BLI_remlink(seqbase, strip);
   BLI_addtail(dst_seqbase, strip);
+  strip_lookup_invalidate(scene->ed);
+
+  /* Invalidate the strip, as well as its new parent meta strip (after being moved above). */
   relations_invalidate_cache(scene, strip);
 
   /* Update meta. */
