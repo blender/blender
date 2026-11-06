@@ -15,9 +15,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_assert.hh"
+#include "BLI_compiler_compat.hh"
 #include "BLI_linklist.hh"
 #include "BLI_memarena.hh"
 #include "BLI_mempool.hh"
+#include "BLI_utildefines.hh"
 
 #include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 

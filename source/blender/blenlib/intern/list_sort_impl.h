@@ -34,9 +34,6 @@
 /* -------------------------------------------------------------------- */
 /* Handle External Defines */
 
-#include "BLI_compiler_compat.hh"
-#include "BLI_utildefines.hh"
-
 /* check we're not building directly */
 #if !defined(SORT_IMPL_LINKTYPE) || !defined(SORT_IMPL_FUNC)
 #  error "This file can't be compiled directly, include in another source file"
