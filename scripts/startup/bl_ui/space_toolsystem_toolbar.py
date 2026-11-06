@@ -3899,12 +3899,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ),
     )
 
+    # Keep the tool order in sync with `_tools_select`.
     _tools_grease_pencil_select = (
         (
             _defs_grease_pencil_paint.select,
-            _defs_grease_pencil_paint.lasso_select,
             _defs_grease_pencil_paint.box_select,
             _defs_grease_pencil_paint.circle_select,
+            _defs_grease_pencil_paint.lasso_select,
         ),
     )
 
