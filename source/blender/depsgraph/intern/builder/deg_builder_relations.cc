@@ -3526,6 +3526,9 @@ static bool strip_build_prop_cb(Strip *strip, void *user_data)
           sequence_scene_key, cd->sequencer_key, "Sequence Scene -> Sequencer");
     }
     ViewLayer *strip_view_layer = BKE_view_layer_find(strip->scene, strip->scene_view_layer_name);
+    if (strip_view_layer == nullptr) {
+      strip_view_layer = BKE_view_layer_default_render(strip->scene);
+    }
     cd->builder->build_scene_speakers(strip->scene, strip_view_layer);
   }
   if (strip->type == STRIP_TYPE_COMPOSITOR && strip->effectdata) {
