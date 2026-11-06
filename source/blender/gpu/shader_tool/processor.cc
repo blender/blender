@@ -897,9 +897,15 @@ void SourceProcessor::lower_namesless_parameters_ast(Parser &parser)
     int i = 0;
     for (FuncArg arg : arguments.children_of_type<FuncArg>()) {
       if (!arg.identifier().is_valid()) {
-        /* Name goes after the type or `&`, before any array declarator or default value. */
-        const bool is_ref = arg.is_reference();
-        Token arg_back(is_ref ? arg.declarator().reference().back() : arg.type().back());
+        /* Name goes after the type, `*` or `&`, before any array declarator or default value. */
+        const Declarator declarator = arg.declarator();
+        Token arg_back = arg.type().back();
+        if (declarator.is_reference()) {
+          arg_back = declarator.reference().back();
+        }
+        else if (declarator.is_pointer()) {
+          arg_back = declarator.pointer().back();
+        }
         /* Append a name for nameless argument. */
         parser.replace(arg_back.str_index_last_no_whitespace() + 1,
                        arg_back.str_index_last(),
