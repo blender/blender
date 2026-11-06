@@ -296,6 +296,7 @@ class Empties : Overlay {
       int2 size = int2(0);
       if (ima != nullptr) {
         ImageUser iuser = *ob->iuser;
+        BKE_image_user_frame_calc(ima, &iuser, state.cfra);
         Images::stereo_setup(state.scene, state.v3d, ima, &iuser);
         tex = BKE_image_acquire_gpu_texture(ima, &iuser);
         if (tex) {
