@@ -6653,8 +6653,7 @@ void draw_preview_item_stateless(const uiFontStyle *fstyle,
     const float okwidth = float(BLI_rcti_size_x(&trect));
     const float minwidth = UI_ICON_SIZE;
 
-    memcpy(drawstr, name.data(), name.size());
-    drawstr[name.size()] = '\0';
+    name.copy_utf8_truncated(drawstr);
     text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, '\0');
 
     FontStyleDrawParams params{};
