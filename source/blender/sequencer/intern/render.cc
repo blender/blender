@@ -1371,8 +1371,8 @@ ImBuf *seq_render_mask(Depsgraph *depsgraph,
   uchar *dst_byte = ibuf->byte_data_for_write();
   threading::parallel_for(IndexRange(height), 16, [&](const IndexRange y_range) {
     const int64_t pixel_offset = y_range.first() * width * 4;
-    float *ptr_float = dst_float + pixel_offset;
-    uchar *ptr_byte = dst_byte + pixel_offset;
+    float *ptr_float = dst_float ? dst_float + pixel_offset : nullptr;
+    uchar *ptr_byte = dst_byte ? dst_byte + pixel_offset : nullptr;
     for (int64_t y : y_range) {
       float2 coord;
       coord.y = y * y_inv + y_px_ofs;
@@ -1382,13 +1382,13 @@ ImBuf *seq_render_mask(Depsgraph *depsgraph,
         if (make_float) {
           ptr_float[0] = ptr_float[1] = ptr_float[2] = value;
           ptr_float[3] = 1.0f;
+          ptr_float += 4;
         }
         else {
           ptr_byte[0] = ptr_byte[1] = ptr_byte[2] = uchar(value * 255.0f);
           ptr_byte[3] = 255;
+          ptr_byte += 4;
         }
-        ptr_float += 4;
-        ptr_byte += 4;
       }
     }
   });
