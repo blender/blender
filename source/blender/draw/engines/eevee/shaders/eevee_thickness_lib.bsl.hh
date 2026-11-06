@@ -18,22 +18,17 @@ struct ThicknessIsect {
 
 /* Storage for object thickness, which packs both thickness value and
  * an associated model mode (slab, sphere) through the sign bit. */
-class Thickness {
+struct Thickness {
   float data;
 
- public:
   static Thickness from(float value, ThicknessMode mode)
   {
-    Thickness thickness;
-    thickness.data = (mode == ThicknessMode::Sphere) ? value : -value;
-    return thickness;
+    return {.data = (mode == ThicknessMode::Sphere) ? value : -value};
   }
 
   static Thickness zero()
   {
-    Thickness thickness;
-    thickness.data = 0.0f;
-    return thickness;
+    return {.data = 0.0f};
   }
 
   float value() const
@@ -41,14 +36,19 @@ class Thickness {
     return abs(data);
   }
 
+  bool is_sphere() const
+  {
+    return data > 0.0f;
+  }
+
   ThicknessMode mode() const
   {
-    return data > 0.0 ? ThicknessMode::Sphere : ThicknessMode::Slab;
+    return is_sphere() ? ThicknessMode::Sphere : ThicknessMode::Slab;
   }
 
   ThicknessIsect shape_intersect(float3 N, float3 L) const
   {
-    if (mode() == ThicknessMode::Sphere) {
+    if (is_sphere()) {
       return sphere_intersect(value(), N, L);
     }
     return plane_intersect(value(), N, L);

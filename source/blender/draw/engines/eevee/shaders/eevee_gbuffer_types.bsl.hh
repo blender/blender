@@ -193,7 +193,7 @@ float ior_unpack(float ior_packed)
                                           (ior_packed / ior_packed_lt_1_scale);
 }
 
-float thickness_pack(Thickness thickness)
+float thickness_pack(const Thickness thickness)
 {
   /* TODO(fclem): If needed, we could increase precision by defining a ceiling value like the view
    * distance and remap to it. Or tweak the hyperbole equality. */
@@ -201,7 +201,7 @@ float thickness_pack(Thickness thickness)
   /* Remap [0..+inf) to [0..1/2]. */
   float thickness_packed = thickness.value() / (1.0f + 2.0f * thickness.value());
   /* Mirror the negative from [0..1/2] to [1..1/2]. O is mapped to 0 for precision. */
-  return thickness.mode() == ThicknessMode::Slab ? 1.0f - thickness_packed : thickness_packed;
+  return thickness.is_sphere() ? thickness_packed : 1.0f - thickness_packed;
 }
 
 Thickness thickness_unpack(float thickness_packed)

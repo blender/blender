@@ -112,7 +112,7 @@ struct BsdfTranslucent : BsdfClosure::Interface {
                     const float3 /*Vt*/,
                     const Thickness thickness) const final
   {
-    if (thickness.mode() == ThicknessMode::Sphere && thickness.value() != 0.0f) {
+    if (thickness.is_sphere()) {
       /* Two transmission events inside a sphere is a uniform sphere distribution. */
       float cos_theta = rand_cylinder.x * 2.0f - 1.0f;
       BsdfSample samp;
@@ -130,16 +130,9 @@ struct BsdfTranslucent : BsdfClosure::Interface {
 
   BsdfEval eval(const float3 /*V*/, const float3 L, const Thickness thickness) const final
   {
-    if (thickness.mode() == ThicknessMode::Sphere && thickness.value() != 0.0f) {
-      /* Two transmission events inside a sphere is a uniform sphere distribution. */
-      BsdfEval eval;
-      eval.throughput = eval.pdf = 0.25f * M_1_PI;
-      eval.weight = 1.0f;
-      return eval;
-    }
-
     BsdfEval eval;
-    eval.throughput = eval.pdf = saturate(dot(-N, L));
+    /* Two transmission events inside a sphere is a uniform sphere distribution. */
+    eval.throughput = eval.pdf = (thickness.is_sphere() ? 0.25f * M_1_PI : saturate(dot(-N, L)));
     eval.weight = 1.0f;
     return eval;
   }
@@ -155,8 +148,7 @@ struct BsdfTranslucent : BsdfClosure::Interface {
      * For slab model, the approximation has little to no impact on the lighting in practice,
      * only focusing the light a tiny bit. Using the flipped normal is good enough approximation.
      */
-    const bool sphere_with_thickness = thickness.mode() == ThicknessMode::Sphere &&
-                                       thickness.value() != 0.0f;
+    const bool sphere_with_thickness = thickness.is_sphere();
 
     const LTCFormFactorType form_factor_type = sphere_with_thickness ?
                                                    LTCFormFactorType::TwoSidedCosineSphere :
@@ -170,14 +162,12 @@ struct BsdfTranslucent : BsdfClosure::Interface {
     };
   }
 
-  LightProbeRay lightprobe_ray(float3 /*V*/, Thickness thickness) const final
+  LightProbeRay lightprobe_ray(float3 /*V*/, const Thickness thickness) const final
   {
     LightProbeRay probe;
     probe.perceptual_roughness = perceived_roughness();
     /* If using the spherical assumption, discard any directionality from the lighting. */
-    const bool sphere_with_thickness = thickness.mode() == ThicknessMode::Sphere &&
-                                       thickness.value() != 0.0f;
-    probe.dominant_direction = sphere_with_thickness ? float3(0.0f) : -N;
+    probe.dominant_direction = thickness.is_sphere() ? float3(0.0f) : -N;
     return probe;
   }
 
@@ -186,9 +176,9 @@ struct BsdfTranslucent : BsdfClosure::Interface {
     return 1.0f;
   }
 
-  Ray ray_amend(float3 /*V*/, Ray ray, Thickness thickness) const final
+  Ray ray_amend(float3 /*V*/, Ray ray, const Thickness thickness) const final
   {
-    if (thickness.mode() == ThicknessMode::Sphere) {
+    if (thickness.is_sphere()) {
       /* Ray direction is distributed on the whole sphere.
        * Move the ray origin to the sphere surface (with bias to avoid self-intersection). */
       constexpr float bias = 0.005f;
