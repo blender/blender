@@ -18,13 +18,13 @@ namespace blender::eevee {
 
 #define VELOCITY_INVALID 512.0
 
-enum [[host_shared]] eVelocityStep : uint32_t {
+enum eVelocityStep : uint32_t {
   STEP_PREVIOUS,
   STEP_NEXT,
   STEP_CURRENT,
 };
 
-struct [[host_shared]] VelocityObjectIndex {
+struct VelocityObjectIndex {
   /** Offset inside #VelocityObjectBuf for each time-step. Indexed using eVelocityStep. */
   packed_int3 ofs;
   /** Temporary index to copy this to the #VelocityIndexBuf. */
@@ -35,7 +35,7 @@ struct [[host_shared]] VelocityObjectIndex {
 #endif
 };
 
-struct [[host_shared]] VelocityGeometryIndex {
+struct VelocityGeometryIndex {
   /** Offset inside #VelocityGeometryBuf for each time-step. Indexed using eVelocityStep. */
   packed_int3 ofs;
   /** If true, compute deformation motion blur. */
@@ -53,7 +53,7 @@ struct [[host_shared]] VelocityGeometryIndex {
 #endif
 };
 
-struct [[host_shared]] VelocityIndex {
+struct VelocityIndex {
   struct VelocityObjectIndex obj;
   struct VelocityGeometryIndex geo;
 };

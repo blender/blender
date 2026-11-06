@@ -16,7 +16,7 @@
 namespace blender::eevee {
 #endif
 
-struct [[host_shared]] VolumesInfoData {
+struct VolumesInfoData {
   /* During object voxelization, we need to use an infinite projection matrix to avoid clipping
    * faces. But they cannot be used for recovering the view position from froxel position as they
    * are not invertible. We store the finite projection matrix and use it for this purpose. */

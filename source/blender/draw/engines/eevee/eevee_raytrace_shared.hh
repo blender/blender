@@ -16,7 +16,7 @@
 namespace blender::eevee {
 #endif
 
-struct [[host_shared]] ScreenThicknessParameters {
+struct ScreenThicknessParameters {
   float thickness_ndc_scale;
   float thickness_ndc_bias;
   float thickness_vs_scale;
@@ -62,7 +62,7 @@ struct [[host_shared]] ScreenThicknessParameters {
   }
 };
 
-struct [[host_shared]] RayTraceData {
+struct RayTraceData {
   /** ViewProjection matrix used to render the previous frame. */
   float4x4 history_persmat;
   /** ViewProjection matrix used to denoise the previous frame. */
@@ -105,7 +105,7 @@ struct [[host_shared]] RayTraceData {
   struct ScreenThicknessParameters ray_thickness;
 };
 
-struct [[host_shared]] AOData {
+struct AOData {
   float2 pixel_size;
   float distance;
   float lod_factor;

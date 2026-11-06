@@ -18,7 +18,7 @@ namespace blender::eevee {
 
 #define MOTION_BLUR_TILE_SIZE 32
 #define MOTION_BLUR_MAX_TILE 512 /* 16384 / MOTION_BLUR_TILE_SIZE */
-struct [[host_shared]] MotionBlurData {
+struct MotionBlurData {
   /** As the name suggests. Used to avoid a division in the sampling. */
   float2 target_size_inv;
   /** Viewport motion scaling factor. Make blur relative to frame time not render time. */

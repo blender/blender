@@ -30,7 +30,7 @@ namespace blender::eevee {
  * covering twice as much area as the previous one.
  * \{ */
 
-enum [[host_shared]] eCubeFace : uint32_t {
+enum eCubeFace : uint32_t {
   /* Ordering by culling order. If cone aperture is shallow, we cull the later view. */
   Z_NEG = 0u,
   X_POS = 1u,
@@ -40,7 +40,7 @@ enum [[host_shared]] eCubeFace : uint32_t {
   Z_POS = 5u,
 };
 
-enum [[host_shared]] eShadowProjectionType : uint32_t {
+enum eShadowProjectionType : uint32_t {
   SHADOW_PROJECTION_CUBEFACE,
   SHADOW_PROJECTION_CLIPMAP,
   SHADOW_PROJECTION_CASCADE,
@@ -54,7 +54,7 @@ static inline int2 shadow_cascade_grid_offset(int2 base_offset, int level_relati
 /**
  * Small descriptor used for the tile update phase. Updated by CPU & uploaded to GPU each redraw.
  */
-struct [[host_shared]] ShadowTileMapData {
+struct ShadowTileMapData {
   /** Cached, used for rendering. */
   float4x4 viewmat;
   /** Precomputed matrix, not used for rendering but for tagging. */
@@ -94,7 +94,7 @@ struct [[host_shared]] ShadowTileMapData {
  * Lightweight version of ShadowTileMapData that only contains data used for rendering the
  * shadow.
  */
-struct [[host_shared]] ShadowRenderView {
+struct ShadowRenderView {
   /**
    * Is either:
    * - positive radial distance for point lights.
@@ -122,7 +122,7 @@ struct [[host_shared]] ShadowRenderView {
  * Per tilemap data persistent on GPU.
  * Kept separately for easier clearing on GPU.
  */
-struct [[host_shared]] ShadowTileMapClip {
+struct ShadowTileMapClip {
   /** Clip distances that were used to render the pages. */
   float clip_near_stored;
   float clip_far_stored;
@@ -138,7 +138,7 @@ struct [[host_shared]] ShadowTileMapClip {
   int _pad1;
 };
 
-struct [[host_shared]] ShadowPagesInfoData {
+struct ShadowPagesInfoData {
   /** Number of free pages in the free page buffer. */
   int page_free_count;
   /** Number of page allocations needed for this cycle. */
@@ -155,7 +155,7 @@ struct [[host_shared]] ShadowPagesInfoData {
   int _pad2;
 };
 
-struct [[host_shared]] ShadowStatistics {
+struct ShadowStatistics {
   /** Statistics that are read back to CPU after a few frame (to avoid stall). */
   /**
    * WARNING: Excepting `view_needed_count` it is uncertain if these are accurate.
@@ -194,7 +194,7 @@ struct ShadowTileData {
 /** \note Stored packed as a uint. */
 #define ShadowTileDataPacked uint
 
-enum [[host_shared]] eShadowFlag : uint32_t {
+enum eShadowFlag : uint32_t {
   SHADOW_NO_DATA = 0u,
   SHADOW_IS_CACHED = (1u << 27u),
   SHADOW_IS_ALLOCATED = (1u << 28u),

@@ -25,7 +25,7 @@ namespace blender::eevee {
 /* This should be inside "eevee_light_shared.hh" but it would pull a huge header that is not
  * essential for most shaders. This could be moved back if including "eevee_bxdf_lib.glsl" is used
  * only for shading shaders. */
-enum [[host_shared]] LightingType : uint32_t {
+enum LightingType : uint32_t {
   LIGHT_DIFFUSE = 0u,
   LIGHT_SPECULAR = 1u,
   LIGHT_TRANSMISSION = 2u,
@@ -35,7 +35,7 @@ enum [[host_shared]] LightingType : uint32_t {
   LIGHT_TRANSLUCENT_WITH_THICKNESS = 4u,
 };
 
-struct [[host_shared]] ShadowSceneData {
+struct ShadowSceneData {
   /* Number of shadow rays to shoot for each light. */
   int ray_count;
   /* Number of shadow samples to take for each shadow ray. */
@@ -51,7 +51,7 @@ struct [[host_shared]] ShadowSceneData {
   int _pad2;
 };
 
-struct [[host_shared]] SceneData {
+struct SceneData {
   float time;
   float frame;
   uint _pad0;
@@ -59,7 +59,7 @@ struct [[host_shared]] SceneData {
 };
 
 /* Light Clamping. */
-struct [[host_shared]] ClampData {
+struct ClampData {
   float sun_threshold;
   float surface_direct;
   float surface_indirect;
@@ -71,14 +71,14 @@ struct [[host_shared]] ClampData {
 };
 
 /* Emulation of the light path node. */
-enum [[host_shared]] RayPipelineType : uint32_t {
+enum RayPipelineType : uint32_t {
   RAY_TYPE_CAMERA,
   RAY_TYPE_SHADOW,
   RAY_TYPE_DIFFUSE,
   RAY_TYPE_GLOSSY,
 };
 
-struct [[host_shared]] PipelineInfoData {
+struct PipelineInfoData {
   float alpha_hash_scale;
   enum RayPipelineType ray_type;
   /* True if the main camera view has inverted handedness.
@@ -99,7 +99,7 @@ struct [[host_shared]] PipelineInfoData {
 };
 
 /* Combines data from several modules to avoid wasting binding slots. */
-struct [[host_shared]] UniformData {
+struct UniformData {
   struct AOData ao;
   struct CameraData camera;
   struct ClampData clamp;
@@ -115,7 +115,7 @@ struct [[host_shared]] UniformData {
  * World space clip plane equation. Used to render planar light-probes.
  * Moved here to avoid dependencies to light-probe just for this.
  */
-struct [[host_shared]] ClipPlaneData {
+struct ClipPlaneData {
   float4 plane;
 };
 

@@ -24,7 +24,7 @@ static constexpr float DOF_FAST_GATHER_COC_ERROR = 0.05f;
 static constexpr int DOF_GATHER_RING_COUNT = 5;
 static constexpr int DOF_DILATE_RING_COUNT = 3;
 
-struct [[host_shared]] DepthOfFieldData {
+struct DepthOfFieldData {
   /** Size of the render targets for gather & scatter passes. */
   int2 extent;
   /** Size of a pixel in uv space (1.0 / extent). */
@@ -60,7 +60,7 @@ struct [[host_shared]] DepthOfFieldData {
   int _pad1;
 };
 
-struct [[host_shared]] ScatterRect {
+struct ScatterRect {
   /** Color and CoC of the 4 pixels the scatter sprite represents. */
   float4 color_and_coc[4];
   /** Rect center position in half pixel space. */

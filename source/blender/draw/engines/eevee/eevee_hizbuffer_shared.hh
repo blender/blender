@@ -16,7 +16,7 @@
 namespace blender::eevee {
 #endif
 
-struct [[host_shared]] HiZData {
+struct HiZData {
   /** Scale factor to remove HiZBuffer padding. */
   float2 uv_scale;
 
