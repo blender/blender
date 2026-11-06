@@ -6618,6 +6618,13 @@ static wmOperatorStatus texture_paint_image_from_view_exec(bContext *C, wmOperat
                           V3D_OVERLAY_HIDE_OBJECT_XTRAS | V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
   v3d_copy.overlay.texture_paint_mode_opacity = v3d->overlay.texture_paint_mode_opacity;
 
+  Object *paint_ob = BKE_view_layer_active_object_get(CTX_data_view_layer(C));
+  std::optional<CanvasImageData> canvas;
+  if (paint_ob != nullptr) {
+    canvas = BKE_paint_canvas_image_get(settings->imapaint, *paint_ob);
+  }
+  const bool is_float = canvas.has_value() ? BKE_image_is_float(canvas->first) : false;
+
   ibuf = ED_view3d_draw_offscreen_imbuf(depsgraph,
                                         scene,
                                         eDrawType(v3d_copy.shading.type),
@@ -6625,7 +6632,7 @@ static wmOperatorStatus texture_paint_image_from_view_exec(bContext *C, wmOperat
                                         region,
                                         w,
                                         h,
-                                        ImBufFlags::ByteData,
+                                        is_float ? ImBufFlags::FloatData : ImBufFlags::ByteData,
                                         R_ALPHAPREMUL,
                                         nullptr,
                                         false,
