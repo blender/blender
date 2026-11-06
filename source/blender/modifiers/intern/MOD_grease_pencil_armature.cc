@@ -96,6 +96,9 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static ImplicitSharingPtrAndData save_shared_attribute(const bke::GAttributeReader &attribute)
 {
+  if (!attribute) {
+    return {};
+  }
   if (attribute.sharing_info && attribute.varray.is_span()) {
     const void *data = attribute.varray.get_internal_span().data();
     attribute.sharing_info->add_user();
@@ -129,7 +132,11 @@ static void modify_curves(ModifierData &md,
       ctx.object, drawing.strokes(), amd.influence, mask_memory);
 
   auto deform_curves = [&](MutableSpan<float3> positions,
+                           std::optional<MutableSpan<float3>> handle_positions_left,
+                           std::optional<MutableSpan<float3>> handle_positions_right,
                            std::optional<Span<float3>> old_positions,
+                           std::optional<Span<float3>> old_handle_positions_left,
+                           std::optional<Span<float3>> old_handle_positions_right,
                            std::optional<MutableSpan<float3x3>> deform_mats,
                            Span<MDeformVert> dverts,
                            const OffsetIndices<int> points_by_curve) {
@@ -141,8 +148,16 @@ static void modify_curves(ModifierData &md,
         [&](const int curve_i) {
           const IndexRange points = points_by_curve[curve_i];
           std::optional<Span<float3>> old_positions_for_curve;
+          std::optional<Span<float3>> old_handle_positions_left_for_curve;
+          std::optional<Span<float3>> old_handle_positions_right_for_curve;
           if (old_positions) {
             old_positions_for_curve = old_positions->slice(points);
+          }
+          if (old_handle_positions_left) {
+            old_handle_positions_left_for_curve = old_handle_positions_left->slice(points);
+          }
+          if (old_handle_positions_right) {
+            old_handle_positions_right_for_curve = old_handle_positions_right->slice(points);
           }
           std::optional<MutableSpan<float3x3>> deform_mats_for_curve;
           if (deform_mats) {
@@ -157,68 +172,86 @@ static void modify_curves(ModifierData &md,
                                                  dverts.slice(points),
                                                  deformflag,
                                                  amd.influence.vertex_group_name);
+          if (handle_positions_left) {
+            BKE_armature_deform_coords_with_curves(*amd.object,
+                                                   *ctx.object,
+                                                   &drawing.strokes().vertex_group_names,
+                                                   handle_positions_left->slice(points),
+                                                   old_handle_positions_left_for_curve,
+                                                   std::nullopt,
+                                                   dverts.slice(points),
+                                                   deformflag,
+                                                   amd.influence.vertex_group_name);
+          }
+          if (handle_positions_right) {
+            BKE_armature_deform_coords_with_curves(*amd.object,
+                                                   *ctx.object,
+                                                   &drawing.strokes().vertex_group_names,
+                                                   handle_positions_right->slice(points),
+                                                   old_handle_positions_right_for_curve,
+                                                   std::nullopt,
+                                                   dverts.slice(points),
+                                                   deformflag,
+                                                   amd.influence.vertex_group_name);
+          }
         },
         exec_mode::grain_size(128));
   };
 
   /* Cached position data for supporting the multi-modifier feature. This data is only valid as
-   * long as topology does not change, don't use this after converting Bezier curves! */
+   * long as topology does not change. */
   const ImplicitSharingPtrAndData old_positions_data = save_shared_attribute(
       drawing.strokes().attributes().lookup("position", bke::AttrType::Float3));
+  const ImplicitSharingPtrAndData old_handle_positions_left_data = save_shared_attribute(
+      drawing.strokes().attributes().lookup("handle_left", bke::AttrType::Float3));
+  const ImplicitSharingPtrAndData old_handle_positions_right_data = save_shared_attribute(
+      drawing.strokes().attributes().lookup("handle_right", bke::AttrType::Float3));
   const Span<float3> old_positions = {static_cast<const float3 *>(old_positions_data.data),
                                       drawing.strokes().points_num()};
+  const std::optional<Span<float3>> old_handle_positions_left =
+      old_handle_positions_left_data.data == nullptr ?
+          std::nullopt :
+          std::make_optional(
+              Span<float3>(static_cast<const float3 *>(old_handle_positions_left_data.data),
+                           drawing.strokes().points_num()));
+  const std::optional<Span<float3>> old_handle_positions_right =
+      old_handle_positions_right_data.data == nullptr ?
+          std::nullopt :
+          std::make_optional(
+              Span<float3>(static_cast<const float3 *>(old_handle_positions_right_data.data),
+                           drawing.strokes().points_num()));
 
-  const bool has_bezier_curves = drawing.strokes().has_curve_with_type(
-      CurveType::CURVE_TYPE_BEZIER);
-  if (has_bezier_curves) {
-    /* Update deformation data in edit hints related to original points.
-     * Do this before converting Bezier curves because that changes the topology.
-     * The multi-modifier feature is not supported in this case (no "old_positions" argument). */
-    if (edit_hints && edit_hints->positions()) {
-      const bke::CurvesGeometry &curves = drawing.strokes();
-      std::optional<MutableSpan<float3x3>> deform_mats =
-          edit_hints->deform_mats ?
-              edit_hints->deform_mats->as_mutable_span() :
-              edit_hints->deform_mats.emplace(curves.points_num(), float3x3::identity());
-      deform_curves(*edit_hints->positions_for_write(),
-                    std::nullopt,
-                    deform_mats,
-                    curves.deform_verts(),
-                    curves.points_by_curve());
-    }
-
-    /* Convert Bezier curves since these are not supported in armature deformation. */
-    modifier::greasepencil::ensure_no_bezier_curves(drawing);
-
-    /* Deform curve data without changes to edit hints. */
-    {
-      bke::CurvesGeometry &curves = drawing.strokes_for_write();
-      deform_curves(curves.positions_for_write(),
-                    std::nullopt,
-                    std::nullopt,
-                    curves.deform_verts(),
-                    curves.points_by_curve());
-    }
+  /* Deform curve data and edit hints at the same time. */
+  bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  std::optional<MutableSpan<float3x3>> deform_mats;
+  if (edit_hints) {
+    deform_mats = edit_hints->deform_mats ?
+                      edit_hints->deform_mats->as_mutable_span() :
+                      edit_hints->deform_mats.emplace(curves.points_num(), float3x3::identity());
   }
-  else {
-    /* Deform curve data and edit hints at the same time. */
-    bke::CurvesGeometry &curves = drawing.strokes_for_write();
-    std::optional<MutableSpan<float3x3>> deform_mats;
-    if (edit_hints) {
-      deform_mats = edit_hints->deform_mats ?
-                        edit_hints->deform_mats->as_mutable_span() :
-                        edit_hints->deform_mats.emplace(curves.points_num(), float3x3::identity());
-    }
-    deform_curves(curves.positions_for_write(),
-                  old_positions,
-                  deform_mats,
-                  curves.deform_verts(),
-                  curves.points_by_curve());
-    /* Copy deformed positions to edit hints if necessary. */
-    if (edit_hints && edit_hints->positions() &&
-        edit_hints->positions()->data() != curves.positions().data())
-    {
+  deform_curves(curves.positions_for_write(),
+                curves.handle_positions_left_for_write(),
+                curves.handle_positions_right_for_write(),
+                old_positions,
+                old_handle_positions_left,
+                old_handle_positions_right,
+                deform_mats,
+                curves.deform_verts(),
+                curves.points_by_curve());
+  /* Copy deformed positions to edit hints if necessary. */
+  if (edit_hints) {
+    if (edit_hints->positions() && edit_hints->positions()->data() != curves.positions().data()) {
       edit_hints->positions_for_write()->copy_from(curves.positions());
+    }
+    if (edit_hints->handle_positions_left() && curves.handle_positions_left() &&
+        edit_hints->handle_positions_left()->data() != curves.handle_positions_left()->data())
+    {
+      edit_hints->handle_positions_left_for_write()->copy_from(*curves.handle_positions_left());
+    }
+    if (edit_hints->handle_positions_right() && curves.handle_positions_right() &&
+        edit_hints->handle_positions_right()->data() != curves.handle_positions_right()->data())
+    {
+      edit_hints->handle_positions_right_for_write()->copy_from(*curves.handle_positions_right());
     }
   }
 

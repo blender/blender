@@ -2460,6 +2460,24 @@ std::optional<Span<float3>> GreasePencilDrawingEditHints::positions() const
   return Span(static_cast<const float3 *>(this->positions_data.data), points_num);
 }
 
+std::optional<Span<float3>> GreasePencilDrawingEditHints::handle_positions_left() const
+{
+  if (!this->handle_positions_left_data.has_value()) {
+    return std::nullopt;
+  }
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  return Span(static_cast<const float3 *>(this->handle_positions_left_data.data), points_num);
+}
+
+std::optional<Span<float3>> GreasePencilDrawingEditHints::handle_positions_right() const
+{
+  if (!this->handle_positions_right_data.has_value()) {
+    return std::nullopt;
+  }
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  return Span(static_cast<const float3 *>(this->handle_positions_right_data.data), points_num);
+}
+
 std::optional<MutableSpan<float3>> GreasePencilDrawingEditHints::positions_for_write()
 {
   if (!this->positions_data.has_value()) {
@@ -2474,6 +2492,50 @@ std::optional<MutableSpan<float3>> GreasePencilDrawingEditHints::positions_for_w
   }
   else {
     auto *new_sharing_info = new ImplicitSharedValue<Array<float3>>(*this->positions());
+    data.sharing_info = ImplicitSharingPtr<>(new_sharing_info);
+    data.data = new_sharing_info->data.data();
+  }
+
+  return MutableSpan(const_cast<float3 *>(static_cast<const float3 *>(data.data)), points_num);
+}
+
+std::optional<MutableSpan<float3>> GreasePencilDrawingEditHints::handle_positions_left_for_write()
+{
+  if (!this->handle_positions_left_data.has_value()) {
+    return std::nullopt;
+  }
+
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  ImplicitSharingPtrAndData &data = this->handle_positions_left_data;
+  if (data.sharing_info->is_mutable()) {
+    /* If the referenced component is already mutable, return it directly. */
+    data.sharing_info->tag_ensured_mutable();
+  }
+  else {
+    auto *new_sharing_info = new ImplicitSharedValue<Array<float3>>(
+        *this->handle_positions_left());
+    data.sharing_info = ImplicitSharingPtr<>(new_sharing_info);
+    data.data = new_sharing_info->data.data();
+  }
+
+  return MutableSpan(const_cast<float3 *>(static_cast<const float3 *>(data.data)), points_num);
+}
+
+std::optional<MutableSpan<float3>> GreasePencilDrawingEditHints::handle_positions_right_for_write()
+{
+  if (!this->handle_positions_right_data.has_value()) {
+    return std::nullopt;
+  }
+
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  ImplicitSharingPtrAndData &data = this->handle_positions_right_data;
+  if (data.sharing_info->is_mutable()) {
+    /* If the referenced component is already mutable, return it directly. */
+    data.sharing_info->tag_ensured_mutable();
+  }
+  else {
+    auto *new_sharing_info = new ImplicitSharedValue<Array<float3>>(
+        *this->handle_positions_right());
     data.sharing_info = ImplicitSharingPtr<>(new_sharing_info);
     data.data = new_sharing_info->data.data();
   }

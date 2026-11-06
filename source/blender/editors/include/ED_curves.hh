@@ -189,9 +189,7 @@ void remove_selection_attributes(
  * Get the position span associated with the given selection attribute name.
  */
 std::optional<Span<float3>> get_selection_attribute_positions(
-    const bke::CurvesGeometry &curves,
-    const bke::crazyspace::GeometryDeformation &deformation,
-    StringRef attribute_name);
+    const bke::crazyspace::GeometryDeformation &deformation, StringRef attribute_name);
 
 using SelectionRangeFn = FunctionRef<void(
     IndexRange range, Span<float3> positions, StringRef selection_attribute_name)>;

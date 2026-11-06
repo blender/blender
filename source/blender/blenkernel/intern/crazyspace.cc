@@ -579,6 +579,9 @@ GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, cons
   GeometryDeformation deformation;
   /* Use the undeformed positions by default. */
   deformation.positions = curves_orig.positions();
+  deformation.handle_positions_left = curves_orig.handle_positions_left().value_or(Span<float3>());
+  deformation.handle_positions_right = curves_orig.handle_positions_right().value_or(
+      Span<float3>());
 
   if (ob_eval == nullptr) {
     return deformation;
@@ -616,6 +619,10 @@ GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, cons
         const CurvesGeometry &curves_eval = curves_id_eval->geometry.wrap();
         if (curves_eval.points_num() == points_num) {
           deformation.positions = curves_eval.positions();
+          deformation.handle_positions_left = curves_eval.handle_positions_left().value_or(
+              Span<float3>());
+          deformation.handle_positions_right = curves_eval.handle_positions_right().value_or(
+              Span<float3>());
         }
       }
     }
@@ -650,6 +657,10 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(
   GeometryDeformation deformation;
   /* Use the undeformed positions by default. */
   deformation.positions = drawing_orig.strokes().positions();
+  deformation.handle_positions_left = drawing_orig.strokes().handle_positions_left().value_or(
+      Span<float3>());
+  deformation.handle_positions_right = drawing_orig.strokes().handle_positions_right().value_or(
+      Span<float3>());
 
   if (ob_eval == nullptr) {
     return deformation;
@@ -674,6 +685,12 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(
       {
         if (drawing_hints->positions()) {
           deformation.positions = *drawing_hints->positions();
+        }
+        if (drawing_hints->handle_positions_left()) {
+          deformation.handle_positions_left = *drawing_hints->handle_positions_left();
+        }
+        if (drawing_hints->handle_positions_right()) {
+          deformation.handle_positions_right = *drawing_hints->handle_positions_right();
         }
         if (drawing_hints->deform_mats.has_value()) {
           deformation.deform_mats = *drawing_hints->deform_mats;
@@ -709,6 +726,10 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(
         drawing_eval->strokes().points_num() == drawing_orig.strokes().points_num())
     {
       deformation.positions = drawing_eval->strokes().positions();
+      deformation.handle_positions_left = drawing_eval->strokes().handle_positions_left().value_or(
+          Span<float3>());
+      deformation.handle_positions_right =
+          drawing_eval->strokes().handle_positions_right().value_or(Span<float3>());
     }
     break;
   }
