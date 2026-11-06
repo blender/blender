@@ -311,11 +311,11 @@ static size_t speed_label_str_get(const Strip *strip,
       r_label_str, label_str_maxncpy, "%d%%", round_fl_to_int(speed * 100.0f));
 }
 
-static std::optional<float2> speed_label_pos_get(const TimelineDrawContext &ctx,
-                                                 const StripDrawContext &strip_ctx,
-                                                 const SeqRetimingKey *key,
-                                                 const char *label_str,
-                                                 const size_t label_len)
+static std::optional<rctf> speed_label_rect_get(const TimelineDrawContext &ctx,
+                                                const StripDrawContext &strip_ctx,
+                                                const SeqRetimingKey *key,
+                                                const char *label_str,
+                                                const size_t label_len)
 {
   const Scene *scene = ctx.scene;
 
@@ -337,7 +337,8 @@ static std::optional<float2> speed_label_pos_get(const TimelineDrawContext &ctx,
 
   const float x = 0.5f * (key_x + next_x - label_width); /* Left edge of centered label. */
   const float y = (strip_ctx.strip->channel + STRIP_OFSBOTTOM) + bottom_pad;
-  return float2{x, y};
+  const float label_height = ctx.pixely * BLF_height(BLF_default(), label_str, label_len);
+  return rctf{x, x + label_width, y, y + label_height};
 }
 
 static void speed_label_draw(const TimelineDrawContext &ctx,
@@ -361,8 +362,8 @@ static void speed_label_draw(const TimelineDrawContext &ctx,
   char label_str[40];
   size_t label_len = speed_label_str_get(strip, key, label_str, sizeof(label_str));
 
-  const std::optional<float2> pos = speed_label_pos_get(ctx, strip_ctx, key, label_str, label_len);
-  if (!pos) {
+  const std::optional<rctf> rect = speed_label_rect_get(ctx, strip_ctx, key, label_str, label_len);
+  if (!rect) {
     return; /* Not enough space to draw the label. */
   }
 
@@ -372,7 +373,8 @@ static void speed_label_draw(const TimelineDrawContext &ctx,
     col[3] = 255;
   }
 
-  ui::view2d_text_cache_add(ctx.v2d, pos->x, pos->y, label_str, label_len, col);
+  /* Pass the label bounds, so the label is clipped instead of hidden when it leaves the view. */
+  ui::view2d_text_cache_add_rectf(ctx.v2d, &*rect, label_str, label_len, col);
 }
 
 void sequencer_retiming_speed_labels_draw(const TimelineDrawContext &ctx,
