@@ -795,10 +795,13 @@ struct ExpressionTypeParser
     }
 
     if (left.flags & ExprFlag::IsConstexpr) {
-      return {*tval.type, left.value.comp_as<int>(0) ? tval.value : fval.value};
+      ExpressionResult val = left.value.comp_as<int>(0) ? tval : fval;
+      val.is_temporary = true;
+      return val;
     }
-    /* Operand types match. We can return either. */
-    return {*tval.type, ExprFlag(tval.flags & fval.flags)};
+    /* Operand types match. We can return either but the value depends is only known at runtime, so
+     * it can't be constexpr. */
+    return {*tval.type, ExprFlag(tval.flags & fval.flags & ExprFlag::IsConstant)};
   }
 
   ExpressionResult error(ErrorType err, lexit::TokenType type)

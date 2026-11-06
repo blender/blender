@@ -15,9 +15,9 @@ namespace bsl {
 using namespace blender::gpu::shader::parser;
 
 enum ExprFlag : uint8_t {
-  IsNone = 0,
-  IsConstant,
-  IsConstexpr,
+  IsNone = 0u,
+  IsConstant = 1u << 0,
+  IsConstexpr = 1u << 1,
 };
 
 struct ExpressionResult {
