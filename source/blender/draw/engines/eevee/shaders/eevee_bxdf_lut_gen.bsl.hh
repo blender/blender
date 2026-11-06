@@ -489,7 +489,7 @@ template<typename T> float3 average_light_dir(const T &lut)
     const float3 rand = sample_cylinder(random::hammersley_2d(i, sample_count));
     const float3 L = lut.closure.bsdf_sample(rand, lut.V).direction;
     if (L.z > 0.0f) {
-      average_dir += lut.closure.bsdf_eval(N, L, lut.V).weight * L;
+      average_dir += lut.closure.bsdf_eval(N, lut.V, L).weight * L;
     }
   }
 
@@ -527,7 +527,7 @@ template<typename BSDF> float error_(const LTCFitter &fitter, const BSDF &bsdf, 
   /* Geometric normal. */
   constexpr float3 N = float3(0.0f, 0.0f, 1.0f);
 
-  const BsdfEval eval_closure = bsdf.closure.bsdf_eval(N, L, bsdf.V);
+  const BsdfEval eval_closure = bsdf.closure.bsdf_eval(N, bsdf.V, L);
   const BsdfEval eval_ltc = fitter.eval(L);
   const float error = abs(eval_closure.throughput - eval_ltc.throughput);
 
