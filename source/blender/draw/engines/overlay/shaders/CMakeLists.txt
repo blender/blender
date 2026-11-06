@@ -28,11 +28,6 @@ set(INC_GLSL
 
 set(SRC_GLSL_VERT
   overlay_clipbound_vert.glsl
-  overlay_depth_only_curves_vert.glsl
-  overlay_depth_only_gpencil_vert.glsl
-  overlay_depth_only_mesh_conservative_vert.glsl
-  overlay_depth_only_pointcloud_vert.glsl
-  overlay_depth_only_vert.glsl
   overlay_edit_curve_handle_vert.glsl
   overlay_edit_curve_normals_vert.glsl
   overlay_edit_curve_point_vert.glsl
@@ -85,8 +80,6 @@ set(SRC_GLSL_VERT
 
 set(SRC_GLSL_FRAG
   overlay_background_frag.glsl
-  overlay_depth_only_frag.glsl
-  overlay_depth_only_gpencil_frag.glsl
   overlay_edit_mesh_analysis_frag.glsl
   overlay_edit_uv_edges_frag.glsl
   overlay_edit_uv_image_mask_frag.glsl

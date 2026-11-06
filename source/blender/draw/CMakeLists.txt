@@ -561,13 +561,8 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_clipbound_vert.glsl
   engines/overlay/shaders/overlay_common_lib.glsl
   engines/overlay/shaders/overlay_common.bsl.hh
-  engines/overlay/shaders/overlay_depth_only_curves_vert.glsl
-  engines/overlay/shaders/overlay_depth_only_frag.glsl
-  engines/overlay/shaders/overlay_depth_only_gpencil_frag.glsl
-  engines/overlay/shaders/overlay_depth_only_gpencil_vert.glsl
-  engines/overlay/shaders/overlay_depth_only_mesh_conservative_vert.glsl
-  engines/overlay/shaders/overlay_depth_only_pointcloud_vert.glsl
   engines/overlay/shaders/overlay_depth_only_vert.glsl
+  engines/overlay/shaders/overlay_depth_only.bsl.hh
   engines/overlay/shaders/overlay_edit_curve_handle_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_normals_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_point_vert.glsl
