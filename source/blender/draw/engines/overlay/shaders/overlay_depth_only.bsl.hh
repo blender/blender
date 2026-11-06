@@ -18,6 +18,11 @@
 #include "overlay_common.bsl.hh"
 #include "select_lib.bsl.hh"
 
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
+
 namespace overlay::depth {
 
 struct VertIn {
@@ -506,3 +511,8 @@ PipelineGraphic grease_pencil_selectable_clipped(gpencil::vert_main, gpencil::fr
 /* clang-format on */
 
 }  // namespace overlay::depth
+
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  undef const
+#endif
