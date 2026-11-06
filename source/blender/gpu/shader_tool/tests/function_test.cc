@@ -638,6 +638,46 @@ void func()
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+  {
+    string input = R"(
+void f(int a){}
+void f(int a){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
+  {
+    string input = R"(
+void f(int a){}
+void f(const int a){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
+  {
+    string input = R"(
+void f(int a){}
+void f(int &a){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
+  {
+    string input = R"(
+void f(int a){}
+void f(const int &a){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
+  {
+    string input = R"(
+void f(int a){}
+void f(const int &a[2]){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
 }
 
 TEST(shader_tool, ForwardDecl)

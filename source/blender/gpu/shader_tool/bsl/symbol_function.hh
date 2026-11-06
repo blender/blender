@@ -190,10 +190,13 @@ struct SymbolFunction : SymbolScope {
     return override_next;
   }
 
+  /* This uses GLSL rules for comparing signature: references and pointers are not taken into
+   * account.
+   * Note that we do not compare array extents as overloading based on them has different
+   * behavior in GLSL and C++/MSL. */
   bool has_same_signature(const SymbolFunction &other) const
   {
-    return is_const == other.is_const && arg_types == other.arg_types &&
-           arg_const == other.arg_const;
+    return is_const == other.is_const && arg_types == other.arg_types;
   }
 
   /* Only used for sorting purpose. Return a unique location. */

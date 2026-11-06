@@ -777,14 +777,16 @@ struct SymbolParser : NodeErrorHandler {
     }
     /* Emplace the function into the scope so it becomes available during function lookups. */
     bool is_overload = scope.function_emplace(&fn);
-    if (is_overload && fn.is_entry_point()) {
-      error(decl.identifier(), Diag::RedefinitionOfEntryPointFunction, decl.identifier().str());
-    }
+
     /* Parse the return type and arguments to correctly populate matching criteria. */
     parse_function_return_type(fn, decl.return_type());
     parse_function_arguments(fn, decl.arguments());
     /* Record as function prototype. */
     scope.function_prototypes.emplace_back(decl, &fn);
+
+    if (is_overload) {
+      check_overload_validity(decl.identifier(), fn, scope);
+    }
 
     /* Set resolved identifier in case the declaration is emitted without the definition. */
     switch (fn.fn_type) {
@@ -827,6 +829,7 @@ struct SymbolParser : NodeErrorHandler {
       }
     }
 
+    bool is_overload = false;
     SymbolScope &scope = ns ? *ns : def_scope;
     if (auto [fdecl, fn_ptr] = scope.lookup_function_forward_decl(func); fdecl.is_valid()) {
       fn = fn_ptr;
@@ -860,10 +863,7 @@ struct SymbolParser : NodeErrorHandler {
        * instantiation. */
       fn = &table.fun_arena.alloc(scope, *table.err_cls, func, suffix);
 
-      bool is_overload = scope.function_emplace(fn);
-      if (is_overload && fn->is_entry_point()) {
-        error(func.identifier(), Diag::RedefinitionOfEntryPointFunction, func.identifier().str());
-      }
+      is_overload = scope.function_emplace(fn);
     }
 
     if (fn->fn_type == SymbolFunction::MEMBER) {
@@ -903,6 +903,10 @@ struct SymbolParser : NodeErrorHandler {
 
     parse_scope(*fn, func.body(), fn_prefix + fn->identifier + ns_sep, temp_params);
 
+    if (is_overload) {
+      check_overload_validity(func.identifier(), *fn, scope);
+    }
+
     /* Template functions cannot override. */
     if (fn->fn_type == SymbolFunction::MEMBER && !func.is_template()) {
       link_virtual_overrides(*fn, *fn->parent_class());
@@ -930,6 +934,27 @@ struct SymbolParser : NodeErrorHandler {
     }
 
     return fn;
+  }
+
+  void check_overload_validity(ast::IdQualified id,
+                               const SymbolFunction &fn,
+                               const SymbolScope &scope)
+  {
+    if (fn.is_entry_point()) {
+      error(id, Diag::RedefinitionOfEntryPointFunction, id.str());
+    }
+    /* Check if any overload has already the same signature w.r.t. the GLSL rules. */
+    const SymbolFunction &base = scope.lookup_function_base(table, id);
+    for (const SymbolFunction *overload = &base; overload; overload = overload->overload_next) {
+      if (overload != &fn) {
+        if (overload->has_same_signature(fn)) {
+          ast::Node decl = overload->fwd.is_valid() ? overload->fwd.identifier() :
+                                                      overload->decl.identifier();
+          NOTE(decl, Diag::NotePreviousDefinition, id.str());
+          error(id, Diag::RedefinitionFunction, id.str());
+        }
+      }
+    }
   }
 
   /* Mark the virtual functions overridden by the member function `fn` in the bases of `cls`.

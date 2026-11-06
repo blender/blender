@@ -238,6 +238,7 @@ enum class Diag {
   InliningRecursive,
 
   Redefinition,
+  RedefinitionFunction,
   RedefinitionOfEntryPointFunction,
   RedefinitionTemplate,
 
@@ -551,6 +552,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
              "resource declaration";
     case Diag::Redefinition:
       return "Redefinition of '{}'";
+    case Diag::RedefinitionFunction:
+      return "Redefinition of function '{}'";
     case Diag::RedefinitionOfEntryPointFunction:
       return "Redefinition of entry point function '{}'";
     case Diag::RedefinitionTemplate:
