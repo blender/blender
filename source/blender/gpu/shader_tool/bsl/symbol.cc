@@ -733,6 +733,10 @@ struct SymbolParser : NodeErrorHandler {
       if (parent_cls->is_error) {
         error(parent_id, Diag::UnknownIdentifier);
       }
+      else if (parent_cls == &cls || parent_cls->get_conversion_index(cls) != 0) {
+        /* The class is still incomplete. Inheriting from it would recurse forever. */
+        error(parent_id, Diag::UnknownIdentifier, parent_id.str());
+      }
       else {
         cls.base_classes.emplace_back(parent_id, parent_cls);
         inherit_members(cls, *parent_cls);
