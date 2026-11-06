@@ -121,7 +121,7 @@ void combine_frag([[resource_table]] Combine &srt,
   /* Unroll needed for gbuf.layer access. */
   for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {
     if (i < closure_count) {
-      ClosureUndetermined cl = gbuf.layer[i];
+      BsdfClosure cl = gbuf.layer[i];
       if (cl.type != CLOSURE_NONE_ID) {
 
         uchar layer_index = bin_indices[i];
@@ -143,8 +143,8 @@ void combine_frag([[resource_table]] Combine &srt,
         {
           /* These two values are equivalent between Cycles and EEVEE:
            * - Cycles: sqrtf(bsdf_get_specular_roughness_squared(sc))
-           * - EEVEE: square(closure_apparent_roughness_get(cl)) */
-          float closure_roughness = closure_apparent_roughness_get(cl);
+           * - EEVEE: square(cl.perceived_roughness()) */
+          float closure_roughness = cl.perceived_roughness();
           average_roughness += closure_roughness * closure_weight;
           if (srt.use_albedo_roughness_weighting) {
             float roughness_sq = square(closure_roughness);

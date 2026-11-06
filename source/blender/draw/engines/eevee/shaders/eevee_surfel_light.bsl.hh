@@ -51,10 +51,10 @@ void eval_light([[resource_table]] EvalLight & /*srt*/,
   ctx.ray_count = uni.uniform_buf.shadow.ray_count;
   ctx.ray_step_count = uni.uniform_buf.shadow.step_count;
 
-  ClosureUndetermined cl_reflect;
+  BsdfClosure cl_reflect;
   cl_reflect.N = surfel.normal;
   cl_reflect.type = CLOSURE_BSDF_DIFFUSE_ID;
-  ctx.stack.cl[0] = closure_light_new(util_tx, cl_reflect, V);
+  ctx.stack.cl[0] = light_eval_context_create(util_tx, cl_reflect, V);
   lights.eval_reflection(ctx, 1.0f);
 
   if (surfels.capture_info_buf.capture_indirect) {
@@ -62,10 +62,10 @@ void eval_light([[resource_table]] EvalLight & /*srt*/,
                                                            surfel.albedo_front;
   }
 
-  ClosureUndetermined cl_transmit;
+  BsdfClosure cl_transmit;
   cl_transmit.N = -surfel.normal;
   cl_transmit.type = CLOSURE_BSDF_DIFFUSE_ID;
-  ctx.stack.cl[0] = closure_light_new(util_tx, cl_transmit, -V);
+  ctx.stack.cl[0] = light_eval_context_create(util_tx, cl_transmit, -V);
 
   ctx.Ng = -Ng;
   lights.eval_reflection(ctx, 1.0f);

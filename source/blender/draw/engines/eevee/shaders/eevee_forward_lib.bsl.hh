@@ -48,7 +48,7 @@ void forward_lighting_eval(KernelGlobals &kg,
     for (uint i = 0u; i < 3; i++) [[unroll]] {
       if (srt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
         ClosureUndetermined cl = sd.closure_get(pipe, uchar(i)).data;
-        ctx.stack.cl[i] = closure_light_new(kg.util_tx, cl, V);
+        ctx.stack.cl[i] = light_eval_context_create(kg.util_tx, BsdfClosure::make(cl), V);
       }
     }
 
@@ -74,7 +74,8 @@ void forward_lighting_eval(KernelGlobals &kg,
           cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID)
       {
         light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
-        ctx_tr.stack.cl[0] = closure_light_new(kg.util_tx, cl_transmit, V, thickness);
+        ctx_tr.stack.cl[0] = light_eval_context_create_transmission(
+            kg.util_tx, BsdfClosure::make(cl_transmit), V, thickness);
 
         /* NOTE: Only evaluates `stack.cl[0]`. */
         lights.eval_transmission(ctx_tr, vPz);
@@ -149,7 +150,8 @@ void forward_lighting_eval(KernelGlobals &kg,
         ClosureUndetermined cl = sd.closure_get_resolved(pipe, uchar(i), 1.0f);
         if (cl.weight() > CLOSURE_WEIGHT_CUTOFF) {
           float3 direct_light = ctx.stack.cl[i].light_shadowed;
-          float3 indirect_light = lightprobes.eval(samp, cl, sd.P, V, thickness);
+          float3 indirect_light = lightprobes.eval(
+              samp, BsdfClosure::make(cl), sd.P, V, thickness);
 
           if (kg.pipe.use_reflection) [[static_branch]] {
             if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID) {

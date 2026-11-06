@@ -61,13 +61,13 @@ void setup_main([[resource_table]] Setup &srt,
   const ViewMatrices view = views.get(0);
   const gbuffer::Layers gbuf = reader.read_layers(texel);
 
-  ClosureUndetermined cl = gbuf.layer[0];
+  BsdfClosure cl = gbuf.layer[0];
 
   if (cl.type == CLOSURE_BSSRDF_BURLEY_ID) {
     float3 direct = rgb9e5_decode(imageLoadFast(srt.direct_light_img, int3(texel, 0)).r);
     float3 indirect = imageLoadFast(srt.indirect_light_img, texel).rgb;
 
-    ClosureSubsurface closure = to_closure_subsurface(cl);
+    ClosureSubsurface closure = to_closure_subsurface(cl.to_closure_undetermined());
     float max_radius = reduce_max(closure.sss_radius);
 
     uint object_id = reader.read_object_id(texel);
@@ -220,7 +220,7 @@ void convolve_main([[resource_table]] Convolve &srt,
 
   const uint object_id = reader.read_object_id(texel);
 
-  const ClosureSubsurface closure = to_closure_subsurface(gbuf.layer[0]);
+  const ClosureSubsurface closure = to_closure_subsurface(gbuf.layer[0].to_closure_undetermined());
   float max_radius = reduce_max(closure.sss_radius);
 
   float homogenous_coord = view.winmat[2][3] * vP.z + view.winmat[3][3];

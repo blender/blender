@@ -981,9 +981,9 @@ void resolve([[work_group_id]] const uint3 group_id,
   /* Unroll needed for gbuf.layer access. */
   for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {
     if (i < closure_count) {
-      ClosureUndetermined cl = gbuf.layer[i];
+      BsdfClosure cl = gbuf.layer[i];
 
-      float roughness = closure_apparent_roughness_get(cl);
+      float roughness = cl.perceived_roughness();
 
       float mix_fac = saturate(roughness * uni.raytrace_buf.roughness_mask_scale -
                                uni.raytrace_buf.roughness_mask_bias);

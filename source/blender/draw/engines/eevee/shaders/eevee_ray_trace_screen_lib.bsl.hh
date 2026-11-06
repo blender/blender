@@ -14,12 +14,11 @@
  * Many modifications were made for our own usage.
  */
 
-#include "eevee_bxdf.bsl.hh"
+#include "eevee_hizbuffer_shared.hh"
 #include "eevee_lightprobe_shared.hh"
 #include "eevee_ray_types_lib.bsl.hh"
+#include "eevee_raytrace_shared.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
-#include "eevee_thickness_lib.bsl.hh"
-#include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_fast.bsl.hh"
 #include "gpu_shader_math_matrix_transform.bsl.hh"
 
@@ -205,26 +204,6 @@ ScreenTraceHitData raytrace_planar(ViewMatrices view,
   /* Convert to world space ray time. */
   result.time = length(result.v_hit_P - ray.origin) / length(ray.direction);
   return result;
-}
-
-/* Modify the ray origin before tracing it. We must do this because ray origin is implicitly
- * reconstructed from gbuffer depth which we cannot modify. */
-Ray raytrace_thickness_ray_amend(Ray ray, ClosureUndetermined cl, float3 V, Thickness thickness)
-{
-  switch (cl.type) {
-    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      return bxdf_ggx_ray_amend_transmission(cl, V, ray, thickness);
-    case CLOSURE_BSDF_TRANSLUCENT_ID:
-      return bxdf_translucent_ray_amend(cl, V, ray, thickness);
-    case CLOSURE_NONE_ID:
-    case CLOSURE_BSDF_DIFFUSE_ID:
-    case CLOSURE_BSDF_OREN_NAYAR_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-    case CLOSURE_BSSRDF_BURLEY_ID:
-    case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
-      break;
-  }
-  return ray;
 }
 
 bool clip_ray(float3 &start,

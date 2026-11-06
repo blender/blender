@@ -395,7 +395,6 @@ set(SHADER_SRC_EEVEE
   engines/eevee/shaders/eevee_bxdf_lut_gen.bsl.hh
   engines/eevee/shaders/eevee_bxdf_lut_lib.bsl.hh
   engines/eevee/shaders/eevee_bxdf_microfacet.bsl.hh
-  engines/eevee/shaders/eevee_bxdf_oren_nayar.bsl.hh
   engines/eevee/shaders/eevee_bxdf_types.bsl.hh
   engines/eevee/shaders/eevee_camera_lib.bsl.hh
   engines/eevee/shaders/eevee_closure.bsl.hh

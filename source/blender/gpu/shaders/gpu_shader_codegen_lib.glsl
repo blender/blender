@@ -107,6 +107,7 @@ enum ClosureType : uchar {
   CLOSURE_BSSRDF_BURLEY_ID = 15u,
 };
 
+/* TODO(fclem): Split closure related functions to own file */
 struct ClosureUndetermined {
   packed_float3 color;
   packed_float3 N;

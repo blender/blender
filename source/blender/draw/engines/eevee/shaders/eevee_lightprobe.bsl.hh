@@ -61,8 +61,7 @@ struct LightprobeRenderData {
     return radiance_sh;
   }
 
-  float3 eval(
-      LightProbeSample samp, ClosureUndetermined cl, float3 P, float3 V, Thickness thickness) const
+  float3 eval(LightProbeSample samp, BsdfClosure cl, float3 P, float3 V, Thickness thickness) const
   {
     LightProbeRay ray = bxdf_lightprobe_ray(cl, P, V, thickness);
 

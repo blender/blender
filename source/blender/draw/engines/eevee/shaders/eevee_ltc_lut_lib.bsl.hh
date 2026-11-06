@@ -4,10 +4,17 @@
 
 #pragma once
 
-#include "eevee_bxdf_types.bsl.hh"
 #include "eevee_utility_tx.bsl.hh"
 #include "gpu_shader_compat.hh"
 #include "gpu_shader_math_matrix_construct.bsl.hh"
+
+/* Approximation types for computing the irradiance (form factor on point) of area lights. */
+enum class LTCFormFactorType : uchar {
+  /* Form factor of a horizon-clipped sphere affecting a single-sided surface. */
+  OneSidedCosineSphereClipped = 0u,
+  /* Form factor of an unclipped sphere affecting a two-sided surface. */
+  TwoSidedCosineSphere = 1u,
+};
 
 namespace eevee {
 
@@ -70,46 +77,53 @@ struct LTCData {
   /* Type of form factor computation applied during LTC evaluation . */
   LTCFormFactorType form_factor_type;
 
-  /**
-   * Unpack LTC matrix inverse and associated data from uint[5] in ClosureLight.
-   */
-  static LTCData unpack_from(ClosureLight cl)
-  {
-    LTCData ltc_data;
+  struct Packed {
+    /* Packed LTC matrix and attenuation data. */
+    uint data[5];
 
-    /* Unpack matrix values from 9 x fp16. */
-    ltc_data.Minv[0].xy = unpackHalf2x16(cl.ltc_data_packed[0]);
-    ltc_data.Minv[1].xy = unpackHalf2x16(cl.ltc_data_packed[1]);
-    ltc_data.Minv[2].xy = unpackHalf2x16(cl.ltc_data_packed[2]);
-    float2 v3 = unpackHalf2x16(cl.ltc_data_packed[3]);
-    float2 v4 = unpackHalf2x16(cl.ltc_data_packed[4]);
-    ltc_data.Minv[0].z = v3.x;
-    ltc_data.Minv[1].z = v3.y;
-    ltc_data.Minv[2].z = v4.y;
+    /**
+     * Unpack LTC matrix inverse and associated data from uint[5] in ClosureLight.
+     */
+    LTCData unpack() const
+    {
+      LTCData ltc_data;
 
-    /* Unpack associated values from 16 lsb of [4]. */
-    float4 pack = unpackUnorm4x8(cl.ltc_data_packed[4]);
-    ltc_data.attenuation_factor = pack.x;
-    ltc_data.form_factor_type = LTCFormFactorType(pack.y);
+      /* Unpack matrix values from 9 x fp16. */
+      ltc_data.Minv[0].xy = unpackHalf2x16(data[0]);
+      ltc_data.Minv[1].xy = unpackHalf2x16(data[1]);
+      ltc_data.Minv[2].xy = unpackHalf2x16(data[2]);
+      float2 v3 = unpackHalf2x16(data[3]);
+      float2 v4 = unpackHalf2x16(data[4]);
+      ltc_data.Minv[0].z = v3.x;
+      ltc_data.Minv[1].z = v3.y;
+      ltc_data.Minv[2].z = v4.y;
 
-    return ltc_data;
-  }
+      /* Unpack associated values from 16 lsb of [4]. */
+      float4 pack = unpackUnorm4x8(data[4]);
+      ltc_data.attenuation_factor = pack.x;
+      ltc_data.form_factor_type = LTCFormFactorType(pack.y);
+
+      return ltc_data;
+    }
+  };
 
   /**
    * Pack LTC matrix inverse and associated data to uint[5] in ClosureLight.
    */
-  void pack_to(ClosureLight &cl) const
+  Packed pack() const
   {
     /* Pack associated values in 16 lsb . */
     uint values_lsb = packUnorm4x8(
         float4(attenuation_factor, float(form_factor_type), 0.0f, 0.0f));
 
+    Packed pack;
     /* Pack matrix values as 9 x fp16, plus associated values in 16 lsb of [4]. */
-    cl.ltc_data_packed[0] = packHalf2x16(Minv[0].xy);
-    cl.ltc_data_packed[1] = packHalf2x16(Minv[1].xy);
-    cl.ltc_data_packed[2] = packHalf2x16(Minv[2].xy);
-    cl.ltc_data_packed[3] = packHalf2x16(float2(Minv[0].z, Minv[1].z));
-    cl.ltc_data_packed[4] = packHalf2x16(float2(0.0f, Minv[2].z)) | values_lsb;
+    pack.data[0] = packHalf2x16(Minv[0].xy);
+    pack.data[1] = packHalf2x16(Minv[1].xy);
+    pack.data[2] = packHalf2x16(Minv[2].xy);
+    pack.data[3] = packHalf2x16(float2(Minv[0].z, Minv[1].z));
+    pack.data[4] = packHalf2x16(float2(0.0f, Minv[2].z)) | values_lsb;
+    return pack;
   }
 
   /**
@@ -142,14 +156,16 @@ struct LTCData {
   /**
    * Return matrix data producing a cosine distribution.
    */
-  static LTCData identity(const float3 N, const float3 V)
+  static LTCData identity(
+      const float3 N,
+      const float3 V,
+      LTCFormFactorType form_factor_type = LTCFormFactorType::OneSidedCosineSphereClipped)
   {
     /* Rotate into orthonormal basis around N. LTC matrix is simply the identity matrix. */
     const float3x3 T = from_incident_vector(N, V);
 
-    return {.Minv = transpose(T),
-            .attenuation_factor = 1.0f,
-            .form_factor_type = LTCFormFactorType::OneSidedCosineSphereClipped};
+    return {
+        .Minv = transpose(T), .attenuation_factor = 1.0f, .form_factor_type = form_factor_type};
   }
 
   /**
@@ -178,15 +194,6 @@ struct LTCData {
                                        const float roughness)
   {
     return LTCData::sample_lut(util_tx, N, V, cos_theta, roughness, UTIL_LTC_MAT_OREN_NAYAR_LAYER);
-  }
-
-  /**
-   * Define matrix data producing a cosine distribution and store to ClosureLight packing.
-   */
-  static void pack_identity(ClosureLight &cl, const float3 N, const float3 V)
-  {
-    LTCData ltc_data = LTCData::identity(N, V);
-    ltc_data.pack_to(cl);
   }
 };
 

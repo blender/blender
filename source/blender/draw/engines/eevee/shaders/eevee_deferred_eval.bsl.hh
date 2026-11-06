@@ -148,7 +148,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   /* Unroll light stack array assignments to avoid non-constant indexing. */
   for (uint i = 0u; i < 3; i++) [[unroll]] {
     if (lrt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
-      ctx.stack.cl[i] = closure_light_new(util_tx, gbuf.layer[i], V);
+      ctx.stack.cl[i] = light_eval_context_create(util_tx, gbuf.layer[i], V);
     }
   }
 
@@ -176,8 +176,9 @@ void light_eval_frag([[resource_table]] LightEval &srt,
   if (srt.use_transmission) {
     light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
 
-    ClosureUndetermined cl_transmit = gbuf.layer[0];
-    ctx_tr.stack.cl[0] = closure_light_new(util_tx, cl_transmit, V, thickness);
+    BsdfClosure cl_transmit = gbuf.layer[0];
+    ctx_tr.stack.cl[0] = light_eval_context_create_transmission(
+        util_tx, cl_transmit, V, thickness);
 
     /* NOTE: Only evaluates `stack.cl[0]`. */
     lights.eval_transmission(ctx_tr, vPz);
@@ -185,7 +186,9 @@ void light_eval_frag([[resource_table]] LightEval &srt,
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
       /* Apply transmission profile onto transmitted light and sum with reflected light. */
       float3 sss_profile = subsurface_transmission(
-          util_tx, to_closure_subsurface(cl_transmit).sss_radius, thickness.value());
+          util_tx,
+          to_closure_subsurface(cl_transmit.to_closure_undetermined()).sss_radius,
+          thickness.value());
       ctx.stack.cl[0].light_shadowed += ctx_tr.stack.cl[0].light_shadowed * sss_profile;
       ctx.stack.cl[0].light_unshadowed += ctx_tr.stack.cl[0].light_unshadowed * sss_profile;
     }
@@ -291,7 +294,7 @@ void sphere_eval_frag([[resource_table]] LightEvalIterator &lights,
   /* Unroll needed for gbuf.layer access. */
   for (int i = 0; i < 3 /* GBUFFER_LAYER_MAX */; i++) [[unroll]] {
     if (i < closure_count) {
-      ClosureUndetermined cl = gbuf.layer[i];
+      BsdfClosure cl = gbuf.layer[i];
       switch (cl.type) {
         case CLOSURE_BSSRDF_BURLEY_ID:
         case CLOSURE_BSDF_DIFFUSE_ID:
@@ -320,11 +323,11 @@ void sphere_eval_frag([[resource_table]] LightEvalIterator &lights,
   float3 V = view.world_incident_vector(P);
   float vPz = dot(view.forward(), P) - dot(view.forward(), view.position());
 
-  ClosureUndetermined cl;
+  BsdfClosure cl;
   cl.N = gbuf.surface_N();
   cl.type = CLOSURE_BSDF_DIFFUSE_ID;
 
-  ClosureUndetermined cl_transmit;
+  BsdfClosure cl_transmit;
   cl_transmit.N = gbuf.surface_N();
   cl_transmit.type = CLOSURE_BSDF_TRANSLUCENT_ID;
 
@@ -347,14 +350,14 @@ void sphere_eval_frag([[resource_table]] LightEvalIterator &lights,
   }
 
   /* Direct light. */
-  ctx.stack.cl[0] = closure_light_new(util_tx, cl, V);
+  ctx.stack.cl[0] = light_eval_context_create(util_tx, cl, V);
   lights.eval_reflection(ctx, vPz);
 
   float3 radiance_front = ctx.stack.cl[0].light_shadowed;
 
   light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
 
-  ctx_tr.stack.cl[0] = closure_light_new(util_tx, cl_transmit, V, thickness);
+  ctx_tr.stack.cl[0] = light_eval_context_create_transmission(util_tx, cl_transmit, V, thickness);
   lights.eval_transmission(ctx_tr, vPz);
 
   float3 radiance_back = ctx_tr.stack.cl[0].light_shadowed;
@@ -401,14 +404,14 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   float3 albedo_front = float3(0.0f);
   float3 albedo_back = float3(0.0f);
 
-  ClosureUndetermined cl_reflect;
+  BsdfClosure cl_reflect;
   cl_reflect.type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
   cl_reflect.color = float3(0.0);
   cl_reflect.N = float3(0.0);
   cl_reflect.data = float4(0.0);
   float reflect_weight = 0.0;
 
-  ClosureUndetermined cl_refract;
+  BsdfClosure cl_refract;
   cl_refract.type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
   cl_refract.color = float3(0.0);
   cl_refract.N = float3(0.0);
@@ -418,7 +421,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   /* Unroll needed for gbuf.layer access. */
   for (int i = 0; i < 3; i++) [[unroll]] {
     if (i < closure_count) {
-      ClosureUndetermined cl = gbuf.layer[i];
+      BsdfClosure cl = gbuf.layer[i];
       switch (cl.type) {
         case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID: {
           cl_reflect.color += cl.color;
@@ -494,11 +497,11 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   float3 V = view.world_incident_vector(P);
   float vPz = dot(view.forward(), P) - dot(view.forward(), view.position());
 
-  ClosureUndetermined cl;
+  BsdfClosure cl;
   cl.N = gbuf.surface_N();
   cl.type = CLOSURE_BSDF_DIFFUSE_ID;
 
-  ClosureUndetermined cl_transmit;
+  BsdfClosure cl_transmit;
   cl_transmit.N = gbuf.surface_N();
   cl_transmit.type = CLOSURE_BSDF_TRANSLUCENT_ID;
 
@@ -521,16 +524,16 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   }
 
   /* Direct light. */
-  ctx.stack.cl[0] = closure_light_new(util_tx, cl, V);
-  ctx.stack.cl[1] = closure_light_new(util_tx, cl_reflect, V);
+  ctx.stack.cl[0] = light_eval_context_create(util_tx, cl, V);
+  ctx.stack.cl[1] = light_eval_context_create(util_tx, cl_reflect, V);
   lights.eval_reflection(ctx, vPz);
 
   float3 radiance_front = ctx.stack.cl[0].light_shadowed;
   float3 radiance_reflect = ctx.stack.cl[1].light_shadowed;
 
   light::EvalCtx<true> ctx_tr = light::init_from_reflect_ctx(ctx);
-  ctx_tr.stack.cl[0] = closure_light_new(util_tx, cl_transmit, V, thickness);
-  ctx_tr.stack.cl[1] = closure_light_new(util_tx, cl_refract, V, thickness);
+  ctx_tr.stack.cl[0] = light_eval_context_create_transmission(util_tx, cl_transmit, V, thickness);
+  ctx_tr.stack.cl[1] = light_eval_context_create_transmission(util_tx, cl_refract, V, thickness);
   lights.eval_transmission(ctx_tr, vPz);
 
   float3 radiance_back = ctx_tr.stack.cl[0].light_shadowed;

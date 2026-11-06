@@ -34,18 +34,18 @@ namespace light {
 template<bool is_transmission> struct ClosureStack {};
 
 template<> struct ClosureStack<false> {
-  [[capacity(light_closure_count_reflect)]] ClosureLight cl[3];
+  [[capacity(light_closure_count_reflect)]] LightEvalContext cl[3];
 };
 
 template<> struct ClosureStack<true> {
-  [[capacity(light_closure_count_transmit)]] ClosureLight cl[3];
+  [[capacity(light_closure_count_transmit)]] LightEvalContext cl[3];
 };
 
 void eval_single_closure(sampler2DArray util_tx,
                          LightData light,
                          LightVector lv,
                          LightShape shape,
-                         ClosureLight &cl,
+                         LightEvalContext &cl,
                          float attenuation,
                          float shadow)
 {
@@ -54,7 +54,7 @@ void eval_single_closure(sampler2DArray util_tx,
     return;
   }
 
-  LTCData ltc_data = LTCData::unpack_from(cl);
+  LTCData ltc_data = cl.ltc_data_packed.unpack();
   float ltc_result = ltc::evaluate(util_tx, light, shape, lv, ltc_data);
 
   float3 out_radiance = light.color * ltc_result;

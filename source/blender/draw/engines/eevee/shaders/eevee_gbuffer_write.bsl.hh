@@ -63,13 +63,13 @@ ClosurePacking pack_closure(const PackParameters &srt, ClosureUndetermined cl)
           assert(false);
         }
         else {
-          gbuffer::Reflection::pack_additional(cl_packed, cl);
+          gbuffer::Reflection::pack_additional(cl_packed, BsdfClosure::make(cl));
         }
       }
       break;
     case GBUF_REFLECTION_COLORLESS:
       if (srt.gbuffer_has_reflection) [[static_branch]] {
-        gbuffer::ReflectionColorless::pack_additional(cl_packed, cl);
+        gbuffer::ReflectionColorless::pack_additional(cl_packed, BsdfClosure::make(cl));
       }
       break;
     case GBUF_REFRACTION:
@@ -79,13 +79,13 @@ ClosurePacking pack_closure(const PackParameters &srt, ClosureUndetermined cl)
           assert(false);
         }
         else {
-          gbuffer::Refraction::pack_additional(cl_packed, cl);
+          gbuffer::Refraction::pack_additional(cl_packed, BsdfClosure::make(cl));
         }
       }
       break;
     case GBUF_REFRACTION_COLORLESS:
       if (srt.gbuffer_has_refraction) [[static_branch]] {
-        gbuffer::RefractionColorless::pack_additional(cl_packed, cl);
+        gbuffer::RefractionColorless::pack_additional(cl_packed, BsdfClosure::make(cl));
       }
       break;
     case GBUF_THIN_REFRACTION:
@@ -95,22 +95,22 @@ ClosurePacking pack_closure(const PackParameters &srt, ClosureUndetermined cl)
           assert(false);
         }
         else {
-          gbuffer::ThinRefraction::pack_additional(cl_packed, cl);
+          gbuffer::ThinRefraction::pack_additional(cl_packed, BsdfClosure::make(cl));
         }
       }
       break;
     case GBUF_THIN_REFRACTION_COLORLESS:
       if (srt.gbuffer_has_refraction) [[static_branch]] {
-        gbuffer::ThinRefractionColorless::pack_additional(cl_packed, cl);
+        gbuffer::ThinRefractionColorless::pack_additional(cl_packed, BsdfClosure::make(cl));
       }
       break;
     case GBUF_SUBSURFACE:
       if (srt.gbuffer_has_subsurface) [[static_branch]] {
-        gbuffer::Subsurface::pack_additional(cl_packed, cl);
+        gbuffer::Subsurface::pack_additional(cl_packed, BsdfClosure::make(cl));
       }
       break;
     case GBUF_OREN_NAYAR:
-      gbuffer::OrenNayar::pack_additional(cl_packed, cl);
+      gbuffer::OrenNayar::pack_additional(cl_packed, BsdfClosure::make(cl));
       break;
     case GBUF_DIFFUSE:
     case GBUF_UNLIT:

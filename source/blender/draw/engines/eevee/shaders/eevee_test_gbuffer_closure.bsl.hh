@@ -100,7 +100,7 @@ void eevee_test_gbuffer_closure_main(
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), uchar(1));
 
-    ClosureUndetermined out_sss_burley;
+    BsdfClosure out_sss_burley;
     out_sss_burley.type = gbuffer::mode_to_closure_type(header.bin_type(0));
     out_sss_burley.color = gbuffer::closure_color_unpack(data_out.closure[0]);
     out_sss_burley.N = gbuffer::normal_unpack(data_out.normal[0]);
@@ -151,7 +151,7 @@ void eevee_test_gbuffer_closure_main(
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), uchar(1));
 
-    ClosureUndetermined out_reflection;
+    BsdfClosure out_reflection;
     out_reflection.type = gbuffer::mode_to_closure_type(header.bin_type(0));
     out_reflection.color = gbuffer::closure_color_unpack(data_out.closure[0]);
     out_reflection.N = gbuffer::normal_unpack(data_out.normal[0]);
@@ -179,7 +179,7 @@ void eevee_test_gbuffer_closure_main(
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), uchar(1));
 
-    ClosureUndetermined out_refraction;
+    BsdfClosure out_refraction;
     out_refraction.type = gbuffer::mode_to_closure_type(header.bin_type(0));
     out_refraction.color = gbuffer::closure_color_unpack(data_out.closure[0]);
     out_refraction.N = gbuffer::normal_unpack(data_out.normal[0]);
@@ -217,13 +217,13 @@ void eevee_test_gbuffer_closure_main(
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 1, 0), 0.5f);
     EXPECT_EQ(header.closure_len(), uchar(2));
 
-    ClosureUndetermined out_cl0;
+    BsdfClosure out_cl0;
     out_cl0.type = gbuffer::mode_to_closure_type(header.bin_type(0));
     out_cl0.color = gbuffer::closure_color_unpack(data_out.closure[0]);
     out_cl0.N = gbuffer::normal_unpack(data_out.normal[0]);
     gbuffer::Refraction::unpack_additional(out_cl0, data_out.closure[2]);
 
-    ClosureUndetermined out_cl1;
+    BsdfClosure out_cl1;
     out_cl1.type = gbuffer::mode_to_closure_type(header.bin_type(2));
     out_cl1.color = gbuffer::closure_color_unpack(data_out.closure[1]);
     out_cl1.N = gbuffer::normal_unpack(data_out.normal[1]);
@@ -262,13 +262,13 @@ void eevee_test_gbuffer_closure_main(
     EXPECT_NEAR(float3(header.empty_bins()), float3(0, 0, 1), 0.5f);
     EXPECT_EQ(header.closure_len(), uchar(2));
 
-    ClosureUndetermined out_refraction;
+    BsdfClosure out_refraction;
     out_refraction.type = gbuffer::mode_to_closure_type(header.bin_type(0));
     out_refraction.color = gbuffer::closure_color_unpack(data_out.closure[0]);
     out_refraction.N = gbuffer::normal_unpack(data_out.normal[0]);
     gbuffer::RefractionColorless::unpack_additional(out_refraction, data_out.closure[0]);
 
-    ClosureUndetermined out_reflection;
+    BsdfClosure out_reflection;
     out_reflection.type = gbuffer::mode_to_closure_type(header.bin_type(1));
     out_reflection.color = gbuffer::closure_color_unpack(data_out.closure[1]);
     out_reflection.N = gbuffer::normal_unpack(data_out.normal[1]);

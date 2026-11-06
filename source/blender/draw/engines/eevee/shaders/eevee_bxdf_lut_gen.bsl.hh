@@ -65,13 +65,13 @@ struct GGXBrdfClosure {
     GGXBrdfData brdf = {};
 
     /* Sample light vector, recover half vector as microfacet normal. */
-    float3 L = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
+    float3 L = GGX::sample_reflection(Xi, V, roughness, false).direction;
     float3 H = normalize(V + L);
 
     /* Restrict light vector to positive hemisphere. */
     float NL = L.z;
     if (NL > 0.0f) {
-      float weight = bxdf_ggx_eval_reflection(N, L, V, roughness, false).weight;
+      float weight = GGX::eval_reflection(N, L, V, roughness, false).weight;
       float VH = saturate(dot(V, H));
 
       /* Schlick's Fresnel. */
@@ -143,7 +143,7 @@ struct GGXBsdfClosure {
     GGXBsdfData bsdf = {};
 
     /* Reflection, restricted to positive hemisphere. */
-    float3 R = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
+    float3 R = GGX::sample_reflection(Xi, V, roughness, false).direction;
     float NR = R.z;
     if (NR > 0.0f) {
       /* Recover half vector as GGX normal. */
@@ -154,13 +154,13 @@ struct GGXBsdfClosure {
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0f - saturate(HL)));
 
-      float weight = bxdf_ggx_eval_reflection(N, R, V, roughness, false).weight;
+      float weight = GGX::eval_reflection(N, R, V, roughness, false).weight;
       bsdf.scale = (1.0f - s) * weight;
       bsdf.bias = s * weight;
     }
 
     /* Refraction, restricted to negative hemisphere. */
-    float3 T = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, Thickness{}, false).direction;
+    float3 T = GGX::sample_refraction(Xi, V, roughness, ior, Thickness{}, false).direction;
     float NT = T.z;
     /* In the case of TIR, `T == float3(0)`. */
     if (NT < 0.0f) {
@@ -171,7 +171,7 @@ struct GGXBsdfClosure {
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0f - saturate(HL)));
 
-      float weight = bxdf_ggx_eval_refraction(N, T, V, roughness, ior, Thickness{}, false).weight;
+      float weight = GGX::eval_refraction(N, T, V, roughness, ior, Thickness{}, false).weight;
       bsdf.transmission_factor = (1.0f - s) * weight;
     }
 
@@ -279,7 +279,7 @@ struct GGXBtdfGt1Closure {
     GGXBtdfGt1Data btdf = {};
 
     /* Refraction, restricted to negative hemisphere. */
-    float3 L = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, Thickness{}, false).direction;
+    float3 L = GGX::sample_refraction(Xi, V, roughness, ior, Thickness{}, false).direction;
     float NL = L.z;
     if (NL < 0.0f) {
       /* Recover half vector as GGX normal. */
@@ -289,7 +289,7 @@ struct GGXBtdfGt1Closure {
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0f - saturate(HV)));
 
-      float weight = bxdf_ggx_eval_refraction(N, L, V, roughness, ior, Thickness{}, false).weight;
+      float weight = GGX::eval_refraction(N, L, V, roughness, ior, Thickness{}, false).weight;
       btdf.transmission_factor = (1.0f - s) * weight;
     }
 

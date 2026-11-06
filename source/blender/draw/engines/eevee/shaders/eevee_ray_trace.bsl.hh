@@ -101,8 +101,8 @@ void trace([[resource_table]] Resources &srt,
   if (srt.closure_index == 0) {
     const Thickness thickness = reader.read_thickness(gbuf_header, texel_fullres);
     if (thickness.value() != 0.0f) {
-      ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
-      ray = raytrace_thickness_ray_amend(ray, cl, V, thickness);
+      BsdfClosure cl = reader.read_bin(texel_fullres, srt.closure_index);
+      ray = cl.ray_amend(V, ray, thickness);
     }
   }
 
@@ -110,8 +110,8 @@ void trace([[resource_table]] Resources &srt,
   float noise_offset = sampling.rng_1D_get(SAMPLING_RAYTRACE_W);
   float rand_trace = random::interleaved_gradient(float2(texel), 5.0f, noise_offset);
 
-  ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
-  float roughness = closure_apparent_roughness_get(cl);
+  BsdfClosure cl = reader.read_bin(texel_fullres, srt.closure_index);
+  float roughness = cl.perceived_roughness();
 
   /* Transform the ray into view-space. */
   Ray ray_view;
@@ -266,8 +266,8 @@ void trace([[resource_table]] Resources &srt,
 
   const ViewMatrices view = views.get(0);
 
-  ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
-  float roughness = closure_apparent_roughness_get(cl);
+  BsdfClosure cl = reader.read_bin(texel_fullres, srt.closure_index);
+  float roughness = cl.perceived_roughness();
 
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
   float2 uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
@@ -376,8 +376,8 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
-  ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
-  float roughness = closure_apparent_roughness_get(cl);
+  BsdfClosure cl = reader.read_bin(texel_fullres, srt.closure_index);
+  float roughness = cl.perceived_roughness();
 
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
   float2 uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
@@ -406,8 +406,8 @@ void trace([[resource_table]] Resources &srt,
     const gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
     const Thickness thickness = reader.read_thickness(gbuf_header, texel_fullres);
     if (thickness.value() != 0.0f) {
-      ClosureUndetermined cl = reader.read_bin(texel_fullres, srt.closure_index);
-      ray = raytrace_thickness_ray_amend(ray, cl, V, thickness);
+      BsdfClosure cl = reader.read_bin(texel_fullres, srt.closure_index);
+      ray = cl.ray_amend(V, ray, thickness);
     }
   }
 

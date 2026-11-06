@@ -20,6 +20,7 @@
  * without dealing with none-closures.
  */
 
+#include "eevee_bxdf_types.bsl.hh"
 #include "eevee_gbuffer_types.bsl.hh"
 
 namespace gbuffer::detail {
@@ -28,9 +29,9 @@ namespace gbuffer::detail {
 /** \name G-buffer Read
  * \{ */
 
-ClosureUndetermined unpack_closure(ClosurePacking cl_in)
+BsdfClosure unpack_closure(ClosurePacking cl_in)
 {
-  ClosureUndetermined cl;
+  BsdfClosure cl;
   cl.type = gbuffer::mode_to_closure_type(cl_in.mode);
   /* Common to all configs. */
   cl.color = gbuffer::closure_color_unpack(cl_in.data0);
@@ -80,7 +81,7 @@ using Header = gbuffer::Header;
  * Note that the normal of the first closure is always guaranteed to be valid even if the closure
  * has invalid type.*/
 struct Layers {
-  ClosureUndetermined layer[GBUFFER_LAYER_MAX];
+  BsdfClosure layer[GBUFFER_LAYER_MAX];
   Header header;
 
   float3 surface_N() const
@@ -130,16 +131,16 @@ struct Reader {
 
   float4 fetch_additional_data(int2 texel) const
   {
-    auto &samp = gbuf_normal_tx;
+    const auto &samp = gbuf_normal_tx;
     return texelFetch(samp, int3(texel, textureSize(samp, 0).z - 1), 0);
   }
 
   /* Read only one layer from the GBuffer. */
-  ClosureUndetermined read_layer(
+  BsdfClosure read_layer(
       uchar normal_id, uchar closure_len, GBufferMode bin_mode, int2 texel, uchar layer_id) const
   {
     if (bin_mode == GBUF_NONE) {
-      return closure_new(ClosureType(CLOSURE_NONE_ID));
+      return {.type = CLOSURE_NONE_ID};
     }
 
     ClosurePacking cl_in;
@@ -177,7 +178,7 @@ struct Reader {
   }
 
   /* Read only one bin from the GBuffer. */
-  ClosureUndetermined read_bin(Header header, int2 texel, uchar bin_index) const
+  BsdfClosure read_bin(Header header, int2 texel, uchar bin_index) const
   {
     GBufferMode bin_mode = header.bin_type(bin_index);
 
@@ -187,7 +188,7 @@ struct Reader {
 
     return read_layer(normal_id, closure_count, bin_mode, texel, layer_id);
   }
-  ClosureUndetermined read_bin(int2 texel, uchar bin_index) const
+  BsdfClosure read_bin(int2 texel, uchar bin_index) const
   {
     return read_bin(read_header(texel), texel, bin_index);
   }
