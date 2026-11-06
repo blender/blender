@@ -846,6 +846,7 @@ static void draw_seq_text_get_source(const Strip *strip, MutableCStr r_source)
 
 static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
                                                const StripDrawContext &strip_ctx,
+                                               const eSpaceSeq_SequencerTimelineOverlay_Flag flag,
                                                MutableCStr r_overlay_string)
 {
   const Strip *strip = strip_ctx.strip;
@@ -854,12 +855,12 @@ static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
   const char *text_array[7];
   int i = 0;
 
-  if (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_NAME) {
+  if (flag & SEQ_TIMELINE_SHOW_STRIP_NAME) {
     text_array[i++] = draw_seq_text_get_name(strip);
   }
 
   char source[FILE_MAX];
-  if (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) {
+  if (flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) {
     draw_seq_text_get_source(strip, source);
     if (source[0] != '\0') {
       if (i != 0) {
@@ -880,7 +881,7 @@ static size_t draw_seq_text_get_overlay_string(const TimelineDrawContext &ctx,
   }
 
   char strip_duration_text[16];
-  if (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
+  if (flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
     SNPRINTF_UTF8(strip_duration_text, "%d", int(strip_ctx.strip_length));
     if (i != 0) {
       text_array[i++] = text_sep;
@@ -1094,13 +1095,6 @@ static void draw_seq_text_overlay(const TimelineDrawContext &ctx,
     return;
   }
 
-  char overlay_string[FILE_MAX];
-  size_t overlay_string_len = draw_seq_text_get_overlay_string(ctx, strip_ctx, overlay_string);
-
-  if (overlay_string_len == 0) {
-    return;
-  }
-
   uchar col[4];
   get_strip_text_color(strip_ctx, col);
 
@@ -1132,6 +1126,27 @@ static void draw_seq_text_overlay(const TimelineDrawContext &ctx,
 
   CLAMP(rect.xmax, ctx.v2d->cur.xmin + text_margin, ctx.v2d->cur.xmax);
   if (rect.xmin >= rect.xmax) { /* No space for label left. */
+    return;
+  }
+
+  /* Get text string and its length. */
+  const eSpaceSeq_SequencerTimelineOverlay_Flag flag = ctx.sseq->timeline_overlay.flag;
+  char overlay_string[FILE_MAX];
+  size_t overlay_string_len = draw_seq_text_get_overlay_string(
+      ctx, strip_ctx, flag, overlay_string);
+
+  /* Check to see if some duration digits would be partially cut off. If so, hide the number
+   * entirely to avoid appearing like the wrong value at a glance. */
+  BLF_set_default();
+  float overlay_string_width = BLF_width(BLF_default(), overlay_string, overlay_string_len);
+  if ((flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) &&
+      ctx.pixelx * overlay_string_width > BLI_rctf_size_x(&rect))
+  {
+    overlay_string_len = draw_seq_text_get_overlay_string(
+        ctx, strip_ctx, flag & ~SEQ_TIMELINE_SHOW_STRIP_DURATION, overlay_string);
+  }
+
+  if (overlay_string_len == 0) {
     return;
   }
 
