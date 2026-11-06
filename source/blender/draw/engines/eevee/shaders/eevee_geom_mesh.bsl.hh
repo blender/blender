@@ -84,7 +84,7 @@ struct GeomMeshVertIn {
 
   attrib_load(MeshVertex{vert_in.pos, to_float3x3(obj.model_inverse), lP_orco});
 
-  interp.P += nodetree_displacement(kg, sd);
+  interp.P += nodetree_displacement_vert(kg, sd);
 
   if (pipe.use_clip_plane) [[static_branch]] {
     clip_interp.clip_distance = dot(clip_srt.clip_plane.plane, float4(interp.P, 1.0f));

@@ -15,31 +15,8 @@ void attrib_load(MeshVertex /*domain*/) {}
 void attrib_load(PointCloudPoint /*domain*/) {}
 void attrib_load(CurvesPoint /*domain*/) {}
 
-#ifndef NODETREE_FUNCTIONS /* Needed for linting. */
-#  define NODETREE_FUNCTIONS
-
 /* Material graph connected to the displacement output. */
-float3 nodetree_displacement(KernelGlobals & /*kg*/, ShadingData & /*sd*/)
+float3 nodetree_displacement_vert(KernelGlobals & /*kg*/, ShadingData & /*sd*/)
 {
   return float3(0.0f);
 }
-
-/* Material graph connected to the surface output. */
-Closure nodetree_surface(KernelGlobals & /*kg*/, ShadingData & /*sd*/, float /*closure_rand*/)
-{
-  return Closure(0);
-}
-
-/* Material graph connected to the volume output. */
-Closure nodetree_volume(KernelGlobals & /*kg*/, ShadingData & /*sd*/)
-{
-  return Closure(0);
-}
-
-/* Material graph connected to the volume output. */
-float nodetree_thickness(KernelGlobals & /*kg*/, ShadingData & /*sd*/)
-{
-  return 0.1f;
-}
-
-#endif
