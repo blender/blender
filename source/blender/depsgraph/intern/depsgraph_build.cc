@@ -18,6 +18,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BKE_collection.hh"
@@ -202,6 +203,14 @@ void DEG_add_vfont_relation(DepsNodeHandle *handle, VFont *vfont, const char *de
 {
   deg::OperationKey operation_key(
       &vfont->id, deg::NodeType::PARAMETERS, deg::OperationCode::PARAMETERS_EXIT);
+  deg::DepsNodeHandle *deg_node_handle = get_node_handle(handle);
+  deg_node_handle->builder->add_node_handle_relation(operation_key, deg_node_handle, description);
+}
+
+void DEG_add_sound_relation(DepsNodeHandle *handle, bSound *sound, const char *description)
+{
+  deg::OperationKey operation_key(
+      &sound->id, deg::NodeType::AUDIO, deg::OperationCode::SOUND_EVAL);
   deg::DepsNodeHandle *deg_node_handle = get_node_handle(handle);
   deg_node_handle->builder->add_node_handle_relation(operation_key, deg_node_handle, description);
 }

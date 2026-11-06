@@ -215,6 +215,10 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
         DEG_add_vfont_relation(ctx->node, reinterpret_cast<VFont *>(id), "Nodes Modifier");
         break;
       }
+      case ID_SO: {
+        DEG_add_sound_relation(ctx->node, reinterpret_cast<bSound *>(id), "Nodes Modifier");
+        break;
+      }
       case ID_MA: {
         /* Purposefully don't add relations for materials. While there are material sockets,
          * the pointers are only passed around as handles rather than dereferenced. */
