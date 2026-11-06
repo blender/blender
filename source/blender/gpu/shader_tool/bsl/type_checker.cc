@@ -419,7 +419,7 @@ struct ExpressionTypeParser
             call.identifier().str() != "interface_get" &&
             call.identifier().str() != "sampler_get" && call.identifier().str() != "buffer_get")
         {
-          error(t, Diag::FunctionCallNotAllowedInReferenceDefinition);
+          error(right, Diag::FunctionCallNotAllowedInReferenceDefinition);
         }
         auto sym = l.lookup_function(table, call.identifier(), call.parameters(), scope);
         return *sym.unwrap(err).return_type;
