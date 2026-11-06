@@ -196,6 +196,11 @@ static void initShrinkFatten(TransInfo *t, wmOperator *op)
     BKE_report(t->reports, RPT_ERROR, "'Shrink/Fatten' meshes is only supported in edit mode");
     t->state = TRANS_CANCEL;
   }
+  else if (t->data_type != &TransConvertType_Mesh) {
+    /* Exclude shrink/fatten from the UV editor. */
+    BKE_report(t->reports, RPT_ERROR, "'Shrink/Fatten' is not supported for UVs");
+    t->state = TRANS_CANCEL;
+  }
 
   t->mode = TFM_SHRINKFATTEN;
 
