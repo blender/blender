@@ -196,13 +196,20 @@ static void strip_draw_context_set_strip_content_visibility(const TimelineDrawCo
   strip_ctx.can_draw_strip_content = ((strip_ctx.top - strip_ctx.bottom) / ctx.pixely) > threshold;
 }
 
+bool strip_is_too_small_for_retiming(const Scene *scene, const View2D *v2d, const Strip *strip)
+{
+  float2 threshold{15 * UI_SCALE_FAC, 25 * UI_SCALE_FAC};
+  const float height = (STRIP_OFSTOP - STRIP_OFSBOTTOM) / ui::view2d_pixel_size_get_y(v2d);
+  const float length = (strip->right_handle(scene) - strip->left_handle()) /
+                       ui::view2d_pixel_size_get_x(v2d);
+  return height < threshold.y || length < threshold.x;
+}
+
 static void strip_draw_context_set_retiming_overlay_visibility(const TimelineDrawContext &ctx,
                                                                StripDrawContext &strip_ctx)
 {
-  float2 threshold{15 * UI_SCALE_FAC, 25 * UI_SCALE_FAC};
-  strip_ctx.can_draw_retiming_overlay = (strip_ctx.top - strip_ctx.bottom) / ctx.pixely >=
-                                        threshold.y;
-  strip_ctx.can_draw_retiming_overlay &= strip_ctx.strip_length / ctx.pixelx >= threshold.x;
+  strip_ctx.can_draw_retiming_overlay = !strip_is_too_small_for_retiming(
+      ctx.scene, ctx.v2d, strip_ctx.strip);
   strip_ctx.can_draw_retiming_overlay &= retiming_overlay_enabled(ctx.sseq);
 }
 

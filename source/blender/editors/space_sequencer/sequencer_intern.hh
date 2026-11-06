@@ -140,6 +140,8 @@ struct TimelineDrawContext {
 
 /* Returns value in frames (view-space), 5px for large strips, 1/4 of the strip for smaller. */
 float strip_handle_draw_size_get(const Scene *scene, const Strip *strip, float pixelx);
+/* Retiming keys are not drawn on strips that are too small, so they can't be used either. */
+bool strip_is_too_small_for_retiming(const Scene *scene, const View2D *v2d, const Strip *strip);
 void draw_timeline_seq(const bContext *C, const ARegion *region);
 void sequencer_scrubbing_region_draw(const bContext *C, ARegion *region);
 void draw_timeline_seq_display(const bContext *C, ARegion *region);
