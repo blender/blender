@@ -531,7 +531,6 @@ class SocketTooltipBuilder {
   }
 
   void build_tooltip_value_generic(const GPointer &value)
-
   {
     const CPPType &value_type = *value.type();
     if (value_type.is<Object *>()) {
@@ -551,63 +550,45 @@ class SocketTooltipBuilder {
       return;
     }
 
-    if (socket_.type == SOCK_MENU) {
-      if (!value_type.is<nodes::MenuValue>()) {
-        this->build_tooltip_value_unknown();
-        return;
-      }
-      const nodes::MenuValue menu_item = *value.get<nodes::MenuValue>();
-      this->build_tooltip_value_enum(menu_item);
+    if (value_type.is<nodes::MenuValue>()) {
+      this->build_tooltip_value_enum(*value.get<nodes::MenuValue>());
       return;
     }
 
-    const CPPType &socket_base_cpp_type = *socket_.typeinfo->base_cpp_type;
-    const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-    if (value_type != socket_base_cpp_type) {
-      if (!conversions.is_convertible(value_type, socket_base_cpp_type)) {
-        this->build_tooltip_value_unknown();
-        return;
-      }
-    }
-    BUFFER_FOR_CPP_TYPE_VALUE(socket_base_cpp_type, socket_value);
-    conversions.convert_to_uninitialized(
-        value_type, socket_base_cpp_type, value.get(), socket_value);
-    BLI_SCOPED_DEFER([&]() { socket_base_cpp_type.destruct(socket_value); });
-
-    if (socket_base_cpp_type.is<int>()) {
-      this->build_tooltip_value_int(*static_cast<int *>(socket_value));
+    if (value_type.is<int>()) {
+      this->build_tooltip_value_int(*value.get<int>());
       return;
     }
-    if (socket_base_cpp_type.is<float>()) {
-      this->build_tooltip_value_float(*static_cast<float *>(socket_value));
+    if (value_type.is<float>()) {
+      this->build_tooltip_value_float(*value.get<float>());
       return;
     }
-    if (socket_base_cpp_type.is<float2>()) {
-      this->build_tooltip_value_float2(*static_cast<float2 *>(socket_value));
+    if (value_type.is<float2>()) {
+      this->build_tooltip_value_float2(*value.get<float2>());
       return;
     }
-    if (socket_base_cpp_type.is<float3>()) {
-      this->build_tooltip_value_float3(*static_cast<float3 *>(socket_value));
+    if (value_type.is<float3>()) {
+      this->build_tooltip_value_float3(*value.get<float3>());
       return;
     }
-    if (socket_base_cpp_type.is<float4>()) {
-      this->build_tooltip_value_float4(*static_cast<float4 *>(socket_value));
+    if (value_type.is<float4>()) {
+      this->build_tooltip_value_float4(*value.get<float4>());
       return;
     }
-    if (socket_base_cpp_type.is<ColorGeometry4f>()) {
-      this->build_tooltip_value_color(*static_cast<ColorGeometry4f *>(socket_value));
+    if (value_type.is<ColorGeometry4f>()) {
+      this->build_tooltip_value_color(*value.get<ColorGeometry4f>());
       return;
     }
-    if (socket_base_cpp_type.is<math::Quaternion>()) {
-      this->build_tooltip_value_quaternion(*static_cast<math::Quaternion *>(socket_value));
+    if (value_type.is<math::Quaternion>()) {
+      this->build_tooltip_value_quaternion(*value.get<math::Quaternion>());
       return;
     }
-    if (socket_base_cpp_type.is<bool>()) {
-      this->build_tooltip_value_bool(*static_cast<bool *>(socket_value));
+    if (value_type.is<bool>()) {
+      this->build_tooltip_value_bool(*value.get<bool>());
       return;
     }
-    if (socket_base_cpp_type.is<float4x4>()) {
-      this->build_tooltip_value_float4x4(*static_cast<float4x4 *>(socket_value));
+    if (value_type.is<float4x4>()) {
+      this->build_tooltip_value_float4x4(*value.get<float4x4>());
       return;
     }
     this->build_tooltip_value_unknown();
