@@ -218,7 +218,7 @@ struct SymbolFunction : SymbolScope {
 
   void reserve_arguments(int n);
 
-  bool is_compatible(ResourceType res_type);
+  bool is_compatible(ResourceType res_type) const;
 
   static Result<vector<const SymbolClass *>> to_arg_types(const SymbolTable &table,
                                                           const SymbolScope &scope,
