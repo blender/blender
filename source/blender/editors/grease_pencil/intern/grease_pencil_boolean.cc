@@ -478,7 +478,7 @@ static int intersect(const float2 &P1,
   return val;
 }
 
-struct BooleanResult {
+struct BooleanData {
   Vector<Segment> segments;
   Vector<bool> segment_reversed;
   Vector<int> segment_offsets;
@@ -488,21 +488,21 @@ struct BooleanResult {
   Array<bool> is_segments_clipping;
   Array<int> dst_to_src_curves;
 
-  void append_result(const BooleanResult &other_result, const int subj_first_curve)
+  void append_data(const BooleanData &other_data, const int subj_first_curve)
   {
-    if (other_result.segments.is_empty()) {
+    if (other_data.segments.is_empty()) {
       return;
     }
 
-    for (const int i : other_result.segment_offsets.index_range().drop_front(1)) {
-      segment_offsets.append(other_result.segment_offsets[i] + segments.size());
+    for (const int i : other_data.segment_offsets.index_range().drop_front(1)) {
+      segment_offsets.append(other_data.segment_offsets[i] + segments.size());
     }
-    cyclic.extend(other_result.cyclic);
-    segment_reversed.extend(other_result.segment_reversed);
-    subj_first_curves.append_n_times(subj_first_curve, other_result.cyclic.size());
+    cyclic.extend(other_data.cyclic);
+    segment_reversed.extend(other_data.segment_reversed);
+    subj_first_curves.append_n_times(subj_first_curve, other_data.cyclic.size());
 
-    for (const int i : other_result.segments.index_range()) {
-      segments.append(std::move(other_result.segments[i]));
+    for (const int i : other_data.segments.index_range()) {
+      segments.append(std::move(other_data.segments[i]));
     }
   }
 };
@@ -668,14 +668,14 @@ static void create_connections_from_intersection_points(
   }
 }
 
-static BooleanResult execute_single_boolean(const CurveBooleanOpParameters op_params,
-                                            const int subj_shape_id,
-                                            const Span<float2> points,
-                                            const GroupedSpan<int> shapes,
-                                            const OffsetIndices<int> points_by_curve,
-                                            const IndexMask &clipping_shapes,
-                                            const VArray<bool> &is_fill,
-                                            const VArray<bool> &cyclic)
+static BooleanData execute_single_boolean(const CurveBooleanOpParameters op_params,
+                                          const int subj_shape_id,
+                                          const Span<float2> points,
+                                          const GroupedSpan<int> shapes,
+                                          const OffsetIndices<int> points_by_curve,
+                                          const IndexMask &clipping_shapes,
+                                          const VArray<bool> &is_fill,
+                                          const VArray<bool> &cyclic)
 {
   Vector<IntersectionPoint> intersections;
 
@@ -772,16 +772,16 @@ static BooleanResult execute_single_boolean(const CurveBooleanOpParameters op_pa
   create_connections_from_intersection_points(
       intersections, segments_to_keep, segment_connections);
 
-  BooleanResult result;
+  BooleanData data;
   follow_segment_connections(all_segments,
                              segments_to_keep,
                              segment_connections,
-                             result.segments,
-                             result.segment_offsets,
-                             result.segment_reversed,
-                             result.cyclic);
+                             data.segments,
+                             data.segment_offsets,
+                             data.segment_reversed,
+                             data.cyclic);
 
-  return result;
+  return data;
 }
 
 static Array<bool> calculate_unchanged_curves(const Span<Segment> segments,
@@ -812,20 +812,20 @@ static Array<bool> calculate_unchanged_curves(const Span<Segment> segments,
   return unchanged_curves;
 }
 
-static BooleanResult execute_boolean(const CurveBooleanOpParameters op_params,
-                                     const Span<float2> positions_2d,
-                                     const OffsetIndices<int> points_by_curve,
-                                     const IndexMask &editable_shapes,
-                                     const IndexMask &clipping_shapes,
-                                     const GroupedSpan<int> shapes,
-                                     const VArray<int> &fill_ids,
-                                     const VArray<bool> &is_cyclic)
+static BooleanData execute_boolean(const CurveBooleanOpParameters op_params,
+                                   const Span<float2> positions_2d,
+                                   const OffsetIndices<int> points_by_curve,
+                                   const IndexMask &editable_shapes,
+                                   const IndexMask &clipping_shapes,
+                                   const GroupedSpan<int> shapes,
+                                   const VArray<int> &fill_ids,
+                                   const VArray<bool> &is_cyclic)
 {
-  BooleanResult results_all;
-  results_all.segment_offsets.append(0);
+  BooleanData data_all;
+  data_all.segment_offsets.append(0);
 
   if (points_by_curve.is_empty()) {
-    return results_all;
+    return data_all;
   }
 
   IndexMaskMemory memory;
@@ -877,17 +877,17 @@ static BooleanResult execute_boolean(const CurveBooleanOpParameters op_params,
   subject_shapes.foreach_index([&](const int64_t shape_i) {
     /* Only do full calculation with the bounding boxes are intersecting. */
     if (shapes_bbox_intersecting[shape_i] && editable_shapes_bool[shape_i]) {
-      const BooleanResult result = execute_single_boolean(op_params,
-                                                          shape_i,
-                                                          positions_2d,
-                                                          shapes,
-                                                          points_by_curve,
-                                                          clipping_shapes,
-                                                          is_fill,
-                                                          cyclic);
+      const BooleanData data = execute_single_boolean(op_params,
+                                                      shape_i,
+                                                      positions_2d,
+                                                      shapes,
+                                                      points_by_curve,
+                                                      clipping_shapes,
+                                                      is_fill,
+                                                      cyclic);
 
       const int subj_first_curve = shapes[shape_i].first();
-      results_all.append_result(result, subj_first_curve);
+      data_all.append_data(data, subj_first_curve);
     }
     else {
       /* Don't add the shape when in intersect mode. */
@@ -895,30 +895,30 @@ static BooleanResult execute_boolean(const CurveBooleanOpParameters op_params,
         return;
       }
 
-      BooleanResult result;
-      result.segment_offsets.append(0);
+      BooleanData data;
+      data.segment_offsets.append(0);
 
       const Span<int> shape = shapes[shape_i];
       for (const int pos_j : shape.index_range()) {
         const int curve_j = shape[pos_j];
 
-        result.segments.append(
+        data.segments.append(
             Segment::from_curve(curve_j, points_by_curve[curve_j], is_cyclic[curve_j]));
-        result.cyclic.append(is_cyclic[curve_j]);
-        result.segment_offsets.append(pos_j + 1);
-        result.segment_reversed.append(false);
+        data.cyclic.append(is_cyclic[curve_j]);
+        data.segment_offsets.append(pos_j + 1);
+        data.segment_reversed.append(false);
       }
 
       const int subj_first_curve = shape.first();
-      results_all.append_result(result, subj_first_curve);
+      data_all.append_data(data, subj_first_curve);
     }
   });
 
-  if (results_all.segments.is_empty()) {
-    return results_all;
+  if (data_all.segments.is_empty()) {
+    return data_all;
   }
 
-  const OffsetIndices<int> dst_segments_by_curve = OffsetIndices<int>(results_all.segment_offsets);
+  const OffsetIndices<int> dst_segments_by_curve = OffsetIndices<int>(data_all.segment_offsets);
 
   Array<bool> is_src_curve_clipping(points_by_curve.size(), false);
   for (const int curve_i : points_by_curve.index_range()) {
@@ -927,32 +927,32 @@ static BooleanResult execute_boolean(const CurveBooleanOpParameters op_params,
     }
   }
 
-  results_all.is_segments_clipping = Array<bool>(results_all.segments.size());
-  for (const int seg_i : results_all.segments.index_range()) {
-    const Segment &segment = results_all.segments[seg_i];
-    results_all.is_segments_clipping[seg_i] = is_src_curve_clipping[segment.curve];
+  data_all.is_segments_clipping = Array<bool>(data_all.segments.size());
+  for (const int seg_i : data_all.segments.index_range()) {
+    const Segment &segment = data_all.segments[seg_i];
+    data_all.is_segments_clipping[seg_i] = is_src_curve_clipping[segment.curve];
   }
 
-  results_all.dst_to_src_curves = Array<int>(dst_segments_by_curve.size());
+  data_all.dst_to_src_curves = Array<int>(dst_segments_by_curve.size());
   for (const int i : dst_segments_by_curve.index_range()) {
     const IndexRange segment_range = dst_segments_by_curve[i];
-    const int subj_first_curve = results_all.subj_first_curves[i];
-    results_all.dst_to_src_curves[i] = subj_first_curve;
+    const int subj_first_curve = data_all.subj_first_curves[i];
+    data_all.dst_to_src_curves[i] = subj_first_curve;
 
     /* Prioritize non-clipping curves. */
     for (const int seg_i : segment_range) {
-      const int curve_i = results_all.segments[seg_i].curve;
+      const int curve_i = data_all.segments[seg_i].curve;
       if (!is_src_curve_clipping[curve_i]) {
-        results_all.dst_to_src_curves[i] = curve_i;
+        data_all.dst_to_src_curves[i] = curve_i;
         break;
       }
     }
   }
 
-  results_all.unchanged_curves = calculate_unchanged_curves(
-      results_all.segments, results_all.is_segments_clipping, dst_segments_by_curve);
+  data_all.unchanged_curves = calculate_unchanged_curves(
+      data_all.segments, data_all.is_segments_clipping, dst_segments_by_curve);
 
-  return results_all;
+  return data_all;
 }
 
 static bke::CurvesGeometry create_curves_from_segments(const bke::CurvesGeometry &src,
@@ -1182,12 +1182,12 @@ static float4 transform_plane(const float4x4 &mat, const float4 &plane)
   return float4(normal, -math::dot(normal, point));
 }
 
-bke::CurvesGeometry curve_boolean(const CurveBooleanOpParameters op_params,
-                                  const bke::CurvesGeometry &curves,
-                                  const ProjectionFunc project_fn,
-                                  const GroupedSpan<int> shapes,
-                                  const IndexMask &editable_shapes,
-                                  const IndexMask &clipping_shapes)
+CurveBooleanResult curve_boolean(const CurveBooleanOpParameters op_params,
+                                 const bke::CurvesGeometry &curves,
+                                 const ProjectionFunc project_fn,
+                                 const GroupedSpan<int> shapes,
+                                 const IndexMask &editable_shapes,
+                                 const IndexMask &clipping_shapes)
 {
   Array<float2> src_positions_2d(curves.points_num());
   const Span<float3> positions = curves.positions();
@@ -1197,57 +1197,60 @@ bke::CurvesGeometry curve_boolean(const CurveBooleanOpParameters op_params,
 
   const VArray<int> fill_ids = *curves.attributes().lookup<int>("fill_id", bke::AttrDomain::Curve);
 
-  const BooleanResult result = execute_boolean(op_params,
-                                               src_positions_2d,
-                                               curves.points_by_curve(),
-                                               editable_shapes,
-                                               clipping_shapes,
-                                               shapes,
-                                               fill_ids,
-                                               curves.cyclic());
+  const BooleanData data = execute_boolean(op_params,
+                                           src_positions_2d,
+                                           curves.points_by_curve(),
+                                           editable_shapes,
+                                           clipping_shapes,
+                                           shapes,
+                                           fill_ids,
+                                           curves.cyclic());
 
-  if (result.segments.is_empty()) {
-    return bke::CurvesGeometry();
+  if (data.segments.is_empty()) {
+    CurveBooleanResult result;
+    result.curves = bke::CurvesGeometry();
+    return result;
   }
 
-  const OffsetIndices<int> dst_segments_by_curve = OffsetIndices<int>(result.segment_offsets);
+  const OffsetIndices<int> dst_segments_by_curve = OffsetIndices<int>(data.segment_offsets);
 
   Vector<bool> is_point_clipping;
   bke::CurvesGeometry dst_curves = create_curves_from_segments(curves,
-                                                               result.segments,
-                                                               result.segment_reversed,
-                                                               result.cyclic,
-                                                               result.is_segments_clipping,
-                                                               result.dst_to_src_curves,
+                                                               data.segments,
+                                                               data.segment_reversed,
+                                                               data.cyclic,
+                                                               data.is_segments_clipping,
+                                                               data.dst_to_src_curves,
                                                                dst_segments_by_curve,
-                                                               result.unchanged_curves,
+                                                               data.unchanged_curves,
                                                                op_params.skip_clipping_attributes,
                                                                is_point_clipping);
 
   if (!op_params.keep_caps) {
-    cut_caps(dst_curves,
-             result.segments,
-             result.segment_reversed,
-             result.cyclic,
-             dst_segments_by_curve);
+    cut_caps(dst_curves, data.segments, data.segment_reversed, data.cyclic, dst_segments_by_curve);
   }
 
   if (op_params.separate_islands) {
-    separate_fill_islands(dst_curves, result.unchanged_curves, project_fn);
+    separate_fill_islands(dst_curves, data.unchanged_curves, project_fn);
   }
 
-  return dst_curves;
+  CurveBooleanResult result;
+  result.curves = std::move(dst_curves);
+  result.unchanged_curves = std::move(data.unchanged_curves);
+  result.dst_to_src_curves = std::move(data.dst_to_src_curves);
+
+  return result;
 }
 
-bke::CurvesGeometry curve_boolean_with_planes(const CurveBooleanOpParameters op_params,
-                                              const bke::CurvesGeometry &curves,
-                                              const ProjectionFunc project_fn,
-                                              const GroupedSpan<int> shapes,
-                                              const Span<float4> curve_planes,
-                                              const IndexMask &editable_shapes,
-                                              const IndexMask &clipping_shapes,
-                                              const float4x4 &layer_to_world,
-                                              const ARegion &region)
+CurveBooleanResult curve_boolean_with_planes(const CurveBooleanOpParameters op_params,
+                                             const bke::CurvesGeometry &curves,
+                                             const ProjectionFunc project_fn,
+                                             const GroupedSpan<int> shapes,
+                                             const Span<float4> curve_planes,
+                                             const IndexMask &editable_shapes,
+                                             const IndexMask &clipping_shapes,
+                                             const float4x4 &layer_to_world,
+                                             const ARegion &region)
 {
   Array<float2> src_positions_2d(curves.points_num());
   const Span<float3> src_positions = curves.positions();
@@ -1257,30 +1260,32 @@ bke::CurvesGeometry curve_boolean_with_planes(const CurveBooleanOpParameters op_
 
   const VArray<int> fill_ids = *curves.attributes().lookup<int>("fill_id", bke::AttrDomain::Curve);
 
-  const BooleanResult result = execute_boolean(op_params,
-                                               src_positions_2d,
-                                               curves.points_by_curve(),
-                                               editable_shapes,
-                                               clipping_shapes,
-                                               shapes,
-                                               fill_ids,
-                                               curves.cyclic());
+  const BooleanData data = execute_boolean(op_params,
+                                           src_positions_2d,
+                                           curves.points_by_curve(),
+                                           editable_shapes,
+                                           clipping_shapes,
+                                           shapes,
+                                           fill_ids,
+                                           curves.cyclic());
 
-  if (result.segments.is_empty()) {
-    return bke::CurvesGeometry();
+  if (data.segments.is_empty()) {
+    CurveBooleanResult result;
+    result.curves = bke::CurvesGeometry();
+    return result;
   }
 
-  const OffsetIndices<int> dst_segments_by_curve = OffsetIndices<int>(result.segment_offsets);
+  const OffsetIndices<int> dst_segments_by_curve = OffsetIndices<int>(data.segment_offsets);
 
   Vector<bool> is_point_clipping;
   bke::CurvesGeometry dst_curves = create_curves_from_segments(curves,
-                                                               result.segments,
-                                                               result.segment_reversed,
-                                                               result.cyclic,
-                                                               result.is_segments_clipping,
-                                                               result.dst_to_src_curves,
+                                                               data.segments,
+                                                               data.segment_reversed,
+                                                               data.cyclic,
+                                                               data.is_segments_clipping,
+                                                               data.dst_to_src_curves,
                                                                dst_segments_by_curve,
-                                                               result.unchanged_curves,
+                                                               data.unchanged_curves,
                                                                op_params.skip_clipping_attributes,
                                                                is_point_clipping);
 
@@ -1288,7 +1293,7 @@ bke::CurvesGeometry curve_boolean_with_planes(const CurveBooleanOpParameters op_
   MutableSpan<float3> positions = dst_curves.positions_for_write();
   const float4x4 world_to_layer = math::invert(layer_to_world);
   for (const int curve_i : dst_curves.curves_range()) {
-    const int src_curve = result.dst_to_src_curves[curve_i];
+    const int src_curve = data.dst_to_src_curves[curve_i];
     const float4 &plane = transform_plane(layer_to_world, curve_planes[src_curve]);
     const IndexRange points = points_by_curve[curve_i];
 
@@ -1302,18 +1307,19 @@ bke::CurvesGeometry curve_boolean_with_planes(const CurveBooleanOpParameters op_
   }
 
   if (!op_params.keep_caps) {
-    cut_caps(dst_curves,
-             result.segments,
-             result.segment_reversed,
-             result.cyclic,
-             dst_segments_by_curve);
+    cut_caps(dst_curves, data.segments, data.segment_reversed, data.cyclic, dst_segments_by_curve);
   }
 
   if (op_params.separate_islands) {
-    separate_fill_islands(dst_curves, result.unchanged_curves, project_fn);
+    separate_fill_islands(dst_curves, data.unchanged_curves, project_fn);
   }
 
-  return dst_curves;
+  CurveBooleanResult result;
+  result.curves = std::move(dst_curves);
+  result.unchanged_curves = std::move(data.unchanged_curves);
+  result.dst_to_src_curves = std::move(data.dst_to_src_curves);
+
+  return result;
 }
 
 }  // namespace blender::ed::greasepencil::boolean

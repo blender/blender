@@ -167,7 +167,7 @@ static bool execute_carver_on_drawing(const Object &ob_eval,
   const IndexMask editable_shapes = bke::greasepencil::curves_mask_to_shapes(
       editable_strokes, shapes, memory);
 
-  bke::CurvesGeometry carved_strokes = boolean::curve_boolean_with_planes(op_params,
+  boolean::CurveBooleanResult result = boolean::curve_boolean_with_planes(op_params,
                                                                           input_curves,
                                                                           project_fn,
                                                                           shapes,
@@ -177,9 +177,21 @@ static bool execute_carver_on_drawing(const Object &ob_eval,
                                                                           layer_to_world,
                                                                           region);
 
+  const Span<float4x2> src_matrices = drawing.texture_matrices();
+  const IndexMask changed_curve_mask = IndexMask::from_bools_inverse(result.unchanged_curves,
+                                                                     memory);
+  Array<float4x2> dst_matrices(changed_curve_mask.size());
+
+  changed_curve_mask.foreach_index([&](const int dst_curve_i, const int pos) {
+    const int src_curve_i = result.dst_to_src_curves[dst_curve_i];
+    dst_matrices[pos] = src_matrices[src_curve_i];
+  });
+
   /* Set the new geometry. */
-  drawing.strokes_for_write() = std::move(carved_strokes);
+  drawing.strokes_for_write() = std::move(result.curves);
   drawing.tag_topology_changed();
+
+  drawing.set_texture_matrices(dst_matrices, changed_curve_mask);
 
   return true;
 }
