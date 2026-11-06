@@ -986,6 +986,12 @@ const AttributeAccessorFunctions &get_attribute_accessor_functions();
  */
 void ensure_non_empty_layer_names(Main &bmain, GreasePencil &grease_pencil);
 
+enum class StrokeType : int8_t { Stroke = 0, Fill = 1, Both = 2 };
+
+void set_stroke_type(bke::MutableAttributeAccessor attributes,
+                     const IndexMask &selection,
+                     StrokeType type);
+
 }  // namespace greasepencil
 
 class GreasePencilRuntime {

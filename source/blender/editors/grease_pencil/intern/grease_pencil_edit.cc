@@ -5072,17 +5072,14 @@ static void GREASE_PENCIL_OT_set_corner_type(wmOperatorType *ot)
 /** \name Set Stroke Mode Operator
  * \{ */
 
-namespace {
-enum class StrokeType : int8_t { Stroke = 0, Fill = 1, Both = 2 };
-}
-
 static wmOperatorStatus grease_pencil_set_stroke_type_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const StrokeType type = StrokeType(RNA_enum_get(op->ptr, "type"));
+  const bke::greasepencil::StrokeType type = bke::greasepencil::StrokeType(
+      RNA_enum_get(op->ptr, "type"));
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
@@ -5096,66 +5093,7 @@ static wmOperatorStatus grease_pencil_set_stroke_type_exec(bContext *C, wmOperat
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-    bke::SpanAttributeWriter<bool> hide_stroke = attributes.ensure_for_write_span<bool>(
-        "hide_stroke", bke::AttrDomain::Curve);
-    bke::SpanAttributeWriter<int> fill_ids = attributes.ensure_for_write_span<int>(
-        "fill_id", bke::AttrDomain::Curve);
-
-    switch (type) {
-      case StrokeType::Stroke: {
-        index_mask::masked_fill(hide_stroke.span, false, strokes);
-        index_mask::masked_fill(fill_ids.span, 0, strokes);
-        break;
-      }
-      case StrokeType::Fill: {
-        index_mask::masked_fill(hide_stroke.span, true, strokes);
-        break;
-      }
-      case StrokeType::Both: {
-        index_mask::masked_fill(hide_stroke.span, false, strokes);
-        break;
-      }
-    }
-
-    if (ELEM(type, StrokeType::Fill, StrokeType::Both)) {
-      const IndexMask selected_non_fill_strokes = IndexMask::from_predicate(
-          strokes, memory, [&](const int64_t index) { return fill_ids.span[index] == 0; });
-      bke::greasepencil::gather_next_available_fill_ids(
-          fill_ids.span.varray(), selected_non_fill_strokes, fill_ids.span);
-      bke::SpanAttributeWriter<float> fill_opacities =
-          attributes.lookup_or_add_for_write_span<float>("fill_opacity", bke::AttrDomain::Curve);
-
-      /* Each non fill selected stroke becomes a new fill. */
-      index_mask::masked_fill(fill_opacities.span, 1.0f, selected_non_fill_strokes);
-      fill_opacities.finish();
-    }
-
-    hide_stroke.finish();
-    fill_ids.finish();
-
-    if (type == StrokeType::Stroke) {
-      if (std::all_of(fill_ids.span.begin(),
-                      fill_ids.span.end(),
-                      [&](const int64_t fill_id) { return fill_id == 0; }))
-      {
-        /* Remove #fill_id attribute if there are no fills left. */
-        attributes.remove("fill_id");
-      }
-    }
-
-    if (ELEM(type, StrokeType::Stroke, StrokeType::Both)) {
-      const array_utils::BooleanMix hide_strokes_mix = array_utils::booleans_mix_calc(
-          hide_stroke.span.varray());
-      if (hide_strokes_mix == array_utils::BooleanMix::AllFalse) {
-        /* Remove #hide_stroke attribute if all strokes are visible. */
-        attributes.remove("hide_stroke");
-      }
-      else {
-        /* If some strokes got unhidden, make sure that we create the radius attribute if it
-         * doesn't exist already. */
-        attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.005f));
-      }
-    }
+    bke::greasepencil::set_stroke_type(attributes, strokes, type);
 
     info.drawing.tag_topology_changed();
     changed.store(true, std::memory_order_relaxed);
@@ -5172,9 +5110,9 @@ static wmOperatorStatus grease_pencil_set_stroke_type_exec(bContext *C, wmOperat
 static void GREASE_PENCIL_OT_set_stroke_type(wmOperatorType *ot)
 {
   static const EnumPropertyItem prop_stroke_type_types[] = {
-      {int(StrokeType::Stroke), "STROKE", ICON_GP_DRAW_STROKE, "Stroke", ""},
-      {int(StrokeType::Fill), "FILL", ICON_GP_DRAW_FILL, "Fill", ""},
-      {int(StrokeType::Both), "BOTH", ICON_GP_DRAW_BOTH, "Both", ""},
+      {int(bke::greasepencil::StrokeType::Stroke), "STROKE", ICON_GP_DRAW_STROKE, "Stroke", ""},
+      {int(bke::greasepencil::StrokeType::Fill), "FILL", ICON_GP_DRAW_FILL, "Fill", ""},
+      {int(bke::greasepencil::StrokeType::Both), "BOTH", ICON_GP_DRAW_BOTH, "Both", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -5189,8 +5127,12 @@ static void GREASE_PENCIL_OT_set_stroke_type(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  ot->prop = RNA_def_enum(
-      ot->srna, "type", prop_stroke_type_types, int(StrokeType::Stroke), "Type", "");
+  ot->prop = RNA_def_enum(ot->srna,
+                          "type",
+                          prop_stroke_type_types,
+                          int(bke::greasepencil::StrokeType::Stroke),
+                          "Type",
+                          "");
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_GPENCIL);
 }
 

@@ -1219,10 +1219,6 @@ static void GREASE_PENCIL_OT_material_select(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-namespace {
-enum class StrokeType : int8_t { Stroke, Fill };
-}
-
 static wmOperatorStatus grease_pencil_select_by_stroke_type_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -1232,7 +1228,8 @@ static wmOperatorStatus grease_pencil_select_by_stroke_type_exec(bContext *C, wm
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(ts, object);
 
-  const StrokeType stroke_type = StrokeType(RNA_enum_get(op->ptr, "type"));
+  const bke::greasepencil::StrokeType stroke_type = bke::greasepencil::StrokeType(
+      RNA_enum_get(op->ptr, "type"));
   const bool select = !RNA_boolean_get(op->ptr, "deselect");
   const int action = select ? SEL_SELECT : SEL_DESELECT;
 
@@ -1247,7 +1244,7 @@ static wmOperatorStatus grease_pencil_select_by_stroke_type_exec(bContext *C, wm
     }
 
     const bke::CurvesGeometry &curves = info.drawing.strokes();
-    if (stroke_type == StrokeType::Stroke) {
+    if (stroke_type == bke::greasepencil::StrokeType::Stroke) {
       if (const VArray<bool> hide_stroke = *curves.attributes().lookup<bool>(
               "hide_stroke", bke::AttrDomain::Curve))
       {
@@ -1262,7 +1259,7 @@ static wmOperatorStatus grease_pencil_select_by_stroke_type_exec(bContext *C, wm
       }
       changed.store(true, std::memory_order_relaxed);
     }
-    else if (stroke_type == StrokeType::Fill) {
+    else if (stroke_type == bke::greasepencil::StrokeType::Fill) {
       if (const VArray<int> fill_id = *curves.attributes().lookup<int>("fill_id",
                                                                        bke::AttrDomain::Curve))
       {
@@ -1288,8 +1285,8 @@ static wmOperatorStatus grease_pencil_select_by_stroke_type_exec(bContext *C, wm
 }
 
 static const EnumPropertyItem select_by_stroke_type_items[] = {
-    {int(StrokeType::Stroke), "STROKE", 0, "Stroke", ""},
-    {int(StrokeType::Fill), "FILL", 0, "Fill", ""},
+    {int(bke::greasepencil::StrokeType::Stroke), "STROKE", 0, "Stroke", ""},
+    {int(bke::greasepencil::StrokeType::Fill), "FILL", 0, "Fill", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
