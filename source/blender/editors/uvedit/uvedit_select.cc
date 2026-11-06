@@ -1900,7 +1900,7 @@ std::unique_ptr<UVSyncSelectFromMesh> UVSyncSelectFromMesh::create_if_needed(
   if (bm.uv_select_sync_valid == false) {
     return nullptr;
   }
-  const int cd_loop_uv_offset = CustomData_get_active_layer(&bm.ldata, CD_PROP_FLOAT2);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm.ldata, CD_PROP_FLOAT2);
   if (cd_loop_uv_offset == -1) {
     return nullptr;
   }
@@ -1909,7 +1909,7 @@ std::unique_ptr<UVSyncSelectFromMesh> UVSyncSelectFromMesh::create_if_needed(
 
 void UVSyncSelectFromMesh::apply()
 {
-  const int cd_loop_uv_offset = CustomData_get_active_layer(&bm_.ldata, CD_PROP_FLOAT2);
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm_.ldata, CD_PROP_FLOAT2);
   BLI_assert(cd_loop_uv_offset != -1);
 
   const bool shared = uv_sticky_ == UV_STICKY_LOCATION;
