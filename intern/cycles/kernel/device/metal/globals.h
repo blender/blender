@@ -33,7 +33,6 @@ using KernelGlobals = const ccl_global KernelGlobalsGPU *ccl_restrict;
 /* Abstraction macros */
 #define kernel_data launch_params_metal.data
 #define kernel_data_fetch(name, index) launch_params_metal.name[index]
-#define kernel_data_write(name, index, value) launch_params_metal.name[index] = (value)
 #define kernel_data_array(name) launch_params_metal.name
 #define kernel_integrator_state launch_params_metal.integrator_state
 

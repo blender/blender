@@ -141,17 +141,17 @@ kernel_image_tile_map(KernelGlobals kg,
 #ifdef __KERNEL_GPU__
     /* For GPU, mark load requested and cancel shader execution. */
     if (tile_descriptor == KERNEL_TILE_LOAD_NONE) {
-      tile_descriptor = KERNEL_TILE_LOAD_REQUEST;
-      /* Write load request for quick rejection of subsequent reads. */
-      kernel_data_write(image_texture_tile_descriptors,
-                        tex.tile_descriptor_offset + tile_offset,
-                        tile_descriptor);
       /* Set access state that will be read back to host. Using a byte
-       * instead of a bitmask avoids the need for atomics. */
+       * instead of a bitmask avoids the need for atomics.
+       *
+       * The tile descriptor is not written, as with unified memory a CPU thread
+       * may concurrently load the tile and set the descriptor. */
       kernel_data_array(
           image_texture_tile_access_state)[access_index] = KERNEL_TILE_ACCESS_REQUESTED;
+      sd->runtime_flag |= SR_CACHE_MISS;
     }
-    if (tile_descriptor == KERNEL_TILE_LOAD_REQUEST) {
+    else if (tile_descriptor == KERNEL_TILE_LOAD_IN_PROGRESS) {
+      /* For unified memory, CPU thread is loading and we have to wait. */
       sd->runtime_flag |= SR_CACHE_MISS;
     }
     return tile_descriptor;

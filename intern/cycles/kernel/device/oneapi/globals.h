@@ -41,7 +41,6 @@ using KernelGlobals = ccl_global KernelGlobalsGPU *ccl_restrict;
 /* data lookup defines */
 
 #define kernel_data_fetch(name, index) __##name[(index)]
-#define kernel_data_write(name, index, value) __##name[(index)] = (value)
 #define kernel_data_array(name) __##name
 
 CCL_NAMESPACE_END
