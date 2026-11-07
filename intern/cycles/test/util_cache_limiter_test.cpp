@@ -4,6 +4,10 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <thread>
+#include <vector>
+
 #include "util/cache_limiter.h"
 
 CCL_NAMESPACE_BEGIN
@@ -93,6 +97,34 @@ TEST(CacheLimiter, NoEvictionWhenUsed)
   {
     EXPECT_EQ(guard1.get()->value, 1);
   }
+}
+
+TEST(CacheLimiter, ConcurrentEviction)
+{
+  CacheLimiter<TestResource> limiter(1);
+  constexpr int num_handles = 4;
+  CacheHandle<TestResource> handles[num_handles];
+  std::atomic<int> num_failed = 0;
+
+  /* Acquiring a handle while another thread evicts it. */
+  std::vector<std::thread> threads;
+  for (int t = 0; t < 8; t++) {
+    threads.emplace_back([&, t]() {
+      for (int i = 0; i < 1000; i++) {
+        const int index = (t + i) % num_handles;
+        auto guard = handles[index].acquire(
+            limiter, [index]() { return std::make_unique<TestResource>(index); });
+        if (!guard.get() || guard.get()->value != index) {
+          num_failed++;
+        }
+      }
+    });
+  }
+  for (std::thread &thread : threads) {
+    thread.join();
+  }
+
+  EXPECT_EQ(num_failed, 0);
 }
 
 CCL_NAMESPACE_END
