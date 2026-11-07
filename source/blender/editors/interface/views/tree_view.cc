@@ -94,13 +94,15 @@ void TreeViewItemContainer::foreach_parent(ItemIterFn iter_fn) const
 
 void TreeViewItemContainer::sort_alpha()
 {
-  std::ranges::sort(children_,
-                    [](const std::unique_ptr<AbstractTreeViewItem> &a,
-                       const std::unique_ptr<AbstractTreeViewItem> &b) {
-                      StringRefNull a_name = a->label();
-                      StringRefNull b_name = b->label();
-                      return BLI_strcasecmp_natural(a_name.c_str(), b_name.c_str()) < 0;
-                    });
+  if (this->is_content_sortable()) {
+    std::ranges::sort(children_,
+                      [](const std::unique_ptr<AbstractTreeViewItem> &a,
+                         const std::unique_ptr<AbstractTreeViewItem> &b) {
+                        StringRefNull a_name = a->label();
+                        StringRefNull b_name = b->label();
+                        return BLI_strcasecmp_natural(a_name.c_str(), b_name.c_str()) < 0;
+                      });
+  }
 
   for (std::unique_ptr<AbstractTreeViewItem> &item : children_) {
     item->sort_alpha();
@@ -109,7 +111,9 @@ void TreeViewItemContainer::sort_alpha()
 
 void TreeViewItemContainer::foreach_sort_invert(TreeViewSortOrder order)
 {
-  std::ranges::reverse(children_);
+  if (this->is_content_sortable()) {
+    std::ranges::reverse(children_);
+  }
   if (order == TreeViewSortOrder::InvertNested) {
     for (auto &child : children_) {
       child->foreach_sort_invert(order);
