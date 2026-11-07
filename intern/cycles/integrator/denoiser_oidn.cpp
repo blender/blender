@@ -589,10 +589,8 @@ bool OIDNDenoiser::denoise_create_if_needed(const OIDNDenoiseContext &context)
     base_.load_custom_weights();
   }
 
-  const bool use_pass_albedo = params_.prefilter == DENOISER_PREFILTER_ACCURATE &&
-                               (context.denoise_params_.passes & DENOISER_PASS_ALBEDO) != 0;
-  const bool use_pass_normal = params_.prefilter == DENOISER_PREFILTER_ACCURATE &&
-                               (context.denoise_params_.passes & DENOISER_PASS_NORMAL) != 0;
+  const bool use_pass_albedo = (context.denoise_params_.passes & DENOISER_PASS_ALBEDO) != 0;
+  const bool use_pass_normal = (context.denoise_params_.passes & DENOISER_PASS_NORMAL) != 0;
 
   const bool recreate_filter = (base_.oidn_filter_ == nullptr) ||
                                (base_.use_pass_albedo_ != use_pass_albedo) ||
