@@ -706,6 +706,14 @@ static int image_tile_find_miplevel(const KernelTileDescriptor *levels,
   return miplevel;
 }
 
+/* Atomically claim a tile for loading by this thread. Fails if the tile is loaded or failed. */
+static bool image_tile_claim_load(KernelTileDescriptor &r_tile_descriptor)
+{
+  const KernelTileDescriptor old = atomic_cas_uint32(
+      &r_tile_descriptor, KERNEL_TILE_LOAD_NONE, KERNEL_TILE_LOAD_REQUEST);
+  return old == KERNEL_TILE_LOAD_NONE || old == KERNEL_TILE_LOAD_REQUEST;
+}
+
 void ImageCache::load_requested_tiles(Device &device,
                                       DeviceScene &dscene,
                                       const KernelImageTexture &tex,
@@ -729,18 +737,9 @@ void ImageCache::load_requested_tiles(Device &device,
       continue;
     }
 
-    /* Skip if tile is already loaded or failed. */
-    const KernelTileDescriptor existing = descriptors[tile_idx];
-    if (kernel_tile_descriptor_loaded(existing) || existing == KERNEL_TILE_LOAD_FAILED) {
-      continue;
-    }
-
-    /* Atomically claim this tile slot. If another thread or GPU callback wins the race,
-     * skip and let the winner load it. We don't require KERNEL_TILE_LOAD_REQUEST because
-     * the access state might be set without it even if that race condition is unlikely. */
-    const KernelTileDescriptor old = atomic_cas_uint32(
-        &descriptors[tile_idx], KERNEL_TILE_LOAD_NONE, KERNEL_TILE_LOAD_REQUEST);
-    if (old != KERNEL_TILE_LOAD_NONE && old != KERNEL_TILE_LOAD_REQUEST) {
+    /* Skip if already loaded or failed. We don't require KERNEL_TILE_LOAD_REQUEST because the
+     * access state might be set without it even if that race condition is unlikely. */
+    if (!image_tile_claim_load(descriptors[tile_idx])) {
       continue;
     }
 
@@ -786,33 +785,33 @@ void ImageCache::load_requested_tile(Device &device,
    * for loading the tile. */
   const KernelTileDescriptor tile_descriptor_old = atomic_cas_uint32(
       &r_tile_descriptor, KERNEL_TILE_LOAD_NONE, KERNEL_TILE_LOAD_REQUEST);
-  if (tile_descriptor_old == KERNEL_TILE_LOAD_NONE) {
-    const InterpolationType interpolation = InterpolationType(tex.interpolation);
-    const ExtensionType extension = ExtensionType(tex.extension);
-    const size_t bit_index = &r_tile_descriptor - dscene.image_texture_tile_descriptors.data();
-
-    load_tile(device,
-              dscene,
-              loader,
-              metadata,
-              interpolation,
-              extension,
-              miplevel + miplevel_offset,
-              x,
-              y,
-              bit_index,
-              r_tile_descriptor);
+  if (tile_descriptor_old == KERNEL_TILE_LOAD_REQUEST) {
+    /* Wait for other thread to load the tile. */
+    OIIO::atomic_backoff backoff;
+    while (atomic_load_uint32(&r_tile_descriptor) == KERNEL_TILE_LOAD_REQUEST) {
+      backoff();
+    }
     return;
   }
-  if (tile_descriptor_old != KERNEL_TILE_LOAD_REQUEST) {
+  if (tile_descriptor_old != KERNEL_TILE_LOAD_NONE) {
     return;
   }
 
-  /* Wait for other thread to load the tile. */
-  OIIO::atomic_backoff backoff;
-  while (atomic_load_uint32(&r_tile_descriptor) == KERNEL_TILE_LOAD_REQUEST) {
-    backoff();
-  }
+  const InterpolationType interpolation = InterpolationType(tex.interpolation);
+  const ExtensionType extension = ExtensionType(tex.extension);
+  const size_t bit_index = &r_tile_descriptor - dscene.image_texture_tile_descriptors.data();
+
+  load_tile(device,
+            dscene,
+            loader,
+            metadata,
+            interpolation,
+            extension,
+            miplevel + miplevel_offset,
+            x,
+            y,
+            bit_index,
+            r_tile_descriptor);
 }
 
 /* Statistics. */
