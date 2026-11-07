@@ -914,11 +914,11 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
   View3D *v3d = CTX_wm_view3d(C);
   TransVertStore tvs = {nullptr};
   TransVert *tv;
-  float bmat[3][3], vec[3], min[3], max[3], centroid[3];
+  float bmat[3][3], vec[3], min[3], max[3];
+  double3 centroid(0.0);
   int count = 0;
 
   INIT_MINMAX(min, max);
-  zero_v3(centroid);
 
   if (obedit) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -950,7 +950,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
           copy_v3_v3(vec, tv->loc);
           mul_m3_v3(bmat, vec);
           add_v3_v3(vec, obedit_eval->object_to_world().location());
-          add_v3_v3(centroid, vec);
+          centroid += double3(vec);
           minmax_v3v3_v3(min, max, vec);
         }
       }
@@ -968,7 +968,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
           if (pchan.flag & POSE_SELECTED) {
             copy_v3_v3(vec, pchan.pose_head);
             mul_m4_v3(obact_eval->object_to_world().ptr(), vec);
-            add_v3_v3(centroid, vec);
+            centroid += double3(vec);
             minmax_v3v3_v3(min, max, vec);
             count++;
           }
@@ -987,7 +987,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
           }
         }
 
-        add_v3_v3(centroid, vec);
+        centroid += double3(vec);
         minmax_v3v3_v3(min, max, vec);
         count++;
       }
@@ -1003,8 +1003,8 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
     mid_v3_v3v3(r_cursor, min, max);
   }
   else {
-    mul_v3_fl(centroid, 1.0f / float(count));
-    copy_v3_v3(r_cursor, centroid);
+    const float3 center = float3(centroid / double(count));
+    copy_v3_v3(r_cursor, center);
   }
   return true;
 }
