@@ -205,15 +205,15 @@ ccl_device_inline TransparentShadowEvalResult integrate_transparent_shadow(
         Spectrum throughput = INTEGRATOR_STATE(state, shadow_path, throughput);
         const bool cache_miss = integrate_transparent_volume_shadow(
             kg, state, hit, num_recorded_hits, &throughput);
-        if (is_zero(throughput)) {
-          return TRANSPARENT_SHADOW_EVAL_OPAQUE;
-        }
-
         if (cache_miss) {
           /* Store resume state: restart at this hit, redo volume. */
           INTEGRATOR_STATE_WRITE(state, shadow_path, packed_num_hits) = shadow_num_hits_pack(
               num_hits, hit, false);
           return TRANSPARENT_SHADOW_EVAL_CACHE_MISS;
+        }
+
+        if (is_zero(throughput)) {
+          return TRANSPARENT_SHADOW_EVAL_OPAQUE;
         }
 
         INTEGRATOR_STATE_WRITE(state, shadow_path, throughput) = throughput;
