@@ -32,7 +32,7 @@ template<typename T> class CacheHandle {
     {
       std::scoped_lock lock(internal_mutex_);
       if (!internal_) {
-        internal_ = std::make_shared<Internal>(limiter);
+        internal_ = std::make_unique<Internal>(limiter);
       }
     }
     return internal_->acquire(creator);
@@ -42,7 +42,7 @@ template<typename T> class CacheHandle {
   friend class CacheLimiter<T>;
   friend class CacheHandleGuard<T>;
 
-  class Internal : public std::enable_shared_from_this<Internal> {
+  class Internal {
    public:
     explicit Internal(CacheLimiter<T> &limiter) : limiter_(limiter) {}
 
@@ -69,6 +69,12 @@ template<typename T> class CacheHandle {
       resource_.reset();
     }
 
+    std::unique_ptr<T> take_resource()
+    {
+      std::lock_guard<std::mutex> lock(resource_mutex_);
+      return std::move(resource_);
+    }
+
     CacheLimiter<T> &limiter_;
     std::unique_ptr<T> resource_;
     std::mutex resource_mutex_;
@@ -78,9 +84,8 @@ template<typename T> class CacheHandle {
     typename std::list<typename CacheHandle<T>::Internal *>::iterator lru_iterator_;
   };
 
-  /* Shared pointer for lifetime extension in cache eviction. */
   std::mutex internal_mutex_;
-  std::shared_ptr<Internal> internal_;
+  std::unique_ptr<Internal> internal_;
 };
 
 /* Cache Handle Guard
@@ -174,16 +179,15 @@ template<typename T> class CacheLimiter {
       lru_list_.erase(handle_to_evict->lru_iterator_);
       handle_to_evict->in_lru_list_ = false;
 
-      /* Get a shared pointer to ensure this does not get deleted
-       * before we have unloaded the resource. */
-      auto handle_to_evict_ptr = handle_to_evict->shared_from_this();
+      /* Take over the resource while locked, so that another thread acquiring this
+       * handle will re-create it rather than use the one we are deleting. */
+      std::unique_ptr<T> resource = handle_to_evict->take_resource();
 
       lock.unlock();
 
-      /* Unload resource while unlocked, to avoid holding lock
+      /* Delete resource while unlocked, to avoid holding lock
        * too long if deletion is expensive. */
-      handle_to_evict_ptr->delete_resource();
-      handle_to_evict_ptr.reset();
+      resource.reset();
 
       lock.lock();
     }
