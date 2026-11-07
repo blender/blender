@@ -187,15 +187,15 @@ integrate_transparent_volume_shadow(KernelGlobals kg,
     volume_shadow_null_scattering(kg, state, &ray, shadow_sd, throughput);
   }
 
-  if (is_zero(*throughput)) {
-    return TRANSPARENT_SHADOW_EVAL_OPAQUE;
-  }
-
   if (shadow_sd->runtime_flag & SR_CACHE_MISS) {
     /* Store resume state at current hit. */
     INTEGRATOR_STATE_WRITE(state, shadow_path, packed_num_hits) = shadow_num_hits_pack(
         num_hits, hit, false);
     return TRANSPARENT_SHADOW_EVAL_CACHE_MISS;
+  }
+
+  if (is_zero(*throughput)) {
+    return TRANSPARENT_SHADOW_EVAL_OPAQUE;
   }
 
   return TRANSPARENT_SHADOW_EVAL_CONTINUE;
