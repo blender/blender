@@ -127,8 +127,8 @@ std::optional<bke::MutableAttributeAccessor> AttributeOwner::get_accessor() cons
 {
   switch (type_) {
     case AttributeOwnerType::Mesh:
-      /* The attribute API isn't implemented for BMesh, so edit mode meshes are not supported. */
-      BLI_assert(this->get_mesh()->runtime->edit_mesh == nullptr);
+      /* The attribute API isn't implemented for BMesh. */
+      BLI_assert(BKE_editmesh_bmesh_get(this->get_mesh()) == nullptr);
       return this->get_mesh()->attributes_for_write();
     case AttributeOwnerType::PointCloud:
       return this->get_pointcloud()->attributes_for_write();
