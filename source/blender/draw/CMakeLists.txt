@@ -664,13 +664,11 @@ set(SHADER_SRC_GPENCIL
 
   engines/gpencil/shaders/gpencil_frag.glsl
   engines/gpencil/shaders/gpencil_vert.glsl
-  engines/gpencil/shaders/gpencil_antialiasing_accumulation_frag.glsl
+  engines/gpencil/shaders/gpencil_antialiasing.bsl.hh
   engines/gpencil/shaders/gpencil_antialiasing_frag.glsl
   engines/gpencil/shaders/gpencil_antialiasing_vert.glsl
-  engines/gpencil/shaders/gpencil_common_lib.glsl
-  engines/gpencil/shaders/gpencil_fullscreen_vert.glsl
-  engines/gpencil/shaders/gpencil_layer_blend_frag.glsl
-  engines/gpencil/shaders/gpencil_mask_invert_frag.glsl
+  engines/gpencil/shaders/gpencil_blend_mode.bsl.hh
+  engines/gpencil/shaders/gpencil_layer_blend.bsl.hh
   engines/gpencil/shaders/gpencil_depth_merge.bsl.hh
   engines/gpencil/shaders/gpencil_vfx.bsl.hh
 

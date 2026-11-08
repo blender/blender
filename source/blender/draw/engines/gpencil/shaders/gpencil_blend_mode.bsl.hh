@@ -7,13 +7,13 @@
 #include "gpu_shader_compat.hh"
 
 /* Must match eGPLayerBlendModes */
-#define MODE_REGULAR 0
-#define MODE_HARDLIGHT 1
-#define MODE_ADD 2
-#define MODE_SUB 3
-#define MODE_MULTIPLY 4
-#define MODE_DIVIDE 5
-#define MODE_HARDLIGHT_SECOND_PASS 999
+static constexpr int MODE_REGULAR = 0;
+static constexpr int MODE_HARDLIGHT = 1;
+static constexpr int MODE_ADD = 2;
+static constexpr int MODE_SUB = 3;
+static constexpr int MODE_MULTIPLY = 4;
+static constexpr int MODE_DIVIDE = 5;
+static constexpr int MODE_HARDLIGHT_SECOND_PASS = 999;
 
 void blend_mode_output(
     int blending_mode, float4 color, float opacity, float4 &frag_color, float4 &frag_revealage)
