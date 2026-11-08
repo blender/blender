@@ -132,11 +132,13 @@ static bool bpy_context_set_ex(bContext *C,
                                const bool allow_null_context)
 {
   bool context_set = false;
-  py_call_level++;
 
   if (gilstate) {
     *gilstate = PyGILState_Ensure();
   }
+
+  /* Modify while holding GIL, for thread safety. */
+  py_call_level++;
 
   if (py_call_level == 1) {
     if (!allow_null_context) {
@@ -177,11 +179,8 @@ bool bpy_context_set_allow_null(bContext *C, PyGILState_STATE *gilstate)
 
 void bpy_context_clear(bContext *C, const PyGILState_STATE *gilstate)
 {
+  /* Read and modify while holding GIL, for thread safety. */
   py_call_level--;
-
-  if (gilstate) {
-    PyGILState_Release(*gilstate);
-  }
 
   if (py_call_level < 0) {
     fprintf(stderr, "ERROR: Python context internal state bug. this should not happen!\n");
@@ -202,6 +201,10 @@ void bpy_context_clear(bContext *C, const PyGILState_STATE *gilstate)
     bpy_timer_run_tot += BLI_time_now_seconds() - bpy_timer_run;
     bpy_timer_count++;
 #endif
+  }
+
+  if (gilstate) {
+    PyGILState_Release(*gilstate);
   }
 }
 
