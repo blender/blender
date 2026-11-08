@@ -23,7 +23,6 @@ set(INC_GLSL
 
 set(SRC_GLSL_VERT
   gpencil_antialiasing_vert.glsl
-  gpencil_depth_merge_vert.glsl
   gpencil_fullscreen_vert.glsl
   gpencil_vert.glsl
 )
@@ -31,8 +30,6 @@ set(SRC_GLSL_VERT
 set(SRC_GLSL_FRAG
   gpencil_antialiasing_accumulation_frag.glsl
   gpencil_antialiasing_frag.glsl
-  gpencil_depth_merge_frag.glsl
-  gpencil_depth_pass_merge_frag.glsl
   gpencil_frag.glsl
   gpencil_layer_blend_frag.glsl
   gpencil_mask_invert_frag.glsl

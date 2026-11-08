@@ -671,9 +671,7 @@ set(SHADER_SRC_GPENCIL
   engines/gpencil/shaders/gpencil_fullscreen_vert.glsl
   engines/gpencil/shaders/gpencil_layer_blend_frag.glsl
   engines/gpencil/shaders/gpencil_mask_invert_frag.glsl
-  engines/gpencil/shaders/gpencil_depth_merge_frag.glsl
-  engines/gpencil/shaders/gpencil_depth_merge_vert.glsl
-  engines/gpencil/shaders/gpencil_depth_pass_merge_frag.glsl
+  engines/gpencil/shaders/gpencil_depth_merge.bsl.hh
   engines/gpencil/shaders/gpencil_vfx.bsl.hh
 
   engines/gpencil/gpencil_defines.hh

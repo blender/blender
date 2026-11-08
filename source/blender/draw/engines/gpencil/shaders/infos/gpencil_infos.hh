@@ -113,28 +113,6 @@ FRAGMENT_SOURCE("gpencil_mask_invert_frag.glsl")
 VERTEX_SOURCE("gpencil_fullscreen_vert.glsl")
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(gpencil_depth_merge)
-DO_STATIC_COMPILATION()
-PUSH_CONSTANT(float4x4, gp_model_matrix)
-PUSH_CONSTANT(bool, stroke_order3d)
-SAMPLER(0, sampler2DDepth, depth_buf)
-VERTEX_SOURCE("gpencil_depth_merge_vert.glsl")
-FRAGMENT_SOURCE("gpencil_depth_merge_frag.glsl")
-DEPTH_WRITE(DepthWrite::ANY)
-ADDITIONAL_INFO(draw_view)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(gpencil_depth_pass_merge)
-DO_STATIC_COMPILATION()
-PUSH_CONSTANT(float4x4, gp_model_matrix)
-PUSH_CONSTANT(bool, stroke_order3d)
-SAMPLER(0, sampler2DDepth, depth_buf)
-IMAGE(0, SFLOAT_32, read_write, image2D, depth_pass_img)
-VERTEX_SOURCE("gpencil_depth_merge_vert.glsl")
-FRAGMENT_SOURCE("gpencil_depth_pass_merge_frag.glsl")
-ADDITIONAL_INFO(draw_view)
-GPU_SHADER_CREATE_END()
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
