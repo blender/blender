@@ -231,7 +231,7 @@ struct Mesh {
    *
    * \note This is mainly stored for use in edit-mode.
    */
-  int act_face = 0;
+  int act_face = -1;
 
   /**
    * An optional mesh owned elsewhere (by #Main) that can be used to override
