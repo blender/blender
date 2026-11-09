@@ -589,6 +589,7 @@ struct NearestEdgeUserData {
   bool use_select_bias;
   bool use_cycle;
   int cycle_index_prev;
+  Span<float3> clip_eval_vert_co;
 
   NearestEdgeUserData_Hit hit;
   NearestEdgeUserData_Hit hit_cycle;
@@ -628,7 +629,19 @@ static void find_nearest_edge__doClosest(void *user_data,
   if ((data->vc.rv3d->rflag & RV3D_CLIPPING) && (data->vc.rv3d->clipbb != nullptr)) {
     float vec[3];
 
-    interp_v3_v3v3(vec, eed->v1->co, eed->v2->co, fac);
+    /* Test the evaluated position. */
+    const int v1_index = BM_elem_index_get(eed->v1);
+    const int v2_index = BM_elem_index_get(eed->v2);
+    if ((v1_index >= 0) && (v2_index >= 0) &&
+        (static_cast<size_t>(v1_index) < data->clip_eval_vert_co.size()) &&
+        (static_cast<size_t>(v2_index) < data->clip_eval_vert_co.size()))
+    {
+      interp_v3_v3v3(
+          vec, data->clip_eval_vert_co[v1_index], data->clip_eval_vert_co[v2_index], fac);
+    }
+    else {
+      interp_v3_v3v3(vec, eed->v1->co, eed->v2->co, fac);
+    }
     if (ED_view3d_clipping_test(data->vc.rv3d, vec, true)) {
       return;
     }
@@ -749,6 +762,11 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
   data.use_select_bias = use_select_bias;
   data.use_cycle = use_cycle;
 
+  /* X-ray edge picking consults the deformed (evaluated) cage only when the view
+   * clips content; otherwise the local BMesh coords suffice. */
+  const bool clip_enabled = (data.vc.rv3d->rflag & RV3D_CLIPPING) &&
+                            (data.vc.rv3d->clipbb != nullptr);
+
   for (; base_index < bases.size(); base_index++) {
     Base *base_iter = bases[base_index];
     ED_view3d_viewcontext_init_object(vc, base_iter->object);
@@ -766,6 +784,19 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
 
     data.hit.dist = data.hit_cycle.dist = data.hit.dist_bias = data.hit_cycle.dist_bias =
         *dist_px_manhattan_p;
+
+    /* Deformed local vertex positions for the clip-region test. */
+    data.clip_eval_vert_co = Span<float3>();
+    Array<float3> clip_eval_vert_co_storage;
+    if (clip_enabled) {
+      Scene *scene_eval = DEG_get_evaluated(vc->depsgraph, vc->scene);
+      Object *obedit_eval = DEG_get_evaluated(vc->depsgraph, base_iter->object);
+      data.clip_eval_vert_co = BKE_editmesh_vert_coords_when_deformed(
+          vc->depsgraph, scene_eval, obedit_eval, clip_eval_vert_co_storage);
+      if (!data.clip_eval_vert_co.is_empty()) {
+        BM_mesh_elem_index_ensure(bm, BM_VERT);
+      }
+    }
 
     ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
     mesh_foreachScreenEdge(
