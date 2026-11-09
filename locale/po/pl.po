@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
-"PO-Revision-Date: 2026-10-27 23:12+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"PO-Revision-Date: 2026-11-02 17:15+0000\n"
 "Last-Translator: Paweł Mazur <pawelmazur.zam@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
 "Language: pl\n"
@@ -36645,12 +36645,44 @@ msgid "Editor menu containing buttons"
 msgstr "Menu edytora zawierające przyciski"
 
 
-msgid "Show/Hide"
-msgstr "Pokaż / ukryj"
+msgid "Enable Bone Options"
+msgstr "Włącz opcje kości"
+
+
+msgid "Disable Bone Options"
+msgstr "Wyłącz opcje kości"
+
+
+msgid "Mesh Select Mode"
+msgstr "Tryb wybierz siatkę"
 
 
 msgid "Creative"
 msgstr "Twórczy"
+
+
+msgid "Face Data"
+msgstr "Dane lica"
+
+
+msgid "Select by Face Strength"
+msgstr "Wybierz według siły lica"
+
+
+msgid "Set Face Strength"
+msgstr "Ustaw siłę lica"
+
+
+msgid "Clean Up"
+msgstr "Oczyść"
+
+
+msgid "Merge"
+msgstr "Scal"
+
+
+msgid "Show/Hide"
+msgstr "Pokaż / ukryj"
 
 
 msgid "Special Characters"
@@ -36673,8 +36705,12 @@ msgid "Bone Roll"
 msgstr "Rolka kości"
 
 
-msgid "Clean Up"
-msgstr "Oczyść"
+msgid "Math"
+msgstr "Matematyka"
+
+
+msgid "Utilities"
+msgstr "Narzędzia"
 
 
 msgid "Pivot Point"
@@ -36705,16 +36741,32 @@ msgid "Vertex Group Locks"
 msgstr "Blokady grup wierzchołków"
 
 
-msgid "Math"
-msgstr "Matematyka"
+msgid "Read"
+msgstr "Odczyt"
 
 
-msgid "Utilities"
-msgstr "Narzędzia"
+msgid "Sample"
+msgstr "Próbka"
+
+
+msgid "Write"
+msgstr "Napisz"
+
+
+msgid "Primitives"
+msgstr "Prymitywy"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
 msgid "Mirror"
 msgstr "Lustro"
+
+
+msgid "Instances"
+msgstr "Instancje"
 
 
 msgid "UV Mapping"
@@ -36725,36 +36777,24 @@ msgid "Local View"
 msgstr "Widok lokalny"
 
 
-msgid "Read"
-msgstr "Odczyt"
-
-
 msgid "Viewpoint"
 msgstr "Punkt widzenia"
-
-
-msgid "Sample"
-msgstr "Próbka"
 
 
 msgid "Navigation"
 msgstr "Nawigacja"
 
 
-msgid "Write"
-msgstr "Napisz"
-
-
 msgid "Align View"
 msgstr "Wyrównaj widok"
 
 
+msgid "Import"
+msgstr "Importuj"
+
+
 msgid "Align View to Active"
 msgstr "Wyrównaj widok do aktywnego"
-
-
-msgid "Primitives"
-msgstr "Prymitywy"
 
 
 msgid "View Regions"
@@ -36773,6 +36813,10 @@ msgid "Select All by Trait"
 msgstr "Wybierz wszystko według cechy"
 
 
+msgid "Deprecated"
+msgstr "Przestarzałe"
+
+
 msgid "Select Linked"
 msgstr "Wybierz połączone"
 
@@ -36781,40 +36825,24 @@ msgid "Select Loops"
 msgstr "Wybierz pętle"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
+msgid "Render Preview"
+msgstr "Podgląd renderowania"
 
 
-msgid "Instances"
-msgstr "Instancje"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Przypisz materiał"
 
 
-msgid "Import"
-msgstr "Importuj"
-
-
-msgid "Deprecated"
-msgstr "Przestarzałe"
-
-
 msgid "Light"
 msgstr "Światło"
 
 
-msgid "Render Preview"
-msgstr "Podgląd renderowania"
-
-
 msgid "Light Probe"
 msgstr "Sonda świetlna"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -36861,6 +36889,14 @@ msgid "Hooks"
 msgstr "Haki"
 
 
+msgid "Linked"
+msgstr "Połączony"
+
+
+msgid "Layout"
+msgstr "Układ"
+
+
 msgid "Trim/Add"
 msgstr "Przytnij / dodaj"
 
@@ -36881,6 +36917,10 @@ msgid "Clear Transform"
 msgstr "Wyczyść transformację"
 
 
+msgid "Adjust"
+msgstr "Dostosuj"
+
+
 msgid "In-Betweens"
 msgstr "Pomiędzy"
 
@@ -36893,56 +36933,16 @@ msgid "Bone Collections"
 msgstr "Kolekcje kości"
 
 
-msgid "Linked"
-msgstr "Połączony"
-
-
-msgid "Layout"
-msgstr "Układ"
-
-
-msgid "Toggle Bone Options"
-msgstr "Przełącz opcje kości"
-
-
-msgid "Enable Bone Options"
-msgstr "Włącz opcje kości"
-
-
-msgid "Disable Bone Options"
-msgstr "Wyłącz opcje kości"
-
-
-msgid "Mesh Select Mode"
-msgstr "Tryb wybierz siatkę"
-
-
-msgid "Face Data"
-msgstr "Dane lica"
-
-
-msgid "Select by Face Strength"
-msgstr "Wybierz według siły lica"
-
-
-msgid "Set Face Strength"
-msgstr "Ustaw siłę lica"
-
-
-msgid "Adjust"
-msgstr "Dostosuj"
-
-
 msgid "Keying"
 msgstr "Kluczowanie"
 
 
-msgid "Merge"
-msgstr "Scal"
-
-
 msgid "Tracking"
 msgstr "Śledzenie"
+
+
+msgid "Toggle Bone Options"
+msgstr "Przełącz opcje kości"
 
 
 msgid "Keyframe Insert Pie"
@@ -80986,10 +80986,6 @@ msgid "New Collection"
 msgstr "Nowa kolekcja"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "Dodaj nową kolekcję do wybranej kolekcji"
-
-
 msgid "Nested"
 msgstr "Zagnieżdżony"
 
@@ -102072,16 +102068,8 @@ msgid "French - Français"
 msgstr "Francuski - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Kod regionalny: fr_FR. Postęp tłumaczenia: 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Gruziński - ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 97%"
-msgstr "Kod regionalny: ka. Postęp tłumaczenia: 97%"
 
 
 msgid "German - Deutsch"
@@ -102094,10 +102082,6 @@ msgstr "Kod regionalny: de_DE. Postęp tłumaczenia: 35%"
 
 msgid "Greek - Ελληνικά"
 msgstr "Grecki - Ελληνικά"
-
-
-msgid "Locale code: el_GR. Translation progress: 1%"
-msgstr "Kod regionalny: el_GR. Postęp tłumaczenia: 1%"
 
 
 msgid "Hebrew - תירִבְעִ"
@@ -102142,10 +102126,6 @@ msgstr "Kod regionalny: it_IT. Postęp tłumaczenia: 41%"
 
 msgid "Japanese - 日本語"
 msgstr "Japoński - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Kod regionalny: ja_JP. Postęp tłumaczenia: 99%"
 
 
 msgid "Korean - 한국어"
@@ -102334,10 +102314,6 @@ msgstr "Kod regionalny: ur. Postęp tłumaczenia: 80%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Wietnamski - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 99%"
-msgstr "Kod regionalny: vi_VN. Postęp tłumaczenia: 99%"
 
 
 msgid "Reference Sphere Size"
@@ -129347,6 +129323,10 @@ msgid "Rotation"
 msgstr "Obrót"
 
 
+msgid "Convert Rotation Mode"
+msgstr "Zmień tryb rotacji"
+
+
 msgid "Access"
 msgstr "Dostęp"
 
@@ -133069,6 +133049,11 @@ msgid "Disable in Render"
 msgstr "Wyłącz w renderowaniu"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "Nowa"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "Instancja do sceny"
@@ -133107,11 +133092,6 @@ msgstr "Ukryj jeden poziom"
 msgctxt "Operator"
 msgid "Relocate"
 msgstr "Przenoszenie"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "Nowa"
 
 
 msgctxt "Operator"
@@ -138134,6 +138114,18 @@ msgid "node_groups"
 msgstr "grupy węzłów"
 
 
+msgid "Shader To RGB can't evaluate Lighting nodes"
+msgstr "Cieniowanie do RGB nie może przetwarzać węzłów światła"
+
+
+msgid "Light Accumulation can only be used for the Material Output Surface"
+msgstr "Akumulacja światła może być stosowana wyłącznie w przypadku powierzchni wyjściowej materiału"
+
+
+msgid "Lighting nodes must be connected to the Light sockets of a Light Accumulation node before reaching an output"
+msgstr "Węzły światła muszą zostać podłączone do gniazd światła węzła akumulacji światła, zanim dotrą do wyjścia"
+
+
 msgid "Lighting nodes can't be connected to the Color sockets of a Light Accumulation node"
 msgstr "Węzłów światła nie można łączyć z gniazdami koloru węzła akumulacji światła"
 
@@ -139271,6 +139263,10 @@ msgid ""
 msgstr ""
 "Za mało dostępnej pamięci wideo do wypiekania \"{}\" ({} / {} MB).\n"
 "Spróbuj zmniejszyć rozdzielczość obrazu lub odległość przechwytywania, aby zmniejszyć rozmiar alokacji."
+
+
+msgid "Raytracing is not supported with panoramic camera yet"
+msgstr "Śledzenie promieni nie jest jeszcze obsługiwane w przypadku kamery panoramicznej"
 
 
 msgid "Error: Could not allocate shadow atlas. Most likely out of GPU memory."
@@ -142708,6 +142704,10 @@ msgid "Operator cannot redo"
 msgstr "Operator nie może powtórzyć"
 
 
+msgid "Built-In"
+msgstr "Wbudowany"
+
+
 msgid "Create from Image..."
 msgstr "Utwórz na podstawie obrazu..."
 
@@ -144826,6 +144826,10 @@ msgid "Select Collection"
 msgstr "Wybierz kolekcję"
 
 
+msgid "Active object is in multiple collections"
+msgstr "Aktywny obiekt znajduje się w wielu kolekcjach"
+
+
 msgid "Use another Keying Set, as the active one depends on the currently selected objects or cannot find any targets due to unsuitable context"
 msgstr "Użyj innego zestawu kluczowania, ponieważ aktywny zestaw zależy od aktualnie wybranych obiektów lub nie może znaleźć żadnych celów z powodu nieodpowiedniego kontekstu"
 
@@ -145438,6 +145442,14 @@ msgid "Timber"
 msgstr "Budulec"
 
 
+msgid "No object in the scene to add Rigid Body to"
+msgstr "Brak obiektu na scenie, do którego można dodać ciało sztywne"
+
+
+msgid "No object in the scene to remove Rigid Body from"
+msgstr "Brak obiektu na scenie, z którego można usunąć ciało sztywne"
+
+
 msgid "Object has no Rigid Body settings to remove"
 msgstr "Obiekt nie ma ustawień ciała sztywnego do usunięcia"
 
@@ -145668,6 +145680,14 @@ msgstr "Usunięto %d gniazd"
 
 msgid "Removed %d materials"
 msgstr "Usunięto %d materiałów"
+
+
+msgid "Cannot copy the linked material '%s' to the internal clipboard"
+msgstr "Nie można skopiować powiązanego materiału „%s” do wewnętrznego schowka"
+
+
+msgid "Cannot copy the linked packed material '%s' to the internal clipboard"
+msgstr "Nie można skopiować powiązanego spakowanego materiału „%s” do wewnętrznego schowka"
 
 
 msgid "Unable to remove material slot in edit mode"
@@ -148890,6 +148910,10 @@ msgid "No active item to rename"
 msgstr "Brak aktywnego elementu do zmiany nazwy"
 
 
+msgid "No valid selected data-blocks to copy"
+msgstr "Brak prawidłowych, wybranych bloków danych do skopiowania"
+
+
 msgid "There is no active data-block"
 msgstr "Brak aktywnego bloku danych"
 
@@ -148940,6 +148964,14 @@ msgstr "Nieprawidłowa para starych / nowych ID („%s” / „%s”)"
 
 msgid "Old ID '%s' is linked from a library, indirect usages of this data-block will not be remapped"
 msgstr "Stary ID „%s” jest powiązany z biblioteką, pośrednie użycia tego bloku danych nie zostaną ponownie odwzorowane"
+
+
+msgid "Cannot copy the linked data-block '%s' to the internal clipboard"
+msgstr "Nie można skopiować powiązanego bloku danych „%s” do wewnętrznego schowka"
+
+
+msgid "Cannot copy the linked packed data-block '%s' to the internal clipboard"
+msgstr "Nie można skopiować powiązanego spakowanego bloku danych „%s” do wewnętrznego schowka"
 
 
 msgid "Copying ID '%s' is not possible, '%s' type of data-blocks is not supported"
@@ -149313,10 +149345,6 @@ msgid "Strip None"
 msgstr "Brak paska"
 
 
-msgid "Built-In"
-msgstr "Wbudowany"
-
-
 msgid "Close the current project before creating a new one"
 msgstr "Zamknij bieżący projekt przed utworzeniem nowego"
 
@@ -149369,6 +149397,10 @@ msgstr "Brak nazwy projektu"
 
 msgid "Folder already part of a project"
 msgstr "Folder jest już częścią projektu"
+
+
+msgid "Can not create project for a blend file in the home or root folder"
+msgstr "Nie można utworzyć projektu dla pliku blend w katalogu domowym ani w katalogu głównym"
 
 
 msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
@@ -150445,8 +150477,20 @@ msgid "Depth too large"
 msgstr "Głębia zbyt duża"
 
 
+msgid "No valid selected objects to copy"
+msgstr "Brak prawidłowo zaznaczonych obiektów do skopiowania"
+
+
 msgid "No objects to paste"
 msgstr "Brak obiektów do wklejenia"
+
+
+msgid "Cannot copy the linked object '%s' to the internal clipboard"
+msgstr "Nie można skopiować powiązanego obiektu „%s” do wewnętrznego schowka"
+
+
+msgid "Cannot copy the linked packed object '%s' to the internal clipboard"
+msgstr "Nie można skopiować powiązanego spakowanego obiektu „%s” do wewnętrznego schowka"
 
 
 msgid "Copied %d selected object(s)"

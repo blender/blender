@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2025-07-23 15:12+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Urdu <https://translate.blender.org/projects/blender-ui/ui/ur/>\n"
@@ -32267,6 +32267,38 @@ msgid "Editor menu containing buttons"
 msgstr "ﻮﻨﯿﻣ ﺮﭩﯾﮉﯾﺍ ﻞﻤﺘﺸﻣ ﺮﭘ ﮞﻮﻨﭩﺑ"
 
 
+msgid "Enable Bone Options"
+msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
+
+
+msgid "Disable Bone Options"
+msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﺮﯿﻏ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
+
+
+msgid "Mesh Select Mode"
+msgstr "ﮈﻮﻣ ﭧﮑﯿﻠﺳ ﺶﯿﻣ"
+
+
+msgid "Face Data"
+msgstr "ﺎﭩﯾﮈ ﺎﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Select by Face Strength"
+msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Set Face Strength"
+msgstr "ﮟﯾﺮﮐ ﻦﯿﻌﺗ ﺎﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
+
+
+msgid "Clean Up"
+msgstr "ﯽﺋﺎﻔﺻ"
+
+
+msgid "Merge"
+msgstr "ﺎﻧﺮﮐ ﻢﺿ"
+
+
 msgid "Show/Hide"
 msgstr "ﮟﯿﺋﺎﭙﮭﭼ/ﮟﯿﺋﺎﮭﮐﺩ"
 
@@ -32291,8 +32323,12 @@ msgid "Bone Roll"
 msgstr "ﻝﻭﺭ ﻥﻮﺑ"
 
 
-msgid "Clean Up"
-msgstr "ﯽﺋﺎﻔﺻ"
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
+
+
+msgid "Utilities"
+msgstr "ﺖﯾﺩﺎﻓﺍ"
 
 
 msgid "Pivot Point"
@@ -32323,16 +32359,32 @@ msgid "Vertex Group Locks"
 msgstr "ﮎﻻ﻿ ﮦﻭﺮﮔ ﺲﮑﯿﭨﺭﻭ"
 
 
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
+msgid "Read"
+msgstr "ﮟﯿﮬﮍﭘ"
 
 
-msgid "Utilities"
-msgstr "ﺖﯾﺩﺎﻓﺍ"
+msgid "Sample"
+msgstr "ﮧﻧﻮﻤﻧ"
+
+
+msgid "Write"
+msgstr "ﮟﯿﮭﮑﻟ"
+
+
+msgid "Primitives"
+msgstr "ﻢﯾﺪﻗ"
+
+
+msgid "Gizmo"
+msgstr "ﻮﻣﺰﯿﮔ"
 
 
 msgid "Mirror"
 msgstr "ﮧﻨﯿﺋﺁ"
+
+
+msgid "Instances"
+msgstr "ﮟﯿﻟﺎﺜﻣ"
 
 
 msgid "UV Mapping"
@@ -32343,36 +32395,24 @@ msgid "Local View"
 msgstr "ﺮﻈﻨﻣ ﯽﻣﺎﻘﻣ"
 
 
-msgid "Read"
-msgstr "ﮟﯿﮬﮍﭘ"
-
-
 msgid "Viewpoint"
 msgstr "ﺮﻈﻧ ﮧﻄﻘﻧ"
-
-
-msgid "Sample"
-msgstr "ﮧﻧﻮﻤﻧ"
 
 
 msgid "Navigation"
 msgstr "ﻦﺸﯿﮕﯾﻮﯿﻧ"
 
 
-msgid "Write"
-msgstr "ﮟﯿﮭﮑﻟ"
-
-
 msgid "Align View"
 msgstr "ﮟﯿﮭﮑﯾﺩ ﮟﯿﻣ ﮪﺪﯿﺳ"
 
 
+msgid "Import"
+msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
+
+
 msgid "Align View to Active"
 msgstr "ﮟﯾﺮﮐ ﮪﺪﯿﺳ ﮟﯿﻣ ﻝﺎﻌﻓ ﻮﮐ ﺮﻈﻨﻣ"
-
-
-msgid "Primitives"
-msgstr "ﻢﯾﺪﻗ"
 
 
 msgid "View Regions"
@@ -32391,6 +32431,10 @@ msgid "Select All by Trait"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﯽﮭﺒﺳ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﯿﺻﻮﺼﺧ"
 
 
+msgid "Deprecated"
+msgstr "ﮦﺩﻮﺳﺮﻓ"
+
+
 msgid "Select Linked"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﮉﮑﻨﻟ"
 
@@ -32399,24 +32443,12 @@ msgid "Select Loops"
 msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﻮﮐ ﺲﭘﻮﻟ"
 
 
-msgid "Gizmo"
-msgstr "ﻮﻣﺰﯿﮔ"
-
-
-msgid "Instances"
-msgstr "ﮟﯿﻟﺎﺜﻣ"
+msgid "UV"
+msgstr "ﯼﻭﻮﯾ"
 
 
 msgid "Assign Material"
 msgstr "ﮟﯾﺮﮐ ﺾﯾﻮﻔﺗ ﺩﺍﻮﻣ"
-
-
-msgid "Import"
-msgstr "ﮟﯾﺮﮐ ﺪﻣﺁﺭﺩ"
-
-
-msgid "Deprecated"
-msgstr "ﮦﺩﻮﺳﺮﻓ"
 
 
 msgid "Light"
@@ -32425,10 +32457,6 @@ msgstr "ﯽﻨﺷﻭﺭ"
 
 msgid "Light Probe"
 msgstr "ﺏﻭﺮﭘ ﭧﺋﻻ﻿"
-
-
-msgid "UV"
-msgstr "ﯼﻭﻮﯾ"
 
 
 msgid "Add Image"
@@ -32475,6 +32503,14 @@ msgid "Hooks"
 msgstr "ﮯﭩﻧﺎﮐ"
 
 
+msgid "Linked"
+msgstr "ﮏﻠﺴﻨﻣ"
+
+
+msgid "Layout"
+msgstr "ﭦﺅﺁ ﮯﻟ"
+
+
 msgid "Trim/Add"
 msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ/ﻡﺮﭨ"
 
@@ -32495,6 +32531,10 @@ msgid "Clear Transform"
 msgstr "ﻡﺭﺎﻔﺴﻧﺍﺮﭨ  ﺕﺮﭘ ﮎ"
 
 
+msgid "Adjust"
+msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
+
+
 msgid "In-Betweens"
 msgstr "ﮟﯿﻣ ﻥﺎﯿﻣﺭﺩ"
 
@@ -32507,56 +32547,16 @@ msgid "Bone Collections"
 msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﮐ ﮞﻮﯾﮉﮨ"
 
 
-msgid "Linked"
-msgstr "ﮏﻠﺴﻨﻣ"
-
-
-msgid "Layout"
-msgstr "ﭦﺅﺁ ﮯﻟ"
-
-
-msgid "Toggle Bone Options"
-msgstr "ﮟﯾﺮﮐ ﻞﮔﻮﭨ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
-
-
-msgid "Enable Bone Options"
-msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
-
-
-msgid "Disable Bone Options"
-msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﺮﯿﻏ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
-
-
-msgid "Mesh Select Mode"
-msgstr "ﮈﻮﻣ ﭧﮑﯿﻠﺳ ﺶﯿﻣ"
-
-
-msgid "Face Data"
-msgstr "ﺎﭩﯾﮈ ﺎﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Select by Face Strength"
-msgstr "ﮟﯾﺮﮐ ﺐﺨﺘﻨﻣ ﮯﺳ ﻅﺎﺤﻟ ﮯﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Set Face Strength"
-msgstr "ﮟﯾﺮﮐ ﻦﯿﻌﺗ ﺎﮐ ﺖﻗﺎﻃ ﯽﮐ ﮮﺮﮩﭼ"
-
-
-msgid "Adjust"
-msgstr "ﮟﯾﺮﮐ ﭧﺴﺟﮉﯾﺍ"
-
-
 msgid "Keying"
 msgstr "ﮓﻨﯿﻠﮐ"
 
 
-msgid "Merge"
-msgstr "ﺎﻧﺮﮐ ﻢﺿ"
-
-
 msgid "Tracking"
 msgstr "ﮓﻨﮑﯾﺮﭨ"
+
+
+msgid "Toggle Bone Options"
+msgstr "ﮟﯾﺮﮐ ﻞﮔﻮﭨ ﻮﮐ ﺕﺍﺭﺎﯿﺘﺧﺍ ﮯﮐ ﯼﮉﮨ"
 
 
 msgid "Keyframe Insert Pie"
@@ -70335,10 +70335,6 @@ msgstr "ﮟﯾﮌﻮﺟ ﮯﺳﻮﯾﻭ ﻝﺎﻌﻓ ﻮﮐ ﮞﻮﻋﻮﻤﺠ�
 msgctxt "Operator"
 msgid "New Collection"
 msgstr "ﮧﻋﻮﻤﺠﻣ ﺎﯿﻧ"
-
-
-msgid "Add a new collection inside selected collection"
-msgstr "ﮟﯾﺮﮐ ﻞﻣﺎﺷ ﮧﻋﻮﻤﺠﻣ ﺎﯿﻧ ﮏﯾﺍ ﺭﺪﻧﺍ ﮯﮐ ﮧﻋﻮﻤﺠﻣ ﺐﺨﺘﻨﻣ"
 
 
 msgid "Nested"
@@ -112664,6 +112660,11 @@ msgid "Disable in Render"
 msgstr "ﮟﯾﺮﮐ ﻝﺎﻌﻓ ﺮﯿﻏ ﮟﯿﻣ ﺭﮉﻨﯾﺭ"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "ﺎﯿﻧ"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "ﻝﺎﺜﻣ ﯽﮐ ﺮﻈﻨﻣ"
@@ -112693,11 +112694,6 @@ msgstr "ﺩﺍﻮﻣ ﺰﯿﭼ"
 msgctxt "Operator"
 msgid "Hide One Level"
 msgstr "ﮟﯿﺋﺎﭙﮭﭼ ﻮﮐ ﺢﻄﺳ ﮏﯾﺍ"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "ﺎﯿﻧ"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8482,6 +8482,22 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
+
+
+msgid "Merge"
+msgstr "Sjedini"
+
+
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
@@ -8502,12 +8518,12 @@ msgid "Bone Roll"
 msgstr "Rolna kostiju"
 
 
-msgid "Snap"
-msgstr "Lepljenje"
-
-
 msgid "Math"
 msgstr "Matematika"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
 
 
 msgid "Mirror"
@@ -8530,20 +8546,20 @@ msgid "Align View"
 msgstr "Poravnaj pogled"
 
 
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
 msgid "Import"
 msgstr "Uvoz"
 
 
-msgid "Light"
-msgstr "Svetlost"
+msgid "Select Linked"
+msgstr "Izaberi povezano"
 
 
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Light"
+msgstr "Svetlost"
 
 
 msgid "Relations"
@@ -8570,6 +8586,10 @@ msgid "Hooks"
 msgstr "Udice"
 
 
+msgid "Linked"
+msgstr "Povezano"
+
+
 msgid "Clear Transform"
 msgstr "Očisti transformacije"
 
@@ -8582,36 +8602,16 @@ msgid "Propagate"
 msgstr "Prenesi"
 
 
-msgid "Linked"
-msgstr "Povezano"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
-
-
 msgid "Keying"
 msgstr "Zbirka tastera"
 
 
-msgid "Merge"
-msgstr "Sjedini"
-
-
 msgid "Tracking"
 msgstr "Praćenje"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
 
 
 msgid "Basic"

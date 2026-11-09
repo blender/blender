@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
-"PO-Revision-Date: 2026-10-31 23:53+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"PO-Revision-Date: 2026-11-04 01:08+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -36645,12 +36645,44 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
-msgid "Show/Hide"
-msgstr "Afficher/cacher"
+msgid "Enable Bone Options"
+msgstr "Activer des options d’os"
+
+
+msgid "Disable Bone Options"
+msgstr "Désactiver des options d’os"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mode de sélection du maillage"
 
 
 msgid "Creative"
 msgstr "Créatif"
+
+
+msgid "Face Data"
+msgstr "Données de face"
+
+
+msgid "Select by Face Strength"
+msgstr "Sélectionner par force de face"
+
+
+msgid "Set Face Strength"
+msgstr "Définir la force de face"
+
+
+msgid "Clean Up"
+msgstr "Nettoyer"
+
+
+msgid "Merge"
+msgstr "Fusionner"
+
+
+msgid "Show/Hide"
+msgstr "Afficher/cacher"
 
 
 msgid "Special Characters"
@@ -36673,8 +36705,12 @@ msgid "Bone Roll"
 msgstr "Roulis de l’os"
 
 
-msgid "Clean Up"
-msgstr "Nettoyer"
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Utilities"
+msgstr "Utilitaires"
 
 
 msgid "Pivot Point"
@@ -36705,16 +36741,32 @@ msgid "Vertex Group Locks"
 msgstr "Verrouillages des groupes de sommets"
 
 
-msgid "Math"
-msgstr "Maths"
+msgid "Read"
+msgstr "Lecture"
 
 
-msgid "Utilities"
-msgstr "Utilitaires"
+msgid "Sample"
+msgstr "Échantillonner"
+
+
+msgid "Write"
+msgstr "Écriture"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
 msgid "Mirror"
 msgstr "Miroir"
+
+
+msgid "Instances"
+msgstr "Instances"
 
 
 msgid "UV Mapping"
@@ -36725,36 +36777,24 @@ msgid "Local View"
 msgstr "Vue locale"
 
 
-msgid "Read"
-msgstr "Lecture"
-
-
 msgid "Viewpoint"
 msgstr "Point de vue"
-
-
-msgid "Sample"
-msgstr "Échantillonner"
 
 
 msgid "Navigation"
 msgstr "Navigation"
 
 
-msgid "Write"
-msgstr "Écriture"
-
-
 msgid "Align View"
 msgstr "Aligner la vue"
 
 
+msgid "Import"
+msgstr "Importer"
+
+
 msgid "Align View to Active"
 msgstr "Aligner la vue sur l’actif"
-
-
-msgid "Primitives"
-msgstr "Primitives"
 
 
 msgid "View Regions"
@@ -36773,6 +36813,10 @@ msgid "Select All by Trait"
 msgstr "Tout sélectionner par caractéristiques"
 
 
+msgid "Deprecated"
+msgstr "Obsolète"
+
+
 msgid "Select Linked"
 msgstr "Sélectionner liés"
 
@@ -36781,40 +36825,24 @@ msgid "Select Loops"
 msgstr "Sélectionner les boucles"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
 
 
-msgid "Instances"
-msgstr "Instances"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Assigner un matériau"
 
 
-msgid "Import"
-msgstr "Importer"
-
-
-msgid "Deprecated"
-msgstr "Obsolète"
-
-
 msgid "Light"
 msgstr "Éclairage"
 
 
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
-
-
 msgid "Light Probe"
 msgstr "Sonde d’éclairage"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -36861,6 +36889,14 @@ msgid "Hooks"
 msgstr "Crochets"
 
 
+msgid "Linked"
+msgstr "Liés"
+
+
+msgid "Layout"
+msgstr "Disposition"
+
+
 msgid "Trim/Add"
 msgstr "Découper/Ajouter"
 
@@ -36881,6 +36917,10 @@ msgid "Clear Transform"
 msgstr "Réinitialiser la transformation"
 
 
+msgid "Adjust"
+msgstr "Ajuster"
+
+
 msgid "In-Betweens"
 msgstr "Intervalles"
 
@@ -36893,56 +36933,16 @@ msgid "Bone Collections"
 msgstr "Collections d’os"
 
 
-msgid "Linked"
-msgstr "Liés"
-
-
-msgid "Layout"
-msgstr "Disposition"
-
-
-msgid "Toggle Bone Options"
-msgstr "(Dés)activer des options d’os"
-
-
-msgid "Enable Bone Options"
-msgstr "Activer des options d’os"
-
-
-msgid "Disable Bone Options"
-msgstr "Désactiver des options d’os"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mode de sélection du maillage"
-
-
-msgid "Face Data"
-msgstr "Données de face"
-
-
-msgid "Select by Face Strength"
-msgstr "Sélectionner par force de face"
-
-
-msgid "Set Face Strength"
-msgstr "Définir la force de face"
-
-
-msgid "Adjust"
-msgstr "Ajuster"
-
-
 msgid "Keying"
 msgstr "Incrustation"
 
 
-msgid "Merge"
-msgstr "Fusionner"
-
-
 msgid "Tracking"
 msgstr "Suivi"
+
+
+msgid "Toggle Bone Options"
+msgstr "(Dés)activer des options d’os"
 
 
 msgid "Keyframe Insert Pie"
@@ -51734,7 +51734,7 @@ msgstr "Ce nœud définit une signature de paquet devant être utilisée par d�
 
 
 msgid "Comment"
-msgstr "Commenter"
+msgstr "Commentaire"
 
 
 msgid "Add explanations to the node group"
@@ -80989,10 +80989,6 @@ msgid "New Collection"
 msgstr "Nouvelle collection"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "Ajouter une nouvelle collection dans la collection sélectionnée"
-
-
 msgid "Nested"
 msgstr "Imbriquée"
 
@@ -102075,16 +102071,8 @@ msgid "French - Français"
 msgstr "Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Identificateur de culture : fr_FR. Progrès de la traduction : 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Géorgien – ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 97%"
-msgstr "Identificateur de culture : ka. Progrès de la traduction : 97%"
 
 
 msgid "German - Deutsch"
@@ -102097,10 +102085,6 @@ msgstr "Identificateur de culture : de_DE. Progrès de la traduction : 35%"
 
 msgid "Greek - Ελληνικά"
 msgstr "Grec – Ελληνικά"
-
-
-msgid "Locale code: el_GR. Translation progress: 1%"
-msgstr "Identificateur de culture : el_GR. Progrès de la traduction : 1%"
 
 
 msgid "Hebrew - תירִבְעִ"
@@ -102145,10 +102129,6 @@ msgstr "Identificateur de culture : it_IT. Progrès de la traduction : 41%"
 
 msgid "Japanese - 日本語"
 msgstr "Japonais – 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Identificateur de culture : ja_JP. Progrès de la traduction : 99%"
 
 
 msgid "Korean - 한국어"
@@ -102337,10 +102317,6 @@ msgstr "Identificateur de culture : ur. Progrès de la traduction : 80%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamien – Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 99%"
-msgstr "Identificateur de culture : vi_VN. Progrès de la traduction : 99%"
 
 
 msgid "Reference Sphere Size"
@@ -124569,6 +124545,11 @@ msgstr "Clip, éditeur feuille d’exposition"
 
 
 msgctxt "WindowManager"
+msgid "Clip Time Scrub"
+msgstr "Balayage temporel des clips"
+
+
+msgctxt "WindowManager"
 msgid "Grease Pencil Draw Mode"
 msgstr "Mode dessin du Grease Pencil"
 
@@ -124841,6 +124822,11 @@ msgstr "Animation"
 msgctxt "WindowManager"
 msgid "Animation Channels"
 msgstr "Animation, canaux"
+
+
+msgctxt "WindowManager"
+msgid "Time Scrub"
+msgstr "Balayage temporel"
 
 
 msgctxt "WindowManager"
@@ -129344,6 +129330,10 @@ msgid "Rotation"
 msgstr "Rotation"
 
 
+msgid "Convert Rotation Mode"
+msgstr "Convertir le mode de rotation"
+
+
 msgid "Access"
 msgstr "Accès"
 
@@ -133066,6 +133056,11 @@ msgid "Disable in Render"
 msgstr "Désactiver dans le rendu"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "Nouvelle"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "Instancier dans la scène"
@@ -133104,11 +133099,6 @@ msgstr "Cacher un niveau"
 msgctxt "Operator"
 msgid "Relocate"
 msgstr "Relocaliser"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "Nouvelle"
 
 
 msgctxt "Operator"
@@ -138131,6 +138121,18 @@ msgid "node_groups"
 msgstr "groupes de nœuds"
 
 
+msgid "Shader To RGB can't evaluate Lighting nodes"
+msgstr "Shader vers RVB ne peut pas évaluer les nœuds d’éclairage"
+
+
+msgid "Light Accumulation can only be used for the Material Output Surface"
+msgstr "L’Accumulation d’éclairage ne peut être utilisée que pour la Surface de la Sortie matériau"
+
+
+msgid "Lighting nodes must be connected to the Light sockets of a Light Accumulation node before reaching an output"
+msgstr "Les nœuds d’éclairage doivent être connectés aux prises Lumière d’un nœud Accumulation d’éclairage avant d’atteindre une sortie"
+
+
 msgid "Lighting nodes can't be connected to the Color sockets of a Light Accumulation node"
 msgstr "Les nœuds d’éclairage ne peuvent pas être connectés aux prises Couleur d’un nœud Accumulation d’éclairage"
 
@@ -139268,6 +139270,10 @@ msgid ""
 msgstr ""
 "Pas assez de mémoire vidéo disponible pour précalculer « {} » ({} / {} Mo).\n"
 "Essayez de réduire la résolution de surfel ou la distance de capture pour diminuer la taille de l’allocation."
+
+
+msgid "Raytracing is not supported with panoramic camera yet"
+msgstr "Le lancer de rayon n’est pas encore pris en charge avec les caméras panoramiques"
 
 
 msgid "Error: Could not allocate shadow atlas. Most likely out of GPU memory."
@@ -141170,6 +141176,14 @@ msgid "Use italic style"
 msgstr "Utiliser un style italique"
 
 
+msgid "Top margin as a multiple of the default line height"
+msgstr "Marge haute, en multiple de la hauteur de ligne par défaut"
+
+
+msgid "Bottom margin as a multiple of the default line height"
+msgstr "Marge basse, en multiple de la hauteur de ligne par défaut"
+
+
 msgid "Quote"
 msgstr "Citation"
 
@@ -141180,6 +141194,14 @@ msgstr "Bloc de code"
 
 msgid "Horizontal Rule"
 msgstr "Règle horizontale"
+
+
+msgid "Tight"
+msgstr "Serrée"
+
+
+msgid "Spacing between items in loose lists"
+msgstr "Espacement entre éléments dans les listes relâchées"
 
 
 msgid "Spacing between items in tight lists"
@@ -142643,6 +142665,10 @@ msgstr "Réinitialiser l’opérateur aux valeurs par défaut"
 
 msgid "Operator cannot redo"
 msgstr "L’opérateur ne peut pas être refait"
+
+
+msgid "Built-In"
+msgstr "Intégrée"
 
 
 msgid "Create from Image..."
@@ -144763,6 +144789,10 @@ msgid "Select Collection"
 msgstr "Sélectionner la collection"
 
 
+msgid "Active object is in multiple collections"
+msgstr "L’objet actif est dans plusieurs collections"
+
+
 msgid "Use another Keying Set, as the active one depends on the currently selected objects or cannot find any targets due to unsuitable context"
 msgstr "Utiliser un autre ensemble de clés, car l’actif dépend des objets actuellement sélectionnés ou ne peut trouver aucune cible en raison d’un contexte inadapté"
 
@@ -145375,6 +145405,14 @@ msgid "Timber"
 msgstr "Bois"
 
 
+msgid "No object in the scene to add Rigid Body to"
+msgstr "Aucun objet dans la scène auquel ajouter un corps rigide"
+
+
+msgid "No object in the scene to remove Rigid Body from"
+msgstr "Aucun objet dans la scène duquel supprimer le corps rigide"
+
+
 msgid "Object has no Rigid Body settings to remove"
 msgstr "L’objet n’a aucun réglage de corps rigide à supprimer"
 
@@ -145605,6 +145643,14 @@ msgstr "%d emplacements supprimés"
 
 msgid "Removed %d materials"
 msgstr "%d matériaux supprimés"
+
+
+msgid "Cannot copy the linked material '%s' to the internal clipboard"
+msgstr "Impossible de copier le matériau lié « %s » dans le presse-papier interne"
+
+
+msgid "Cannot copy the linked packed material '%s' to the internal clipboard"
+msgstr "Impossible de copier le matériau empaqueté « %s » dans le presse-papier interne"
 
 
 msgid "Unable to remove material slot in edit mode"
@@ -148827,6 +148873,10 @@ msgid "No active item to rename"
 msgstr "Aucun élément actif à renommer"
 
 
+msgid "No valid selected data-blocks to copy"
+msgstr "Aucun bloc de données valide à copier"
+
+
 msgid "There is no active data-block"
 msgstr "Il n’y a aucun bloc de données actif"
 
@@ -148877,6 +148927,14 @@ msgstr "Paire d’ancien/nouvel ID invalide (« %s » / « %s »)"
 
 msgid "Old ID '%s' is linked from a library, indirect usages of this data-block will not be remapped"
 msgstr "L’ancien ID « %s » est lié depuis une bibliothèque, ses utilisations indirectes ne seront pas réaffectées"
+
+
+msgid "Cannot copy the linked data-block '%s' to the internal clipboard"
+msgstr "Impossible de copier le bloc de données lié « %s » dans le presse-papier interne"
+
+
+msgid "Cannot copy the linked packed data-block '%s' to the internal clipboard"
+msgstr "Impossible de copier le bloc de données lié et empaqueté « %s » dans le presse-papier interne"
 
 
 msgid "Copying ID '%s' is not possible, '%s' type of data-blocks is not supported"
@@ -149250,10 +149308,6 @@ msgid "Strip None"
 msgstr "Aucune bande"
 
 
-msgid "Built-In"
-msgstr "Intégrée"
-
-
 msgid "Close the current project before creating a new one"
 msgstr "Fermer le project actuel avant d’en créer un nouveau"
 
@@ -149306,6 +149360,10 @@ msgstr "Nom de projet manquant"
 
 msgid "Folder already part of a project"
 msgstr "Le dossier est déjà dans un projet"
+
+
+msgid "Can not create project for a blend file in the home or root folder"
+msgstr "Impossible de créer un projet pour un fichier .blend dans le dossier accueil ou racine"
 
 
 msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
@@ -150382,8 +150440,20 @@ msgid "Depth too large"
 msgstr "Profondeur trop grande"
 
 
+msgid "No valid selected objects to copy"
+msgstr "Aucun objet sélectionné valide à copier"
+
+
 msgid "No objects to paste"
 msgstr "Aucun objet à coller"
+
+
+msgid "Cannot copy the linked object '%s' to the internal clipboard"
+msgstr "Impossible de copier l’objet lié « %s » dans le presse-papier interne"
+
+
+msgid "Cannot copy the linked packed object '%s' to the internal clipboard"
+msgstr "Impossible de copier l’objet lié et empaqueté « %s » dans le presse-papier interne"
 
 
 msgid "Copied %d selected object(s)"
@@ -152330,6 +152400,14 @@ msgstr "Nom de variable « %s » invalide : le nom ne doit pas être vide ni 
 
 msgid "Variable not found in project variables."
 msgstr "Variable introuvable dans les variables du projet."
+
+
+msgid "From index is out of bounds of the variable list."
+msgstr "L’indice de départ est hors de l’intervalle de la liste de variables."
+
+
+msgid "To index is out of bounds of the variable list."
+msgstr "L’indice de destination est hors de l’intervalle de la liste de variables."
 
 
 msgid "Smooth the surface"
@@ -160771,6 +160849,10 @@ msgid "Warnings only work when inputs are constant values"
 msgstr "Les avertissements ne fonctionnent que quand les entrées ont des valeurs constantes"
 
 
+msgid "Enable input must be a constant value for this data type"
+msgstr "L’entrée Activer doit être une valeur constante pour ce type de données"
+
+
 msgid "Node requires constant input values"
 msgstr "Le nœuds nécessite des valeurs constantes en entrée"
 
@@ -160869,6 +160951,10 @@ msgstr "Pas une arborescence de nœuds de shader, de géométrie, ou de composit
 
 msgid "AO"
 msgstr "OA"
+
+
+msgid "LightIndex"
+msgstr "IndiceLumière"
 
 
 msgid "Color of the emitted light"
@@ -161227,6 +161313,10 @@ msgid "Blend between transmission and other base layer components"
 msgstr "Fondu entre la transmission et les autres composantes de couches de base"
 
 
+msgid "Linearly scales the amount of dispersion"
+msgstr "Multiplier linéairement la quantité de dispersion"
+
+
 msgid "Abbe number of the base dielectric medium. Smaller number gives stronger dispersion"
 msgstr "Nombre d’Abbe du médium diélectrique de base. Une valeur plus petite donne une dispersion plus forte"
 
@@ -161444,6 +161534,48 @@ msgid "Transmission Light"
 msgstr "Lumière transmise"
 
 
+msgid "Evaluation position. Surface position by default"
+msgstr "Position d’évaluation. Par défaut, position de la surface"
+
+
+msgid "Evaluation normal. Surface normal by default"
+msgstr "Normale d’évaluation. Par défaut, normale de la surface"
+
+
+msgid "Evaluation roughness. Used for reflection factor"
+msgstr "Rugosité d’évaluation. Utilisée pour le facteur de réflexion"
+
+
+msgid "Shading reflection factor, scaled by PI"
+msgstr "Facteur de réflexion du shading, multiplié par PI"
+
+
+msgid ""
+"All local lights: Mask to smooth the light cutoff.\n"
+"Spot lights: Cutoff mask and spot attenuation.\n"
+"Sun lights: 1.0"
+msgstr ""
+"Tous les éclairages locaux : masque pour adoucir la coupure de l’éclairage.\n"
+"Éclairages spots : masque de coupure et atténuation du spot.\n"
+"Éclairages soleils : 1.0"
+
+
+msgid ""
+"Local lights: Normalized direction from evaluation position to light position.\n"
+"Sun lights: Sun direction * -1.0"
+msgstr ""
+"Éclairages locaux : direction normalisée de la position d’évaluation vers la position de l’éclairage.\n"
+"Éclairages soleils : direction du soleil * -1.0"
+
+
+msgid ""
+"Local lights: Distance from evaluation position to light position.\n"
+"Sun lights: 1.0"
+msgstr ""
+"Éclairages locaux : distance de la position d’évaluation à la position de l’éclairage.\n"
+"Éclairages soleils : 1.0"
+
+
 msgid "Light strength before applying falloff modification"
 msgstr "Intensité de la lumière avant l’application du changement d’atténuation"
 
@@ -161454,6 +161586,14 @@ msgid ""
 msgstr ""
 "Adoucir l’intensité de la lumière près des sources lumineuses.\n"
 "Peut éviter les hautes lumières violentes, et réduire le bruit d’illumination globale. 0.0 ne donne aucun adoucissement, des valeurs plus élevées adoucissent plus"
+
+
+msgid "Radiant intensity divided by PI"
+msgstr "Intensité énergétique divisée par PI"
+
+
+msgid "Light position"
+msgstr "Position de l’éclairage"
 
 
 msgid "Is Camera Ray"
@@ -162344,8 +162484,16 @@ msgid "Clear Recent Files List"
 msgstr "Nettoyer la liste des fichiers récents"
 
 
+msgid "Clear Recent Projects List"
+msgstr "Nettoyer la liste des projets récents"
+
+
 msgid "Allow Execution"
 msgstr "Autoriser l’exécution"
+
+
+msgid "Continue Safely"
+msgstr "Continuer en sécurité"
 
 
 msgid "Save As..."
@@ -162526,6 +162674,10 @@ msgstr "Chemin de fichier « %s » invalide"
 
 msgid "Unknown error loading \"%s\""
 msgstr "Erreur inconnue lors du chargement de « %s »"
+
+
+msgid "Could not find a project within the specified path: %s"
+msgstr "Impossible de trouver un projet dans le chemin spécifié : %s"
 
 
 msgid "Application Template \"%s\" not found"

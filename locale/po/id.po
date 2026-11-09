@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-10-15 14:12+0000\n"
 "Last-Translator: Fadhul Rahim <fadhulrahim@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -17716,16 +17716,16 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
 msgid "Metaball"
 msgstr "Metabola"
 
 
 msgid "Names"
 msgstr "Nama"
-
-
-msgid "Snap"
-msgstr "Jepret"
 
 
 msgid "Math"
@@ -17736,36 +17736,44 @@ msgid "Utilities"
 msgstr "Utilitas"
 
 
-msgid "Mirror"
-msgstr "Cermin"
+msgid "Snap"
+msgstr "Jepret"
 
 
 msgid "Sample"
 msgstr "Sampel"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
+
+
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgid "Instances"
 msgstr "Contoh-contoh"
 
 
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
+msgid "Navigation"
+msgstr "Navigasi"
 
 
 msgid "Import"
 msgstr "Impor"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
 msgid "Light"
@@ -17774,10 +17782,6 @@ msgstr "Cahaya"
 
 msgid "Light Probe"
 msgstr "Probe Cahaya"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -17806,10 +17810,6 @@ msgstr "Terkoleksi"
 
 msgid "Layout"
 msgstr "Tata Letak"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
 
 
 msgid "Tracking"
@@ -24833,10 +24833,6 @@ msgstr "Hubungkan Koleksi"
 msgctxt "Operator"
 msgid "New Collection"
 msgstr "Koleksi Baru"
-
-
-msgid "Add a new collection inside selected collection"
-msgstr "Tambah koleksi baru di dalam koleksi terseleksi"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-10-12 16:12+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -36184,12 +36184,44 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Show/Hide"
-msgstr "Hiện/Ẩn Giấu"
+msgid "Enable Bone Options"
+msgstr "Bật các Tùy Chọn về Xương"
+
+
+msgid "Disable Bone Options"
+msgstr "Tắt các Tùy Chọn về Xương"
+
+
+msgid "Mesh Select Mode"
+msgstr "Chế Độ Chọn Khung Lưới"
 
 
 msgid "Creative"
 msgstr "Sáng Tạo"
+
+
+msgid "Face Data"
+msgstr "Dữ Liệu Mặt"
+
+
+msgid "Select by Face Strength"
+msgstr "Chọn theo Cường Độ Mặt"
+
+
+msgid "Set Face Strength"
+msgstr "Đặt Cường Độ Mặt"
+
+
+msgid "Clean Up"
+msgstr "Dọn Dẹp"
+
+
+msgid "Merge"
+msgstr "Hợp Nhất"
+
+
+msgid "Show/Hide"
+msgstr "Hiện/Ẩn Giấu"
 
 
 msgid "Special Characters"
@@ -36212,8 +36244,12 @@ msgid "Bone Roll"
 msgstr "Lăn Xương"
 
 
-msgid "Clean Up"
-msgstr "Dọn Dẹp"
+msgid "Math"
+msgstr "Toán"
+
+
+msgid "Utilities"
+msgstr "Tiện Ích"
 
 
 msgid "Pivot Point"
@@ -36244,16 +36280,32 @@ msgid "Vertex Group Locks"
 msgstr "Khóa của Nhóm Điểm Đỉnh"
 
 
-msgid "Math"
-msgstr "Toán"
+msgid "Read"
+msgstr "Đọc"
 
 
-msgid "Utilities"
-msgstr "Tiện Ích"
+msgid "Sample"
+msgstr "Lấy Mẫu Vật"
+
+
+msgid "Write"
+msgstr "Viết"
+
+
+msgid "Primitives"
+msgstr "Hình Cơ Bản"
+
+
+msgid "Gizmo"
+msgstr "Dụng Cụ"
 
 
 msgid "Mirror"
 msgstr "Phản Chiếu Đối Xứng"
+
+
+msgid "Instances"
+msgstr "Thực Thể"
 
 
 msgid "UV Mapping"
@@ -36264,36 +36316,24 @@ msgid "Local View"
 msgstr "Góc Nhìn Cục Bộ"
 
 
-msgid "Read"
-msgstr "Đọc"
-
-
 msgid "Viewpoint"
 msgstr "Điểm Nhìn"
-
-
-msgid "Sample"
-msgstr "Lấy Mẫu Vật"
 
 
 msgid "Navigation"
 msgstr "Điều Hướng"
 
 
-msgid "Write"
-msgstr "Viết"
-
-
 msgid "Align View"
 msgstr "Căn Chỉnh Góc Nhìn"
 
 
+msgid "Import"
+msgstr "Nhập Khẩu"
+
+
 msgid "Align View to Active"
 msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
-
-
-msgid "Primitives"
-msgstr "Hình Cơ Bản"
 
 
 msgid "View Regions"
@@ -36312,6 +36352,10 @@ msgid "Select All by Trait"
 msgstr "Chọn Toàn Bộ theo Đặc Điểm"
 
 
+msgid "Deprecated"
+msgstr "Lỗi Thời"
+
+
 msgid "Select Linked"
 msgstr "Chọn cái Kết Nối"
 
@@ -36320,40 +36364,24 @@ msgid "Select Loops"
 msgstr "Chọn Vòng Mạch"
 
 
-msgid "Gizmo"
-msgstr "Dụng Cụ"
+msgid "Render Preview"
+msgstr "Góc Nhìn Kết Xuất"
 
 
-msgid "Instances"
-msgstr "Thực Thể"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Ấn Định Nguyên Vật Liệu"
 
 
-msgid "Import"
-msgstr "Nhập Khẩu"
-
-
-msgid "Deprecated"
-msgstr "Lỗi Thời"
-
-
 msgid "Light"
 msgstr "Nguồn/Ánh Sáng/Đèn"
 
 
-msgid "Render Preview"
-msgstr "Góc Nhìn Kết Xuất"
-
-
 msgid "Light Probe"
 msgstr "Đầu Dò Ánh Sáng"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -36400,6 +36428,14 @@ msgid "Hooks"
 msgstr "Móc"
 
 
+msgid "Linked"
+msgstr "Kết Nối"
+
+
+msgid "Layout"
+msgstr "Bố Trí"
+
+
 msgid "Trim/Add"
 msgstr "Cắt Xén/Thêm"
 
@@ -36420,6 +36456,10 @@ msgid "Clear Transform"
 msgstr "Xóa Biến Hóa"
 
 
+msgid "Adjust"
+msgstr "Điều Chỉnh"
+
+
 msgid "In-Betweens"
 msgstr "Tư Thế Trung Gian"
 
@@ -36432,56 +36472,16 @@ msgid "Bone Collections"
 msgstr "Bộ Sưu Tập Xương"
 
 
-msgid "Linked"
-msgstr "Kết Nối"
-
-
-msgid "Layout"
-msgstr "Bố Trí"
-
-
-msgid "Toggle Bone Options"
-msgstr "Bật/Tắt Tùy Chọn về Xương"
-
-
-msgid "Enable Bone Options"
-msgstr "Bật các Tùy Chọn về Xương"
-
-
-msgid "Disable Bone Options"
-msgstr "Tắt các Tùy Chọn về Xương"
-
-
-msgid "Mesh Select Mode"
-msgstr "Chế Độ Chọn Khung Lưới"
-
-
-msgid "Face Data"
-msgstr "Dữ Liệu Mặt"
-
-
-msgid "Select by Face Strength"
-msgstr "Chọn theo Cường Độ Mặt"
-
-
-msgid "Set Face Strength"
-msgstr "Đặt Cường Độ Mặt"
-
-
-msgid "Adjust"
-msgstr "Điều Chỉnh"
-
-
 msgid "Keying"
 msgstr "Khóa Hóa"
 
 
-msgid "Merge"
-msgstr "Hợp Nhất"
-
-
 msgid "Tracking"
 msgstr "Giám Sát"
+
+
+msgid "Toggle Bone Options"
+msgstr "Bật/Tắt Tùy Chọn về Xương"
 
 
 msgid "Keyframe Insert Pie"
@@ -80024,10 +80024,6 @@ msgid "New Collection"
 msgstr "Bộ Sưu Tập Mới"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "Thêm một bộ sưu tập mới vào nội trong bộ sưu tập được chọn"
-
-
 msgid "Nested"
 msgstr "Lồng"
 
@@ -100787,10 +100783,6 @@ msgstr "Mã ngôn ngữ: de_DE. Tiến độ dịch: 35%"
 
 msgid "Greek - Ελληνικά"
 msgstr "Tiếng Hy Lạp (Ελληνικά)"
-
-
-msgid "Locale code: el_GR. Translation progress: 1%"
-msgstr "Mã ngôn ngữ: el_GR. Tiến độ dịch thuật: 1%"
 
 
 msgid "Hebrew - תירִבְעִ"
@@ -131483,6 +131475,11 @@ msgid "Disable in Render"
 msgstr "Tắt trong Kết Xuất"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "Mới"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "Thực Thể vào Cảnh"
@@ -131521,11 +131518,6 @@ msgstr "Ẩn Giấu Một Tầng"
 msgctxt "Operator"
 msgid "Relocate"
 msgstr "Định Vị Lại"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "Mới"
 
 
 msgctxt "Operator"
@@ -140889,6 +140881,10 @@ msgid "Operator cannot redo"
 msgstr "Thao tác không thể tái tác"
 
 
+msgid "Built-In"
+msgstr "Tích hợp sẵn"
+
+
 msgid "Size: {}"
 msgstr "Kích thước: {}"
 
@@ -147303,10 +147299,6 @@ msgstr "(trống rỗng)"
 
 msgid "Strip None"
 msgstr "Dải Không Có Thư Mục"
-
-
-msgid "Built-In"
-msgstr "Tích hợp sẵn"
 
 
 msgid "Add Asset Library"

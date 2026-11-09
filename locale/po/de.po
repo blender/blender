@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-08-25 20:13+0000\n"
 "Last-Translator: \"Mattis V.\" <mattis@users.noreply.translate.blender.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -19292,6 +19292,30 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
 msgid "Show/Hide"
 msgstr "Zeigen/Verbergen"
 
@@ -19312,8 +19336,8 @@ msgid "Names"
 msgstr "Namen"
 
 
-msgid "Clean Up"
-msgstr "Aufräumen"
+msgid "Math"
+msgstr "Mathe"
 
 
 msgid "Pivot Point"
@@ -19336,48 +19360,52 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Math"
-msgstr "Mathe"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
 msgid "Read"
 msgstr "Lesen"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
 
 
 msgid "Sample"
 msgstr "Beispiel"
 
 
-msgid "Navigation"
-msgstr "Navigation"
-
-
 msgid "Write"
 msgstr "Schreiben"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Instances"
+msgstr "Instanzen"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
 
 
 msgid "Align View"
 msgstr "Ansicht ausrichten"
 
 
+msgid "Import"
+msgstr "Importieren"
+
+
 msgid "Align View to Active"
 msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
 
 
 msgid "View Regions"
@@ -19404,16 +19432,12 @@ msgid "Select Loops"
 msgstr "Schleifen auswählen"
 
 
-msgid "Instances"
-msgstr "Instanzen"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Material zuweisen"
-
-
-msgid "Import"
-msgstr "Importieren"
 
 
 msgid "Light"
@@ -19422,10 +19446,6 @@ msgstr "Licht"
 
 msgid "Light Probe"
 msgstr "Lichtsonde"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -19468,6 +19488,14 @@ msgid "Hooks"
 msgstr "Haken"
 
 
+msgid "Linked"
+msgstr "Verknüpft"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Random Mask"
 msgstr "Zufällige Maske"
 
@@ -19480,44 +19508,16 @@ msgid "In-Betweens"
 msgstr "Dazwischen"
 
 
-msgid "Linked"
-msgstr "Verknüpft"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
 msgid "Keying"
 msgstr "Schlüsselbilder"
 
 
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
 msgid "Tracking"
 msgstr "Verfolgen"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
 
 
 msgid "Assets"

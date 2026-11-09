@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28707,6 +28707,38 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Select by Face Strength"
+msgstr "Yüz Gücüne Göre Seç"
+
+
+msgid "Set Face Strength"
+msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
+msgid "Merge"
+msgstr "Birleştir"
+
+
 msgid "Show/Hide"
 msgstr "Göster/Gizle"
 
@@ -28731,8 +28763,12 @@ msgid "Bone Roll"
 msgstr "Kemik Rulosu"
 
 
-msgid "Clean Up"
-msgstr "Temizle"
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
 
 
 msgid "Pivot Point"
@@ -28763,16 +28799,28 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
-msgid "Math"
-msgstr "Matematik"
+msgid "Read"
+msgstr "Okumak"
 
 
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
+msgid "Sample"
+msgstr "Örnek"
+
+
+msgid "Write"
+msgstr "Yazmak"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Mirror"
 msgstr "Yansıtma"
+
+
+msgid "Instances"
+msgstr "Örnekler"
 
 
 msgid "UV Mapping"
@@ -28783,36 +28831,24 @@ msgid "Local View"
 msgstr "Yerel Görünüm"
 
 
-msgid "Read"
-msgstr "Okumak"
-
-
 msgid "Viewpoint"
 msgstr "Bakış açısı"
-
-
-msgid "Sample"
-msgstr "Örnek"
 
 
 msgid "Navigation"
 msgstr "Navigasyon"
 
 
-msgid "Write"
-msgstr "Yazmak"
-
-
 msgid "Align View"
 msgstr "Görünümü hizala"
 
 
+msgid "Import"
+msgstr "İçe Aktar"
+
+
 msgid "Align View to Active"
 msgstr "Görünümü Etkin Olarak Hizala"
-
-
-msgid "Primitives"
-msgstr "İlkel"
 
 
 msgid "View Regions"
@@ -28831,6 +28867,10 @@ msgid "Select All by Trait"
 msgstr "Özelliğe Göre Tümünü Seç"
 
 
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
+
+
 msgid "Select Linked"
 msgstr "Bağlantılıyı Seç"
 
@@ -28839,20 +28879,12 @@ msgid "Select Loops"
 msgstr "Döngüleri Seç"
 
 
-msgid "Instances"
-msgstr "Örnekler"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Malzeme Atamak"
-
-
-msgid "Import"
-msgstr "İçe Aktar"
-
-
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
 
 
 msgid "Light"
@@ -28861,10 +28893,6 @@ msgstr "Işık"
 
 msgid "Light Probe"
 msgstr "Işık Sondası"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -28911,6 +28939,14 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
+msgid "Linked"
+msgstr "Bağlantılı"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
+
+
 msgid "Trim/Add"
 msgstr "Kırp/Ekle"
 
@@ -28931,6 +28967,10 @@ msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
 
 
+msgid "Adjust"
+msgstr "Ayarlamak"
+
+
 msgid "In-Betweens"
 msgstr "Arada Kalanlar"
 
@@ -28943,56 +28983,16 @@ msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Linked"
-msgstr "Bağlantılı"
-
-
-msgid "Layout"
-msgstr "Yerleşim"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Face Data"
-msgstr "Yüz Verileri"
-
-
-msgid "Select by Face Strength"
-msgstr "Yüz Gücüne Göre Seç"
-
-
-msgid "Set Face Strength"
-msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
 msgid "Keying"
 msgstr "Anahtarlama"
 
 
-msgid "Merge"
-msgstr "Birleştir"
-
-
 msgid "Tracking"
 msgstr "Takip"
+
+
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
 
 
 msgid "Keyframe Insert Pie"
@@ -63492,10 +63492,6 @@ msgstr "Seçili koleksiyonları etkin sahneye bağla"
 msgctxt "Operator"
 msgid "New Collection"
 msgstr "Yeni Koleksiyon"
-
-
-msgid "Add a new collection inside selected collection"
-msgstr "Seçili koleksiyonun içine yeni bir koleksiyon ekle"
 
 
 msgid "Nested"
@@ -102849,6 +102845,11 @@ msgid "Disable in Render"
 msgstr "Render'da devre dışı bırak"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "Yeni"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "Örnekten Sahneye"
@@ -102878,11 +102879,6 @@ msgstr "Nesne İçeriği"
 msgctxt "Operator"
 msgid "Hide One Level"
 msgstr "Bir Seviyeyi Gizle"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "Yeni"
 
 
 msgctxt "Operator"
