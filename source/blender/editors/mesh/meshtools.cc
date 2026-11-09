@@ -915,9 +915,11 @@ void EDBM_mesh_stats_multi(const Span<Object *> objects, int totelem[3], int tot
       totelem[2] += bm->totface;
     }
     if (totelem_sel) {
-      totelem_sel[0] += bm->totvertsel;
-      totelem_sel[1] += bm->totedgesel;
-      totelem_sel[2] += bm->totfacesel;
+      int selected_num[3];
+      BKE_mesh_count_selected_items(id_cast<const Mesh *>(obedit->data), selected_num);
+      totelem_sel[0] += selected_num[0];
+      totelem_sel[1] += selected_num[1];
+      totelem_sel[2] += selected_num[2];
     }
   }
 }
