@@ -145,6 +145,11 @@ struct OperatorTypeData : public wmOperatorType::TypeData {
   };
   std::variant<AssetWeakReference, LocalRef> group_ref;
 
+  /* Only for assets: Set to true if the asset isn't available offline or it was downloaded before
+   * but is inconsistent now (e.g. outdated or missing new dependencies). For non-asset IDs this is
+   * always false. */
+  bool asset_needs_downloading;
+
   UniqueHash hash;
 
   static std::optional<OperatorTypeData> from_asset(const AssetRepresentation &asset,
@@ -253,6 +258,7 @@ std::optional<OperatorTypeData> OperatorTypeData::from_asset(
   }
   type_data.flag = GeometryNodeAssetTraitFlag(IDP_int_get(traits_flag));
   type_data.group_ref = asset.make_weak_reference();
+  type_data.asset_needs_downloading = asset.needs_download();
 
   const IDProperty *properties = BKE_asset_metadata_idprop_find(&metadata, "properties");
   if (!properties || properties->type != IDP_GROUP) {
@@ -309,6 +315,7 @@ std::optional<OperatorTypeData> OperatorTypeData::from_group(const bNodeTree &gr
   type_data.description = group.description ? group.description : "";
   type_data.flag = GeometryNodeAssetTraitFlag(group.geometry_node_asset_traits->flag);
   type_data.group_ref = OperatorTypeData::LocalRef{group.id.session_uid};
+  type_data.asset_needs_downloading = false;
 
   type_data.asset_meta_data_properties =
       std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter>(
@@ -341,6 +348,16 @@ static const bNodeTree *get_asset_or_local_node_group(const bContext &C,
           const asset_system::AssetRepresentation *asset = ed::asset::find_asset_from_weak_ref(
               C, value, reports);
           if (!asset) {
+            return nullptr;
+          }
+          if (asset->is_online_only()) {
+            if (reports) {
+              BKE_reportf(reports,
+                          RPT_ERROR,
+                          "Node tool '%s' needs downloading before it can be used (check context "
+                          "menu)",
+                          asset->get_name().c_str());
+            }
             return nullptr;
           }
           return id_cast<const bNodeTree *>(asset::asset_local_id_ensure_imported(bmain, *asset));
@@ -2016,6 +2033,35 @@ static bool menu_operators_poll(const bContext &C, const RegistrationData::TypeT
   return false;
 }
 
+/**
+ * Adds a button for \a ot, which must be one registered with #register_node_group_operators() and
+ * have the #OperatorTypeData set as the custom data pointer.
+ */
+static void add_node_group_operator_button(const bContext *C,
+                                           ui::Layout &layout,
+                                           wmOperatorType *ot)
+{
+  const auto &type_data = *static_cast<const OperatorTypeData *>(ot->custom_data.get());
+
+  const auto *asset_ref = std::get_if<AssetWeakReference>(&type_data.group_ref);
+  if (asset_ref && type_data.asset_needs_downloading) {
+    /* Don't pass reports to this function, as this is called on every draw.
+     * If it has something to report, it'll get very noisy. */
+    const asset_system::AssetRepresentation *asset = ed::asset::find_asset_from_weak_ref(
+        *C, *asset_ref, nullptr);
+
+    if (asset) {
+      /* This sets up the layout for online assets if necessary, so users are forced to download
+       * the asset via the context menu first. */
+      asset::draw_asset_menu_item(asset, layout, [&](ui::Layout &sub, BIFIconID asset_icon) {
+        sub.op(ot, std::nullopt, asset_icon, wm::OpCallContext::InvokeRegionWin, UI_ITEM_NONE);
+      });
+      return;
+    }
+  }
+  layout.op(ot, std::nullopt, ICON_NONE, wm::OpCallContext::InvokeRegionWin, UI_ITEM_NONE);
+}
+
 static void catalog_assets_draw(const bContext *C, Menu *menu)
 {
   const Object *active_object = CTX_data_active_object(C);
@@ -2043,7 +2089,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
       layout.separator();
       add_separator = false;
     }
-    layout.op(ot, std::nullopt, ICON_NONE, wm::OpCallContext::InvokeRegionWin, UI_ITEM_NONE);
+    add_node_group_operator_button(C, layout, ot);
   }
 
   const Set<StringRef> builtin_menus = get_builtin_menus(active_object->type, active_object->mode);
@@ -2085,7 +2131,7 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
     if (!WM_operator_poll(const_cast<bContext *>(C), ot)) {
       continue;
     }
-    layout.op(ot, std::nullopt, ICON_NONE, wm::OpCallContext::InvokeRegionWin, UI_ITEM_NONE);
+    add_node_group_operator_button(C, layout, ot);
     add_separator = true;
   }
 
@@ -2102,7 +2148,7 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
       layout.label(IFACE_("Non-Assets"), ICON_NONE);
       first = false;
     }
-    layout.op(ot, std::nullopt, ICON_NONE, wm::OpCallContext::InvokeRegionWin, UI_ITEM_NONE);
+    add_node_group_operator_button(C, layout, ot);
   }
 }
 

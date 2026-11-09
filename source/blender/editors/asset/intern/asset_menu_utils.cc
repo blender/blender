@@ -164,9 +164,8 @@ void draw_node_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
 }
 
 void draw_asset_menu_item(const asset_system::AssetRepresentation *asset,
-                          StringRefNull opname,
-                          const wm::OpCallContext operator_call_context,
-                          ui::Layout &layout)
+                          ui::Layout &layout,
+                          FunctionRef<void(ui::Layout &, BIFIconID)> draw_item_fn)
 {
   ui::Layout &row = layout.row(true);
   if (asset->is_online_only()) {
@@ -181,9 +180,19 @@ void draw_asset_menu_item(const asset_system::AssetRepresentation *asset,
                              ICON_STATUS_WARNING :
                              ICON_NONE;
   const int icon = asset->is_online_only() ? ICON_INTERNET : icon_local;
-  PointerRNA props_ptr = row.op(
-      opname, IFACE_(asset->get_name()), icon, operator_call_context, UI_ITEM_NONE);
-  asset::operator_asset_reference_props_set(*asset, props_ptr);
+  draw_item_fn(row, icon);
+}
+
+void draw_asset_menu_item(const asset_system::AssetRepresentation *asset,
+                          StringRefNull opname,
+                          const wm::OpCallContext operator_call_context,
+                          ui::Layout &layout)
+{
+  draw_asset_menu_item(asset, layout, [&](ui::Layout &sub, BIFIconID asset_icon) {
+    PointerRNA props_ptr = sub.op(
+        opname, IFACE_(asset->get_name()), asset_icon, operator_call_context, UI_ITEM_NONE);
+    asset::operator_asset_reference_props_set(*asset, props_ptr);
+  });
 }
 
 }  // namespace blender::ed::asset

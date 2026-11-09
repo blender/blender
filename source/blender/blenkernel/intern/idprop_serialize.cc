@@ -33,6 +33,15 @@ static const IDPropertySerializer &serializer_for(StringRef idprop_typename);
 static constexpr StringRef IDP_KEY_NAME("name");
 static constexpr StringRef IDP_KEY_TYPE("type");
 static constexpr StringRef IDP_KEY_SUBTYPE("subtype");
+/**
+ * Remote asset listings use this name for the array element type.
+ *
+ * See blender_asset_library_openapi.yaml for the spec.
+ *
+ * In the future this could be handled by the remote asset listing downloader, translating from the
+ * OpenAPI data to the form the C++ code in this file expects ("subtype").
+ */
+static constexpr StringRef IDP_KEY_ITEMTYPE("itemtype");
 static constexpr StringRef IDP_KEY_VALUE("value");
 
 static constexpr StringRef IDP_PROPERTY_TYPENAME_STRING("IDP_STRING");
@@ -117,7 +126,12 @@ struct DictionaryEntryParser {
 
   std::optional<eIDPropertyType> get_subtype() const
   {
-    return get_id_property_type(IDP_KEY_SUBTYPE);
+    /* The "subtype" key is the expected one, but in certain cases an "itemtype" key is used. See
+     * the documentation of #IDP_KEY_ITEMTYPE for more info. */
+    if (std::optional<eIDPropertyType> subtype = get_id_property_type(IDP_KEY_SUBTYPE)) {
+      return subtype;
+    }
+    return get_id_property_type(IDP_KEY_ITEMTYPE);
   }
 
   std::optional<std::string> get_name() const
@@ -683,7 +697,13 @@ class IDPGroupSerializer : public IDPropertySerializer {
       }
       const DictionaryValue *subobject = element->as_dictionary_value();
       IDProperty *subproperty = idprop_from_value(*subobject);
-      IDP_AddToGroup(result.get(), subproperty);
+      if (subproperty == nullptr) {
+        continue;
+      }
+      if (!IDP_AddToGroup(result.get(), subproperty)) {
+        /* Duplicate name: the group did not take ownership. */
+        IDP_FreeProperty(subproperty);
+      }
     }
 
     return result;

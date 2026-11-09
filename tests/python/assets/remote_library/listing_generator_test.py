@@ -2,9 +2,10 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import sys
 import unittest
-from pathlib import PurePath, PurePosixPath, PureWindowsPath
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
 
 from _bpy_internal.assets.remote_library import json_parsing, hashing
 from _bpy_internal.assets.remote_library import blender_asset_library_openapi as api_models
@@ -14,8 +15,12 @@ import bpy
 
 
 """
-blender -b --factory-startup --python tests/python/assets/remote_library/listing_generator_test.py
+blender -b --factory-startup --python tests/python/assets/remote_library/listing_generator_test.py -- \
+    --testdir tests/files/asset_library
 """
+
+# CLI argument, will be set to its actual value in main() below.
+arg_testdir: Path
 
 
 class CustomPropertiesTest(unittest.TestCase):
@@ -56,6 +61,73 @@ class CustomPropertiesTest(unittest.TestCase):
             Prop(name='amazing', type=Types.IDP_BOOL, value=True),
         ]
         # autopep8: on
+
+        assert meta is not None
+        self.assertEqual(expected_props, meta.properties)
+
+    def test_group_properties(self) -> None:
+        filepath = arg_testdir / "node-tool-file.blend"
+        bpy.ops.wm.open_mainfile(filepath=str(filepath))
+
+        node_asset = bpy.data.node_groups['Move object up']
+
+        meta = asset_finder._get_asset_meta(node_asset.asset_data)
+
+        Types = api_models.CustomPropertyTypeV1
+        Prop = api_models.CustomPropertyV1
+        expected_props = [
+            Prop(name='type',
+                 type=Types.IDP_INT,
+                 value=3),
+            Prop(name='properties',
+                 type=Types.IDP_GROUP,
+                 value=[Prop(name='inputs',
+                             type=Types.IDP_GROUP,
+                             value=[Prop(name='Socket_0',
+                                         type=Types.IDP_GROUP,
+                                         value=[Prop(name='name',
+                                                     type=Types.IDP_STRING,
+                                                     value='Geometry'),
+                                                Prop(name='type',
+                                                     type=Types.IDP_INT,
+                                                     value=10),
+                                                Prop(name='description',
+                                                     type=Types.IDP_STRING,
+                                                     value='')],
+                                         )],
+                             ),
+                        Prop(name='panels', type=Types.IDP_GROUP, value=[]),
+                        Prop(name='outputs',
+                             type=Types.IDP_GROUP,
+                             value=[Prop(name='Geometry',
+                                         type=Types.IDP_STRING,
+                                         value='NodeSocketGeometry')],
+                             ),
+                        Prop(name='output_sockets',
+                             type=Types.IDP_GROUP,
+                             value=[Prop(name='Socket_1',
+                                         type=Types.IDP_GROUP,
+                                         value=[Prop(name='name',
+                                                     type=Types.IDP_STRING,
+                                                     value='Geometry'),
+                                                Prop(name='type',
+                                                     type=Types.IDP_INT,
+                                                     value=10),
+                                                Prop(name='description',
+                                                     type=Types.IDP_STRING,
+                                                     value='')],
+                                         )],
+                             )],
+                 ),
+            Prop(name='geometry_node_asset_traits_flag',
+                 type=Types.IDP_INT,
+                 value=137,
+                 itemtype=None),
+            Prop(name='node_tool_idname',
+                 type=Types.IDP_STRING,
+                 value='geometry.tool',
+                 itemtype=None)
+        ]
 
         assert meta is not None
         self.assertEqual(expected_props, meta.properties)
@@ -361,13 +433,19 @@ class BlenderVersionFromFilenameTest(unittest.TestCase):
 
 
 def main():
-    global args
+    global arg_testdir
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:
         argv += sys.argv[sys.argv.index('--') + 1:]
 
-    unittest.main(argv=argv)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--testdir', required=True, type=Path)
+    args, remaining = parser.parse_known_args(argv)
+
+    arg_testdir = args.testdir
+
+    unittest.main(argv=remaining)
 
 
 if __name__ == "__main__":
