@@ -2923,7 +2923,8 @@ class XpbdSolverStep {
 
   float compute_contact_friction(const float point_friction, const float collider_friction) const
   {
-    return math::sqrt(point_friction * collider_friction);
+    /* Friction values stored in attributes may be negative which would lead to NaN. */
+    return math::sqrt(std::max(point_friction, 0.0f) * std::max(collider_friction, 0.0f));
   }
 
   float compute_contact_friction(const float point0_friction,
