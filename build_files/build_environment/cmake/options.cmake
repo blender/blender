@@ -356,10 +356,10 @@ else()
       export PKG_CONFIG_LIBDIR=${LIBDIR}/pkgconfig
     )
 
-    # For Meson projects, a similar cross-compilation environment is defined via a cross-file.
-    # Meson has its own CPU naming conventions, and needs to be told about the target long
-    # double format as it cannot determine it by running an executable while cross-compiling.
-    # See https://mesonbuild.com/Reference-tables.html for the accepted values.
+    # For Meson projects, a similar cross-compilation environment is defined via a cross-file. Meson has its own
+    # CPU naming conventions, see https://mesonbuild.com/Reference-tables.html for the accepted values.
+    # For building numpy, it also needs to be told about the target long double format as it cannot determine
+    # it by running an executable while cross-compiling.
     if(ANDROID_ABI STREQUAL "arm64-v8a")
       set(ANDROID_MESON_CPU_FAMILY "aarch64")
       set(ANDROID_MESON_CPU "armv8")
