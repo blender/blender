@@ -60,7 +60,7 @@ static void mesh_render_data_edge_flag(const MeshRenderData &mr,
   if (mr.edge_crease_ofs != -1) {
     float crease = BM_ELEM_CD_GET_FLOAT(eed, mr.edge_crease_ofs);
     if (crease > 0) {
-      eattr.crease = uchar(ceil(crease * 15.0f));
+      eattr.crease |= uchar(ceil(crease * 15.0f));
     }
   }
   /* Use a byte for value range */
