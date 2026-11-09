@@ -678,7 +678,7 @@ void mesh_select_edge_flush(Mesh &mesh)
 {
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArray<bool> select_edge = *attributes.lookup_or_default<bool>(
-      ".select_edge", AttrDomain::Point, false);
+      ".select_edge", AttrDomain::Edge, false);
   if (select_edge.is_single() && !select_edge.get_internal_single()) {
     attributes.remove(".select_vert");
     attributes.remove(".select_poly");
