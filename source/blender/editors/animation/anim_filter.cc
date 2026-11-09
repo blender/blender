@@ -4509,6 +4509,27 @@ void foreach_channel(SummaryChannel &root, const ForEachChannelCallback callback
   foreach_channel_recursive(root, 0, callback);
 }
 
+void sync_dopesheet(const bDopeSheet &from, bDopeSheet &to)
+{
+  /* This does a straight copy of the flags. If it should turn out that some editors should not
+   * have certain flags set, it's better so fix it so the editor ignores the flag instead of not
+   * syncing it here. */
+  to.filterflag = from.filterflag;
+  to.filterflag2 = from.filterflag2;
+  to.flag = from.flag;
+  to.filter_grp = from.filter_grp;
+  STRNCPY(to.searchstr, from.searchstr);
+  /* TODO copy pins. */
+}
+
+void sync_runtime(const AnimfilterSpaceRuntime &from, AnimfilterSpaceRuntime &to)
+{
+  to.channel_states = from.channel_states;
+  /* We have to copy the last used too since it is compared to values baked into
+   * `channel_states`.  */
+  to.last_used = from.last_used;
+}
+
 }  // namespace ed::animfilter
 
 }  // namespace blender

@@ -35,6 +35,7 @@
 #include "ED_anim_filter.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
+#include "ED_space_action.hh"
 #include "ED_space_api.hh"
 #include "ED_space_graph.hh"
 #include "ED_time_scrub_ui.hh"
@@ -164,6 +165,13 @@ static void graph_init(wmWindowManager *wm, ScrArea *area)
     wmWindow *win = WM_window_find_by_area(wm, area);
     sipo->ads = MEM_new<bDopeSheet>("GraphEdit DopeSheet");
     sipo->ads->source = win ? id_cast<ID *>(WM_window_get_active_scene(win)) : nullptr;
+  }
+
+  if (sipo->next && sipo->next->spacetype == SPACE_ACTION) {
+    const SpaceAction *dope_sheet = reinterpret_cast<SpaceAction *>(sipo->next);
+    ed::animfilter::sync_dopesheet(dope_sheet->ads, *sipo->ads);
+    ed::animfilter::sync_runtime(dope_sheet->runtime->animfilter_runtime,
+                                 sipo->runtime->animfilter_runtime);
   }
 
   /* force immediate init of any invalid F-Curve colors */

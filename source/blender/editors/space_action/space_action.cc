@@ -53,6 +53,7 @@
 #include "ED_screen.hh"
 #include "ED_space_action.hh"
 #include "ED_space_api.hh"
+#include "ED_space_graph.hh"
 #include "ED_time_scrub_ui.hh"
 
 #include "BLO_read_write.hh"
@@ -194,6 +195,13 @@ static void action_free(SpaceLink *sl)
 static void action_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
   SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
+  if (saction->next && saction->next->spacetype == SPACE_GRAPH) {
+    SpaceGraph *graph_editor = reinterpret_cast<SpaceGraph *>(saction->next);
+    BLI_assert(graph_editor->ads);
+    ed::animfilter::sync_dopesheet(*graph_editor->ads, saction->ads);
+    ed::animfilter::sync_runtime(graph_editor->runtime->animfilter_runtime,
+                                 saction->runtime->animfilter_runtime);
+  }
   saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 }
 

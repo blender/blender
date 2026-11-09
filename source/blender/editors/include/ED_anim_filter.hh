@@ -1256,5 +1256,14 @@ class ChannelArenaHandle {
  */
 ChannelArenaHandle get_summary_tree_for_context(const bContext &C);
 
+/**
+ * Syncs flags responsible for channel display from one dopesheet to the other.
+ * Used when switching between the Dope Sheet and Graph Editor in the same area. Channel display is
+ * expected to stay the same.
+ */
+void sync_dopesheet(const bDopeSheet &from, bDopeSheet &to);
+
+void sync_runtime(const AnimfilterSpaceRuntime &from, AnimfilterSpaceRuntime &to);
+
 }  // namespace ed::animfilter
 }  // namespace blender
