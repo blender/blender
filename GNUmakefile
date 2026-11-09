@@ -39,14 +39,15 @@ Other Convenience Targets
                     These must be manually removed from 'lib/' to go back to using the pre-compiled libraries.
 
 Cross-Compilation Targets
-   * android:       Build for Android via cross-compilation, applies to regular Blender builds and `deps` dependency builds.
+   When cross-compiling the build directory is suffixed with the target architecture.
+   For example 'make android x64 release' builds in '../build_android_x64_release'.
+   All targets below apply to both regular `all` Blender builds and `deps` dependency builds.
 
-                    The target architecture may be selected by combining it with one of the
-                    architecture goals below, defaulting to 'arm64' when none is given.
-                    The build directory is suffixed with the target architecture,
-                    for example 'make android x64 release' builds in '../build_android_x64_release'.
+   * android:       Build for Android via cross-compilation.
 
-   * arm64:         Target the 64-bit ARM architecture (Android ABI 'arm64-v8a').
+   The target architecture may be selected by combining it with one of the architecture goals below.
+
+   * arm64:         Target the 64-bit ARM architecture (Android ABI 'arm64-v8a', default).
    * x64:           Target the 64-bit x86 architecture (Android ABI 'x86_64').
 
 Project Files
