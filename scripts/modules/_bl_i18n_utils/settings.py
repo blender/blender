@@ -54,7 +54,7 @@ LANGUAGES = (
     (22, "Bulgarian - Български", "bg_BG"),
     (23, "Greek - Ελληνικά", "el_GR"),
     (24, "Korean - 한국어", "ko_KR"),
-    # 25 is free, used to be "Nepali - नेपाली", ("ne_NP").
+    (25, "Azerbaijani - Azərbaycan dili", "az"),
     # Using the utf8 flipped form of Persian (فارسی).
     (26, "Persian - ﯽﺳﺭﺎﻓ", "fa_IR"),
     (27, "Indonesian - Bahasa indonesia", "id_ID"),
