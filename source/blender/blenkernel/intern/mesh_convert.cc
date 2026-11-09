@@ -1157,8 +1157,14 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob, bool pr
   std::swap(mesh_dst->clone_uv_map_attribute, mesh_src->clone_uv_map_attribute);
   std::swap(mesh_dst->default_uv_map_attribute, mesh_src->default_uv_map_attribute);
   std::swap(mesh_dst->vertex_group_names, mesh_src->vertex_group_names);
+  mesh_dst->mselect = std::exchange(mesh_src->mselect, nullptr);
+  mesh_dst->totselect = std::exchange(mesh_src->totselect, 0);
+  mesh_validate_selection_history(*mesh_dst);
 
   BKE_mesh_copy_parameters(mesh_dst, mesh_src);
+  mesh_dst->act_face = IndexRange(mesh_src->faces_num).contains(mesh_src->act_face) ?
+                           mesh_src->act_face :
+                           -1;
 
   /* For original meshes, shape key data is stored in the #Key data-block, so it
    * must be moved from the storage in #CustomData layers used for evaluation. */

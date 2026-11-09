@@ -704,39 +704,38 @@ static bool validate_material_indices(const Mesh &mesh,
   return false;
 }
 
-static bool validate_selection_history(const Mesh &mesh, const bool verbose, Mesh *mesh_mut)
+static IndexMask find_invalid_selection_history(const Mesh &mesh, IndexMaskMemory &memory)
 {
   if (!mesh.mselect) {
-    return true;
+    return {};
   }
   const Span<MSelect> mselect(mesh.mselect, mesh.totselect);
+  return IndexMask::from_predicate(mselect.index_range(), memory, [&](const int i) {
+    const int domain_size = [&]() {
+      switch (mselect[i].type) {
+        case ME_VSEL:
+          return mesh.verts_num;
+        case ME_ESEL:
+          return mesh.edges_num;
+        case ME_FSEL:
+          return mesh.faces_num;
+      }
+      return 0;
+    }();
+    return !IndexRange(domain_size).contains(mselect[i].index);
+  });
+}
+
+static bool validate_selection_history(const Mesh &mesh, const bool verbose, Mesh *mesh_mut)
+{
   IndexMaskMemory memory;
-  const IndexMask invalid = IndexMask::from_predicate(
-      mselect.index_range(), memory, [&](const int i) {
-        if (mselect[i].index < 0) {
-          return true;
-        }
-        const int domain_size = [&]() {
-          switch (mselect[i].type) {
-            case ME_VSEL:
-              return mesh.verts_num;
-            case ME_ESEL:
-              return mesh.edges_num;
-            case ME_FSEL:
-              return mesh.faces_num;
-          }
-          return 0;
-        }();
-        if (mselect[i].index >= domain_size) {
-          return true;
-        }
-        return false;
-      });
+  const IndexMask invalid = find_invalid_selection_history(mesh, memory);
   if (invalid.is_empty()) {
     return true;
   }
 
   if (verbose) {
+    const Span<MSelect> mselect(mesh.mselect, mesh.totselect);
     invalid.foreach_index([&](const int i) {
       CLOG_ERROR(&LOG,
                  "Selection element (%d, %d) has invalid index, must not be negative",
@@ -745,7 +744,16 @@ static bool validate_selection_history(const Mesh &mesh, const bool verbose, Mes
     });
   }
   if (mesh_mut) {
-    MEM_SAFE_DELETE(mesh_mut->mselect);
+    const Span<MSelect> src(mesh_mut->mselect, mesh_mut->totselect);
+    const IndexMask valid = invalid.complement(src.index_range(), memory);
+    MSelect *dst = nullptr;
+    if (!valid.is_empty()) {
+      dst = MEM_new_array<MSelect>(valid.size(), __func__);
+      index_mask::copy_assign(src, valid, MutableSpan(dst, valid.size()));
+    }
+    MEM_delete(mesh_mut->mselect);
+    mesh_mut->mselect = dst;
+    mesh_mut->totselect = valid.size();
   }
 
   return false;
@@ -1013,6 +1021,11 @@ bool mesh_is_valid(const Mesh &mesh, const bool verbose)
 bool mesh_validate_material_indices(Mesh &mesh)
 {
   return validate_material_indices(mesh, false, false, &mesh);
+}
+
+bool mesh_validate_selection_history(Mesh &mesh)
+{
+  return validate_selection_history(mesh, false, &mesh);
 }
 
 IndexMask mesh_find_faces_duplicate_verts(const Mesh &mesh, IndexMaskMemory &memory)

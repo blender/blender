@@ -494,6 +494,12 @@ bool mesh_is_valid(const Mesh &mesh, bool verbose = true);
 bool mesh_validate_material_indices(Mesh &mesh);
 
 /**
+ * Remove selection history elements (#Mesh::mselect) with indices outside of their domain's range.
+ * \return True if the selection history was valid.
+ */
+bool mesh_validate_selection_history(Mesh &mesh);
+
+/**
  * Check whether faces contain duplicate vertex indices.
  * \return a mask of all invalid faces.
  */
