@@ -73,6 +73,28 @@ struct Uniform {
   }
 };
 
+struct WeightMap {
+  [[resource_table]] Uniform uni;
+
+  [[sampler(0)]] sampler1D weight_tx;
+
+  float3 weight_to_rgb(float weight) const
+  {
+    const UniformData &theme = uni.uniform_buf;
+
+    constexpr float no_active_weight = 666.0f;
+    if (weight == no_active_weight) {
+      /* No weight. */
+      return theme.colors.wire.rgb;
+    }
+    if (weight > 1.0f || weight < 0.0f) {
+      /* Error color */
+      return float3(1.0f, 0.0f, 1.0f);
+    }
+    return texture(weight_tx, weight).rgb;
+  }
+};
+
 float2 compute_dir(float2 v0, float2 /*v1*/, float2 v2)
 {
   float2 dir = normalize(v2 - v0);
@@ -144,6 +166,33 @@ void wire_frag_smooth([[resource_table, condition(selectable)]] draw::Select &se
 {
   frag_out.line_output = overlay::pack_line_data(frag_co.xy, v_out.edge_start, v_out.edge_pos);
   frag_out.color = v_out.final_color;
+  if (sel.consts.selectable) [[static_branch]] {
+    sel.select_id_output(sel_out.select_id, frag_co);
+  }
+}
+
+[[fragment]]
+void point_frag([[resource_table, condition(selectable)]] draw::Select &sel,
+                [[frag_coord]] const float4 frag_co,
+                [[in]] const VertOut &v_out,
+                [[out]] FragOut &frag_out,
+                [[in, condition(selectable)]] const draw::SelectOut &sel_out,
+                [[point_coord]] const float2 point_co)
+{
+  float2 centered = point_co - float2(0.5f);
+  float dist_squared = dot(centered, centered);
+  constexpr float rad_squared = 0.25f;
+  /* Round point with jagged edges. */
+  if (dist_squared > rad_squared) {
+    if (!sel.consts.selectable) [[static_branch]] {
+      gpu_discard_fragment();
+    }
+    return;
+  }
+
+  frag_out.color = v_out.final_color;
+  frag_out.line_output = float4(0.0f);
+
   if (sel.consts.selectable) [[static_branch]] {
     sel.select_id_output(sel_out.select_id, frag_co);
   }

@@ -568,8 +568,7 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_edit_curve_wire_vert.glsl
   engines/overlay/shaders/overlay_edit_curves_handle_vert.glsl
   engines/overlay/shaders/overlay_edit_gpencil_canvas_vert.glsl
-  engines/overlay/shaders/overlay_edit_lattice_point_vert.glsl
-  engines/overlay/shaders/overlay_edit_lattice_wire_vert.glsl
+  engines/overlay/shaders/overlay_edit_lattice.bsl.hh
   engines/overlay/shaders/overlay_edit_mesh.bsl.hh
   engines/overlay/shaders/overlay_edit_mesh_analysis_frag.glsl
   engines/overlay/shaders/overlay_edit_mesh_analysis_vert.glsl

@@ -495,47 +495,6 @@ CREATE_INFO_VARIANT(overlay_edit_curves_point_clipped, overlay_edit_curves_point
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Edit Lattice
- * \{ */
-
-GPU_SHADER_CREATE_INFO(overlay_edit_lattice_point)
-VERTEX_IN(0, float3, pos)
-VERTEX_IN(1, uint, data)
-VERTEX_OUT(overlay_edit_flat_color_iface)
-DEFINE("LINE_OUTPUT")
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, line_output)
-VERTEX_SOURCE("overlay_edit_lattice_point_vert.glsl")
-FRAGMENT_SOURCE("overlay_point_varying_color_frag.glsl")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_globals)
-ADDITIONAL_INFO(draw_modelmat)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
-CREATE_INFO_VARIANT(overlay_edit_lattice_point_clipped, overlay_edit_lattice_point, drw_clipped)
-
-GPU_SHADER_CREATE_INFO(overlay_edit_lattice_wire)
-VERTEX_IN(0, float3, pos)
-VERTEX_IN(1, float, weight)
-SAMPLER(0, sampler1D, weight_tx)
-VERTEX_OUT(overlay_edit_smooth_color_iface)
-DEFINE("LINE_OUTPUT")
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, line_output)
-VERTEX_SOURCE("overlay_edit_lattice_wire_vert.glsl")
-FRAGMENT_SOURCE("overlay_varying_color.glsl")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_globals)
-ADDITIONAL_INFO(draw_modelmat)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
-CREATE_INFO_VARIANT(overlay_edit_lattice_wire_clipped, overlay_edit_lattice_wire, drw_clipped)
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Edit Particle
  * \{ */
 

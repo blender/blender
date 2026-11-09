@@ -34,8 +34,6 @@ set(SRC_GLSL_VERT
   overlay_edit_curve_wire_vert.glsl
   overlay_edit_curves_handle_vert.glsl
   overlay_edit_gpencil_canvas_vert.glsl
-  overlay_edit_lattice_point_vert.glsl
-  overlay_edit_lattice_wire_vert.glsl
   overlay_edit_pointcloud_vert.glsl
   overlay_edit_mesh_analysis_vert.glsl
   overlay_edit_mesh_normal_vert.glsl
