@@ -8,7 +8,6 @@ endif()
 
 if(UNIX AND NOT BLENDER_PLATFORM_ARM)
   # NASM is a host build tool, fetch it from the host deps build while cross-compiling.
-  # HOST_LIBDIR is equal to LIBDIR for regular non cross-compiled builds.
   set(X264_CONFIGURE_ENV ${CONFIGURE_ENV} &&
     export AS=${HOST_LIBDIR}/nasm/bin/nasm
   )
