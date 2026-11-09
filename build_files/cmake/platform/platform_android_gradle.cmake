@@ -64,7 +64,7 @@ set(_gradle_staging_dir "${CMAKE_BINARY_DIR}/gradle")
 # Installed target version runtime directory, equivalent to TARGETDIR_VER in source/creator/CMakelists.txt.
 set(_install_target_dir "${CMAKE_INSTALL_PREFIX}/${BLENDER_VERSION}")
 
-if(CMAKE_HOST_WIN32)
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
   set(_gradle_executable "${_gradle_staging_dir}/gradlew.bat")
 else()
   set(_gradle_executable "${_gradle_staging_dir}/gradlew")

@@ -180,7 +180,7 @@ if(CMAKE_CROSSCOMPILING)
   # Override the OSL compiler for cross-compilation, fetching it from the host pre-compiled library directory.
   # It runs on the host, so it carries the host executable suffix rather than the target one.
   set(OSL_COMPILER ${HOST_LIBDIR}/osl/bin/oslc)
-  if(CMAKE_HOST_WIN32)
+  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     string(APPEND OSL_COMPILER ".exe")
   endif()
 endif()

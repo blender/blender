@@ -21,7 +21,7 @@ if(CMAKE_CROSSCOMPILING)
 
   # These tools are built for and executed on the host, so they carry the host executable
   # suffix rather than the target one CMAKE_EXECUTABLE_SUFFIX would give.
-  if(CMAKE_HOST_WIN32)
+  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     set(HOST_TOOLS_EXE_SUFFIX ".exe")
   else()
     set(HOST_TOOLS_EXE_SUFFIX "")
