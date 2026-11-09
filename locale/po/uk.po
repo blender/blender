@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-07-22 11:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26352,6 +26352,38 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
 msgid "Show/Hide"
 msgstr "Показати/приховати"
 
@@ -26376,8 +26408,12 @@ msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "Clean Up"
-msgstr "Вичищення"
+msgid "Math"
+msgstr "Математика"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
 
 
 msgid "Pivot Point"
@@ -26408,12 +26444,12 @@ msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
-msgid "Math"
-msgstr "Математика"
+msgid "Sample"
+msgstr "Вибірка"
 
 
-msgid "Utilities"
-msgstr "Утиліти"
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Mirror"
@@ -26432,10 +26468,6 @@ msgid "Viewpoint"
 msgstr "Точка зору"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
 msgid "Navigation"
 msgstr "Навігація"
 
@@ -26444,12 +26476,12 @@ msgid "Align View"
 msgstr "Вирівняти Огляд"
 
 
+msgid "Import"
+msgstr "Імпортувати"
+
+
 msgid "Align View to Active"
 msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
 
 
 msgid "View Regions"
@@ -26476,12 +26508,12 @@ msgid "Select Loops"
 msgstr "Виділити петлі"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Assign Material"
 msgstr "Призначити Матеріал"
-
-
-msgid "Import"
-msgstr "Імпортувати"
 
 
 msgid "Light"
@@ -26490,10 +26522,6 @@ msgstr "Слабко"
 
 msgid "Light Probe"
 msgstr "Проба Освітлення"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -26540,6 +26568,14 @@ msgid "Hooks"
 msgstr "Гачки"
 
 
+msgid "Linked"
+msgstr "Пов'язане"
+
+
+msgid "Layout"
+msgstr "Розстановка"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "Ліплення Задати Опертя"
 
@@ -26560,52 +26596,16 @@ msgid "Propagate"
 msgstr "Поширити"
 
 
-msgid "Linked"
-msgstr "Пов'язане"
-
-
-msgid "Layout"
-msgstr "Розстановка"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
 msgid "Keying"
 msgstr "Ключування"
 
 
-msgid "Merge"
-msgstr "Об'єднання"
-
-
 msgid "Tracking"
 msgstr "Стеження"
+
+
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
 
 
 msgid "Basic"
@@ -51570,10 +51570,6 @@ msgstr "Пов'язати вибрані колекції в активну сц
 msgctxt "Operator"
 msgid "New Collection"
 msgstr "Нова Колекція"
-
-
-msgid "Add a new collection inside selected collection"
-msgstr "Додати нову колекцію всередину вибраної колекції"
 
 
 msgid "Nested"

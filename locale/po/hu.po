@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6586,16 +6586,20 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
 msgid "Metaball"
 msgstr "Meta test"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
 
 
 msgid "Mirror"
@@ -6618,12 +6622,12 @@ msgid "Import"
 msgstr "Importálás"
 
 
-msgid "Light"
-msgstr "Fényforrás"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Light"
+msgstr "Fényforrás"
 
 
 msgid "Relations"
@@ -6644,10 +6648,6 @@ msgstr "Nyom"
 
 msgid "Keying"
 msgstr "Kulcsozás"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
 
 
 msgid "Tracking"

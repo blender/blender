@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-10-20 16:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21136,6 +21136,30 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
@@ -21156,8 +21180,8 @@ msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Pivot Point"
@@ -21172,12 +21196,12 @@ msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
 msgid "Mirror"
 msgstr "Espelhar"
+
+
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "UV Mapping"
@@ -21198,6 +21222,10 @@ msgstr "Navegação"
 
 msgid "Align View"
 msgstr "Alinhar visualização"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Align View to Active"
@@ -21228,12 +21256,8 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Import"
-msgstr "Importar"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Light"
@@ -21242,10 +21266,6 @@ msgstr "Luz"
 
 msgid "Light Probe"
 msgstr "Sonda de Luz"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -21284,6 +21304,14 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
 
@@ -21300,44 +21328,16 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
 msgid "Keying"
 msgstr "Inserção de chaves"
 
 
-msgid "Merge"
-msgstr "Fundir"
-
-
 msgid "Tracking"
 msgstr "Rastreamento"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
 
 
 msgid "Basic"
@@ -40906,10 +40906,6 @@ msgstr "Ligar Coleção"
 msgctxt "Operator"
 msgid "New Collection"
 msgstr "Nova Coleção"
-
-
-msgid "Add a new collection inside selected collection"
-msgstr "Adicionar uma nova coleção dentro da coleção selecionada"
 
 
 msgid "Nested"

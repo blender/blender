@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-05-04 00:12+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24470,6 +24470,38 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleziona per Intensità delle Facce"
+
+
+msgid "Set Face Strength"
+msgstr "Imposta Intensità Faccia"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Merge"
+msgstr "Unisci"
+
+
 msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
 
@@ -24494,8 +24526,12 @@ msgid "Bone Roll"
 msgstr "Rollio Osso"
 
 
-msgid "Clean Up"
-msgstr "Ripulisci"
+msgid "Math"
+msgstr "Matematica"
+
+
+msgid "Utilities"
+msgstr "Utilità"
 
 
 msgid "Pivot Point"
@@ -24526,16 +24562,28 @@ msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
 
-msgid "Math"
-msgstr "Matematica"
+msgid "Read"
+msgstr "Lettura"
 
 
-msgid "Utilities"
-msgstr "Utilità"
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
 
 
 msgid "Mirror"
 msgstr "Specchia"
+
+
+msgid "Instances"
+msgstr "Istanze"
 
 
 msgid "UV Mapping"
@@ -24546,36 +24594,24 @@ msgid "Local View"
 msgstr "Vista Locale"
 
 
-msgid "Read"
-msgstr "Lettura"
-
-
 msgid "Viewpoint"
 msgstr "Punto di vista"
-
-
-msgid "Sample"
-msgstr "Campione"
 
 
 msgid "Navigation"
 msgstr "Navigazione"
 
 
-msgid "Write"
-msgstr "Scrittura"
-
-
 msgid "Align View"
 msgstr "Allinea Vista"
 
 
+msgid "Import"
+msgstr "Importa"
+
+
 msgid "Align View to Active"
 msgstr "Allinea Vista a Attivo"
-
-
-msgid "Primitives"
-msgstr "Primitive"
 
 
 msgid "View Regions"
@@ -24602,16 +24638,12 @@ msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
-msgid "Instances"
-msgstr "Istanze"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Assegna Materiale"
-
-
-msgid "Import"
-msgstr "Importa"
 
 
 msgid "Light"
@@ -24620,10 +24652,6 @@ msgstr "Luce"
 
 msgid "Light Probe"
 msgstr "Sensore di Luce"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -24670,6 +24698,14 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
+msgid "Linked"
+msgstr "Collegato"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Face Sets Init"
 msgstr "Init Sets di Facce"
 
@@ -24680,6 +24716,10 @@ msgstr "Maschera Casuale"
 
 msgid "Clear Transform"
 msgstr "Cancella Trasformazione"
+
+
+msgid "Adjust"
+msgstr "Regola"
 
 
 msgid "In-Betweens"
@@ -24694,56 +24734,16 @@ msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
-msgid "Linked"
-msgstr "Collegato"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
-
-
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Face Data"
-msgstr "Dati Faccia"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleziona per Intensità delle Facce"
-
-
-msgid "Set Face Strength"
-msgstr "Imposta Intensità Faccia"
-
-
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "Keying"
 msgstr "Keying"
 
 
-msgid "Merge"
-msgstr "Unisci"
-
-
 msgid "Tracking"
 msgstr "Tracciamento"
+
+
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
 
 
 msgid "Keyframe Insert Pie"
@@ -43954,10 +43954,6 @@ msgid "New Collection"
 msgstr "Nuova Raccolta"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "Aggiungi una nuova raccolta all'interno della raccolta selezionata"
-
-
 msgid "Nested"
 msgstr "Nidificato"
 
@@ -62177,6 +62173,11 @@ msgid "Show"
 msgstr "Mostra"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "Nuovo"
+
+
 msgid "Object Children"
 msgstr "Oggetto Figlio"
 
@@ -62184,11 +62185,6 @@ msgstr "Oggetto Figlio"
 msgctxt "Operator"
 msgid "Hide One Level"
 msgstr "Nascondi Un Livello"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "Nuovo"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-10-23 06:12+0000\n"
 "Last-Translator: 游博凱 <augustus85918@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -26356,12 +26356,40 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
 
 
 msgid "Creative"
 msgstr "創意"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Set Face Strength"
+msgstr "設定面強度"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
 
 
 msgid "Special Characters"
@@ -26384,8 +26412,12 @@ msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
-msgid "Clean Up"
-msgstr "清理"
+msgid "Math"
+msgstr "數學公式"
+
+
+msgid "Utilities"
+msgstr "效用"
 
 
 msgid "Pivot Point"
@@ -26416,16 +26448,32 @@ msgid "Vertex Group Locks"
 msgstr "頂點群組鎖定"
 
 
-msgid "Math"
-msgstr "數學公式"
+msgid "Read"
+msgstr "讀取"
 
 
-msgid "Utilities"
-msgstr "效用"
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
 
 
 msgid "Mirror"
 msgstr "鏡像"
+
+
+msgid "Instances"
+msgstr "實例化"
 
 
 msgid "UV Mapping"
@@ -26436,36 +26484,24 @@ msgid "Local View"
 msgstr "區域檢視"
 
 
-msgid "Read"
-msgstr "讀取"
-
-
 msgid "Viewpoint"
 msgstr "視點"
-
-
-msgid "Sample"
-msgstr "取樣"
 
 
 msgid "Navigation"
 msgstr "導覽"
 
 
-msgid "Write"
-msgstr "寫入"
-
-
 msgid "Align View"
 msgstr "對齊檢視"
 
 
+msgid "Import"
+msgstr "匯入"
+
+
 msgid "Align View to Active"
 msgstr "對齊檢視至作用項"
-
-
-msgid "Primitives"
-msgstr "原形"
 
 
 msgid "View Regions"
@@ -26484,6 +26520,10 @@ msgid "Select All by Trait"
 msgstr "依特徵全選"
 
 
+msgid "Deprecated"
+msgstr "已棄用"
+
+
 msgid "Select Linked"
 msgstr "選取連結項"
 
@@ -26492,40 +26532,24 @@ msgid "Select Loops"
 msgstr "選取迴圈"
 
 
-msgid "Gizmo"
-msgstr "操縱器"
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
-msgid "Instances"
-msgstr "實例化"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "指派材質"
 
 
-msgid "Import"
-msgstr "匯入"
-
-
-msgid "Deprecated"
-msgstr "已棄用"
-
-
 msgid "Light"
 msgstr "燈光"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
-
-
 msgid "Light Probe"
 msgstr "燈光採樣器"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -26572,6 +26596,14 @@ msgid "Hooks"
 msgstr "鉤"
 
 
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
 msgid "Trim/Add"
 msgstr "修剪/增加"
 
@@ -26592,6 +26624,10 @@ msgid "Clear Transform"
 msgstr "清除變換"
 
 
+msgid "Adjust"
+msgstr "調整"
+
+
 msgid "In-Betweens"
 msgstr "內部之間"
 
@@ -26604,52 +26640,16 @@ msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Keying"
 msgstr "鍵處理"
 
 
-msgid "Merge"
-msgstr "合併"
-
-
 msgid "Tracking"
 msgstr "跟蹤"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
 
 
 msgid "Keyframe Insert Pie"
@@ -83214,6 +83214,11 @@ msgid "Disable in Render"
 msgstr "在算繪中停用"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "新增"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "實例至場景"
@@ -83248,11 +83253,6 @@ msgstr "隱藏一層"
 msgctxt "Operator"
 msgid "Relocate"
 msgstr "重新定位"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "新增"
 
 
 msgctxt "Operator"
@@ -88955,6 +88955,10 @@ msgid "Operator cannot redo"
 msgstr "操作器不能重做"
 
 
+msgid "Built-In"
+msgstr "內建"
+
+
 msgid "Size: {}"
 msgstr "大小：{}"
 
@@ -91785,10 +91789,6 @@ msgstr "(空)"
 
 msgid "Strip None"
 msgstr "片段無"
-
-
-msgid "Built-In"
-msgstr "內建"
 
 
 msgid "Add a color strip to the sequencer"

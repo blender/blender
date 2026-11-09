@@ -1338,6 +1338,7 @@ _manual_language_codes = {
     # "ab": "ab",  #Abkhaz
     # "am_ET": "am",  # Amharic
     "ar_EG": "ar",  # Arabic
+    # "az": "az",  # Azerbaijani
     # "be": "be",  # Belarusian
     # "bg_BG": "bg",  # Bulgarian
     "ca_AD": "ca",  # Catalan

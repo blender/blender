@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
-"PO-Revision-Date: 2026-10-30 06:34+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"PO-Revision-Date: 2026-11-03 11:00+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -36645,12 +36645,44 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
-msgid "Show/Hide"
-msgstr "Ukázať/skryť"
+msgid "Enable Bone Options"
+msgstr "Povoliť možnosti kostí"
+
+
+msgid "Disable Bone Options"
+msgstr "Zakázať možnosti kostí"
+
+
+msgid "Mesh Select Mode"
+msgstr "Režim výberu povrchovej siete"
 
 
 msgid "Creative"
 msgstr "Kreatívne"
+
+
+msgid "Face Data"
+msgstr "Údaje plôšky"
+
+
+msgid "Select by Face Strength"
+msgstr "Vybrať podľa vplyvu plôšky"
+
+
+msgid "Set Face Strength"
+msgstr "Nastaviť vplyv plôšky"
+
+
+msgid "Clean Up"
+msgstr "Prečistiť"
+
+
+msgid "Merge"
+msgstr "Zlúčiť"
+
+
+msgid "Show/Hide"
+msgstr "Ukázať/skryť"
 
 
 msgid "Special Characters"
@@ -36673,8 +36705,12 @@ msgid "Bone Roll"
 msgstr "Kývanie kosti"
 
 
-msgid "Clean Up"
-msgstr "Prečistiť"
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Utilities"
+msgstr "Obslužné programy"
 
 
 msgid "Pivot Point"
@@ -36705,16 +36741,32 @@ msgid "Vertex Group Locks"
 msgstr "Zámky skupiny vrcholov"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Read"
+msgstr "Čítanie"
 
 
-msgid "Utilities"
-msgstr "Obslužné programy"
+msgid "Sample"
+msgstr "Snímka"
+
+
+msgid "Write"
+msgstr "Zápis"
+
+
+msgid "Primitives"
+msgstr "Prvotné tvary"
+
+
+msgid "Gizmo"
+msgstr "Manipulačný prvok"
 
 
 msgid "Mirror"
 msgstr "Zrkadlo"
+
+
+msgid "Instances"
+msgstr "Inštancie"
 
 
 msgid "UV Mapping"
@@ -36725,36 +36777,24 @@ msgid "Local View"
 msgstr "Lokálny pohľad"
 
 
-msgid "Read"
-msgstr "Čítanie"
-
-
 msgid "Viewpoint"
 msgstr "Smer záberu"
-
-
-msgid "Sample"
-msgstr "Snímka"
 
 
 msgid "Navigation"
 msgstr "Navigácia"
 
 
-msgid "Write"
-msgstr "Zápis"
-
-
 msgid "Align View"
 msgstr "Zarovnať pohľad"
 
 
+msgid "Import"
+msgstr "Import"
+
+
 msgid "Align View to Active"
 msgstr "Zarovnať pohľad na aktívne"
-
-
-msgid "Primitives"
-msgstr "Prvotné tvary"
 
 
 msgid "View Regions"
@@ -36773,6 +36813,10 @@ msgid "Select All by Trait"
 msgstr "Vybrať všetko podľa črty"
 
 
+msgid "Deprecated"
+msgstr "Zastarané"
+
+
 msgid "Select Linked"
 msgstr "Vybrať prepojené"
 
@@ -36781,40 +36825,24 @@ msgid "Select Loops"
 msgstr "Vybrať slučky"
 
 
-msgid "Gizmo"
-msgstr "Manipulačný prvok"
+msgid "Render Preview"
+msgstr "Náhľad prekreslenia"
 
 
-msgid "Instances"
-msgstr "Inštancie"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Priradiť materiál"
 
 
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Deprecated"
-msgstr "Zastarané"
-
-
 msgid "Light"
 msgstr "Svetlo"
 
 
-msgid "Render Preview"
-msgstr "Náhľad prekreslenia"
-
-
 msgid "Light Probe"
 msgstr "Snímač svetla"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -36861,6 +36889,14 @@ msgid "Hooks"
 msgstr "Háky"
 
 
+msgid "Linked"
+msgstr "Prepojené"
+
+
+msgid "Layout"
+msgstr "Rozloženie"
+
+
 msgid "Trim/Add"
 msgstr "Orezať/Pridať"
 
@@ -36881,6 +36917,10 @@ msgid "Clear Transform"
 msgstr "Zmazať transformáciu"
 
 
+msgid "Adjust"
+msgstr "Prispôsobenie"
+
+
 msgid "In-Betweens"
 msgstr "Sprostredkovatelia"
 
@@ -36893,56 +36933,16 @@ msgid "Bone Collections"
 msgstr "Kolekcie kostí"
 
 
-msgid "Linked"
-msgstr "Prepojené"
-
-
-msgid "Layout"
-msgstr "Rozloženie"
-
-
-msgid "Toggle Bone Options"
-msgstr "Prepínač možnosti kostí"
-
-
-msgid "Enable Bone Options"
-msgstr "Povoliť možnosti kostí"
-
-
-msgid "Disable Bone Options"
-msgstr "Zakázať možnosti kostí"
-
-
-msgid "Mesh Select Mode"
-msgstr "Režim výberu povrchovej siete"
-
-
-msgid "Face Data"
-msgstr "Údaje plôšky"
-
-
-msgid "Select by Face Strength"
-msgstr "Vybrať podľa vplyvu plôšky"
-
-
-msgid "Set Face Strength"
-msgstr "Nastaviť vplyv plôšky"
-
-
-msgid "Adjust"
-msgstr "Prispôsobenie"
-
-
 msgid "Keying"
 msgstr "Kľúčovanie"
 
 
-msgid "Merge"
-msgstr "Zlúčiť"
-
-
 msgid "Tracking"
 msgstr "Snímanie"
+
+
+msgid "Toggle Bone Options"
+msgstr "Prepínač možnosti kostí"
 
 
 msgid "Keyframe Insert Pie"
@@ -80986,10 +80986,6 @@ msgid "New Collection"
 msgstr "Nová kolekcia"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "Pridá novú kolekciu vnútri vybranej kolekcie"
-
-
 msgid "Nested"
 msgstr "Vnorené"
 
@@ -102072,16 +102068,8 @@ msgid "French - Français"
 msgstr "Francúzky - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Kód lokalizácie: fr_FR. Pokrok prekladu: 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Gruzínsky - ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 97%"
-msgstr "Kód lokalizácie: ka. Pokrok prekladu: 97%"
 
 
 msgid "German - Deutsch"
@@ -102094,10 +102082,6 @@ msgstr "Kód lokalizácie: de_DE. Pokrok prekladu: 35%"
 
 msgid "Greek - Ελληνικά"
 msgstr "Grécky - Ελληνικά"
-
-
-msgid "Locale code: el_GR. Translation progress: 1%"
-msgstr "Kód lokalizácie: el_GR. Pokrok prekladu: 1 %"
 
 
 msgid "Hebrew - תירִבְעִ"
@@ -102142,10 +102126,6 @@ msgstr "Kód lokalizácie: it_IT. Pokrok prekladu: 41%"
 
 msgid "Japanese - 日本語"
 msgstr "Japonsky - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Kód lokalizácie: ja_JP. Pokrok prekladu: 99%"
 
 
 msgid "Korean - 한국어"
@@ -102334,10 +102314,6 @@ msgstr "Kód lokalizácie: ur. Pokrok prekladu: 80%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamsky - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 99%"
-msgstr "Kód lokalizácie: vi_VN. Pokrok prekladu: 99%"
 
 
 msgid "Reference Sphere Size"
@@ -129351,6 +129327,10 @@ msgid "Rotation"
 msgstr "Rotácia"
 
 
+msgid "Convert Rotation Mode"
+msgstr "Režim Konvertovať rotáciu"
+
+
 msgid "Access"
 msgstr "Prístup"
 
@@ -133073,6 +133053,11 @@ msgid "Disable in Render"
 msgstr "Zakázať v prekreslení"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "Nová"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "Inštancia na scéne"
@@ -133111,11 +133096,6 @@ msgstr "Skryť jednu úroveň"
 msgctxt "Operator"
 msgid "Relocate"
 msgstr "Premiestniť"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "Nová"
 
 
 msgctxt "Operator"
@@ -138138,6 +138118,18 @@ msgid "node_groups"
 msgstr "skupiny_uzlov"
 
 
+msgid "Shader To RGB can't evaluate Lighting nodes"
+msgstr "Tieňovač na RGB nedokáže vyhodnotiť uzly osvetlenia"
+
+
+msgid "Light Accumulation can only be used for the Material Output Surface"
+msgstr "Akumuláciu svetla je možné použiť iba pre výstupný povrch materiálu"
+
+
+msgid "Lighting nodes must be connected to the Light sockets of a Light Accumulation node before reaching an output"
+msgstr "Uzly osvetlenia musia byť pripojené k zásuvkám uzla akumulácie svetla, než dosiahnu výstup"
+
+
 msgid "Lighting nodes can't be connected to the Color sockets of a Light Accumulation node"
 msgstr "Uzly svetla nemožno pripojiť k zásuvkám Farba uzla Akumulácia svetla"
 
@@ -139275,6 +139267,10 @@ msgid ""
 msgstr ""
 "Nie je k dispozícii dostatok video pamäte na zapečenie „{}“ ({} / {} MBytov).\n"
 "Skúste znížiť rozlíšenie surfela alebo vzdialenosť snímania, aby ste znížili veľkosť alokácie."
+
+
+msgid "Raytracing is not supported with panoramic camera yet"
+msgstr "Sledovanie lúča zatiaľ nie je podporované panoramatickou kamerou"
 
 
 msgid "Error: Could not allocate shadow atlas. Most likely out of GPU memory."
@@ -142712,6 +142708,10 @@ msgid "Operator cannot redo"
 msgstr "Operátor nemožno vrátiť späť"
 
 
+msgid "Built-In"
+msgstr "Vstavané"
+
+
 msgid "Create from Image..."
 msgstr "Vytváranie z obrázku..."
 
@@ -144830,6 +144830,10 @@ msgid "Select Collection"
 msgstr "Vybrať kolekciu"
 
 
+msgid "Active object is in multiple collections"
+msgstr "Aktívny objekt sa nachádza vo viacerých kolekciách"
+
+
 msgid "Use another Keying Set, as the active one depends on the currently selected objects or cannot find any targets due to unsuitable context"
 msgstr "Použite inú sústavu kľúčovania, pretože aktívna je závislá na aktuálne vybratých objektoch alebo nemôže nájsť žiadne ciele z dôvodu nevhodného kontextu"
 
@@ -145442,6 +145446,14 @@ msgid "Timber"
 msgstr "Brvno"
 
 
+msgid "No object in the scene to add Rigid Body to"
+msgstr "V scéne nie je žiadny objekt, ku ktorému by sa dalo pridať pevné teleso"
+
+
+msgid "No object in the scene to remove Rigid Body from"
+msgstr "Na scéne sa nenachádza žiadny objekt, z ktorého by sa malo odstrániť pevné teleso"
+
+
 msgid "Object has no Rigid Body settings to remove"
 msgstr "Objekt nemá žiadne nastavenia pevného telesa na odstránenie"
 
@@ -145672,6 +145684,14 @@ msgstr "Odstránených %d zásuviek"
 
 msgid "Removed %d materials"
 msgstr "Odstránených %d materiálov"
+
+
+msgid "Cannot copy the linked material '%s' to the internal clipboard"
+msgstr "Prepojený obsah '%s' sa nedá skopírovať do internej schránky"
+
+
+msgid "Cannot copy the linked packed material '%s' to the internal clipboard"
+msgstr "Nemožno skopírovať prepojený komprimovaný súbor '%s' do internej schránky"
 
 
 msgid "Unable to remove material slot in edit mode"
@@ -148894,6 +148914,10 @@ msgid "No active item to rename"
 msgstr "Žiadna aktívna položka na premenovanie"
 
 
+msgid "No valid selected data-blocks to copy"
+msgstr "Neboli vybrané žiadne platné bloky údajov na kopírovanie"
+
+
 msgid "There is no active data-block"
 msgstr "Neexistuje žiadny aktívny blok údajov"
 
@@ -148944,6 +148968,14 @@ msgstr "Neplatný starý/nový pár ID ('%s' / '%s')"
 
 msgid "Old ID '%s' is linked from a library, indirect usages of this data-block will not be remapped"
 msgstr "Z knižnice je prepojený starý ID '%s', nepriame použitia tohto bloku údajov sa nepremapujú"
+
+
+msgid "Cannot copy the linked data-block '%s' to the internal clipboard"
+msgstr "Nemožno skopírovať prepojený blok údajov '%s' do internej schránky"
+
+
+msgid "Cannot copy the linked packed data-block '%s' to the internal clipboard"
+msgstr "Nemožno skopírovať prepojený zabalený blok údajov '%s' do internej schránky"
 
 
 msgid "Copying ID '%s' is not possible, '%s' type of data-blocks is not supported"
@@ -149317,10 +149349,6 @@ msgid "Strip None"
 msgstr "Žiadny pás"
 
 
-msgid "Built-In"
-msgstr "Vstavané"
-
-
 msgid "Close the current project before creating a new one"
 msgstr "Pred vytvorením nového projektu aktuálny projekt zatvorí"
 
@@ -149373,6 +149401,10 @@ msgstr "Chýbajúci názov projektu"
 
 msgid "Folder already part of a project"
 msgstr "Priečinok je už súčasťou projektu"
+
+
+msgid "Can not create project for a blend file in the home or root folder"
+msgstr "Nemožno vytvoriť projekt pre blend súbor v domovskom alebo koreňovom priečinku"
 
 
 msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
@@ -150449,8 +150481,20 @@ msgid "Depth too large"
 msgstr "Hĺbka je príliš veľká"
 
 
+msgid "No valid selected objects to copy"
+msgstr "Neboli vybrané žiadne platné objekty na kopírovanie"
+
+
 msgid "No objects to paste"
 msgstr "Žiadne objekty na prilepenie"
+
+
+msgid "Cannot copy the linked object '%s' to the internal clipboard"
+msgstr "Objekt '%s' nemožno skopírovať do internej schránky"
+
+
+msgid "Cannot copy the linked packed object '%s' to the internal clipboard"
+msgstr "Nemožno skopírovať prepojený zabalený objekt '%s' do internej schránky"
 
 
 msgid "Copied %d selected object(s)"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8482,6 +8482,22 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Disable Bone Options"
+msgstr "Онемогући опције костију"
+
+
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Merge"
+msgstr "Сједини"
+
+
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
@@ -8502,12 +8518,12 @@ msgid "Bone Roll"
 msgstr "Ролна костију"
 
 
-msgid "Snap"
-msgstr "Лепљење"
-
-
 msgid "Math"
 msgstr "Математика"
+
+
+msgid "Snap"
+msgstr "Лепљење"
 
 
 msgid "Mirror"
@@ -8530,20 +8546,20 @@ msgid "Align View"
 msgstr "Поравнај поглед"
 
 
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
 msgid "Import"
 msgstr "Увоз"
 
 
-msgid "Light"
-msgstr "Светлост"
+msgid "Select Linked"
+msgstr "Изабери повезано"
 
 
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Light"
+msgstr "Светлост"
 
 
 msgid "Relations"
@@ -8570,6 +8586,10 @@ msgid "Hooks"
 msgstr "Удице"
 
 
+msgid "Linked"
+msgstr "Повезано"
+
+
 msgid "Clear Transform"
 msgstr "Очисти трансформације"
 
@@ -8582,36 +8602,16 @@ msgid "Propagate"
 msgstr "Пренеси"
 
 
-msgid "Linked"
-msgstr "Повезано"
-
-
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
-
-
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
-
-
-msgid "Disable Bone Options"
-msgstr "Онемогући опције костију"
-
-
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
-
-
 msgid "Keying"
 msgstr "Збирка тастера"
 
 
-msgid "Merge"
-msgstr "Сједини"
-
-
 msgid "Tracking"
 msgstr "Праћење"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
 
 
 msgid "Basic"
