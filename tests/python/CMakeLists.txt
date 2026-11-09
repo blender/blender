@@ -1815,6 +1815,8 @@ if(WITH_UI_TESTS)
     test_mesh_edit_draw.view3d_mesh_edit_draw_modifiers
     test_transform.view3d_mesh_edit_snap_to_self
     test_transform.view3d_mesh_edit_snap_to_self_shape_key
+    test_transform.view3d_mesh_edit_snap_skips_hidden
+    test_transform.view3d_mesh_edit_snap_skips_selection
     test_undo.compositor_make_group
     test_undo.text_editor_edit_mode_mix
     test_undo.text_editor_simple
