@@ -774,8 +774,11 @@ float ED_view3d_grid_view_scale(const Scene *scene,
   float grid_scale;
   const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   if (!rv3d->is_persp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
-    /* Decrease the distance between grid snap points depending on zoom. */
-    float dist = 12.0f / (region->sizex * rv3d->winmat[0][0]);
+    /* Decrease the distance between grid snap points depending on zoom.
+     *
+     * Snap to the grid level that is actually drawn prominently by the overlay. See
+     * grid_ubo_.level in overlay engine. */
+    float dist = 10.0f * 12.0f / (region->sizex * rv3d->winmat[0][0]);
     float grid_steps[STEPS_LEN];
     const void *usys;
     int grid_steps_len;
@@ -783,7 +786,11 @@ float ED_view3d_grid_view_scale(const Scene *scene,
     int i = 0;
     while (true) {
       grid_scale = grid_steps[i];
-      if (grid_scale > dist || i == (grid_steps_len - 1)) {
+      if (i == (grid_steps_len - 1)) {
+        break;
+      }
+      float next = grid_steps[i + 1];
+      if (next >= dist) {
         break;
       }
       i++;
