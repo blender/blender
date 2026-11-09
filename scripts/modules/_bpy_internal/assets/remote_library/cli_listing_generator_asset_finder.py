@@ -16,6 +16,7 @@ from collections.abc import Iterable
 from pathlib import Path
 
 import bpy
+import idprop.types
 
 from . import blender_asset_library_openapi as api_models
 from . import hashing
@@ -250,10 +251,27 @@ def _get_asset_meta(asset_data: bpy.types.AssetData) -> api_models.AssetMetadata
         meta.preferred_import_method = asset_data.preferred_import_method
 
     # Convert custom properties.
+    custom_props = _get_custom_properties(asset_data)
+    if custom_props:
+        meta.properties = custom_props
+
+    # Avoid returning an empty AssetMetadataV1.
+    if meta == api_models.AssetMetadataV1():
+        return None
+
+    return meta
+
+
+def _get_custom_properties(container: bpy.types.AssetMetaData |
+                           idprop.types.IDPropertyGroup) -> api_models.CustomPropertiesV1:
+    """Convert custom properties from some container to the API model."""
+
     import rna_prop_ui
 
+    assert isinstance(container, (bpy.types.AssetMetaData, idprop.types.IDPropertyGroup)), f"got {container}"
+
     custom_props: api_models.CustomPropertiesV1 = []
-    for prop_name, prop_value in asset_data.items():
+    for prop_name, prop_value in container.items():
         is_array = isinstance(prop_value, rna_prop_ui.ARRAY_TYPES) and len(prop_value) > 0
         item_value = prop_value[0] if is_array else prop_value
 
@@ -266,30 +284,44 @@ def _get_asset_meta(asset_data: bpy.types.AssetData) -> api_models.AssetMetadata
                 value_type = api_models.CustomPropertyTypeV1.IDP_STRING
             case float():
                 value_type = api_models.CustomPropertyTypeV1.IDP_FLOAT
+            case idprop.types.IDPropertyGroup():
+                value_type = api_models.CustomPropertyTypeV1.IDP_GROUP
             case _:
                 # Unsupported type, just ignore it.
                 continue
 
         if is_array:
+            if value_type == api_models.CustomPropertyTypeV1.IDP_GROUP:
+                log.error(
+                    "found array of IDP_GROUP properties, did not expect to see this. Please file a bug report (Blender > Help > Report a Bug...)")
+                continue
+
+            # The values can go into the array directly. They just need conversion
+            # from a BPY container to a Python list.
+            array_items = list(prop_value)
+
             custom_prop = api_models.CustomPropertyV1(
                 name=prop_name,
                 type=api_models.CustomPropertyTypeV1.IDP_ARRAY,
-                value=list(prop_value),
+                value=array_items,
                 itemtype=value_type,
             )
         else:
-            custom_prop = api_models.CustomPropertyV1(
-                name=prop_name, type=value_type, value=prop_value
-            )
+            if value_type == api_models.CustomPropertyTypeV1.IDP_GROUP:
+                # A IDP_GROUP Property is serialized as a list of ID properties, each with their own name.
+                custom_prop = api_models.CustomPropertyV1(
+                    name=prop_name,
+                    type=api_models.CustomPropertyTypeV1.IDP_GROUP,
+                    value=_get_custom_properties(item_value),
+                )
+            else:
+                custom_prop = api_models.CustomPropertyV1(
+                    name=prop_name, type=value_type, value=prop_value
+                )
 
         custom_props.append(custom_prop)
 
-    if custom_props:
-        meta.properties = custom_props
-
-    if meta == api_models.AssetMetadataV1():
-        return None
-    return meta
+    return custom_props
 
 
 def _save_thumbnail(datablock: bpy.types.ID, thumbnail_path: Path) -> None:

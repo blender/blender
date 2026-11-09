@@ -1067,7 +1067,12 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
   }
 
   /* Download online assets. */
-  if (but->optype && but->opptr && ed::asset::operator_asset_reference_props_is_set(*but->opptr)) {
+  if (but->optype &&
+      ((but->opptr && ed::asset::operator_asset_reference_props_is_set(*but->opptr)) ||
+       /* Node tools are special and store the asset reference in custom data. Allow them to
+        * display the download button as well. */
+       but->optype->flag & OPTYPE_NODE_TOOL))
+  {
     const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
     if (asset && asset->is_online_only()) {
       layout.op("ASSET_OT_assets_download", {}, ICON_DOWNLOAD);

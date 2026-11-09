@@ -2156,6 +2156,7 @@ bool button_context_poll_operator(bContext *C, wmOperatorType *ot, const Button 
 
 void block_post_layout_callbacks_exec(const bContext *C, ARegion *region, Block *block)
 {
+  BLI_assert(region);
   BLI_assert(block->active);
   for (const std::function<void(const bContext &C, ui::Block &block)> &callback :
        region->runtime->post_block_layout_fns)
@@ -2282,7 +2283,11 @@ void block_end_ex(const bContext *C,
 
   block->endblock = true;
   if (!postpone_callbacks) {
-    block_post_layout_callbacks_exec(C, region, block);
+    /* Post layout callbacks are stored in region data, skip blocks created without a region (like
+     * the `F3` search menu).  */
+    if (region) {
+      block_post_layout_callbacks_exec(C, region, block);
+    }
   }
   else {
     block->post_block_layout_fns_pending = true;
