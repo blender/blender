@@ -1246,7 +1246,7 @@ void DataChannel::datachannel_hash(UniqueHashBytes &hash) const
 
 template<> FCurve *DataChannel::get_source<FCurve>() const
 {
-  BLI_assert(this->source_type_ == DataChannelType::FCURVE);
+  BLI_assert(ELEM(this->source_type_, DataChannelType::FCURVE, DataChannelType::DRIVER));
   return static_cast<FCurve *>(this->source().data);
 }
 
@@ -1305,18 +1305,6 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
   else {
     sorting_priority_ = -fcurve.array_index;
   }
-}
-
-template<> FCurve *DataChannel::get_source<FCurve>() const
-{
-  BLI_assert(ELEM(this->source_type_, DataChannelType::FCURVE, DataChannelType::DRIVER));
-  return static_cast<FCurve *>(this->source().data);
-}
-
-template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
-{
-  BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
-  return static_cast<GreasePencilLayer *>(this->source().data);
 }
 
 /* ===== Shared Channel Functions ===== */
