@@ -6,6 +6,8 @@
 #include <fmt/format.h>
 #include <regex>
 
+#include "BLI_mutex.hh"
+
 #include "RNA_enum_types.hh"
 
 #include "UI_interface_layout.hh"
@@ -779,17 +781,29 @@ class FormatStringMultiFunction : public mf::MultiFunction {
       }
     }
     else {
+      /* Elements are formatted in parallel and an error in one must not affect the others. Report
+       * the error of the first invalid element so the result does not depend on thread timing. */
+      Mutex error_mutex;
+      int64_t first_error_index = INT64_MAX;
       mask.foreach_index(
           [&](const int64_t i) {
             const std::string format = formats[i];
-            if (!format_strings(format,
-                                inputs,
-                                input_names_,
-                                IndexRange::from_single(i),
-                                outputs,
-                                error_message))
+            std::optional<std::string> element_error;
+            if (format_strings(format,
+                               inputs,
+                               input_names_,
+                               IndexRange::from_single(i),
+                               outputs,
+                               element_error))
             {
-              outputs[i].clear();
+              return;
+            }
+            outputs[i].clear();
+
+            std::lock_guard lock{error_mutex};
+            if (i < first_error_index) {
+              first_error_index = i;
+              error_message = std::move(element_error);
             }
           },
           exec_mode::grain_size(256));
