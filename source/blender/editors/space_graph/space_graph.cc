@@ -456,6 +456,19 @@ static void graph_draw_pre(const bContext * /* C */, ScrArea *area)
   space_graph->runtime->animfilter_runtime.channel_arena.reset();
 }
 
+static void graph_on_show(ScrArea *area)
+{
+  SpaceGraph *sipo = area->spacedata.first_as<SpaceGraph>();
+
+  if (sipo->next && sipo->next->spacetype == SPACE_ACTION) {
+    const SpaceAction *dope_sheet = reinterpret_cast<SpaceAction *>(sipo->next);
+    ed::animfilter::sync_dopesheet(dope_sheet->ads, *sipo->ads);
+    ed::animfilter::sync_runtime(dope_sheet->runtime->animfilter_runtime,
+                                 sipo->runtime->animfilter_runtime);
+    ed::animfilter::sync_region_sizes(dope_sheet->regionbase, area->regionbase);
+  }
+}
+
 static void graph_channel_region_draw(const bContext *C, ARegion *region)
 {
   View2D *v2d = &region->v2d;
@@ -1090,6 +1103,7 @@ void ED_spacetype_ipo()
   st->listener = graph_listener;
   st->refresh = graph_refresh;
   st->draw_pre = graph_draw_pre;
+  st->on_show = graph_on_show;
   st->id_remap = graph_id_remap;
   st->foreach_id = graph_foreach_id;
   st->space_subtype_item_extend = graph_space_subtype_item_extend;

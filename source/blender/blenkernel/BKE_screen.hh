@@ -145,6 +145,9 @@ struct SpaceType {
   /** Called after the regions of this area are redrawn. */
   void (*draw_post)(const bContext *C, ScrArea *area);
 
+  /** Called just after the area switched to this space type. */
+  void (*on_show)(ScrArea *area);
+
   /** After a spacedata copy, an init should result in exact same situation. */
   SpaceLink *(*duplicate)(SpaceLink *sl);
 

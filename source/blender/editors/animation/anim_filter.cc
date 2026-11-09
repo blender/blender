@@ -4524,10 +4524,45 @@ void sync_dopesheet(const bDopeSheet &from, bDopeSheet &to)
 
 void sync_runtime(const AnimfilterSpaceRuntime &from, AnimfilterSpaceRuntime &to)
 {
+  /* Copying is much easier than to merge and try to resolve the `last_used` states. */
   to.channel_states = from.channel_states;
   /* We have to copy the last used too since it is compared to values baked into
    * `channel_states`.  */
   to.last_used = from.last_used;
+}
+
+static ARegion *find_region_type(const ListBaseT<ARegion> &regionbase, const eRegion_Type type)
+{
+  /* Not using BKE_area_find_region_type because that assumes the space is active in the area. */
+  for (ARegion &region : regionbase) {
+    if (region.regiontype == type) {
+      return &region;
+    }
+  }
+  return nullptr;
+}
+
+void sync_region_sizes(const ListBaseT<ARegion> &from, ListBaseT<ARegion> &to)
+{
+  const ARegion *from_channel_region = find_region_type(from, RGN_TYPE_CHANNELS);
+  ARegion *to_channel_region = find_region_type(to, RGN_TYPE_CHANNELS);
+  if (from_channel_region && to_channel_region) {
+    to_channel_region->winx = from_channel_region->winx;
+    to_channel_region->winy = from_channel_region->winy;
+    to_channel_region->sizex = from_channel_region->sizex;
+    to_channel_region->sizey = from_channel_region->sizey;
+  }
+
+  /* TODO this doesn't work for setting the N-panel size, would be great though to make switching
+   * between Graph Editor and Dope Sheet less flickery. */
+  /* const ARegion *from_n_panel = find_region_type(from, RGN_TYPE_UI);
+  ARegion *to_n_panel = find_region_type(from, RGN_TYPE_UI);
+  if (from_n_panel && to_n_panel) {
+    to_n_panel->winx = from_n_panel->winx;
+    to_n_panel->winy = from_n_panel->winy;
+    to_n_panel->sizex = from_n_panel->sizex;
+    to_n_panel->sizey = from_n_panel->sizey;
+  } */
 }
 
 }  // namespace ed::animfilter

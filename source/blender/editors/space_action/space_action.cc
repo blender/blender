@@ -195,13 +195,8 @@ static void action_free(SpaceLink *sl)
 static void action_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
   SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
-  if (saction->next && saction->next->spacetype == SPACE_GRAPH) {
-    SpaceGraph *graph_editor = reinterpret_cast<SpaceGraph *>(saction->next);
-    BLI_assert(graph_editor->ads);
-    ed::animfilter::sync_dopesheet(*graph_editor->ads, saction->ads);
-    ed::animfilter::sync_runtime(graph_editor->runtime->animfilter_runtime,
-                                 saction->runtime->animfilter_runtime);
-  }
+  /* TODO this should maybe be moved to `on_show` because `init` is also called when scaling
+   * regions. */
   saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 }
 
@@ -237,6 +232,20 @@ static void action_draw_post(const bContext * /*C*/, ScrArea * /*area*/)
 
   // SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
   // saction->runtime->animfilter_runtime.channel_arena.reset();w
+}
+
+static void action_on_show(ScrArea *area)
+{
+  SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
+  if (saction->next && saction->next->spacetype == SPACE_GRAPH) {
+    SpaceGraph *graph_editor = reinterpret_cast<SpaceGraph *>(saction->next);
+    BLI_assert(graph_editor->ads);
+    /* TODO call in higher level code. */
+    ed::animfilter::sync_dopesheet(*graph_editor->ads, saction->ads);
+    ed::animfilter::sync_runtime(graph_editor->runtime->animfilter_runtime,
+                                 saction->runtime->animfilter_runtime);
+    ed::animfilter::sync_region_sizes(graph_editor->regionbase, area->regionbase);
+  }
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -1196,6 +1205,7 @@ void ED_spacetype_action()
   st->refresh = action_refresh;
   st->draw_pre = action_draw_pre;
   st->draw_post = action_draw_post;
+  st->on_show = action_on_show;
   st->id_remap = action_id_remap;
   st->foreach_id = action_foreach_id;
   st->space_subtype_item_extend = action_space_subtype_item_extend;

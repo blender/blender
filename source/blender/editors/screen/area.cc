@@ -2992,6 +2992,9 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
       /* put in front of list */
       BLI_remlink(&area->spacedata, sl);
       BLI_addhead(&area->spacedata, sl);
+      if (st && st->on_show) {
+        st->on_show(area);
+      }
     }
     else {
       /* new space */
@@ -3007,6 +3010,9 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
         }
         area->regionbase = sl->regionbase;
         sl->regionbase.clear_no_delete();
+        if (st->on_show) {
+          st->on_show(area);
+        }
       }
     }
 

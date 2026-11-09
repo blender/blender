@@ -1265,5 +1265,7 @@ void sync_dopesheet(const bDopeSheet &from, bDopeSheet &to);
 
 void sync_runtime(const AnimfilterSpaceRuntime &from, AnimfilterSpaceRuntime &to);
 
+void sync_region_sizes(const ListBaseT<ARegion> &from, ListBaseT<ARegion> &to);
+
 }  // namespace ed::animfilter
 }  // namespace blender
