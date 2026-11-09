@@ -16,6 +16,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_vector.hh"
 
 #include "bmesh.hh"
 
@@ -26,6 +27,7 @@ struct BMPartialUpdate;
 struct BMesh;
 struct BMeshCalcTessellation_Params;
 struct Depsgraph;
+struct Main;
 struct Mesh;
 struct Object;
 struct Scene;
@@ -139,6 +141,24 @@ BMesh *BKE_editmesh_bmesh_get_for_write(Object *ob);
  */
 BMesh *BKE_editmesh_bmesh_ensure(Mesh *mesh);
 BMesh *BKE_editmesh_bmesh_ensure(Object *object);
+
+namespace bke {
+
+/** Find objects that refer to vertices of the mesh with hook modifiers or vertex parenting. */
+Vector<Object *> mesh_find_objects_with_vert_references(Main &bmain, const Mesh &mesh);
+
+/**
+ * Update the vertex indices of hook modifiers and vertex parents to match topology changes.
+ *
+ * \param objects: Objects found with #mesh_find_objects_with_vert_references.
+ * \param old_to_new_verts: The new index of every vertex before the change, or -1 when it was
+ * removed. Indices past its end are treated as removed too.
+ */
+void mesh_remap_object_vert_indices(Span<Object *> objects,
+                                    const Mesh &mesh,
+                                    Span<int> old_to_new_verts);
+
+}  // namespace bke
 
 /**
  * Return whether the evaluated mesh is a "descendant" of the original mesh: whether it is a

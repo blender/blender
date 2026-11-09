@@ -76,12 +76,12 @@
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_vector_c.hh"
@@ -96,6 +96,7 @@
 #include "BKE_attribute_legacy_convert.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_customdata.hh"
+#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_multires.hh"
@@ -731,11 +732,13 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
 
 /**
  * \brief BMesh -> Mesh
+ *
+ * The current index of every vertex that existed in the mesh the #BMesh was created from, or -1
+ * when it has been removed since.
  */
-static BMVert **bm_to_mesh_vertex_map(BMesh *bm, const int old_verts_num)
+static Array<int> bm_to_mesh_vertex_map(BMesh *bm, const int old_verts_num)
 {
   const int cd_shape_keyindex_offset = CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX);
-  BMVert **vertMap = nullptr;
   BMVert *eve;
   int i = 0;
   BMIter iter;
@@ -743,7 +746,7 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, const int old_verts_num)
   /* Caller needs to ensure this. */
   BLI_assert(old_verts_num > 0);
 
-  vertMap = MEM_new_array_zeroed<BMVert *>(old_verts_num, "vertMap");
+  Array<int> old_to_new(old_verts_num, -1);
   if (cd_shape_keyindex_offset != -1) {
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
       const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);
@@ -751,24 +754,18 @@ static BMVert **bm_to_mesh_vertex_map(BMesh *bm, const int old_verts_num)
           /* Not fool-proof, but chances are if we have many verts with the same index,
            * we will want to use the first one,
            * since the second is more likely to be a duplicate. */
-          (vertMap[keyi] == nullptr))
+          (old_to_new[keyi] == -1))
       {
-        vertMap[keyi] = eve;
+        old_to_new[keyi] = i;
       }
     }
   }
   else {
-    BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-      if (i < old_verts_num) {
-        vertMap[i] = eve;
-      }
-      else {
-        break;
-      }
-    }
+    array_utils::fill_index_range<int>(
+        old_to_new.as_mutable_span().take_front(std::min(old_verts_num, bm->totvert)));
   }
 
-  return vertMap;
+  return old_to_new;
 }
 
 /* -------------------------------------------------------------------- */
@@ -1114,68 +1111,11 @@ static void bmesh_to_mesh_calc_object_remap(Main &bmain,
                                             BMesh &bm,
                                             const int old_totvert)
 {
-  BMVert **vertMap = nullptr;
-  BMVert *eve;
-
-  for (Object &ob : bmain.objects) {
-    if ((ob.parent) && (ob.parent->data == id_cast<ID *>(&mesh)) &&
-        ELEM(ob.partype, PARVERT1, PARVERT3))
-    {
-
-      if (vertMap == nullptr) {
-        vertMap = bm_to_mesh_vertex_map(&bm, old_totvert);
-      }
-
-      if (ob.par1 < old_totvert) {
-        eve = vertMap[ob.par1];
-        if (eve) {
-          ob.par1 = BM_elem_index_get(eve);
-        }
-      }
-      if (ob.par2 < old_totvert) {
-        eve = vertMap[ob.par2];
-        if (eve) {
-          ob.par2 = BM_elem_index_get(eve);
-        }
-      }
-      if (ob.par3 < old_totvert) {
-        eve = vertMap[ob.par3];
-        if (eve) {
-          ob.par3 = BM_elem_index_get(eve);
-        }
-      }
-    }
-    if (ob.data == id_cast<ID *>(&mesh)) {
-      for (ModifierData &md : ob.modifiers) {
-        if (md.type == eModifierType_Hook) {
-          HookModifierData *hmd = reinterpret_cast<HookModifierData *>(&md);
-
-          if (vertMap == nullptr) {
-            vertMap = bm_to_mesh_vertex_map(&bm, old_totvert);
-          }
-          int i, j;
-          for (i = j = 0; i < hmd->indexar_num; i++) {
-            if (hmd->indexar[i] < old_totvert) {
-              eve = vertMap[hmd->indexar[i]];
-
-              if (eve) {
-                hmd->indexar[j++] = BM_elem_index_get(eve);
-              }
-            }
-            else {
-              j++;
-            }
-          }
-
-          hmd->indexar_num = j;
-        }
-      }
-    }
+  const Vector<Object *> objects = bke::mesh_find_objects_with_vert_references(bmain, mesh);
+  if (objects.is_empty()) {
+    return;
   }
-
-  if (vertMap) {
-    MEM_delete(vertMap);
-  }
+  bke::mesh_remap_object_vert_indices(objects, mesh, bm_to_mesh_vertex_map(&bm, old_totvert));
 }
 
 struct BMeshToMeshLayerInfo {
