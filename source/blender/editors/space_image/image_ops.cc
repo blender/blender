@@ -1498,6 +1498,9 @@ static wmOperatorStatus image_open_exec(bContext *C, wmOperator *op)
     SpaceImage *sima = area->spacedata.first_as<SpaceImage>();
     ED_space_image_set(bmain, sima, ima, false);
     iuser = &sima->iuser;
+
+    /* Frame range is reinitialized below, even when reopening the same image. */
+    iuser->flag |= IMA_NEED_FRAME_RECALC;
   }
   else {
     Tex *tex = static_cast<Tex *>(CTX_data_pointer_get_type(C, "texture", RNA_Texture).data);
