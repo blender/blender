@@ -240,15 +240,6 @@ Closure closure_eval(KernelGlobals & /*kg*/,
 {
   return {};
 }
-Closure closure_eval(KernelGlobals & /*kg*/,
-                     ShadingData & /*sd*/,
-                     ClosureDiffuse /*diffuse*/,
-                     ClosureReflection /*reflection*/,
-                     ClosureReflection /*coat*/,
-                     ClosureRefraction /*refraction*/)
-{
-  return {};
-}
 
 float4 closure_to_rgba(KernelGlobals & /*kg*/, ShadingData & /*sd*/, Closure /*closure*/)
 {

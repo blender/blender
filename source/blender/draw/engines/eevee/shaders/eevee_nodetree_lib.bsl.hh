@@ -505,21 +505,6 @@ Closure closure_eval(KernelGlobals &kg,
   return Closure(0);
 }
 
-/* Principled BSDF. */
-Closure closure_eval(KernelGlobals &kg,
-                     ShadingData &sd,
-                     ClosureDiffuse diffuse,
-                     ClosureReflection reflection,
-                     ClosureReflection coat,
-                     ClosureRefraction refraction)
-{
-  closure_eval(kg, sd, diffuse);
-  closure_eval(kg, sd, reflection);
-  closure_eval(kg, sd, coat);
-  closure_eval(kg, sd, refraction);
-  return Closure(0);
-}
-
 /* NOP since we are sampling closures. */
 Closure closure_add(Closure /*cl1*/, Closure /*cl2*/)
 {
