@@ -1431,7 +1431,6 @@ float ED_view3d_offset_distance(const float mat[4][4],
 
 void ED_view3d_distance_set(RegionView3D *rv3d, const float dist)
 {
-  float viewinv[4];
   float tvec[3];
 
   BLI_assert(dist >= 0.0f);
@@ -1441,8 +1440,10 @@ void ED_view3d_distance_set(RegionView3D *rv3d, const float dist)
 #if 0
   mul_mat3_m4_v3(rv3d->viewinv, tvec);
 #else
-  invert_qt_qt_normalized(viewinv, rv3d->viewquat);
-  mul_qt_v3(viewinv, tvec);
+  /* Rotate the distance delta by the same rotation the view matrix is built from. */
+  float mat[3][3];
+  quat_to_mat3(mat, rv3d->viewquat);
+  mul_m3_v3(mat, tvec);
 #endif
   sub_v3_v3(rv3d->ofs, tvec);
 
