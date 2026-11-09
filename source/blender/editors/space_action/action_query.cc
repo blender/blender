@@ -115,6 +115,7 @@ static std::optional<ed::animfilter::ChannelArena> build_summary_tree(
 
   ChannelArena arena;
   arena.filters = get_filters(saction->ads);
+  arena.filters.channel_type_allowlist = {DataChannelType::FCURVE, DataChannelType::GREASE_PENCIL};
   collect_data_channels(C, saction->mode, arena);
 
   arena.grouping_params.use_minimal_grouping = saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING;
