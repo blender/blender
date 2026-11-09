@@ -19,7 +19,7 @@ The Equalizer sound effect has been added by
 
 - Marcos Perez
 
-Some performance improvements, especially to the JOSResampler have been made by
+Some fixes and performance improvements, especially to the JOSResampler have been made by
 
 - Aras Pranckevičius
 
@@ -35,6 +35,10 @@ The echo effect has been provided by
 
 - AGoldenDragon
 
+Capture device functionality of OpenAL has been improved by
+
+- Yogeshgouda Patil
+
 Several people provided fixes:
 
 - Aaron Carlisle
@@ -48,3 +52,5 @@ Several people provided fixes:
 - Andrej Zhilenkov
 - Jacques Lucke
 - Ray Molenkamp
+- Kévin Dietrich
+- Ted Rodgers

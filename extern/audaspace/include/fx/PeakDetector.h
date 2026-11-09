@@ -1,0 +1,44 @@
+/*******************************************************************************
+ * Copyright 2026 Mayank
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+
+#pragma once
+
+/**
+ * @file PeakDetector.h
+ * @ingroup fx
+ * @brief The PeakDetector class.
+ */
+
+#include "fx/Effect.h"
+
+AUD_NAMESPACE_BEGIN
+
+/**
+ * Calculates the peak amplitude of an input sound across all channels for each frame, outputting a mono sound.
+ */
+class AUD_API PeakDetector : public Effect
+{
+private:
+public:
+	/**
+	 * Creates a new peak detector sound.
+	 * \param sound The input sound.
+	 */
+	PeakDetector(std::shared_ptr<ISound> sound);
+	virtual std::shared_ptr<IReader> createReader() override;
+};
+
+AUD_NAMESPACE_END

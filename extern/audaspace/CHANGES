@@ -1,3 +1,23 @@
+Audaspace 1.10
+
+- Improved audio capture support with OpenAL adding the possibility to choose a device (thanks Yogeshgouda Patil)
+- More build fixes for Mac and SDL3 support (thanks Jonas Holzman)
+- Fixed cancellation of mixdown (thanks Kévin Dietrich)
+- Several more build and bug fixes (thanks Aras Pranckevicius and Ted Rodgers)
+
+Detailed list of changes:
+
+a69e6e0 Porting changes from Blender upstream.
+096cb28 Remove DefaultSampleRate and make values into constexpr.
+d6fbaa8 add 3 missing includes for gcc-17
+1eb0a9d Fix sound.data() crash on non-existing file
+21afb9a Fix AnimateableProperty::writeConstantRange resulting in garbage values when resampling
+437349a Bugfix: wrongly spaced animation updates.
+206f7a5 Upgrade SDL backend plugin from SDL2 to SDL3
+546b749 Mixdown, FileWriter: allow cancelation via callback
+f946ead Build: macOS: Fix deprecated enum float comparison warning in Audaspace
+b433cd9 Audaspace: Add OpenAL capture support (#68)
+
 Audaspace 1.9
 
 - New Echo effect (thanks AGoldenDragon)

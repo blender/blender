@@ -287,6 +287,9 @@ bool WASAPIDevice::setupDevice(DeviceSpecs &specs)
 	if(FAILED(m_audio_client->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, buffer_duration, 0, reinterpret_cast<WAVEFORMATEX*>(&m_wave_format_extensible), nullptr)))
 		return false;
 
+	if(FAILED(m_audio_client->GetService(IID_PPV_ARGS(&m_audio_clock))))
+		return false;
+
 	return true;
 }
 
@@ -392,6 +395,64 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 
 	error:
 	AUD_THROW(DeviceException, "The audio device couldn't be opened with WASAPI.");
+}
+
+void WASAPIDevice::playing(bool playing)
+{
+	std::lock_guard<ILockable> lock(*this);
+
+	ThreadedDevice::playing(playing);
+
+	if(playing)
+	{
+		m_audio_client->Start();
+	}
+	else
+	{
+		m_audio_client->Stop();
+		m_audio_client->Reset();
+	}
+}
+
+void WASAPIDevice::seekSynchronizer(double time)
+{
+	/* Update start time here as we might update the seek position while playing back. */
+	m_audio_clock->GetPosition(&m_synchronizer_start_time, nullptr);
+	m_synchronizer_start_position = time;
+
+	SoftwareDevice::seekSynchronizer(time);
+}
+
+double WASAPIDevice::getSynchronizerPosition()
+{
+	if(!isSynchronizerPlaying())
+	{
+		return m_synchronizer_start_position;
+	}
+
+	UINT64 position = 0;
+	UINT64 frequency = 0;
+
+	m_audio_clock->GetPosition(&position, nullptr);
+	m_audio_clock->GetFrequency(&frequency);
+
+	/* Calculate the elapsed time in seconds from the last seek position. */
+	double elapsed_time = (double)(position - m_synchronizer_start_time) / frequency;
+
+	return elapsed_time + m_synchronizer_start_position;
+}
+
+void WASAPIDevice::playSynchronizer()
+{
+	/* Make sure that our start time is up to date. */
+	m_audio_clock->GetPosition(&m_synchronizer_start_time, nullptr);
+	SoftwareDevice::playSynchronizer();
+}
+
+void WASAPIDevice::stopSynchronizer()
+{
+	m_synchronizer_start_position = getSynchronizerPosition();
+	SoftwareDevice::stopSynchronizer();
 }
 
 WASAPIDevice::~WASAPIDevice()
