@@ -3171,7 +3171,7 @@ static void image_walk_id_all_users(
     case ID_CA: {
       Camera *cam = id_cast<Camera *>(id);
       for (CameraBGImage &bgpic : cam->bg_images) {
-        callback(bgpic.ima, nullptr, &bgpic.iuser, customdata);
+        callback(bgpic.ima, &cam->id, &bgpic.iuser, customdata);
       }
       break;
     }
