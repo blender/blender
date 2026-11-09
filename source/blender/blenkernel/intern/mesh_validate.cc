@@ -749,7 +749,7 @@ static bool validate_selection_history(const Mesh &mesh, const bool verbose, Mes
     MSelect *dst = nullptr;
     if (!valid.is_empty()) {
       dst = MEM_new_array<MSelect>(valid.size(), __func__);
-      index_mask::copy_assign(src, valid, MutableSpan(dst, valid.size()));
+      index_mask::gather_assign(src, valid, MutableSpan(dst, valid.size()));
     }
     MEM_delete(mesh_mut->mselect);
     mesh_mut->mselect = dst;
