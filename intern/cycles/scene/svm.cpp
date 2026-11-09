@@ -1093,7 +1093,9 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
     }
   }
 
-  mark_nodes_requiring_derivatives(*this, graph, type);
+  if (shader->reference_count()) {
+    mark_nodes_requiring_derivatives(*this, graph, type);
+  }
 
   /* for the bump shader we need add a node to store the shader state */
   const bool need_bump_state = (type == SHADER_TYPE_BUMP) &&
