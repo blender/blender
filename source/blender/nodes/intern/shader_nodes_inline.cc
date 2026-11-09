@@ -1403,6 +1403,7 @@ class ShaderNodesInliner {
     /* Use a truncate node to turn the input value into an int. */
     bNode &truncate_math_node = *this->add_node("ShaderNodeMath"_ustr);
     truncate_math_node.custom1 = NODE_MATH_TRUNC;
+    truncate_math_node.typeinfo->updatefunc(&dst_tree_, &truncate_math_node);
     bNodeSocket &truncate_input = *truncate_math_node.inputs.first();
     bNodeSocket &truncate_output = *truncate_math_node.outputs.first();
     this->set_input_socket_value(node, truncate_math_node, truncate_input, *index_input_value);
@@ -1423,6 +1424,7 @@ class ShaderNodesInliner {
       else {
         bNode &add_math_node = *this->add_node("ShaderNodeMath"_ustr);
         add_math_node.custom1 = NODE_MATH_ADD;
+        add_math_node.typeinfo->updatefunc(&dst_tree_, &add_math_node);
         bNodeSocket &add_in_1 = *add_math_node.inputs.first();
         bNodeSocket &add_in_2 = *add_in_1.next;
         bke::node_add_link(
@@ -2231,6 +2233,7 @@ class ShaderNodesInliner {
   {
     bNode &math_node = *this->add_node("ShaderNodeMath"_ustr);
     math_node.custom1 = NODE_MATH_GREATER_THAN;
+    math_node.typeinfo->updatefunc(&dst_tree_, &math_node);
     bNodeSocket &value_in = *math_node.inputs.first();
     bNodeSocket &threshold_in = *value_in.next;
     bNodeSocket &value_out = *math_node.outputs.first();
