@@ -1748,30 +1748,49 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
   ANIM_animdata_freelist(&anim_data);
 }
 
+/* Draws the FCurve of a DRIVER or FCURVE channel. */
+static void draw_fcurve_of_channel(ed::animfilter::DataChannel &channel,
+                                   Scene &scene,
+                                   const View2D &v2d,
+                                   const FCurveDrawSettings &draw_settings)
+{
+  using namespace ed::animfilter;
+  FCurve *fcurve = channel.get_source<FCurve>();
+  /* `animated_id` can be a nullptr. This will just not do any unit mapping. */
+  const ID *animated_id = find_animated_id_from_tags(channel.tags());
+  TimeMapping time_mapping;
+  if (channel.source_type() == DataChannelType::FCURVE) {
+    FCurveChannel &fcurve_channel = static_cast<FCurveChannel &>(channel);
+    time_mapping = fcurve_channel.get_time_mapping();
+  }
+  draw_fcurve(
+      fcurve,
+      scene,
+      /* Ugly const cast can be removed but would require a refactor into dependent functions. */
+      const_cast<ID *>(animated_id),
+      v2d,
+      time_mapping,
+      draw_settings);
+}
+
 void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
                         Scene &scene,
                         const View2D &v2d,
                         const SpaceGraph &space_graph)
 {
   using namespace ed::animfilter;
-  FCurveChannel *active_fcurve = nullptr;
+  DataChannel *active_fcurve = nullptr;
   FCurveDrawSettings draw_settings;
   draw_settings.only_handles_of_selected_keys = space_graph.flag & SIPO_SELVHANDLESONLY;
   draw_settings.draw_extrapolation = (space_graph.flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
   draw_settings.normalization_flags = ANIM_get_normalization_flags(&space_graph);
-  Vector<FCurveChannel *> selected_fcurves;
+  Vector<DataChannel *> selected_fcurves;
   selected_fcurves.reserve(data_channels.size());
 
   /* Drawing in 3 passes so selected curves are drawn over unselected and the active curve is drawn
    * on top. */
   for (DataChannel *data_channel : data_channels) {
-    if (data_channel->source_type() != DataChannelType::FCURVE) {
-      /* TODO filter down to fcurves when getting the summary tree. Or maybe it's ok to leave
-       * the responsibility for that on the caller side. */
-      continue;
-    }
-    FCurveChannel *fcurve_channel = static_cast<FCurveChannel *>(data_channel);
-    FCurve *fcurve = fcurve_channel->get_source<FCurve>();
+    FCurve *fcurve = data_channel->get_source<FCurve>();
     if (!(fcurve->flag & FCURVE_VISIBLE)) {
       continue;
     }
@@ -1779,45 +1798,22 @@ void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
       continue;
     }
     if (!active_fcurve && fcurve->flag & FCURVE_ACTIVE) {
-      active_fcurve = fcurve_channel;
+      active_fcurve = data_channel;
       continue;
     }
     if (fcurve->flag & FCURVE_SELECTED) {
-      selected_fcurves.append(fcurve_channel);
+      selected_fcurves.append(data_channel);
       continue;
     }
-    const ID *animated_id = fcurve_channel->find_animated_id_from_tags();
-    draw_fcurve(
-        fcurve,
-        scene,
-        /* Ugly const cast can be removed but would require a refactor into dependent functions. */
-        const_cast<ID *>(animated_id),
-        v2d,
-        fcurve_channel->get_time_mapping(),
-        draw_settings);
+    draw_fcurve_of_channel(*data_channel, scene, v2d, draw_settings);
   }
 
-  for (FCurveChannel *fcurve_channel : selected_fcurves) {
-    FCurve *fcurve = fcurve_channel->get_source<FCurve>();
-    const ID *animated_id = fcurve_channel->find_animated_id_from_tags();
-    draw_fcurve(
-        fcurve,
-        scene,
-        /* Ugly const cast can be removed but would require a refactor into dependent functions. */
-        const_cast<ID *>(animated_id),
-        v2d,
-        fcurve_channel->get_time_mapping(),
-        draw_settings);
+  for (DataChannel *data_channel : selected_fcurves) {
+    draw_fcurve_of_channel(*data_channel, scene, v2d, draw_settings);
   }
 
   if (active_fcurve) {
-    const ID *animated_id = active_fcurve->find_animated_id_from_tags();
-    draw_fcurve(active_fcurve->get_source<FCurve>(),
-                scene,
-                const_cast<ID *>(animated_id),
-                v2d,
-                active_fcurve->get_time_mapping(),
-                draw_settings);
+    draw_fcurve_of_channel(*active_fcurve, scene, v2d, draw_settings);
   }
 }
 

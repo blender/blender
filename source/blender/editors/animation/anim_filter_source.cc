@@ -324,6 +324,27 @@ static void channels_for_action_slot(animrig::Action &action,
   channels_for_action_slot(action, *slot, tags, mapping, arena);
 }
 
+static void collect_drivers(ListBaseT<FCurve> &drivers,
+                            PointerRNA &parent_ptr,
+                            Vector<rna_path::Item> &rna_path_items,
+                            ChannelTagStack &tags,
+                            ChannelArena &arena)
+{
+  if (!arena.filters.is_data_channel_allowed(DataChannelType::DRIVER)) {
+    return;
+  }
+  int i = 0;
+  for (FCurve &fcurve : drivers) {
+    rna_path_items.append(rna_path::LookupIndex{i});
+    PointerRNA fcurve_ptr = RNA_pointer_create_with_parent(parent_ptr, RNA_FCurve, &fcurve);
+    DriverChannel *channel = arena.allocate_data_channel<DriverChannel>(
+        fcurve_ptr, ParsedRNAPathRef(rna_path_items));
+    channel->tags().set(tags.snapshot());
+    i++;
+    rna_path_items.pop_last();
+  }
+}
+
 /*
  * If animated_id is embedded, owner_id should be the ID that owns it.
  */
@@ -354,6 +375,30 @@ static void collect_channels_for_id(ID *animated_id,
     return;
   }
 
+  AnimData *adt = BKE_animdata_from_id(animated_id);
+
+  ChannelTagStack tags;
+  assert_tag_count(tags);
+
+  PointerRNA animated_id_ptr = RNA_pointer_create_discrete(
+      owner_id ? owner_id : animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
+
+  if (ctx.arena.filters.id_type_blocklist.contains(animated_id->id_type())) {
+    return;
+  }
+
+  tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, embedded_property});
+
+  if (adt && !adt->drivers.is_empty()) {
+    PointerRNA adt_ptr = RNA_pointer_create_with_parent(animated_id_ptr, RNA_AnimData, adt);
+    Vector<rna_path::Item> rna_path_items;
+    rna_path_items.append(rna_path::Member{UString("animation_data")});
+    rna_path_items.append(rna_path::Member{UString("drivers")});
+    collect_drivers(adt->drivers, adt_ptr, rna_path_items, tags, ctx.arena);
+    rna_path_items.pop_last();
+    rna_path_items.pop_last();
+  }
+
   std::optional<std::pair<animrig::Action *, animrig::Slot *>> action_and_slot =
       animrig::get_action_slot_pair(*animated_id);
 
@@ -361,24 +406,13 @@ static void collect_channels_for_id(ID *animated_id,
     /* While this ID may still be animated by the NLA, this was never shown in the animfilter
      * system. Animation data is only shown when the NLA strip is in tweak mode, which would
      * override the action and slot thus the above will return a value. */
+    tags.pop();
     return;
   }
-
-  if (ctx.arena.filters.id_type_blocklist.contains(animated_id->id_type())) {
-    return;
-  }
-
-  ChannelTagStack tags;
-  assert_tag_count(tags);
-
-  PointerRNA animated_id_ptr = RNA_pointer_create_discrete(
-      owner_id ? owner_id : animated_id, ID_code_to_RNA_type(animated_id->id_type()), animated_id);
-  tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, embedded_property});
 
   TimeMapping mapping;
   {
     /* NLA time remapping that has to be here until the NLA is removed. */
-    AnimData *adt = BKE_animdata_from_id(animated_id);
     if (adt && adt->flag & ADT_NLA_EDIT_ON && adt->actstrip) {
       NlaStrip *strip = adt->actstrip;
       /* Animated strip time cannot be represented linearly and is just not supported to be drawn.
@@ -391,6 +425,7 @@ static void collect_channels_for_id(ID *animated_id,
       }
     }
   }
+
   channels_for_action_slot(
       *action_and_slot->first, action_and_slot->second->handle, tags, mapping, ctx.arena);
   tags.pop();

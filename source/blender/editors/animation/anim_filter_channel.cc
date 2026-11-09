@@ -61,6 +61,9 @@ std::ostream &operator<<(std::ostream &stream, const DataChannelType type)
     case DataChannelType::GREASE_PENCIL:
       stream << "GREASE_PENCIL";
       break;
+    case DataChannelType::DRIVER:
+      stream << "DRIVER";
+      break;
   }
   return stream;
 }
@@ -791,7 +794,7 @@ AnimationChannel::AnimationChannel(const AnimationChannelType type, const String
 AnimationChannel::AnimationChannel(const AnimationChannel &other)
     : type_(other.type_),
       /* Mark as dirty so that data points don't have to be copied. */
-      flags_(other.flags_ | ANIM_CHANNEL_DIRTY_DATA),
+      flags_(other.flags_ | ANIM_CHANNEL_DIRTY_DATA | ANIM_CHANNEL_DIRTY_SETTINGS),
       label_(other.label_),
       source_(other.source_)
 {
@@ -1299,7 +1302,65 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
   else if (last_member.value() == "scale") {
     sorting_priority_ += 100;
   }
+  else {
+    sorting_priority_ = -fcurve.array_index;
+  }
 }
+
+template<> FCurve *DataChannel::get_source<FCurve>() const
+{
+  BLI_assert(ELEM(this->source_type_, DataChannelType::FCURVE, DataChannelType::DRIVER));
+  return static_cast<FCurve *>(this->source().data);
+}
+
+template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
+{
+  BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
+  return static_cast<GreasePencilLayer *>(this->source().data);
+}
+
+/* ===== Shared Channel Functions ===== */
+
+/* Extracted to a separate function because the code is shared with drivers. In fact this could
+ * probably be a function in bke. */
+static void change_fcurve_key_selection(FCurve &fcurve,
+                                        const SelectionMode mode,
+                                        const Bounds<float> range)
+{
+  /* Convert totvert to a signed integer, to be able to compare it to the value returned by
+   * BKE_fcurve_bezt_binarysearch_index(). */
+  BLI_assert(fcurve.totvert < std::numeric_limits<int64_t>::max());
+  const int64_t totvert = fcurve.totvert;
+
+  if (!fcurve.bezt || totvert == 0) {
+    return;
+  }
+  if (fcurve.bezt[0].vec[1][0] > range.max || fcurve.bezt[totvert - 1].vec[1][0] < range.min) {
+    return;
+  }
+  bool frame_on_key;
+  const int start_index = BKE_fcurve_bezt_binarysearch_index(
+      fcurve.bezt, range.min, totvert, &frame_on_key);
+  for (int i = start_index; i < totvert; i++) {
+    BezTriple &key = fcurve.bezt[i];
+    if (key.vec[1][0] > range.max) {
+      break;
+    }
+    switch (mode) {
+      case SelectionMode::ADD:
+        BEZT_SEL_ALL(&key);
+        break;
+      case SelectionMode::SUBTRACT:
+        BEZT_DESEL_ALL(&key);
+        break;
+      case SelectionMode::INVERT:
+        BEZT_SEL_INVERT(&key);
+        break;
+    }
+  }
+}
+
+/* ===== F-Curve Channel ===== */
 
 static KeyframeHandleSummary handle_summary_from_key(const BezTriple &key)
 {
@@ -1437,43 +1498,12 @@ void FCurveChannel::set_setting(const ChannelSettingKey setting, const bool valu
 void FCurveChannel::change_datapoint_selection(const SelectionMode mode, const Bounds<float> range)
 {
   FCurve *fcurve = this->get_source<FCurve>();
-
-  /* Convert totvert to a signed integer, to be able to compare it to the value returned by
-   * BKE_fcurve_bezt_binarysearch_index(). */
-  BLI_assert(fcurve->totvert < std::numeric_limits<int64_t>::max());
-  const int64_t totvert = fcurve->totvert;
-
-  if (!fcurve || !fcurve->bezt || totvert == 0) {
-    return;
-  }
-  if (fcurve->bezt[0].vec[1][0] > range.max || fcurve->bezt[totvert - 1].vec[1][0] < range.min) {
-    return;
-  }
-  bool frame_on_key;
-  const int start_index = BKE_fcurve_bezt_binarysearch_index(
-      fcurve->bezt, range.min, totvert, &frame_on_key);
-  for (int i = start_index; i < totvert; i++) {
-    BezTriple &key = fcurve->bezt[i];
-    if (key.vec[1][0] > range.max) {
-      break;
-    }
-    switch (mode) {
-      case SelectionMode::ADD:
-        BEZT_SEL_ALL(&key);
-        break;
-      case SelectionMode::SUBTRACT:
-        BEZT_DESEL_ALL(&key);
-        break;
-      case SelectionMode::INVERT:
-        BEZT_SEL_INVERT(&key);
-        break;
-    }
-  }
+  change_fcurve_key_selection(*fcurve, mode, range);
 }
 
 StringRefNull FCurveChannel::label() const
 {
-  const ID *animated_id = this->find_animated_id_from_tags();
+  const ID *animated_id = find_animated_id_from_tags(this->tags());
   if (!animated_id) {
     // TODO: getname_anim_fcurve_for_slot() can come to the rescue here.
     return this->label_;
@@ -1488,13 +1518,86 @@ StringRefNull FCurveChannel::label() const
   return this->label_;
 }
 
-const ID *FCurveChannel::find_animated_id_from_tags() const
+/* ===== Driver Channel ===== */
+
+DriverChannel::DriverChannel(const PointerRNA &driver_fcurve_ptr,
+                             const ParsedSourcePath source_rna_path)
+    : DataChannel(driver_fcurve_ptr.data_as<FCurve>()->rna_path(),
+                  DataChannelType::DRIVER,
+                  source_rna_path)
 {
-  const ChannelTag *id_tag = this->tags().first_by_type(ChannelTagType::ID);
-  if (!id_tag) {
-    return nullptr;
+  /* The path doesn't generate? */
+  // assert_same_rna_path(*source_rna_path_, driver_fcurve_ptr);
+  this->source_set(driver_fcurve_ptr);
+}
+
+StringRefNull DriverChannel::label() const
+{
+  const ID *animated_id = find_animated_id_from_tags(this->tags());
+  if (!animated_id) {
+    return this->label_;
   }
-  return id_tag->source_data().data_as<ID>();
+
+  char local_label[1024];
+  if (getname_anim_fcurve(local_label, const_cast<ID *>(animated_id), this->get_source<FCurve>()))
+  {
+    this->label_ = local_label;
+  }
+
+  return this->label_;
+}
+
+void DriverChannel::set_setting(const ChannelSettingKey setting, const bool value)
+{
+  this->flags_ |= ANIM_CHANNEL_DIRTY_SETTINGS;
+  FCurve *fcurve = this->get_source<FCurve>();
+  switch (setting) {
+    case ChannelSettingKey::VISIBLE_ANIM_EDITOR: {
+      flag_update(fcurve->flag, FCURVE_VISIBLE, value);
+      break;
+    }
+    case ChannelSettingKey::LOCKED: {
+      flag_update(fcurve->flag, FCURVE_PROTECTED, value);
+      break;
+    }
+    case ChannelSettingKey::EVALUATE: {
+      flag_update(fcurve->flag, FCURVE_MUTED, !value);
+      break;
+    }
+    case ChannelSettingKey::MODIFIERS_ENABLED: {
+      flag_update(fcurve->flag, FCURVE_MOD_OFF, !value);
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+void DriverChannel::change_datapoint_selection(const SelectionMode mode, const Bounds<float> range)
+{
+  FCurve *fcurve = this->get_source<FCurve>();
+  change_fcurve_key_selection(*fcurve, mode, range);
+}
+
+void DriverChannel::gather_channel_data()
+{
+  /* Drivers don't show up in the dope sheet so there should be no need to gather key data. */
+  BLI_assert_unreachable();
+}
+
+void DriverChannel::gather_channel_settings()
+{
+  const FCurve *fcurve = this->get_source<FCurve>();
+
+  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE_ANIM_EDITOR,
+                                    fcurve->flag & FCURVE_VISIBLE);
+  this->channel_settings_.set_state(ChannelSettingKey::LOCKED, fcurve->flag & FCURVE_PROTECTED);
+  this->channel_settings_.set_state(ChannelSettingKey::EVALUATE, !(fcurve->flag & FCURVE_MUTED));
+
+  if (!fcurve->modifiers.is_empty()) {
+    this->channel_settings_.set_state(ChannelSettingKey::MODIFIERS_ENABLED,
+                                      !(fcurve->flag & FCURVE_MOD_OFF));
+  }
 }
 
 /* ===== GreasePencil Channel ===== */
@@ -1817,6 +1920,15 @@ void ChannelTagSet::reset_bookkeeping()
 {
   used_for_grouping_.resize(tags_.size());
   used_for_grouping_.fill(false);
+}
+
+const ID *find_animated_id_from_tags(const ChannelTagSet &tags)
+{
+  const ChannelTag *id_tag = tags.first_by_type(ChannelTagType::ID);
+  if (!id_tag) {
+    return nullptr;
+  }
+  return id_tag->source_data().data_as<ID>();
 }
 
 }  // namespace blender::ed::animfilter

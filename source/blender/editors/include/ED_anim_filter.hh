@@ -362,6 +362,8 @@ class ChannelTagSet {
   const ChannelTagSet &const_this() const;
 };
 
+const ID *find_animated_id_from_tags(const ChannelTagSet &tags);
+
 /**
  * Identifier for an AnimationChannel.
  *
@@ -739,6 +741,9 @@ enum DataChannelFlags {
 enum class DataChannelType {
   FCURVE,
   GREASE_PENCIL,
+  /* Drivers are kept separate from FCurves because the relationship should really be that a
+   * driver *has an* FCurve instead of *is an* FCurve. */
+  DRIVER,
 };
 
 /* Stream operators for debug printing to std::cout. */
@@ -837,7 +842,6 @@ class FCurveChannel : public DataChannel {
   /**
    * Looks for an ID in the channel tags. Returns the first one found.
    */
-  const ID *find_animated_id_from_tags() const;
 
   void set_time_mapping(const TimeMapping &time_mapping)
   {
@@ -848,6 +852,21 @@ class FCurveChannel : public DataChannel {
   {
     return this->mapping_;
   }
+
+ protected:
+  void gather_channel_data() override;
+  void gather_channel_settings() override;
+};
+
+class DriverChannel : public DataChannel {
+ public:
+  DriverChannel(const PointerRNA &driver_fcurve_ptr, const ParsedSourcePath source_rna_path);
+
+  StringRefNull label() const override;
+
+  void set_setting(ChannelSettingKey setting, bool value) override;
+  void change_datapoint_selection(SelectionMode mode,
+                                  Bounds<float> range = {-INFINITY, INFINITY}) override;
 
  protected:
   void gather_channel_data() override;

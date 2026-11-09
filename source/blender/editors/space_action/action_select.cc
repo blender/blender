@@ -378,6 +378,7 @@ static bool is_any_data_selected(ed::animfilter::DataChannel &channel)
 {
   using namespace ed::animfilter;
   switch (channel.source_type()) {
+    case DataChannelType::DRIVER:
     case DataChannelType::FCURVE: {
       FCurve *fcurve = channel.get_source<FCurve>();
       if (!fcurve->bezt) {

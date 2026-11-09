@@ -55,7 +55,15 @@ static animfilter::ChannelArena build_summary_tree(const bContext &C)
 
   ChannelArena arena;
   arena.filters = get_filters(*space_graph->ads);
-  arena.filters.channel_type_allowlist = {DataChannelType::FCURVE};
+  switch (space_graph->mode) {
+    case SIPO_MODE_ANIMATION:
+      arena.filters.channel_type_allowlist = {DataChannelType::FCURVE};
+      break;
+    case SIPO_MODE_DRIVERS:
+      arena.filters.channel_type_allowlist = {DataChannelType::DRIVER};
+      break;
+  }
+
   collect_animation_channels(C, arena);
 
   arena.grouping_params.use_minimal_grouping = space_graph->ads->flag & ADS_FLAG_MINIMAL_GROUPING;

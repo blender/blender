@@ -466,6 +466,7 @@ void ChannelItem::build_row(ui::Layout &layout)
         }
         break;
       }
+      case DataChannelType::DRIVER:
       case DataChannelType::GREASE_PENCIL:
         break;
     }
@@ -514,7 +515,7 @@ void ChannelItem::build_row(ui::Layout &layout)
         }
         break;
       }
-
+      case DataChannelType::DRIVER:
       case DataChannelType::GREASE_PENCIL:
         break;
     }

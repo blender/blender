@@ -6123,6 +6123,8 @@ static wmOperatorStatus channel_flush_flag_invoke(bContext *C,
   /* Turns on OFF and MIXED, turns off ON. */
   channel_under_cursor->set_setting(key, state.value != ChannelSettingValue::ON);
 
+  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
+
   return OPERATOR_FINISHED;
 }
 
