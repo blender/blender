@@ -67,12 +67,12 @@
 #define ccl_gpu_kernel_threads(block_num_threads)
 
 #  define __ccl_gpu_kernel_signature(name, ...) \
-void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
+void oneapi_kernel_##name(KernelParamsOneAPI *ccl_restrict kernel_params, \
                           size_t kernel_global_size, \
                           size_t kernel_local_size, \
                           sycl::handler &cgh, \
                           __VA_ARGS__) { \
-      (void)(kg); \
+      (void)(kernel_params); \
       cgh.parallel_for( \
           sycl::nd_range<1>(kernel_global_size, kernel_local_size), \
           [=](sycl::nd_item<1> item) {
@@ -83,17 +83,17 @@ void oneapi_kernel_##name(KernelGlobalsGPU *ccl_restrict kg, \
           }); \
     }
 
-#define ccl_gpu_kernel_call(x) ((ONEAPIKernelContext*)kg)->x
+#define ccl_gpu_kernel_call(x) static_cast<ONEAPIKernelContext *>(kernel_params)->x
 #define ccl_gpu_kernel_within_bounds(i, n) ((i) < (n))
 
 #define ccl_gpu_kernel_lambda(func, ...) \
   struct KernelLambda \
   { \
-    KernelLambda(const ONEAPIKernelContext *_kg) : kg(_kg) {} \
-    ccl_private const ONEAPIKernelContext *kg; \
+    KernelLambda(const ONEAPIKernelContext *_kernel_params) : kernel_params(_kernel_params) {} \
+    ccl_private const ONEAPIKernelContext *kernel_params; \
     __VA_ARGS__; \
     int operator()(const int state) const { return (func); } \
-  } ccl_gpu_kernel_lambda_pass((ONEAPIKernelContext *)kg)
+  } ccl_gpu_kernel_lambda_pass(static_cast<ONEAPIKernelContext *>(kernel_params))
 
 /* GPU thread, block, grid size and index */
 

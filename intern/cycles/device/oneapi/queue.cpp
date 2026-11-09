@@ -85,12 +85,12 @@ void OneapiDeviceQueue::init_execution()
   oneapi_device_->load_image_info(nullptr);
 
   SyclQueue *device_queue = oneapi_device_->sycl_queue();
-  void *kg_dptr = oneapi_device_->kernel_globals_device_pointer();
+  void *kernel_params = oneapi_device_->kernel_params_device_pointer();
   assert(device_queue);
-  assert(kg_dptr);
+  assert(kernel_params);
   kernel_context_ = make_unique<KernelContext>();
   kernel_context_->queue = device_queue;
-  kernel_context_->kernel_globals = kg_dptr;
+  kernel_context_->kernel_params = kernel_params;
 
   debug_init_execution();
 }

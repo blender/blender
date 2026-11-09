@@ -33,11 +33,8 @@ class OneapiDevice : public GPUDevice {
   vector<RTCScene> all_embree_scenes;
 #    endif
 #  endif
-  using ConstMemMap = map<string, unique_ptr<device_vector<uchar>>>;
-  ConstMemMap const_mem_map_;
-  void *kg_memory_ = nullptr;
-  void *kg_memory_device_ = nullptr;
-  size_t kg_memory_size_ = 0;
+  /* KernelParamsOneAPI of this device (see kernel/device/oneapi/globals.h). */
+  void *kernel_params_ = nullptr;
   size_t max_memory_on_device_ = 0;
   std::string oneapi_error_string_;
   bool use_hardware_raytracing = false;
@@ -72,7 +69,7 @@ class OneapiDevice : public GPUDevice {
 
   int scene_max_shaders();
 
-  void *kernel_globals_device_pointer();
+  void *kernel_params_device_pointer();
 
   /* All memory types. */
   void mem_alloc(device_memory &mem) override;
@@ -139,11 +136,6 @@ class OneapiDevice : public GPUDevice {
   int get_num_multiprocessors();
   int get_max_num_threads_per_multiprocessor();
   bool queue_synchronize(SyclQueue *queue);
-  bool kernel_globals_size(size_t &kernel_global_size);
-  void set_global_memory(SyclQueue *queue,
-                         void *kernel_globals,
-                         const char *memory_name,
-                         void *memory_device_pointer);
   bool enqueue_kernel(KernelContext *kernel_context,
                       const int kernel,
                       const size_t global_size,

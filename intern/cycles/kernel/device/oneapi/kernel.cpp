@@ -341,7 +341,8 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
 {
   bool success = true;
   ::DeviceKernel device_kernel = (::DeviceKernel)kernel;
-  KernelGlobalsGPU *kg = (KernelGlobalsGPU *)kernel_context->kernel_globals;
+  KernelParamsOneAPI *kernel_params = static_cast<KernelParamsOneAPI *>(
+      kernel_context->kernel_params);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(kernel_context->queue);
   assert(queue);
   if (!queue) {
@@ -382,31 +383,48 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
 #  endif
       switch (device_kernel) {
         case DEVICE_KERNEL_INTEGRATOR_RESET: {
-          oneapi_call(kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_reset);
+          oneapi_call(
+              kernel_params, cgh, global_size, local_size, args, oneapi_kernel_integrator_reset);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_init_from_camera);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_init_from_camera);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_INIT_FROM_BAKE: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_init_from_bake);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_init_from_bake);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_intersect_closest);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_intersect_closest);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_intersect_shadow);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_intersect_shadow);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -415,7 +433,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -424,7 +442,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -433,22 +451,34 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_MNEE: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_intersect_mnee);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_intersect_mnee);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_background);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_shade_background);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_NEE: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_light_nee);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_shade_light_nee);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT_FORWARD: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -457,17 +487,25 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_shadow);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_shade_shadow);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_surface);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_shade_surface);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -476,12 +514,16 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_shade_volume);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_shade_volume);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME_RAY_MARCHING: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -490,7 +532,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -499,12 +541,16 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_queued_paths_array);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_queued_paths_array);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -513,12 +559,16 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_active_paths_array);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_active_paths_array);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -527,7 +577,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -536,13 +586,17 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_sorted_paths_array);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_sorted_paths_array);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS: {
           sycl::local_accessor<int> local_mem(max_shaders, cgh);
-          oneapi_kernel_integrator_sort_bucket_pass(kg,
+          oneapi_kernel_integrator_sort_bucket_pass(kernel_params,
                                                     global_size,
                                                     local_size,
                                                     cgh,
@@ -556,7 +610,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
         }
         case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS: {
           sycl::local_accessor<int> local_mem(max_shaders, cgh);
-          oneapi_kernel_integrator_sort_write_pass(kg,
+          oneapi_kernel_integrator_sort_write_pass(kernel_params,
                                                    global_size,
                                                    local_size,
                                                    cgh,
@@ -569,7 +623,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -578,7 +632,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -587,7 +641,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_ADAPTIVE_SAMPLING_CONVERGENCE_CHECK: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -596,26 +650,43 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_ADAPTIVE_SAMPLING_CONVERGENCE_FILTER_X: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_adaptive_sampling_filter_x);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_adaptive_sampling_filter_x);
           break;
         }
         case DEVICE_KERNEL_ADAPTIVE_SAMPLING_CONVERGENCE_FILTER_Y: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_adaptive_sampling_filter_y);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_adaptive_sampling_filter_y);
           break;
         }
         case DEVICE_KERNEL_SHADER_EVAL_DISPLACE: {
-          oneapi_call(kg, cgh, global_size, local_size, args, oneapi_kernel_shader_eval_displace);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_shader_eval_displace);
           break;
         }
         case DEVICE_KERNEL_SHADER_EVAL_BACKGROUND: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_shader_eval_background);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_shader_eval_background);
           break;
         }
         case DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -624,29 +695,41 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_SHADER_EVAL_VOLUME_DENSITY: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_shader_eval_volume_density);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_shader_eval_volume_density);
           break;
         }
         case DEVICE_KERNEL_PREFIX_SUM: {
-          oneapi_call(kg, cgh, global_size, local_size, args, oneapi_kernel_prefix_sum);
+          oneapi_call(kernel_params, cgh, global_size, local_size, args, oneapi_kernel_prefix_sum);
           break;
         }
         case DEVICE_KERNEL_VOLUME_GUIDING_FILTER_X: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_volume_guiding_filter_x);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_volume_guiding_filter_x);
           break;
         }
         case DEVICE_KERNEL_VOLUME_GUIDING_FILTER_Y: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_volume_guiding_filter_y);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_volume_guiding_filter_y);
           break;
         }
 
         /* clang-format off */
     #  define DEVICE_KERNEL_FILM_CONVERT_PARTIAL(VARIANT, variant) \
     case DEVICE_KERNEL_FILM_CONVERT_## VARIANT: { \
-      oneapi_call(kg, cgh, \
+      oneapi_call(kernel_params, cgh, \
                             global_size, \
                             local_size, \
                             args, \
@@ -679,12 +762,16 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           /* clang-format on */
 
         case DEVICE_KERNEL_FILTER_GUIDING_PREPROCESS: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_filter_guiding_preprocess);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_filter_guiding_preprocess);
           break;
         }
         case DEVICE_KERNEL_FILTER_GUIDING_SET_FAKE_ALBEDO: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -693,31 +780,52 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_FILTER_COLOR_PREPROCESS: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_filter_color_preprocess);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_filter_color_preprocess);
           break;
         }
         case DEVICE_KERNEL_FILTER_COLOR_POSTPROCESS: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_filter_color_postprocess);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_filter_color_postprocess);
           break;
         }
         case DEVICE_KERNEL_FILTER_COLOR_FLIP_Y: {
-          oneapi_call(kg, cgh, global_size, local_size, args, oneapi_kernel_filter_color_flip_y);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_filter_color_flip_y);
           break;
         }
         case DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_cryptomatte_postprocess);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_cryptomatte_postprocess);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES: {
-          oneapi_call(
-              kg, cgh, global_size, local_size, args, oneapi_kernel_integrator_compact_states);
+          oneapi_call(kernel_params,
+                      cgh,
+                      global_size,
+                      local_size,
+                      args,
+                      oneapi_kernel_integrator_compact_states);
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,
@@ -726,7 +834,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
           break;
         }
         case DEVICE_KERNEL_INTEGRATOR_SHADOW_CATCHER_COUNT_POSSIBLE_SPLITS: {
-          oneapi_call(kg,
+          oneapi_call(kernel_params,
                       cgh,
                       global_size,
                       local_size,

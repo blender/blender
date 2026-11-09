@@ -43,10 +43,10 @@
 static constexpr sycl::specialization_id<RTCFeatureFlags> oneapi_embree_features{
     RTC_FEATURE_FLAG_NONE};
 #  define IF_USING_EMBREE \
-    if (kernel_handler.get_specialization_constant<oneapi_embree_features>() != \
+    if (kg->kernel_handler.get_specialization_constant<oneapi_embree_features>() != \
         RTC_FEATURE_FLAG_NONE)
 #  define IF_NOT_USING_EMBREE \
-    if (kernel_handler.get_specialization_constant<oneapi_embree_features>() == \
+    if (kg->kernel_handler.get_specialization_constant<oneapi_embree_features>() == \
         RTC_FEATURE_FLAG_NONE)
 #else
 #  define IF_USING_EMBREE

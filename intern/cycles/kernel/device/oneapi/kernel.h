@@ -34,8 +34,8 @@ typedef void (*OneAPIErrorCallback)(const char *error, void *user_ptr);
 struct KernelContext {
   /* Queue, associated with selected device */
   SyclQueue *queue = nullptr;
-  /* Pointer to USM device memory with all global/constant allocation on this device */
-  void *kernel_globals = nullptr;
+  /* Pointer to USM device memory with the kernel parameters of this device */
+  void *kernel_params = nullptr;
   /* We needs this additional data for some kernels. */
   int scene_max_shaders = 0;
 };
