@@ -30,7 +30,6 @@ android {
 
         ndk {
             // Corresponds to the CMake ANDROID_ABI, defined in platform_android_toolchain.cmake.
-            // Only the single ABI the staged libraries were built for is packaged.
             abiFilters project.property('blenderAbi').toString()
         }
     }
