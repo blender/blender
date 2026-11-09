@@ -2,21 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(FLEX_EXTRA_ARGS "")
-if (ANDROID)
-  set(FLEX_EXTRA_ARGS
-    ${FLEX_EXTRA_ARGS}
-    # Autoconf cannot execute tests while cross-compiling and fails the malloc and realloc tests,
-    # this then causes it to redefine malloc/realloc to rpl_malloc/rpl_realloc which do not exist.
-    # Override the ac cache variables to yes to skip these checks.
-    ac_cv_func_malloc_0_nonnull=yes
-    ac_cv_func_realloc_0_nonnull=yes
-    # Bionic with API > 29 declares reallocarray() in <malloc.h> rather than <stdlib.h>, and the host
-    # compiled stage1flex tool doesn't have it at all. Workaround this by forcing the fallback path for both.
-    ac_cv_func_reallocarray=no
-  )
-endif()
-
 # Generated configuration files use an old `aclocal-1.15` on RockyLinux8.
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(_autoconf_cmd_optional ./autogen.sh &&)
@@ -37,7 +22,7 @@ ExternalProject_Add(external_flex
 
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/flex/src/external_flex/ &&
-    ${_autoconf_cmd_optional} ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flex ${FLEX_EXTRA_ARGS}
+    ${_autoconf_cmd_optional} ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flex
 
   BUILD_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/flex/src/external_flex/ &&
