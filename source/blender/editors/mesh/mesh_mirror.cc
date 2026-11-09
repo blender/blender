@@ -52,7 +52,7 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, Mesh *mesh_eval)
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   EditMesh *em = BKE_editmesh_from_object(ob);
   const bool use_em = (!mesh_eval && em);
-  BMesh *bm = use_em ? BKE_editmesh_bmesh_get_for_write(ob) : nullptr;
+  BMesh *bm = use_em ? BKE_editmesh_bmesh_ensure(ob) : nullptr;
   const int totvert = use_em ? bm->totvert : mesh_eval ? mesh_eval->verts_num : mesh->verts_num;
 
   if (mirror_spatial_table()) { /* happens when entering this call without ending it */
@@ -378,7 +378,7 @@ std::optional<EditMeshSymmetryHelper> EditMeshSymmetryHelper::create_if_needed(O
   }
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   EditMesh *em = BKE_editmesh_from_object(ob);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
 
   if (!em || !bm || mesh->symmetry == 0) {
     return std::nullopt;
@@ -389,7 +389,7 @@ std::optional<EditMeshSymmetryHelper> EditMeshSymmetryHelper::create_if_needed(O
 EditMeshSymmetryHelper::EditMeshSymmetryHelper(Object *ob, uchar htype)
     : em_(BKE_editmesh_from_object(ob)),
       mesh_(id_cast<Mesh *>(ob->data)),
-      bm_(BKE_editmesh_bmesh_get_for_write(mesh_)),
+      bm_(BKE_editmesh_bmesh_ensure(mesh_)),
       htype_(htype)
 {
   use_topology_mirror_ = (mesh_->editflag & ME_EDIT_MIRROR_TOPO) != 0;

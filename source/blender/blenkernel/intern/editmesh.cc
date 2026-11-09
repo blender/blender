@@ -105,6 +105,16 @@ BMesh *BKE_editmesh_bmesh_get_for_write(Object *ob)
   return BKE_editmesh_bmesh_get_for_write(mesh);
 }
 
+BMesh *BKE_editmesh_bmesh_ensure(Mesh *mesh)
+{
+  return BKE_editmesh_bmesh_get_for_write(mesh);
+}
+
+BMesh *BKE_editmesh_bmesh_ensure(Object *object)
+{
+  return BKE_editmesh_bmesh_ensure(id_cast<Mesh *>(object->data));
+}
+
 bool BKE_editmesh_eval_orig_map_available(const Mesh &mesh_eval, const Mesh *mesh_orig)
 {
   if (!mesh_orig) {

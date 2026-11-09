@@ -1328,7 +1328,7 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
   if (obedit) {
     if (obedit->type == OB_MESH) {
       Mesh *mesh = id_cast<Mesh *>(obedit->data);
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
       BMVert *eve;
       BMIter iter;
 

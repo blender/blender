@@ -94,7 +94,7 @@ static PyObject *bpy_bm_from_edit_mesh(PyObject * /*self*/, PyObject *value)
     return nullptr;
   }
 
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
 
   return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_IS_WRAPPED);
 }

@@ -137,7 +137,7 @@ static wmOperatorStatus vertex_parent_set_exec(bContext *C, wmOperator *op)
 
     EditMesh *em = mesh->runtime->edit_mesh.get();
 
-    BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_get_for_write(mesh));
+    BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_ensure(mesh));
 
     /* Make sure the evaluated mesh is updated.
      *
@@ -149,7 +149,7 @@ static wmOperatorStatus vertex_parent_set_exec(bContext *C, wmOperator *op)
     BMVert *eve;
     BMIter iter;
     int curr_index;
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, curr_index) {
       if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
         if (par1 == INDEX_UNSET) {

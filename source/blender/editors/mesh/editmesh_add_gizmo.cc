@@ -310,7 +310,7 @@ static void MESH_GGT_add_bounds(wmGizmoGroupType *gzgt)
 static wmOperatorStatus add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
   float matrix[4][4];
 
   /* Get the matrix that defines the cube bounds (as set by the gizmo cage). */

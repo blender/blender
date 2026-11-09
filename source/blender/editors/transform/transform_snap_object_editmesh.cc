@@ -247,7 +247,7 @@ static Mesh *create_mesh(const Object *ob_eval)
 {
   Mesh *mesh = BKE_id_new_nomain<Mesh>(nullptr);
   Object *ob_orig = const_cast<Object *>(DEG_get_original(ob_eval));
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob_orig);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(ob_orig);
   /* The hide and selection status is all that's needed to find the elements that can be snapped
    * to, see #SnapTargetTreesEditMesh. */
   BM_mesh_bm_to_me_only_select_and_hide(*bm, *mesh);

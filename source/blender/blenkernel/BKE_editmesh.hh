@@ -131,6 +131,16 @@ BMesh *BKE_editmesh_bmesh_get_for_write(Mesh *mesh);
 BMesh *BKE_editmesh_bmesh_get_for_write(Object *ob);
 
 /**
+ * Get the edit-mode #BMesh for code that needs it to exist and a #Mesh alternative is not
+ * implemented. Only valid for original meshes in edit mode.
+ *
+ * \note For now this is the same as #BKE_editmesh_bmesh_get_for_write. Once the #BMesh is created
+ * lazily from the #Mesh data, this will build it when necessary, see #163678.
+ */
+BMesh *BKE_editmesh_bmesh_ensure(Mesh *mesh);
+BMesh *BKE_editmesh_bmesh_ensure(Object *object);
+
+/**
  * Return whether the evaluated mesh is a "descendant" of the original mesh: whether it is a
  * version of the original mesh propagated during evaluation. This will be false if the mesh was
  * taken from an different object during evaluation, with the object info node for example.

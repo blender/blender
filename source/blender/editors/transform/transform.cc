@@ -2296,7 +2296,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
 
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
+        BMesh *bm = BKE_editmesh_bmesh_ensure(tc->obedit);
         bool do_skip = false;
 
         /* Currently only used for two of three most frequent transform ops,
@@ -2377,7 +2377,7 @@ wmOperatorStatus transformEnd(bContext *C, TransInfo *t)
     else {
       if (t->flag & T_CLNOR_REBUILD) {
         FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-          BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
+          BMesh *bm = BKE_editmesh_bmesh_ensure(tc->obedit);
           BM_lnorspace_rebuild(bm, true);
         }
       }

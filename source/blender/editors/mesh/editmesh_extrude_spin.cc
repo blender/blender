@@ -63,7 +63,7 @@ static wmOperatorStatus edbm_spin_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     BMOperator spinop;
 
     /* Keep the values in world-space since we're passing the `obmat`. */

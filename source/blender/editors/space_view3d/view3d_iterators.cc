@@ -354,7 +354,7 @@ void mesh_foreachScreenVert(
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
   data.vc = *vc;
-  data.bm = BKE_editmesh_bmesh_get_for_write(vc->obedit);
+  data.bm = BKE_editmesh_bmesh_ensure(vc->obedit);
   data.func = func;
   data.user_data = user_data;
   data.clip_flag = clip_flag;
@@ -420,7 +420,7 @@ void mesh_foreachScreenEdge(const ViewContext *vc,
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
   data.vc = *vc;
-  data.bm = BKE_editmesh_bmesh_get_for_write(vc->obedit);
+  data.bm = BKE_editmesh_bmesh_ensure(vc->obedit);
 
   data.win_rect.xmin = 0;
   data.win_rect.ymin = 0;
@@ -513,7 +513,7 @@ void mesh_foreachScreenEdge_clip_bb_segment(const ViewContext *vc,
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
   data.vc = *vc;
-  data.bm = BKE_editmesh_bmesh_get_for_write(vc->obedit);
+  data.bm = BKE_editmesh_bmesh_ensure(vc->obedit);
 
   data.win_rect.xmin = 0;
   data.win_rect.ymin = 0;
@@ -587,7 +587,7 @@ void mesh_foreachScreenFace(
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
   data.vc = *vc;
-  data.bm = BKE_editmesh_bmesh_get_for_write(vc->obedit);
+  data.bm = BKE_editmesh_bmesh_ensure(vc->obedit);
   data.func = func;
   data.user_data = user_data;
   data.clip_flag = clip_flag;

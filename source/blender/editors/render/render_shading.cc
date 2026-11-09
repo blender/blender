@@ -439,7 +439,7 @@ static wmOperatorStatus material_slot_de_select(bContext *C, bool select)
       EditMesh *em = BKE_editmesh_from_object(ob);
 
       if (em) {
-        BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+        BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
         changed = EDBM_deselect_by_material(bm, mat_nr_active, select);
       }
     }

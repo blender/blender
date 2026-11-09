@@ -340,7 +340,7 @@ void vgroup_parray_mirror_assign(Object *ob, MDeformVert **dvert_array, const in
     return;
   }
   BLI_assert(dvert_tot == dvert_tot_all);
-  if (BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob)) {
+  if (BMesh *bm = BKE_editmesh_bmesh_ensure(ob)) {
     BM_mesh_elem_table_ensure(bm, BM_VERT);
   }
 
@@ -552,7 +552,7 @@ static void mesh_defvert_mirror_update_em(
     Object *ob, BMVert *eve, int def_nr, int vidx, const int cd_dvert_offset)
 {
   Mesh *mesh = id_cast<Mesh *>(ob->data);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
   BMVert *eve_mirr;
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
@@ -1696,7 +1696,7 @@ static void vgroup_smooth_subset(Object *ob,
   const float iexpand = 1.0f - expand;
 
   Mesh *mesh = id_cast<Mesh *>(ob->data);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
 
   float *weight_accum_prev;
   float *weight_accum_curr;
@@ -2183,7 +2183,7 @@ void vgroup_mirror(Object *ob,
     Mesh *mesh = id_cast<Mesh *>(ob->data);
 
     if (EditMesh *em = mesh->runtime->edit_mesh.get()) {
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
       const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
       BMIter iter;
 
@@ -3921,7 +3921,7 @@ static wmOperatorStatus vgroup_do_remap(Object *ob, const char *name_array, wmOp
   }
   else if (ob->mode == OB_MODE_EDIT) {
     if (ob->type == OB_MESH) {
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
       const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
 
       if (cd_dvert_offset != -1) {

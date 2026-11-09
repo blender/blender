@@ -319,8 +319,7 @@ static void transform_panel_interaction_update_fn(bContext *C,
   Object *ob = static_cast<Object *>(arg1);
   EditMesh *em = BKE_editmesh_from_object(ob);
 
-  BKE_editmesh_looptris_and_normals_calc_with_partial(
-      em, BKE_editmesh_bmesh_get_for_write(ob), bmpinfo);
+  BKE_editmesh_looptris_and_normals_calc_with_partial(em, BKE_editmesh_bmesh_ensure(ob), bmpinfo);
 }
 
 /** \} */
@@ -1255,7 +1254,7 @@ static void v3d_editvertex_buts(
   if (ob->type == OB_MESH) {
     TransformMedian_Mesh &median = median_basis.mesh;
     Mesh *mesh = id_cast<Mesh *>(ob->data);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
     calc_median_bmesh(*bm, bounds_matrix, median, select_bounds, tot, totedgedata);
 
     has_meshdata = (tot || totedgedata);
@@ -2013,7 +2012,7 @@ static void v3d_editvertex_buts(
       const TransformMedian_Mesh &median = median_basis.mesh;
       const TransformMedian_Mesh &ve_median = ve_median_basis.mesh;
       Mesh *mesh = id_cast<Mesh *>(ob->data);
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
       apply_median_to_bmesh(*bm, median, ve_median, tot, apply_vcos, apply_coord_fn);
 
       if (apply_vcos) {

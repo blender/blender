@@ -105,14 +105,14 @@ static void edgering_select(RingSelOpData *lcd)
   if (!lcd->extend) {
     for (Base *base : lcd->bases) {
       Object *ob_iter = base->object;
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob_iter);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(ob_iter);
       EDBM_flag_disable_all(bm, BM_ELEM_SELECT);
       DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
       WM_main_add_notifier(NC_GEOM | ND_SELECT, ob_iter->data);
     }
   }
 
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(lcd->ob);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(lcd->ob);
   BMEdge *eed_start = lcd->eed;
   BMWalker walker;
   BMEdge *eed;
@@ -145,7 +145,7 @@ static void ringsel_find_edge(RingSelOpData *lcd, const int previewlines)
           lcd->vc.depsgraph, scene_eval, ob_eval, gcache->allocated_vert_positions);
       gcache->is_init = true;
     }
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(lcd->ob);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(lcd->ob);
     EDBM_preselect_edgering_update_from_edge(
         lcd->presel_edgering, bm, lcd->eed, previewlines, gcache->vert_positions);
   }
@@ -168,7 +168,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
   if (lcd->eed) {
     EditMesh *em = lcd->em;
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(lcd->ob);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(lcd->ob);
     BMVert *v_eed_orig[2] = {lcd->eed->v1, lcd->eed->v2};
 
     edgering_select(lcd);
@@ -414,7 +414,7 @@ static wmOperatorStatus loopcut_init(bContext *C, wmOperator *op, const wmEvent 
     }
     else {
       Object *ob_iter = bases[exec_data.base_index]->object;
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob_iter);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(ob_iter);
       if (exec_data.e_index >= bm->totedge) {
         ok = false;
       }
@@ -445,7 +445,7 @@ static wmOperatorStatus loopcut_init(bContext *C, wmOperator *op, const wmEvent 
     Object *ob_iter = lcd->bases[exec_data.base_index]->object;
     ED_view3d_viewcontext_init_object(&lcd->vc, ob_iter);
 
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob_iter);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(ob_iter);
 
     BMEdge *e;
     BM_mesh_elem_table_ensure(bm, BM_EDGE);
@@ -535,7 +535,7 @@ static wmOperatorStatus loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperat
 
   if (lcd->eed) {
     /* set for redo */
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(lcd->ob);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(lcd->ob);
     BM_mesh_elem_index_ensure(bm, BM_EDGE);
     RNA_int_set(op->ptr, "object_index", lcd->base_index);
     RNA_int_set(op->ptr, "edge_index", BM_elem_index_get(lcd->eed));

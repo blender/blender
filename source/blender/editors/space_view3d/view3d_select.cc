@@ -834,7 +834,7 @@ static bool do_lasso_select_mesh(const ViewContext *vc,
   rcti rect;
 
   BLI_assert(vc->em == BKE_editmesh_from_object(vc->obedit));
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(vc->obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc->obedit);
 
   BLI_lasso_boundbox(&rect, mcoords);
 
@@ -4090,7 +4090,7 @@ static bool do_mesh_box_select(const ViewContext *vc,
 {
   BoxSelectUserData data;
   ToolSettings *ts = vc->scene->toolsettings;
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(vc->obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc->obedit);
 
   view3d_userdata_boxselect_init(&data, vc, rect, sel_op);
   data.bm = bm;
@@ -4830,7 +4830,7 @@ static bool mesh_circle_select(const ViewContext *vc,
   ToolSettings *ts = vc->scene->toolsettings;
   CircleSelectUserData data;
   BLI_assert(vc->em == BKE_editmesh_from_object(vc->obedit));
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(vc->obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc->obedit);
 
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -5547,7 +5547,7 @@ static void view3d_circle_select_recalc(void *user_data)
             vc.bmain, vc.scene, vc.view_layer, vc.v3d, vc.obact->type, vc.obact->mode, ob_iter)
         {
           ED_view3d_viewcontext_init_object(&vc, ob_iter);
-          BMesh *bm = BKE_editmesh_bmesh_get_for_write(vc.obedit);
+          BMesh *bm = BKE_editmesh_bmesh_ensure(vc.obedit);
           BM_mesh_select_mode_flush_ex(bm, vc.em->selectmode, BMSelectFlushFlag_All);
         }
         FOREACH_OBJECT_IN_MODE_END;

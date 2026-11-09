@@ -39,7 +39,7 @@ static wmOperatorStatus set_sharpness_by_angle_exec(bContext *C, wmOperator *op)
 
   for (Object *object : objects) {
     Mesh &mesh = *id_cast<Mesh *>(object->data);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(&mesh);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(&mesh);
 
     bool changed = false;
     BMIter iter;

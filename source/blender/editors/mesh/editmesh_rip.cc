@@ -521,7 +521,7 @@ static int edbm_rip_invoke__vert(Object *obedit,
                                  const float3 &ray_dir)
 {
   Array<UnorderedLoopPair> fill_uloop_pairs;
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
   BMIter iter, liter;
   BMLoop *l;
   BMEdge *e_best;
@@ -882,7 +882,7 @@ static int edbm_rip_invoke__edge(Object *obedit,
                                  const float3 &ray_dir)
 {
   Array<UnorderedLoopPair> fill_uloop_pairs;
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
   BMIter iter, eiter;
   BMLoop *l;
   BMEdge *e_best;
@@ -1026,7 +1026,7 @@ static wmOperatorStatus edbm_rip_exec(bContext *C, wmOperator *op)
   bool error_rip_failed = true;
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     BMIter iter;
     BMEdge *e;
     const bool singlesel = (bm->totvertsel == 1 && bm->totedgesel == 0 && bm->totfacesel == 0);

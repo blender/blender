@@ -78,7 +78,7 @@ static wmOperatorStatus edbm_space_edge_loops_evenly_exec(bContext *C, wmOperato
   bool changed_multi = false;
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totedgesel > 0) {
       has_edges_selected = true;
     }

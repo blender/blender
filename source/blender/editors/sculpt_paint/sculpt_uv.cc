@@ -491,7 +491,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
                                    Object *obedit)
 {
   ARegion *region = CTX_wm_region(C);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
   UvSculptData *sculptdata = static_cast<UvSculptData *>(op->customdata);
   eBrushUVSculptTool tool = eBrushUVSculptTool(sculptdata->tool);
   int invert = sculptdata->invert ? -1 : 1;
@@ -662,7 +662,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   Object *obedit = CTX_data_edit_object(C);
   ToolSettings *ts = scene->toolsettings;
   UvSculptData *data = MEM_new_zeroed<UvSculptData>(__func__);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
   op->customdata = data;
 

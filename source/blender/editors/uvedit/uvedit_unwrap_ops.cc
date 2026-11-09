@@ -92,7 +92,7 @@ static bool uvedit_ensure_uvs(Object *obedit)
   if (ED_uvedit_test(obedit)) {
     return true;
   }
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
   BMFace *efa;
   BMIter iter;
 
@@ -488,7 +488,7 @@ static bool uvedit_have_selection_multi(const Scene *scene,
 {
   bool have_select = false;
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (uvedit_have_selection(scene, bm, options)) {
       have_select = true;
       break;
@@ -514,7 +514,7 @@ void ED_uvedit_get_aspect_from_material(Object *ob,
 
 void ED_uvedit_get_aspect(Object *ob, float *r_aspx, float *r_aspy)
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
   BLI_assert(bm != nullptr);
   bool sloppy = true;
   bool selected = false;
@@ -694,7 +694,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
   BMFace *efa;
   BMIter iter;
   int i;
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
 
   ParamHandle *handle = new geometry::ParamHandle();
 
@@ -754,7 +754,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
   int offset = 0;
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
     if (offsets.uv == -1) {
       continue;
@@ -876,7 +876,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   /* Similar to the above, we need a way to map edges to their original ones. */
   BMEdge **edgeMap;
 
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
   const int cd_weight_index = BKE_object_defgroup_name_index(ob, options->weight_group);
 
@@ -1129,7 +1129,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
     ms->lasttime = BLI_time_now_seconds();
 
     for (Object *obedit : ms->objects_edit) {
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
       if (synced_selection && (bm->totfacesel == 0)) {
         continue;
       }
@@ -1166,7 +1166,7 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
   delete (ms->handle);
 
   for (Object *obedit : ms->objects_edit) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (synced_selection && (bm->totfacesel == 0)) {
       continue;
     }
@@ -1461,7 +1461,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
       bm = bmesh_override[ob_index];
     }
     else {
-      bm = BKE_editmesh_bmesh_get_for_write(obedit);
+      bm = BKE_editmesh_bmesh_ensure(obedit);
     }
     BLI_assert(bm);
 
@@ -2082,7 +2082,7 @@ static wmOperatorStatus average_islands_scale_exec(bContext *C, wmOperator *op)
   delete (handle);
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (synced_selection && (bm->totvertsel == 0)) {
       continue;
     }
@@ -2640,7 +2640,7 @@ static void uv_map_clip_correct(const Scene *scene,
   INIT_MINMAX2(min, max);
 
   for (Object *ob : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     /* Correct for image aspect ratio. */
@@ -2707,7 +2707,7 @@ static void uv_map_clip_correct(const Scene *scene,
     }
 
     for (Object *ob : objects) {
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
       const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -2743,7 +2743,7 @@ static void uvedit_unwrap(const Scene *scene,
                           int *r_count_changed,
                           int *r_count_failed)
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
   if (!CustomData_has_layer(&bm->ldata, CD_PROP_FLOAT2)) {
     return;
   }
@@ -3273,7 +3273,7 @@ static wmOperatorStatus smart_project_exec(bContext *C, wmOperator *op)
 
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     bool changed = false;
 
     if (!uvedit_ensure_uvs(obedit)) {
@@ -3554,7 +3554,7 @@ static wmOperatorStatus uv_from_view_exec(bContext *C, wmOperator *op)
   Scene *scene_eval = const_cast<Scene *>(DEG_get_evaluated(depsgraph, scene));
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     bool changed = false;
 
     /* add uvs if they don't exist yet */
@@ -3706,7 +3706,7 @@ static wmOperatorStatus reset_exec(bContext *C, wmOperator * /*op*/)
       *bmain, scene, view_layer, v3d);
   for (Object *obedit : objects) {
     Mesh *mesh = id_cast<Mesh *>(obedit->data);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
     if (bm->totfacesel == 0) {
       continue;
     }
@@ -3966,7 +3966,7 @@ static wmOperatorStatus sphere_project_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, v3d);
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     BMFace *efa;
     BMIter iter;
 
@@ -4145,7 +4145,7 @@ static wmOperatorStatus cylinder_project_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, v3d);
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     BMFace *efa;
     BMIter iter;
 
@@ -4298,7 +4298,7 @@ static wmOperatorStatus cube_project_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, v3d);
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totfacesel == 0) {
       continue;
     }

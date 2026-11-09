@@ -2607,7 +2607,7 @@ static wmOperatorStatus skin_root_mark_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = edit_modifier_ptr_get(C, RNA_SkinModifier);
   Object *ob = edit_modifier_object_get(C, ptr);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
 
   Set<BMVert *> visited;
 
@@ -2656,7 +2656,7 @@ static wmOperatorStatus skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 {
   PointerRNA ptr = edit_modifier_ptr_get(C, RNA_SkinModifier);
   Object *ob = edit_modifier_object_get(C, ptr);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
   SkinLooseAction action = static_cast<SkinLooseAction>(RNA_enum_get(op->ptr, "action"));
 
   if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius")) {
@@ -2713,7 +2713,7 @@ static wmOperatorStatus skin_radii_equalize_exec(bContext *C, wmOperator * /*op*
 {
   PointerRNA ptr = edit_modifier_ptr_get(C, RNA_SkinModifier);
   Object *ob = edit_modifier_object_get(C, ptr);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
 
   const int cd_skin_radius_offset = CustomData_get_offset_named(
       &bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");

@@ -356,7 +356,7 @@ void EDBM_mesh_make_from_mesh(Object *ob,
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
   Mesh *mesh = id_cast<Mesh *>(ob->data);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
 
   /* Workaround for #42360, 'ob->shapenr' should be 1 in this case.
    * however this isn't synchronized between objects at the moment. */
@@ -1941,7 +1941,7 @@ int EDBM_elem_to_index_any_multi(const Main &bmain,
   for (const int base_index : bases.index_range()) {
     Base *base_iter = bases[base_index];
     if (BKE_editmesh_from_object(base_iter->object) == em) {
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(base_iter->object);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(base_iter->object);
       *r_object_index = base_index;
       elem_index = EDBM_elem_to_index_any(bm, ele);
       break;
@@ -1962,7 +1962,7 @@ BMElem *EDBM_elem_from_index_any_multi(const Main &bmain,
   *r_obedit = nullptr;
   Object *obedit = (object_index < bases.size()) ? bases[object_index]->object : nullptr;
   if (obedit != nullptr) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     BMElem *ele = EDBM_elem_from_index_any(bm, elem_index);
     if (ele != nullptr) {
       *r_obedit = obedit;
@@ -2083,7 +2083,7 @@ void EDBM_project_snap_verts(bContext *C, Depsgraph *depsgraph, ARegion *region,
   BMVert *eve;
 
   ED_view3d_init_mats_rv3d(obedit, static_cast<RegionView3D *>(region->regiondata));
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
   const Scene *scene = CTX_data_scene(C);
   transform::SnapObjectContext *snap_context = transform::snap_object_context_create();
