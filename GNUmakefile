@@ -553,15 +553,31 @@ deps: .FORCE
 
 
 # -----------------------------------------------------------------------------
-# Cross-compilation targets
+# Cross-compilation targets and info banner
 
-android: .FORCE
-	@echo "Building for Android $(ANDROID_ABI) from host $(HOST_OS)."
+# Ensure the banner is displayed *before* normal Blender (`all`) and `deps` builds.
+ifdef IS_CROSSCOMPILING
+all deps: _cross_compile_info
+endif
+
+_cross_compile_info: .FORCE
+	@echo "Building for $(TARGET_OS) ($(TARGET_CPU)) from host $(HOST_OS)."
+
+# Platform targets
+android: _cross_compile_info
+
+# Allow simple `make <target_os>` invocations to build Blender, while making sure `make deps <target_os>` doesn't
+# also trigger an additional Blender build. Filter-out cross-compilation specifiers and only build if nothing remains.
+ifeq ($(strip $(filter-out android arm64 x64,$(MAKECMDGOALS))),)  # Compare with nothing.
+android: all
+endif
 
 # Target architecture selection goals, only meaningful combined with a cross-compilation
-# target such as `android`.
-arm64: .FORCE
-x64: .FORCE
+# target such as `android`. When cross-compiling, make these targets silent via `@:`.
+arm64 x64: .FORCE
+ifdef IS_CROSSCOMPILING
+	@:
+endif
 
 
 # -----------------------------------------------------------------------------
