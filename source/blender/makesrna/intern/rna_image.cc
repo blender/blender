@@ -259,7 +259,8 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   ImageUser *iuser = static_cast<ImageUser *>(ptr->data);
   ID *id = ptr->owner_id;
 
-  if (scene != nullptr) {
+  /* Without Auto Refresh the stored frame must be kept, nothing recomputes it afterwards. */
+  if (scene != nullptr && (iuser->flag & IMA_ANIM_ALWAYS)) {
     BKE_image_user_frame_calc(nullptr, iuser, scene->r.cfra);
   }
 
