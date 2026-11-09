@@ -865,10 +865,16 @@ VkImageUsageFlags vk_image_usage_supported_by_format(const VkFormat format)
 {
   const VKDevice &device = VKBackend::get().device;
   VkFormatProperties3 format_properties3 = {VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3};
-  VkFormatProperties2 format_properties2 = {VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2,
-                                            &format_properties3};
+  VkFormatProperties2 format_properties2 = {VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2};
+  /* #VkFormatProperties3 is not available on all devices, and only adds the host transfer bit. */
+  if (device.extensions_get().host_image_copy) {
+    format_properties2.pNext = &format_properties3;
+  }
   vkGetPhysicalDeviceFormatProperties2(device.physical_device_get(), format, &format_properties2);
-  const VkFormatFeatureFlags2 features = format_properties3.optimalTilingFeatures;
+  /* The bits used below have the same values in both flag types. */
+  const VkFormatFeatureFlags2 features =
+      format_properties2.formatProperties.optimalTilingFeatures |
+      format_properties3.optimalTilingFeatures;
 
   VkImageUsageFlags usage = 0;
   if (features & VK_FORMAT_FEATURE_2_TRANSFER_SRC_BIT) {
