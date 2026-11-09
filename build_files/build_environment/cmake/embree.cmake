@@ -102,16 +102,16 @@ ExternalProject_Add(external_embree
   INSTALL_DIR ${LIBDIR}/embree
 )
 
+add_dependencies(
+  external_embree
+  external_tbb
+)
+
+# DPC++ is required for GPU support only.
 if(NOT APPLE AND NOT BLENDER_PLATFORM_ARM AND NOT ANDROID)
   add_dependencies(
     external_embree
-    external_tbb
     external_dpcpp
-  )
-else()
-  add_dependencies(
-    external_embree
-    external_tbb
   )
 endif()
 
