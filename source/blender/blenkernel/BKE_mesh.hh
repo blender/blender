@@ -474,6 +474,7 @@ void mesh_remove_invalid_attribute_strings(Mesh &mesh);
  *
  * \param allow_missing_edges: When true, faces with missing edges are not treated as errors.
  * Missing edges are still computed, but no error is printed and the return value is not affected.
+ * The corner-to-edge mapping may be uninitialized and is always rebuilt without checking it.
  * Useful for importers that produce faces without edges.
  *
  * \return True if the mesh was valid (fixes were not applied).
