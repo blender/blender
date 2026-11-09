@@ -368,7 +368,7 @@ static void animchan_sync_annotation_layer(ed::animfilter::AnimationChannel &cha
    * TODO: move this away from the anim sync code, and into the GreasePencil/Annotation code for
    * setting the selection state.
    */
-  flag_update(gpl->flag, GP_LAYER_SELECT, GP_LAYER_ACTIVE);
+  flag_update(gpl->flag, GP_LAYER_SELECT, gpl->flag & GP_LAYER_ACTIVE);
 }
 
 static void animchan_sync_greasepencil_layer(ed::animfilter::AnimationChannel &channel)
