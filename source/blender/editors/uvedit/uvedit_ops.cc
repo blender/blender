@@ -2670,7 +2670,6 @@ static bool uv_copy_mirrored_faces(const Scene *scene,
 {
   *r_double_warn = 0;
   const float precision_scale = powf(10.0f, precision);
-  /* TODO: replace mirror look-ups with #EditMeshSymmetryHelper. */
   Map<float3, BMVert *> mirror_gt, mirror_lt;
   Map<BMVert *, BMVert *> vmap;
 
