@@ -283,6 +283,38 @@ static void clear_requested_bakes_in_modifier_cache(BakeGeometryNodesJob &job)
   return true;
 }
 
+/**
+ * Remember where the last frame has been written to, so that it can be loaded again lazily. Frames
+ * before #up_to_frame_exclusive that are on disk are freed.
+ */
+static void free_frames_written_to_disk(bake::ModifierCache &modifier_cache,
+                                        bake::NodeBakeCache &bake_cache,
+                                        const bake::BakePath &path,
+                                        std::string meta_path,
+                                        const SubFrame up_to_frame_exclusive)
+{
+  /* Free the values outside of the lock because freeing volume grids is multi-threaded. */
+  Vector<bake::BakeValues> values_to_free;
+  {
+    std::lock_guard lock{modifier_cache.mutex};
+    bake::FrameCache &last_frame = *bake_cache.frames.last();
+    if (!last_frame.values.is_empty()) {
+      last_frame.meta_data_source = std::move(meta_path);
+    }
+    if (!bake_cache.blob_sharing) {
+      bake_cache.blobs_dir = path.blobs_dir;
+      bake_cache.blob_sharing = std::make_unique<bake::BlobReadSharing>();
+    }
+    for (std::unique_ptr<bake::FrameCache> &frame_cache : bake_cache.frames) {
+      if (frame_cache->frame < up_to_frame_exclusive && frame_cache->meta_data_source &&
+          !frame_cache->values.is_empty())
+      {
+        values_to_free.append(std::exchange(frame_cache->values, {}));
+      }
+    }
+  }
+}
+
 static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 {
   BakeGeometryNodesJob &job = *static_cast<BakeGeometryNodesJob *>(customdata);
@@ -384,6 +416,8 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
         }
         written_size += blob_writer.written_size();
         written_size += meta_data.size();
+        /* Keep the current frame in memory, it is the input of the next simulation step. */
+        free_frames_written_to_disk(modifier_cache, *bake_cache, *request.path, meta_path, frame);
       }
       else {
         PackedBake &packed_data = packed_data_by_bake.lookup_or_add_default(&request);
