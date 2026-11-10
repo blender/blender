@@ -332,7 +332,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
     /* Slide 54. */
     /* The reference is wrong.
      * The ratio estimator is `pdf_local / pdf_ray` instead of `bsdf_local / pdf_ray`. */
-    float pdf = closure.eval(V, ray_direction, thickness).pdf;
+    float pdf = closure.eval(util_tx, V, ray_direction, thickness).pdf;
     /* Avoid the weight exploding and summing to infinity. */
     float weight = min(1e30f, pdf * ray_pdf_inv);
 

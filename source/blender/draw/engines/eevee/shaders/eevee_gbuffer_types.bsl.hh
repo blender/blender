@@ -68,6 +68,7 @@ enum GBufferMode : uchar {
   GBUF_UNLIT = 4u,
 
   GBUF_OREN_NAYAR = 5u,
+  GBUF_SHEEN = 6u,
 
   /**
    * Special bit that marks all closures with refraction.
@@ -105,6 +106,8 @@ GBufferMode closure_type_to_mode(ClosureType type, bool is_grayscale)
       return is_grayscale ? GBUF_THIN_REFRACTION_COLORLESS : GBUF_THIN_REFRACTION;
     case CLOSURE_BSSRDF_BURLEY_ID:
       return GBUF_SUBSURFACE;
+    case CLOSURE_BSDF_SHEEN_ID:
+      return GBUF_SHEEN;
     case CLOSURE_NONE_ID:
       return GBUF_NONE;
   }
@@ -131,6 +134,8 @@ ClosureType mode_to_closure_type(uint mode)
     case GBUF_THIN_REFRACTION_COLORLESS:
     case GBUF_THIN_REFRACTION:
       return ClosureType(CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID);
+    case GBUF_SHEEN:
+      return ClosureType(CLOSURE_BSDF_SHEEN_ID);
     case GBUF_NONE:
     case GBUF_UNLIT:
       return ClosureType(CLOSURE_NONE_ID);
@@ -546,7 +551,7 @@ struct ClosurePacking {
   {
     return this->mode == GBUF_REFLECTION || this->mode == GBUF_REFRACTION ||
            this->mode == GBUF_THIN_REFRACTION || this->mode == GBUF_SUBSURFACE ||
-           this->mode == GBUF_OREN_NAYAR;
+           this->mode == GBUF_OREN_NAYAR || this->mode == GBUF_SHEEN;
   }
 
   bool is_empty() const
@@ -661,6 +666,18 @@ struct ThinRefractionColorless {
 };
 
 struct OrenNayar {
+  static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
+  {
+    cl_packed.data1 = float4(cl.data.x, 0.0f, 0.0f, 0.0f);
+  }
+
+  static void unpack_additional(BsdfClosure &cl, float4 data1)
+  {
+    cl.data.x = data1.x; /* Roughness. */
+  }
+};
+
+struct Sheen {
   static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
   {
     cl_packed.data1 = float4(cl.data.x, 0.0f, 0.0f, 0.0f);

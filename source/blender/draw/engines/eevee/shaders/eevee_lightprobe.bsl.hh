@@ -61,9 +61,14 @@ struct LightprobeRenderData {
     return radiance_sh;
   }
 
-  float3 eval(LightProbeSample samp, BsdfClosure cl, float3 P, float3 V, Thickness thickness) const
+  float3 eval(const UtilityTexture &util_tx,
+              LightProbeSample samp,
+              BsdfClosure cl,
+              float3 P,
+              float3 V,
+              Thickness thickness) const
   {
-    LightProbeRay ray = bxdf_lightprobe_ray(cl, P, V, thickness);
+    LightProbeRay ray = bxdf_lightprobe_ray(util_tx, cl, P, V, thickness);
 
     float lod = lightprobe::sphere::roughness_to_lod(ray.perceptual_roughness);
     float fac = lightprobe::sphere::roughness_to_mix_fac(ray.perceptual_roughness);

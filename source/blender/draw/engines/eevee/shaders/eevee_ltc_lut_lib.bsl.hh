@@ -127,6 +127,21 @@ struct LTCData {
   }
 
   /**
+   * Construct LTCData from the inverse LTC matrix.
+   */
+  static LTCData from_M_inv(
+      const float3x3 &M_inv,
+      const float3 N,
+      const float3 V,
+      const LTCFormFactorType type = LTCFormFactorType::OneSidedCosineSphereClipped)
+  {
+    /* Rotate into orthonormal basis around N. */
+    const float3x3 T = from_incident_vector(N, V);
+
+    return {.Minv = M_inv * transpose(T), .attenuation_factor = 1.0f, .form_factor_type = type};
+  }
+
+  /**
    * Sample matrix data from an isotropic LTC LUT.
    */
   static LTCData sample_lut(const UtilityTexture &util_tx,
@@ -142,15 +157,8 @@ struct LTCData {
     const float4 lut_packed = util_tx.sample_lut(coords, layer);
 
     /* Expand components to full inverse LTC matrix. */
-    float3x3 Minv = ltc::unpack_isotropic_matrix(lut_packed);
-
-    /* Rotate into orthonormal basis around N. */
-    const float3x3 T = from_incident_vector(N, V);
-    Minv = Minv * transpose(T);
-
-    return {.Minv = Minv,
-            .attenuation_factor = 1.0f,
-            .form_factor_type = LTCFormFactorType::OneSidedCosineSphereClipped};
+    const float3x3 Minv = ltc::unpack_isotropic_matrix(lut_packed);
+    return from_M_inv(Minv, N, V);
   }
 
   /**
@@ -161,11 +169,7 @@ struct LTCData {
       const float3 V,
       LTCFormFactorType form_factor_type = LTCFormFactorType::OneSidedCosineSphereClipped)
   {
-    /* Rotate into orthonormal basis around N. LTC matrix is simply the identity matrix. */
-    const float3x3 T = from_incident_vector(N, V);
-
-    return {
-        .Minv = transpose(T), .attenuation_factor = 1.0f, .form_factor_type = form_factor_type};
+    return from_M_inv(mat3x3_identity(), N, V, form_factor_type);
   }
 
   /**

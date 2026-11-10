@@ -74,11 +74,14 @@ struct BsdfClosure {
   /* High level functions. Will call the correct override for each class. */
 
   /* Return the result of the BSDF sample function. */
-  BsdfSample sample(float3 rand, float3 Vt, Thickness thickness) const;
+  BsdfSample sample(const UtilityTexture &util_tx,
+                    float3 rand,
+                    float3 Vt,
+                    Thickness thickness) const;
   /* Return the result of the BSDF eval function. */
-  BsdfEval eval(float3 V, float3 L, Thickness thickness) const;
+  BsdfEval eval(const UtilityTexture &util_tx, float3 V, float3 L, Thickness thickness) const;
   /* Create a lightprobe ray that best represents the BSDF. */
-  LightProbeRay lightprobe_ray(float3 V, Thickness thickness) const;
+  LightProbeRay lightprobe_ray(const UtilityTexture &util_tx, float3 V, Thickness thickness) const;
   /* Create a context for light evaluation. */
   LightEvalContext light_eval_context(const UtilityTexture &util_tx,
                                       float3 V,

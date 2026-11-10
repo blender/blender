@@ -386,9 +386,9 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   }
 #endif
 
-  bool use_diffuse = in[SOCK_SHEEN_WEIGHT_ID].socket_not_zero() ||
-                     (in[SOCK_METALLIC_ID].socket_not_one() &&
-                      in[SOCK_TRANSMISSION_WEIGHT_ID].socket_not_one());
+  bool use_sheen = in[SOCK_SHEEN_WEIGHT_ID].socket_not_zero();
+  bool use_diffuse = use_sheen || (in[SOCK_METALLIC_ID].socket_not_one() &&
+                                   in[SOCK_TRANSMISSION_WEIGHT_ID].socket_not_one());
   bool use_subsurf = in[SOCK_SUBSURFACE_WEIGHT_ID].socket_not_zero() && use_diffuse;
   bool use_refract = in[SOCK_METALLIC_ID].socket_not_one() &&
                      in[SOCK_TRANSMISSION_WEIGHT_ID].socket_not_zero();
@@ -408,7 +408,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
   eGPUMaterialFlag flag = GPU_MATFLAG_GLOSSY;
   if (use_diffuse) {
     flag |= GPU_MATFLAG_DIFFUSE;
-    if (in[SOCK_DIFFUSE_ROUGHNESS_ID].socket_not_zero()) {
+    if (in[SOCK_DIFFUSE_ROUGHNESS_ID].socket_not_zero() || use_sheen) {
       flag |= GPU_MATFLAG_DIFFUSE_ROUGHNESS;
     }
   }

@@ -32,16 +32,6 @@ float thin_glass_transmission_roughness(const float roughness, const float ior)
                   sqrt(3.4f * (ior - 1.0f) * square(ior - 0.5f) / (square(ior) * ior)));
 }
 
-float openpbr_fuzz(const float NV, const float rough)
-{
-  /* Empirical approximation (manual curve fitting) to the fuzz_weight albedo. Can be refined. */
-  const float den = 35.6694f * rough * rough - 24.4269f * rough * NV - 0.1405f * NV * NV +
-                    6.1211f * rough + 0.28105f * NV - 0.1405f;
-  const float num = 58.5299f * rough * rough - 85.0941f * rough * NV + 9.8955f * NV * NV +
-                    1.9250f * rough + 74.2268f * NV - 0.2246f;
-  return saturate(den / num);
-}
-
 struct Coat {
   packed_float3 tint;
   float roughness;
@@ -88,33 +78,29 @@ float3 openpbr_eval_transparency(KernelGlobals &kg,
   return weight * opacity;
 }
 
-float3 openpbr_eval_fuzz(KernelGlobals & /*kg*/,
-                         ShadingData & /*sd*/,
+float3 openpbr_eval_fuzz(KernelGlobals &kg,
+                         ShadingData &sd,
                          const float3 weight,
                          const Coat coat,
                          const Fuzz fuzz,
-                         const float3 N,
-                         const float3 V,
-                         ClosureDiffuse &diffuse_data)
+                         float3 N,
+                         const float3 V)
 {
   if (fuzz.weight == 0.0f) {
-    diffuse_data.color = float3(0.0f);
     return weight;
   }
 
-  float fuzz_NV = dot(N, V);
   if (coat.weight > 0.0f) {
-    const float3 fuzz_N = safe_normalize(mix(N, coat.N, coat.weight));
-    fuzz_NV = dot(fuzz_N, V);
+    N = safe_normalize(mix(N, coat.N, coat.weight));
   }
-  fuzz_NV = saturate(fuzz_NV);
 
-  const float3 fuzz_color = fuzz.weight * fuzz.tint * openpbr_fuzz(fuzz_NV, fuzz.roughness);
-  /* Consider fuzz as diffuse until we have proper fuzz BSDF in EEVEE. */
-  /* TODO: Maybe fuzz should be specular. */
-  diffuse_data.color = weight * fuzz_color;
+  const float albedo = fuzz.weight * sheen_albedo(kg, dot(N, V), fuzz.roughness);
+  const ClosureSheen sheen_data = {
+      .color = weight * fuzz.tint * albedo, .N = N, .roughness = fuzz.roughness};
+  closure_eval(kg, sd, sheen_data);
+
   /* Attenuate lower layers */
-  return weight * max((1.0f - math_reduce_max(fuzz_color)), 0.0f);
+  return weight * saturate(1.0f - albedo);
 }
 
 float3 openpbr_eval_coat(
@@ -274,13 +260,10 @@ void openpbr_eval_diffuse(KernelGlobals &kg,
                           ShadingData &sd,
                           const float3 weight,
                           const float3 color,
-                          const float3 N,
                           const float NV,
                           ClosureDiffuse &diffuse_data,
                           ClosureOrenNayar &oren_nayar_data)
 {
-  diffuse_data.N = N;
-
   if (oren_nayar_data.roughness == 0.0f) {
     diffuse_data.color += weight * color;
   }

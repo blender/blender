@@ -7,10 +7,11 @@
 #include "eevee_bxdf.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
 
-LightProbeRay bxdf_lightprobe_ray(BsdfClosure cl, float3 /*P*/, float3 V, Thickness thickness)
+LightProbeRay bxdf_lightprobe_ray(
+    const UtilityTexture &util_tx, BsdfClosure cl, float3 /*P*/, float3 V, Thickness thickness)
 {
   cl.context_amend(V, thickness);
-  return cl.lightprobe_ray(V, thickness);
+  return cl.lightprobe_ray(util_tx, V, thickness);
 }
 
 LightEvalContext light_eval_context_create(const UtilityTexture &util_tx, BsdfClosure cl, float3 V)

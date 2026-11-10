@@ -266,6 +266,7 @@ template void closure_base_copy<ClosureReflection>(ClosureUndetermined &, Closur
 template void closure_base_copy<ClosureRefraction>(ClosureUndetermined &, ClosureRefraction);
 template void closure_base_copy<ClosureThinRefraction>(ClosureUndetermined &,
                                                        ClosureThinRefraction);
+template void closure_base_copy<ClosureSheen>(ClosureUndetermined &, ClosureSheen);
 
 /* Single BSDFs. */
 Closure closure_eval(KernelGlobals &kg, ShadingData &sd, ClosureDiffuse diffuse)
@@ -502,6 +503,27 @@ Closure closure_eval(KernelGlobals &kg,
   closure_eval(kg, sd, diffuse);
   closure_eval(kg, sd, reflection);
   closure_eval(kg, sd, coat);
+  return Closure(0);
+}
+
+/* Sheen BSDF. */
+Closure closure_eval(KernelGlobals &kg, ShadingData &sd, ClosureSheen sheen)
+{
+  if (kg.pipe.use_diffuse) [[static_branch]] {
+    ClosureUndetermined cl;
+    closure_base_copy(cl, sheen);
+    cl.data.x = sheen.roughness;
+    if (!kg.pipe.use_clearcoat && kg.pipe.use_translucent && kg.pipe.closure_bin_count > 1)
+        [[static_branch]]
+    {
+      /* Use second slot so we can have sheen + translucent without noise. */
+      closure_select(sd.closure_bins[1], cl);
+    }
+    else {
+      /* Either is single closure or use same bin as transmission bin. */
+      closure_select(sd.closure_bins[0], cl);
+    }
+  }
   return Closure(0);
 }
 
@@ -865,6 +887,14 @@ float3 oren_nayar_lut(const KernelGlobals &kg,
     return max(color, float3(0.0f)) * (lut.Ess + Fms * lut.Ems);
   }
   return float3(0.0f);
+}
+
+float sheen_albedo(const KernelGlobals &kg, const float cos_theta, const float roughness)
+{
+  if (!kg.pipe.is_occupancy_pipe) [[static_branch]] {
+    return Sheen::init(kg.util_tx, roughness, cos_theta).R;
+  }
+  return 0.0f;
 }
 
 /* -------------------------------------------------------------------- */

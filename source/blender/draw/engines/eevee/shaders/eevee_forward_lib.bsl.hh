@@ -151,7 +151,7 @@ void forward_lighting_eval(KernelGlobals &kg,
         if (cl.weight() > CLOSURE_WEIGHT_CUTOFF) {
           float3 direct_light = ctx.stack.cl[i].light_shadowed;
           float3 indirect_light = lightprobes.eval(
-              samp, BsdfClosure::make(cl), sd.P, V, thickness);
+              kg.util_tx, samp, BsdfClosure::make(cl), sd.P, V, thickness);
 
           if (kg.pipe.use_reflection) [[static_branch]] {
             if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID) {

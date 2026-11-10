@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_math_vector_types.hh"
+#include "eevee_defines.hh"
 
 namespace blender::eevee::lut {
 
@@ -34,6 +35,8 @@ extern const float random_walk_sss_profile[64][1];
 extern const float oren_nayar[64][64][2];
 /* LTC matrix components for Oren Nayar. */
 extern const float ltc_mat_oren_nayar[64][64][4];
+/* LTC matrix components for Sheen BSDF. */
+extern const float ltc_sheen[UTIL_SHEEN_TEX_SIZE][UTIL_SHEEN_TEX_SIZE][3];
 
 #ifdef CYCLES_REFERENCE_LUT
 /* Precomputed translucency profile of a slab of material with varying thickness. */

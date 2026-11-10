@@ -895,6 +895,7 @@ void resolve([[work_group_id]] const uint3 group_id,
              [[local_invocation_id]] const uint3 local_id,
              [[resource_table]] const Tiles &tiles,
              [[resource_table]] const SampleInput &sh_in,
+             [[resource_table]] const UtilityTexture &util_tx,
              [[resource_table]] Resolve &srt,
              [[resource_table]] const gbuffer::Reader &reader,
              [[resource_table]] const Uniform &uni,
@@ -991,7 +992,7 @@ void resolve([[work_group_id]] const uint3 group_id,
       bool use_fast_gi = mix_fac > 0.0f;
 
       if (use_fast_gi) {
-        LightProbeRay ray = bxdf_lightprobe_ray(cl, P, V, thickness);
+        LightProbeRay ray = bxdf_lightprobe_ray(util_tx, cl, P, V, thickness);
 
         float3 L = ray.dominant_direction;
 
