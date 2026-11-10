@@ -17,6 +17,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_customdata.hh"
+#include "BKE_image.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -420,6 +421,21 @@ static bool rna_is_grease_pencil_get(PointerRNA *ptr)
   return false;
 }
 
+static void rna_grease_pencil_stroke_style_set(PointerRNA *ptr, int value)
+{
+  MaterialGPencilStyle *pcolor = static_cast<MaterialGPencilStyle *>(ptr->data);
+  pcolor->stroke_style = eMaterialGPencilStyle_StrokeStyle(value);
+
+  if ((pcolor->stroke_style == GP_MATERIAL_STROKE_STYLE_TEXTURE) &&
+      pcolor->stroke_iuser == nullptr)
+  {
+    pcolor->stroke_iuser = MEM_new<ImageUser>("stroke image user");
+    pcolor->stroke_iuser->flag |= IMA_ANIM_ALWAYS;
+    pcolor->stroke_iuser->frames = 100;
+    pcolor->stroke_iuser->sfra = 1;
+  }
+}
+
 static void rna_grease_pencil_fill_style_set(PointerRNA *ptr, int value)
 {
   MaterialGPencilStyle *pcolor = static_cast<MaterialGPencilStyle *>(ptr->data);
@@ -427,6 +443,13 @@ static void rna_grease_pencil_fill_style_set(PointerRNA *ptr, int value)
 
   if ((pcolor->fill_style == GP_MATERIAL_FILL_STYLE_GRADIENT) && pcolor->gradient == nullptr) {
     pcolor->gradient = BKE_colorband_add(true);
+  }
+
+  if ((pcolor->fill_style == GP_MATERIAL_FILL_STYLE_TEXTURE) && pcolor->fill_iuser == nullptr) {
+    pcolor->fill_iuser = MEM_new<ImageUser>("fill image user");
+    pcolor->fill_iuser->flag |= IMA_ANIM_ALWAYS;
+    pcolor->fill_iuser->frames = 100;
+    pcolor->fill_iuser->sfra = 1;
   }
 }
 
@@ -903,6 +926,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   prop = RNA_def_property(srna, "stroke_style", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "stroke_style");
   RNA_def_property_enum_items(prop, stroke_style_items);
+  RNA_def_property_enum_funcs(prop, nullptr, "rna_grease_pencil_stroke_style_set", nullptr);
   RNA_def_property_ui_text(prop, "Stroke Style", "Select style used to draw strokes");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
@@ -942,6 +966,24 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Image", "");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+
+  prop = RNA_def_property(srna, "stroke_image_user", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_UNLINK);
+  RNA_def_property_pointer_sdna(prop, nullptr, "stroke_iuser");
+  RNA_def_property_ui_text(
+      prop,
+      "Stroke Image User",
+      "Parameters defining which layer, pass and frame of the stroke image is displayed");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
+
+  prop = RNA_def_property(srna, "fill_image_user", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_UNLINK);
+  RNA_def_property_pointer_sdna(prop, nullptr, "fill_iuser");
+  RNA_def_property_ui_text(
+      prop,
+      "Fill Image User",
+      "Parameters defining which layer, pass and frame of the fill image is displayed");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
 
   /* Read-only state props (for simpler UI code) */
   prop = RNA_def_property(srna, "is_stroke_visible", PROP_BOOLEAN, PROP_NONE);

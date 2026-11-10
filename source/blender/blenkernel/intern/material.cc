@@ -146,6 +146,15 @@ static void material_copy_data(Main *bmain,
       material_dst->gp_style->gradient = static_cast<ColorBand *>(
           MEM_dupalloc(material_src->gp_style->gradient));
     }
+
+    if (material_src->gp_style->stroke_iuser != nullptr) {
+      material_dst->gp_style->stroke_iuser = static_cast<ImageUser *>(
+          MEM_dupalloc(material_src->gp_style->stroke_iuser));
+    }
+    if (material_src->gp_style->fill_iuser != nullptr) {
+      material_dst->gp_style->fill_iuser = static_cast<ImageUser *>(
+          MEM_dupalloc(material_src->gp_style->fill_iuser));
+    }
   }
 
   material_dst->gpumaterial.clear_no_delete();
@@ -171,6 +180,8 @@ static void material_free_data(ID *id)
 
   if (material->gp_style) {
     MEM_SAFE_DELETE(material->gp_style->gradient);
+    MEM_SAFE_DELETE(material->gp_style->stroke_iuser);
+    MEM_SAFE_DELETE(material->gp_style->fill_iuser);
   }
 
   MEM_SAFE_DELETE(material->gp_style);
@@ -246,6 +257,13 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
     if (ma->gp_style->gradient) {
       writer->write_struct(ma->gp_style->gradient);
     }
+
+    if (ma->gp_style->stroke_iuser) {
+      writer->write_struct(ma->gp_style->stroke_iuser);
+    }
+    if (ma->gp_style->fill_iuser) {
+      writer->write_struct(ma->gp_style->fill_iuser);
+    }
   }
 }
 
@@ -264,6 +282,18 @@ static void material_blend_read_data(BlendDataReader *reader, ID *id)
 
   if (ma->gp_style) {
     BLO_read_struct(reader, ColorBand, &ma->gp_style->gradient);
+
+    BLO_read_struct(reader, ImageUser, &ma->gp_style->stroke_iuser);
+    if (!ma->gp_style->stroke_iuser) {
+      ma->gp_style->stroke_iuser = MEM_new<ImageUser>("stroke image user");
+      BKE_imageuser_default(ma->gp_style->stroke_iuser);
+    }
+
+    BLO_read_struct(reader, ImageUser, &ma->gp_style->fill_iuser);
+    if (!ma->gp_style->fill_iuser) {
+      ma->gp_style->fill_iuser = MEM_new<ImageUser>("fill image user");
+      BKE_imageuser_default(ma->gp_style->fill_iuser);
+    }
   }
 }
 

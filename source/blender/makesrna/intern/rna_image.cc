@@ -295,6 +295,22 @@ static std::optional<std::string> rna_ImageUser_path(const PointerRNA *ptr)
         return rna_Node_ImageUser_path(ptr);
       case ID_CA:
         return rna_CameraBackgroundImage_image_or_movieclip_user_path(ptr);
+      case ID_MA: {
+        const Material *material = reinterpret_cast<Material *>(ptr->owner_id);
+        const ImageUser *iuser = static_cast<ImageUser *>(ptr->data);
+
+        if (!material->gp_style) {
+          break;
+        }
+
+        if (material->gp_style->stroke_iuser == iuser) {
+          return "grease_pencil.stroke_image_user";
+        }
+        if (material->gp_style->fill_iuser == iuser) {
+          return "grease_pencil.fill_image_user";
+        }
+        break;
+      }
       case ID_SCR: {
         const bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
         const ImageUser *iuser = static_cast<ImageUser *>(ptr->data);

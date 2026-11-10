@@ -45,12 +45,15 @@ static MaterialPool *gpencil_material_pool_add(Instance *inst)
   return matpool;
 }
 
-static gpu::Texture *gpencil_image_texture_get(blender::Image *image, bool *r_alpha_premult)
+static gpu::Texture *gpencil_image_texture_get(blender::Image *image,
+                                               ImageUser *iuser,
+                                               const int cfra,
+                                               bool *r_alpha_premult)
 {
-  ImageUser iuser = {nullptr};
   gpu::Texture *gpu_tex = nullptr;
 
-  gpu_tex = BKE_image_acquire_gpu_texture(image, &iuser);
+  BKE_image_user_frame_calc(image, iuser, cfra);
+  gpu_tex = BKE_image_acquire_gpu_texture(image, iuser);
   DRW_manager_get()->hold_texture(gpu_tex);
   *r_alpha_premult = (gpu_tex) ? (image->alpha_mode == IMA_ALPHA_PREMUL) : false;
 
@@ -328,7 +331,8 @@ MaterialPool *gpencil_material_pool_create(Instance *inst,
     /* Stroke Style */
     if ((gp_style->stroke_style == GP_MATERIAL_STROKE_STYLE_TEXTURE) && (gp_style->sima)) {
       bool premul;
-      pool->tex_stroke[mat_id] = gpencil_image_texture_get(gp_style->sima, &premul);
+      pool->tex_stroke[mat_id] = gpencil_image_texture_get(
+          gp_style->sima, gp_style->stroke_iuser, inst->cfra, &premul);
       mat_data->flag |= pool->tex_stroke[mat_id] ? GP_STROKE_TEXTURE_USE : GP_FLAG_NONE;
       mat_data->flag |= premul ? GP_STROKE_TEXTURE_PREMUL : GP_FLAG_NONE;
       copy_v4_v4(mat_data->stroke_color, gp_style->stroke_rgba);
@@ -345,7 +349,8 @@ MaterialPool *gpencil_material_pool_create(Instance *inst,
     if ((gp_style->fill_style == GP_MATERIAL_FILL_STYLE_TEXTURE) && (gp_style->ima)) {
       bool use_clip = (gp_style->flag & GP_MATERIAL_TEX_CLAMP) != 0;
       bool premul;
-      pool->tex_fill[mat_id] = gpencil_image_texture_get(gp_style->ima, &premul);
+      pool->tex_fill[mat_id] = gpencil_image_texture_get(
+          gp_style->ima, gp_style->fill_iuser, inst->cfra, &premul);
       mat_data->flag |= pool->tex_fill[mat_id] ? GP_FILL_TEXTURE_USE : GP_FLAG_NONE;
       mat_data->flag |= premul ? GP_FILL_TEXTURE_PREMUL : GP_FLAG_NONE;
       mat_data->flag |= use_clip ? GP_FILL_TEXTURE_CLIP : GP_FLAG_NONE;

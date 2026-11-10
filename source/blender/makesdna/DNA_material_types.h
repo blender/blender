@@ -287,6 +287,9 @@ struct MaterialGPencilStyle {
   struct Image *sima = nullptr;
   /** Texture image for filling. */
   struct Image *ima = nullptr;
+  /** Must be non-null when textures are used. */
+  ImageUser *stroke_iuser = nullptr;
+  ImageUser *fill_iuser = nullptr;
   /** Color for paint and strokes (alpha included). */
   float stroke_rgba[4] = {};
   /** Color that should be used for drawing "fills" for strokes (alpha included). */
