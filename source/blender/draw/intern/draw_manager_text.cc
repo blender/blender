@@ -299,8 +299,9 @@ static void edge_angle_text_add(
     return;
   }
   if (ctx.do_global) {
-    no_a = math::normalize(ctx.ob->world_to_object().view<3, 3>() * no_a);
-    no_b = math::normalize(ctx.ob->world_to_object().view<3, 3>() * no_b);
+    const float3x3 normal_matrix = math::transpose(float3x3(ctx.ob->world_to_object()));
+    no_a = math::normalize(normal_matrix * no_a);
+    no_b = math::normalize(normal_matrix * no_b);
   }
   const float angle = angle_normalized_v3v3(no_a, no_b);
   char numstr[32];
