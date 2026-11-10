@@ -431,6 +431,28 @@ TEST_F(PLYExportTest, WriteByteColorsRoundedAndClamped)
   EXPECT_EQ(read_temp_file_in_string(filepath), "0 0 0 0 128 255 128\n");
 }
 
+TEST_F(PLYExportTest, WriteFloatColors)
+{
+  const std::string filepath = get_temp_ply_filename(temp_file_path);
+  PlyData data;
+  data.vertices.append({0, 0, 0});
+  data.vertex_colors.append({-0.25f, 0.5f, 2.0f, 1.5f});
+  data.vertex_colors_are_float = true;
+
+  PLYExportParams params;
+  params.ascii_format = true;
+  FileBufferAscii buffer(filepath.c_str());
+  write_header(buffer, data, params);
+  write_vertices(buffer, data);
+  buffer.close_file();
+
+  const std::string result = read_temp_file_in_string(filepath);
+  EXPECT_NE(result.find("property float red\nproperty float green\nproperty float blue\n"
+                        "property float alpha\n"),
+            std::string::npos);
+  EXPECT_NE(result.find("end_header\n0 0 0 -0.25 0.5 2 1.5\n"), std::string::npos);
+}
+
 class PLYExportPLYDataTest : public PLYExportTest {
  public:
   PlyData load_ply_data_from_blendfile(const std::string &blendfile, PLYExportParams &params)

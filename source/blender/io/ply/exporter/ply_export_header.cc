@@ -39,10 +39,11 @@ void write_header(FileBuffer &buffer,
   }
 
   if (!ply_data.vertex_colors.is_empty()) {
-    buffer.write_header_scalar_property("uchar", "red");
-    buffer.write_header_scalar_property("uchar", "green");
-    buffer.write_header_scalar_property("uchar", "blue");
-    buffer.write_header_scalar_property("uchar", "alpha");
+    const StringRef color_type = ply_data.vertex_colors_are_float ? "float" : "uchar";
+    buffer.write_header_scalar_property(color_type, "red");
+    buffer.write_header_scalar_property(color_type, "green");
+    buffer.write_header_scalar_property(color_type, "blue");
+    buffer.write_header_scalar_property(color_type, "alpha");
   }
 
   if (!ply_data.uv_coordinates.is_empty()) {

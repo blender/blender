@@ -434,13 +434,30 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
         const VArray color_attribute = *attributes.lookup_or_default<ColorGeometry4f>(
             name, bke::AttrDomain::Point, {0.0f, 0.0f, 0.0f, 0.0f});
         if (!color_attribute.is_empty()) {
+          /* Vertex colors get exported as bytes or floats, depending on vertex color mode:
+           * - sRGB: exports bytes as bytes; floats as bytes if input range is 0..1 (otherwise as
+           * floats),
+           * - Linear: exports bytes as bytes; floats as floats. */
+          const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
+              name);
+          const bool is_byte_color = meta_data && meta_data->data_type == bke::AttrType::ColorByte;
+          if (!is_byte_color && export_params.vertex_colors == ePLYVertexColorMode::Linear) {
+            plyData.vertex_colors_are_float = true;
+          }
+
           if (plyData.vertex_colors.size() != vertex_offset) {
             plyData.vertex_colors.resize(vertex_offset, float4(0));
           }
-
           plyData.vertex_colors.reserve(vertex_offset + ply_to_vertex.size());
           for (int vertex_index : ply_to_vertex) {
             float4 color = float4(color_attribute[vertex_index]);
+            if (!is_byte_color) {
+              for (const int channel : IndexRange(4)) {
+                if (color[channel] < 0.0f || color[channel] > 1.0f) {
+                  plyData.vertex_colors_are_float = true;
+                }
+              }
+            }
             if (export_params.vertex_colors == ePLYVertexColorMode::sRGB) {
               linearrgb_to_srgb_v4(color, color);
             }

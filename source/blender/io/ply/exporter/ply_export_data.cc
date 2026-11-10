@@ -26,10 +26,18 @@ void write_vertices(FileBuffer &buffer, const PlyData &ply_data)
     }
 
     if (!ply_data.vertex_colors.is_empty()) {
-      /* PLY colors currently are exported as bytes. */
-      uchar color[4];
-      rgba_float_to_uchar(color, ply_data.vertex_colors[i]);
-      buffer.write_vertex_color(color[0], color[1], color[2], color[3]);
+      const float4 vcolor = ply_data.vertex_colors[i];
+      if (ply_data.vertex_colors_are_float) {
+        buffer.write_data(vcolor[0]);
+        buffer.write_data(vcolor[1]);
+        buffer.write_data(vcolor[2]);
+        buffer.write_data(vcolor[3]);
+      }
+      else {
+        uchar color[4];
+        rgba_float_to_uchar(color, vcolor);
+        buffer.write_vertex_color(color[0], color[1], color[2], color[3]);
+      }
     }
 
     if (!ply_data.uv_coordinates.is_empty()) {
