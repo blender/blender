@@ -832,6 +832,12 @@ enum class DrawFilter {
    */
   Draw,
   /**
+   * Draw this object, but skip its duplis, #object_duplilist is never called for them.
+   *
+   * Equivalent to #Draw when there are no duplis to cull (a dupli or an object without instances).
+   */
+  DrawNonRecursive,
+  /**
    * Skip drawing this object, but still generate and iterate its duplis (if any).
    * A dupli may be visible when its instancer is not.
    */
@@ -995,6 +1001,8 @@ static void foreach_obref_in_scene(
   eEvaluationMode eval_mode = DEG_get_mode(depsgraph);
   View3D *v3d = draw_ctx.v3d;
 
+  const bool is_2d_view = draw_ctx.space_data && draw_ctx.space_data->spacetype == SPACE_IMAGE;
+
   DEGObjectIterSettings deg_iter_settings = {nullptr};
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
@@ -1026,7 +1034,7 @@ static void foreach_obref_in_scene(
     /* Decide drawability for the top-level object, then fall through to the dupli path. */
     const DrawFilter parent_filter = should_draw_object_cb(*ob, data_.dupli_object_current);
 
-    if (parent_filter == DrawFilter::Draw && ob_visible) {
+    if (ELEM(parent_filter, DrawFilter::Draw, DrawFilter::DrawNonRecursive) && ob_visible) {
       /* NOTE: object_duplilist_preview is still handled by DEG_OBJECT_ITER,
        * dupli_parent and dupli_object_current won't be null for these. */
       ObjectRef ob_ref(ob, data_.dupli_parent, data_.dupli_object_current);
@@ -1037,8 +1045,8 @@ static void foreach_obref_in_scene(
       continue;
     }
 
-    if (parent_filter == DrawFilter::SkipRecursive) {
-      /* Filter rejected this instancer; skip its duplis entirely. */
+    if (ELEM(parent_filter, DrawFilter::SkipRecursive, DrawFilter::DrawNonRecursive)) {
+      /* Filter rejected this instancer's duplis; skip them entirely. */
       continue;
     }
 
@@ -1066,11 +1074,15 @@ static void foreach_obref_in_scene(
       }
 #endif
 
-      if (!supports_handle_ranges(&dupli, ob, draw_ctx)) {
+      if (!is_2d_view && !supports_handle_ranges(&dupli, ob, draw_ctx)) {
         /* Sync the dupli as a single object. */
+        /* NOTE: We don't draw instances as single objects for 2d views since we don't want to draw
+         * them more than once. */
         if (!evil::DEG_iterator_temp_object_from_dupli(
                 ob, &dupli, eval_mode, false, &tmp_object, &tmp_runtime) ||
-            should_draw_object_cb(tmp_object, &dupli) != DrawFilter::Draw)
+            !ELEM(should_draw_object_cb(tmp_object, &dupli),
+                  DrawFilter::Draw,
+                  DrawFilter::DrawNonRecursive))
         {
           evil::DEG_iterator_temp_object_free_properties(&dupli, &tmp_object);
           continue;
@@ -1098,14 +1110,19 @@ static void foreach_obref_in_scene(
                        dupli.preview_base_geometry,
                        dupli.preview_instance_index);
 
-      dupli_map.lookup_or_add_default(key).append(&dupli);
+      if (!is_2d_view || !dupli_map.contains(key)) {
+        /* For 2d views (UVs), draw each instance only once. */
+        dupli_map.lookup_or_add_default(key).append(&dupli);
+      }
     }
 
     for (const auto &[key, instances] : dupli_map.items()) {
       DupliObject *first_dupli = instances.first();
       if (!evil::DEG_iterator_temp_object_from_dupli(
               ob, first_dupli, eval_mode, false, &tmp_object, &tmp_runtime) ||
-          should_draw_object_cb(tmp_object, first_dupli) != DrawFilter::Draw)
+          !ELEM(should_draw_object_cb(tmp_object, first_dupli),
+                DrawFilter::Draw,
+                DrawFilter::DrawNonRecursive))
       {
         evil::DEG_iterator_temp_object_free_properties(first_dupli, &tmp_object);
         continue;
@@ -1865,27 +1882,43 @@ static void drw_draw_render_loop_3d(DRWContext &draw_ctx, RenderEngineType *engi
 
 static void drw_draw_render_loop_2d(DRWContext &draw_ctx)
 {
-  Depsgraph *depsgraph = draw_ctx.depsgraph;
+  using namespace blender::draw;
+
   ARegion *region = draw_ctx.region;
 
-  /* TODO(jbakker): Only populate when editor needs to draw object.
-   * for the image editor this is when showing UVs. */
-  const bool do_populate_loop = (draw_ctx.space_data->spacetype == SPACE_IMAGE);
+  bool do_populate_loop = false;
+  if (draw_ctx.space_data->spacetype == SPACE_IMAGE) {
+    const SpaceImage *space_image = reinterpret_cast<const SpaceImage *>(draw_ctx.space_data);
+    const bool show_overlays = space_image->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS;
+    const bool space_mode_is_uv = space_image->mode == SI_MODE_UV;
+    const bool space_mode_is_paint = space_image->mode == SI_MODE_PAINT;
+    const bool show_paint_uv_guide = space_mode_is_paint &&
+                                     !(space_image->flag & SI_NO_DRAW_UV_GUIDE);
+    do_populate_loop = show_overlays && (space_mode_is_uv || show_paint_uv_guide);
+  }
 
   draw_ctx.enable_engines();
   draw_ctx.engines_data_validate();
   draw_ctx.engines_init_and_sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
     /* Only iterate over objects when overlay uses object data. */
-    if (do_populate_loop) {
-      DEGObjectIterSettings deg_iter_settings = {nullptr};
-      deg_iter_settings.depsgraph = depsgraph;
-      deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
-      DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-        draw::ObjectRef ob_ref(ob);
-        drw_engines_cache_populate(ob_ref, duplis, extraction);
-      }
-      DEG_OBJECT_ITER_END;
+    if (!do_populate_loop) {
+      return;
     }
+
+    /* Only selected and/or active objects can ever be drawn to 2D editors. */
+    auto should_draw_object = [&](Object &ob, const DupliObject * /*dupli*/) -> DrawFilter {
+      if (ob.base_flag & BASE_SELECTED) {
+        return DrawFilter::Draw;
+      }
+      if (&ob == draw_ctx.obact) {
+        return DrawFilter::DrawNonRecursive;
+      }
+      return DrawFilter::SkipRecursive;
+    };
+
+    foreach_obref_in_scene(draw_ctx, should_draw_object, [&](ObjectRef &ob_ref) {
+      drw_engines_cache_populate(ob_ref, duplis, extraction);
+    });
   });
 
   /* No frame-buffer allowed before drawing. */
