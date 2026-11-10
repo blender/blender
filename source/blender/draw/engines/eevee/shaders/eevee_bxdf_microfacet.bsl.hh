@@ -320,14 +320,6 @@ struct BsdfMicrofacetReflect : BsdfClosure::Interface {
     return bsdf;
   }
 
-  BsdfClosure pack() const final
-  {
-    return {.color = color,
-            .N = N,
-            .type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID,
-            .data = float4(roughness)};
-  }
-
   BsdfSample sample(float3 rand, float3 Vt, Thickness /*thickness*/) const final
   {
     return GGX::sample_reflection(rand, Vt, square(roughness), true);
@@ -399,7 +391,7 @@ struct BsdfMicrofacetRefract : BsdfClosure::Interface {
     return bsdf;
   }
 
-  BsdfClosure pack() const final
+  BsdfClosure pack() const
   {
     return {.color = color,
             .N = N,
@@ -467,7 +459,7 @@ struct BsdfMicrofacetRefract : BsdfClosure::Interface {
            sqrt_fast((ior > 1.0f) ? (1.0f - 1.0f / ior) : (saturate(1.0f - ior) * 0.64f));
   }
 
-  void context_amend(float3 &V, Thickness thickness) final
+  void context_amend(float3 &V, Thickness thickness)
   {
     if (thickness.value() != 0.0f) {
       float3 L = dominant_direction(N, V, 1.0f / ior, perceived_roughness());
@@ -476,7 +468,7 @@ struct BsdfMicrofacetRefract : BsdfClosure::Interface {
     }
   }
 
-  Ray ray_amend(float3 V, Ray ray, Thickness thickness) const final
+  Ray ray_amend(float3 V, Ray ray, Thickness thickness) const
   {
     if (thickness.value() != 0.0f) {
       float3 L = dominant_direction(N, V, 1.0f / ior, perceived_roughness());
@@ -519,14 +511,6 @@ struct BsdfThinGlassTransmission : BsdfClosure::Interface {
     bsdf.N = cl.N;
     bsdf.roughness = cl.data.x;
     return bsdf;
-  }
-
-  BsdfClosure pack() const final
-  {
-    return {.color = color,
-            .N = N,
-            .type = CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID,
-            .data = float4(roughness)};
   }
 
   BsdfSample sample(float3 rand, float3 Vt, Thickness /*thickness*/) const final
