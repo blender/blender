@@ -121,6 +121,12 @@ void EDBM_mesh_normals_update_ex(BMesh *bm, const BMeshNormalsUpdate_Params *par
 void EDBM_mesh_normals_update(BMesh *bm);
 
 void EDBM_selectmode_to_scene(bContext *C);
+/**
+ * Put the object's mesh into edit mode.
+ *
+ * \param add_key_index: Whether the #BMesh will need #CD_SHAPE_KEYINDEX to track vertex identity,
+ * for hooks and vertex parents on a mesh with no shape keys.
+ */
 void EDBM_mesh_make(Object *ob, int select_mode, bool add_key_index);
 /** Replaces the edit-mesh in the object with a new one based on the given mesh. */
 void EDBM_mesh_make_from_mesh(Object *ob, Mesh *src_mesh, int select_mode, bool add_key_index);
@@ -132,6 +138,9 @@ void EDBM_mesh_free_data(EditMesh *em);
  * \warning This can invalidate the #Mesh runtime cache of other objects (for linked duplicates).
  * Most callers should run #DEG_id_tag_update on `ob->data`, see: #46738, #46913.
  * This ensures #BKE_object_free_derived_caches runs on all objects that use this mesh.
+ *
+ * Updates hook and vertex-parent indices for the topology changes made since edit mode was
+ * entered or the last load.
  */
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data);
 void EDBM_mesh_load(Main *bmain, Object *ob);
