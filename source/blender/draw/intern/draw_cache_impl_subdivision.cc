@@ -379,7 +379,8 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped_bmesh(const MeshRend
 
 static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache &cache,
                                                             const Mesh *mesh,
-                                                            MeshRenderData &mr)
+                                                            MeshRenderData &mr,
+                                                            const bool edit_mapping_valid)
 {
   if (cache.extra_coarse_face_data == nullptr) {
     cache.extra_coarse_face_data = GPU_vertbuf_calloc();
@@ -399,11 +400,11 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache &cach
   if (mr.extract_type == MeshExtractType::BMesh) {
     draw_subdiv_cache_extra_coarse_face_data_bmesh(cache.bm, mr.efa_act, flags_data);
   }
-  else if (cache.bm && mr.orig_index_face != nullptr) {
-    draw_subdiv_cache_extra_coarse_face_data_mapped_bmesh(mr, mesh, flags_data);
+  else if (!edit_mapping_valid) {
+    draw_subdiv_cache_extra_coarse_face_data_mesh(mr, mesh, flags_data);
   }
   else {
-    draw_subdiv_cache_extra_coarse_face_data_mesh(mr, mesh, flags_data);
+    draw_subdiv_cache_extra_coarse_face_data_mapped_bmesh(mr, mesh, flags_data);
   }
 
   /* Make sure updated data is re-uploaded. */
@@ -1540,10 +1541,15 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
 
   const Mesh *mesh_eval = &mesh;
   BMesh *bm = nullptr;
+  /* The coarse face data also holds the face offsets and smooth flags that every subdivision draw
+   * needs, so unlike the separate edit mode buffers it is created even when the mesh doesn't
+   * correspond to the edit mesh. Its edit mode flags are only filled in when it does. */
+  bool edit_mapping_valid = false;
   if (mesh.runtime->edit_mesh) {
     mesh_eval = BKE_object_get_editmesh_eval_final(&ob);
     if (const Mesh *mesh_orig = BKE_object_get_pre_modified_mesh(&ob)) {
       bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh_orig));
+      edit_mapping_valid = BKE_editmesh_eval_orig_map_available(*mesh_eval, mesh_orig);
     }
   }
 
@@ -1627,7 +1633,7 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
    */
   draw_cache.is_edit_mode = mr.edit_mesh != nullptr;
 
-  draw_subdiv_cache_update_extra_coarse_face_data(draw_cache, mesh_eval, mr);
+  draw_subdiv_cache_update_extra_coarse_face_data(draw_cache, mesh_eval, mr, edit_mapping_valid);
 
   mesh_buffer_cache_create_requested_subdiv(
       batch_cache, mbc, scene, ibo_requests, vbo_requests, draw_cache, mr);
