@@ -824,17 +824,15 @@ static void do_lasso_select_mesh__doSelectFace(void *user_data,
   }
 }
 
-static bool do_lasso_select_mesh(const ViewContext *vc,
-                                 wmGenericUserData *wm_userdata,
-                                 const Span<int2> mcoords,
-                                 const eSelectOp sel_op)
+static bool do_lasso_select_mesh_bmesh(const ViewContext *vc,
+                                       wmGenericUserData *wm_userdata,
+                                       const Span<int2> mcoords,
+                                       const eSelectOp sel_op,
+                                       BMesh *bm)
 {
   LassoSelectUserData data;
   ToolSettings *ts = vc->scene->toolsettings;
   rcti rect;
-
-  BLI_assert(vc->em == BKE_editmesh_from_object(vc->obedit));
-  BMesh *bm = BKE_editmesh_bmesh_ensure(vc->obedit);
 
   BLI_lasso_boundbox(&rect, mcoords);
 
@@ -923,6 +921,16 @@ static bool do_lasso_select_mesh(const ViewContext *vc,
   }
 
   return data.is_changed;
+}
+
+static bool do_lasso_select_mesh(const ViewContext *vc,
+                                 wmGenericUserData *wm_userdata,
+                                 const Span<int2> mcoords,
+                                 const eSelectOp sel_op)
+{
+  BLI_assert(vc->em == BKE_editmesh_from_object(vc->obedit));
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc->obedit);
+  return do_lasso_select_mesh_bmesh(vc, wm_userdata, mcoords, sel_op, bm);
 }
 
 static void do_lasso_select_curve__doSelect(void *user_data,
@@ -4083,14 +4091,14 @@ static void do_mesh_box_select__doSelectFace(void *user_data,
     data->is_changed = true;
   }
 }
-static bool do_mesh_box_select(const ViewContext *vc,
-                               wmGenericUserData *wm_userdata,
-                               const rcti *rect,
-                               const eSelectOp sel_op)
+static bool do_mesh_box_select_bmesh(const ViewContext *vc,
+                                     wmGenericUserData *wm_userdata,
+                                     const rcti *rect,
+                                     const eSelectOp sel_op,
+                                     BMesh *bm)
 {
   BoxSelectUserData data;
   ToolSettings *ts = vc->scene->toolsettings;
-  BMesh *bm = BKE_editmesh_bmesh_ensure(vc->obedit);
 
   view3d_userdata_boxselect_init(&data, vc, rect, sel_op);
   data.bm = bm;
@@ -4177,6 +4185,15 @@ static bool do_mesh_box_select(const ViewContext *vc,
   }
 
   return data.is_changed;
+}
+
+static bool do_mesh_box_select(const ViewContext *vc,
+                               wmGenericUserData *wm_userdata,
+                               const rcti *rect,
+                               const eSelectOp sel_op)
+{
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc->obedit);
+  return do_mesh_box_select_bmesh(vc, wm_userdata, rect, sel_op, bm);
 }
 
 static bool do_meta_box_select(const ViewContext *vc, const rcti *rect, const eSelectOp sel_op)
@@ -4821,16 +4838,15 @@ static void mesh_circle_doSelectFace(void *user_data,
   }
 }
 
-static bool mesh_circle_select(const ViewContext *vc,
-                               wmGenericUserData *wm_userdata,
-                               eSelectOp sel_op,
-                               const int mval[2],
-                               float rad)
+static bool mesh_circle_select_bmesh(const ViewContext *vc,
+                                     wmGenericUserData *wm_userdata,
+                                     eSelectOp sel_op,
+                                     const int mval[2],
+                                     float rad,
+                                     BMesh *bm)
 {
   ToolSettings *ts = vc->scene->toolsettings;
   CircleSelectUserData data;
-  BLI_assert(vc->em == BKE_editmesh_from_object(vc->obedit));
-  BMesh *bm = BKE_editmesh_bmesh_ensure(vc->obedit);
 
   bool changed = false;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -4921,6 +4937,17 @@ static bool mesh_circle_select(const ViewContext *vc,
   }
 
   return changed;
+}
+
+static bool mesh_circle_select(const ViewContext *vc,
+                               wmGenericUserData *wm_userdata,
+                               const eSelectOp sel_op,
+                               const int mval[2],
+                               const float rad)
+{
+  BLI_assert(vc->em == BKE_editmesh_from_object(vc->obedit));
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc->obedit);
+  return mesh_circle_select_bmesh(vc, wm_userdata, sel_op, mval, rad, bm);
 }
 
 static bool paint_facesel_circle_select(const ViewContext *vc,
