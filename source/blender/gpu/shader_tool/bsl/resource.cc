@@ -51,6 +51,7 @@ Result<ParsedAttribute> resource_type_from_attributes(AttrList list)
         {"early_fragment_tests",                    {ResourceTableType::NONE,           ResourceType::NONE,                    0}},
         {"texture_atomic",                          {ResourceTableType::NONE,           ResourceType::NONE,                    0}},
         {"metal_max_total_threads_per_threadgroup", {ResourceTableType::NONE,           ResourceType::NONE,                    1}},
+        {"no_fast_math",                            {ResourceTableType::NONE,           ResourceType::NONE,                    0}},
         {"local_size",                              {ResourceTableType::NONE,           ResourceType::NONE,                    -3}},
         /* Resource table. */
         {"compilation_constant",                    {ResourceTableType::RESOURCE_TABLE, ResourceType::COMPILATION_CONST,       0}},

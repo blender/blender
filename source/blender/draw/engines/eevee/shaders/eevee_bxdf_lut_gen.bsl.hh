@@ -699,7 +699,7 @@ template<typename BSDF> float4 fit_ltc(const float3 coords, const float epsilon 
 }
 template float4 fit_ltc<OrenNayarClosure>(const float3, const float);
 
-[[compute]] [[local_size(LUT_WORKGROUP_SIZE, LUT_WORKGROUP_SIZE)]]
+[[compute]] [[local_size(LUT_WORKGROUP_SIZE, LUT_WORKGROUP_SIZE)]] [[no_fast_math]]
 void comp_main([[global_invocation_id]] const uint3 global_id, [[resource_table]] LUT &lut)
 {
   /* Make sure coordinates are covering the whole [0..1] range at texel center. */

@@ -211,6 +211,7 @@ void SourceProcessor::lint_attributes_ast(Parser &parser)
       {"no_perspective", ArgCount(0, 0)},
       {"node", ArgCount(0, 0)},
       {"nodiscard", ArgCount(0, 0)},
+      {"no_fast_math", ArgCount(0, 0)},
       {"num_work_groups", ArgCount(0, 0)},
       {"out", ArgCount(0, 0)},
       {"point_coord", ArgCount(0, 0)},

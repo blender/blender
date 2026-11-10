@@ -212,11 +212,12 @@ std::string MTLShader::entry_point_name_get(const ShaderStage stage)
 /* Note: returns a retained object. */
 static ::MTLCompileOptions *get_compile_options(const bool use_subpass_input,
                                                 const bool use_texture_atomic,
-                                                const bool use_ray_query)
+                                                const bool use_ray_query,
+                                                const bool use_fast_math)
 {
   ::MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
   options.languageVersion = MTLLanguageVersion2_2;
-  options.fastMathEnabled = YES;
+  options.fastMathEnabled = use_fast_math ? YES : NO;
   /* TODO(fclem): Only use this on shaders that matters. */
   options.preserveInvariance = YES;
   /* Raster order groups for tile data in struct require Metal 2.3.
@@ -311,7 +312,8 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
     ::MTLCompileOptions *options = get_compile_options(
         !info.subpass_inputs_.is_empty(),
         flag_is_set(info.builtins_combined(), BuiltinBits::TEXTURE_ATOMIC),
-        flag_is_set(info.builtins_combined(), BuiltinBits::RAY_QUERY));
+        flag_is_set(info.builtins_combined(), BuiltinBits::RAY_QUERY),
+        info.with_fast_math_);
 
     NSError *error = nullptr;
     id<MTLLibrary> library = [context_->device

@@ -2287,6 +2287,9 @@ struct CodegenContext : NodeErrorHandler {
         create_info_decl += "MTL_MAX_TOTAL_THREADS_PER_THREADGROUP" +
                             string(attr.parameters().str()) + "\n";
       }
+      else if (id == "no_fast_math") {
+        create_info_decl += "NO_FAST_MATH()\n";
+      }
     }
 
     for (FuncArg arg : decl.arguments().children_of_type<FuncArg>()) {

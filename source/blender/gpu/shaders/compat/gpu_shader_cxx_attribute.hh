@@ -35,6 +35,9 @@
 /* Enable texture atomics on older versions of metal. */
 #  define texture_atomic maybe_unused
 
+/* Disable the use of fast math when compiling this entry point (backend compilation). */
+#  define no_fast_math maybe_unused
+
 /* In a compute function, specify an input variable containing the 3-dimensional index of the local
  * work invocation within the work group that the current shader is executing in. */
 #  define local_invocation_id maybe_unused

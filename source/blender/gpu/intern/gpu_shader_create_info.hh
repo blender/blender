@@ -213,6 +213,7 @@ namespace blender {
 
 #  define MTL_MAX_TOTAL_THREADS_PER_THREADGROUP(value) \
     .mtl_max_total_threads_per_threadgroup(value)
+#  define NO_FAST_MATH() .no_fast_math()
 
 #else
 
@@ -316,6 +317,7 @@ namespace blender {
 #  define TYPEDEF_SOURCE(filename)
 
 #  define MTL_MAX_TOTAL_THREADS_PER_THREADGROUP(value)
+#  define NO_FAST_MATH()
 #endif
 
 #define _INFO_EXPAND2(a, b) ADDITIONAL_INFO(a) ADDITIONAL_INFO(b)
@@ -1191,6 +1193,8 @@ struct ShaderCreateInfo {
   ushort mtl_max_threads_per_threadgroup_ = 0;
 #  endif
 
+  bool with_fast_math_ = true;
+
  public:
   ShaderCreateInfo(const char *name);
 
@@ -1665,6 +1669,17 @@ struct ShaderCreateInfo {
 #  else
     UNUSED_VARS(max_total_threads_per_threadgroup);
 #  endif
+    return *static_cast<Self *>(this);
+  }
+
+  /**
+   * Allow to disable fast math for this shader.
+   * Might not be available on all platform or API.
+   * Will propagate to other create infos.
+   */
+  Self &no_fast_math()
+  {
+    with_fast_math_ = false;
     return *static_cast<Self *>(this);
   }
 
