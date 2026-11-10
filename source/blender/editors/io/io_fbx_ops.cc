@@ -256,6 +256,7 @@ void fbx_file_handler_add()
   STRNCPY_UTF8(fh->label, "FBX");
   STRNCPY_UTF8(fh->file_extensions_str, ".fbx");
   fh->poll_drop = poll_file_object_drop;
+  fh->collection_import_enabled = true;
   bke::file_handler_add(std::move(fh));
 }
 

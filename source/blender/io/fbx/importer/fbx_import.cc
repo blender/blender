@@ -385,17 +385,25 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
     return;
   }
 
-  LayerCollection *lc = BKE_layer_collection_get_active_editable(view_layer);
-  if (!ID_IS_EDITABLE(lc->collection)) {
-    BKE_report(params.reports,
-               RPT_WARNING,
-               "Could not find an editable collection in current scene, imported data will not be "
-               "instantiated");
+  if (view_layer) {
+    LayerCollection *lc = BKE_layer_collection_get_active_editable(view_layer);
+    if (!ID_IS_EDITABLE(lc->collection)) {
+      BKE_report(
+          params.reports,
+          RPT_WARNING,
+          "Could not find an editable collection in current scene, imported data will not be "
+          "instantiated");
+    }
   }
+
   //@TODO: do we need to sort objects by name? (faster to create within blender)
 
   FbxImportContext ctx(bmain, fbx, params);
-  ctx.import_globals(scene);
+
+  const double fps = fbx->settings.frames_per_second;
+  if (scene) {
+    ctx.import_globals(scene);
+  }
 
 #ifdef FBX_DEBUG_PRINT
   {
@@ -431,43 +439,47 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
   ctx.import_cameras();
   ctx.import_lights();
   ctx.import_empties();
-  ctx.import_animation(scene->frames_per_second());
+  ctx.import_animation(fps);
   ctx.setup_hierarchy();
 
   ufbx_free_scene(fbx);
 
-  /* Add objects to collection. */
-  for (Object *obj : ctx.mapping.imported_objects) {
-    BKE_collection_object_add(bmain, lc->collection, obj);
-  }
-
-  /* Select objects, sync layers etc. */
-  BKE_view_layer_base_deselect_all(*bmain, scene, view_layer);
-  BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
-  bool has_instantiated_object = false;
-  bool has_uninstantiated_object = false;
-  for (Object *obj : ctx.mapping.imported_objects) {
-    Base *base = BKE_view_layer_base_find(view_layer, obj);
-    if (!base) {
-      /* Object not instantiated in current viewlayer. */
-      has_uninstantiated_object = true;
-      continue;
+  if (scene && view_layer) {
+    /* Add objects to collection. */
+    LayerCollection *lc = BKE_layer_collection_get_active_editable(view_layer);
+    for (Object *obj : ctx.mapping.imported_objects) {
+      BKE_collection_object_add(bmain, lc->collection, obj);
     }
-    has_instantiated_object = true;
-    BKE_view_layer_base_select_and_set_active(view_layer, base);
 
-    int flags = ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
-                ID_RECALC_BASE_FLAGS;
-    DEG_id_tag_update_ex(bmain, &obj->id, flags);
+    /* Select objects, sync layers etc. */
+    BKE_view_layer_base_deselect_all(*bmain, scene, view_layer);
+    BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
+    bool has_instantiated_object = false;
+    bool has_uninstantiated_object = false;
+    for (Object *obj : ctx.mapping.imported_objects) {
+      Base *base = BKE_view_layer_base_find(view_layer, obj);
+      if (!base) {
+        /* Object not instantiated in current viewlayer. */
+        has_uninstantiated_object = true;
+        continue;
+      }
+      has_instantiated_object = true;
+      BKE_view_layer_base_select_and_set_active(view_layer, base);
+
+      int flags = ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
+                  ID_RECALC_BASE_FLAGS;
+      DEG_id_tag_update_ex(bmain, &obj->id, flags);
+    }
+
+    if (has_instantiated_object && has_uninstantiated_object) {
+      CLOG_ERROR(&LOG, "Some imported objects were not instantiated, while others were");
+    }
+
+    DEG_id_tag_update(&lc->collection->id, ID_RECALC_SYNC_TO_EVAL);
+
+    DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   }
 
-  if (has_instantiated_object && has_uninstantiated_object) {
-    CLOG_ERROR(&LOG, "Some imported objects were not instantiated, while others were");
-  }
-
-  DEG_id_tag_update(&lc->collection->id, ID_RECALC_SYNC_TO_EVAL);
-
-  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
 }
 
