@@ -516,6 +516,7 @@ class STRIP_PT_source(StripButtonsPanel, Panel):
                     split.label(text="Pack")
                     split.operator("sound.pack", icon='UGLYPACKAGE', text="")
 
+                layout.prop(sound, "track_index")
                 layout.prop(sound, "use_memory_cache")
 
                 col = layout.box()

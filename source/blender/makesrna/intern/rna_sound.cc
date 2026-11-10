@@ -101,6 +101,15 @@ static void rna_def_sound(BlenderRNA *brna)
       "If the file contains multiple audio channels they are rendered to a single one");
   RNA_def_property_update(prop, 0, "rna_Sound_update");
 
+  prop = RNA_def_property(srna, "track_index", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "stream_index");
+  RNA_def_property_range(prop, 0, 20);
+  RNA_def_property_ui_text(
+      prop,
+      "Track Index",
+      "For files with several audio tracks, use the track with the given index");
+  RNA_def_property_update(prop, 0, "rna_Sound_update");
+
   prop = RNA_def_property(srna, "samplerate", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "samplerate");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
