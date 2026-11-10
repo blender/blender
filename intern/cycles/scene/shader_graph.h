@@ -360,6 +360,7 @@ class ShaderGraph : public NodeOwner {
   void compute_displacement_hash();
   void simplify(Scene *scene);
   void finalize(Scene *scene, bool do_bump = false, bool bump_in_object_space = false);
+  bool has_volume_connected();
 
   int get_num_closures();
 

@@ -1188,9 +1188,17 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
   }
 }
 
+bool ShaderGraph::has_volume_connected()
+{
+  return output()->input("Volume")->link;
+}
+
 int ShaderGraph::get_num_closures()
 {
+  assert(finalized);
+
   int num_closures = 0;
+  int num_volume_closures = 0;
   for (ShaderNode *node : nodes) {
     const ClosureType closure_type = node->get_closure_type();
     if (closure_type == CLOSURE_NONE_ID) {
@@ -1206,9 +1214,9 @@ int ShaderGraph::get_num_closures()
       num_closures += 12;
     }
     else if (CLOSURE_IS_VOLUME(closure_type)) {
-      /* TODO(sergey): Verify this is still needed, since we have special minimized volume
-       * storage for the volume steps. */
-      num_closures += MAX_VOLUME_STACK_SIZE;
+      /* Volume closures are allocated separate to surface closures, and the max size is affected
+       * by the max volume stack size within the current object. */
+      num_volume_closures += MAX_VOLUME_STACK_SIZE;
     }
     else if (closure_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ||
              closure_type == CLOSURE_BSDF_F82_CONDUCTOR ||
@@ -1223,6 +1231,11 @@ int ShaderGraph::get_num_closures()
       ++num_closures;
     }
   }
+
+  if (has_volume_connected()) {
+    num_closures = max(num_closures, min(num_volume_closures, MAX_CLOSURE));
+  }
+
   return num_closures;
 }
 

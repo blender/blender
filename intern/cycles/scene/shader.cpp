@@ -309,7 +309,7 @@ void Shader::set_graph(unique_ptr<ShaderGraph> &&graph_)
 
   /* Store info here before graph optimization to make sure that
    * nodes that get optimized away still count. */
-  has_volume_connected = (graph->output()->input("Volume")->link != nullptr);
+  has_volume_connected = graph->has_volume_connected();
 }
 
 bool Shader::has_surface_shadow_transparency() const
