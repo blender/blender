@@ -469,6 +469,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
     /* Encode ancillaries */
     int ancillary_index = 0;
     write_resource(ancillary_args, metal_device_->image_bindings, ancillary_index++);
+    write_resource(ancillary_args, metal_device_->sampler_bindings, ancillary_index++);
 
     if (metal_device_->use_metalrt) {
       write_resource(ancillary_args, metal_device_->accel_struct, ancillary_index++);
@@ -784,6 +785,7 @@ void MetalDeviceQueue::prepare_resources()
 
   /* ancillaries */
   [mtlComputeEncoder_ useResource:metal_device_->image_bindings usage:MTLResourceUsageRead];
+  [mtlComputeEncoder_ useResource:metal_device_->sampler_bindings usage:MTLResourceUsageRead];
 }
 
 id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel kernel)

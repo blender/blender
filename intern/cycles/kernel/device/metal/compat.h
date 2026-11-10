@@ -388,11 +388,16 @@ struct MetalRTBlasWrapper {
 };
 #endif
 
+struct MetalSamplerEntry {
+  metal::sampler s;
+};
+
 /* Additional Metal-specific resources which aren't encoded in KernelData.
  * IMPORTANT: If this layout changes, ANCILLARY_SLOT_COUNT and the host-side encoding must change
  * to match. */
 struct MetalAncillaries {
   device TextureParamsMetal *textures;
+  device const MetalSamplerEntry *samplers;
 
 #ifdef __KERNEL_METALRT__
   metalrt_as_type accel_struct;
@@ -410,31 +415,6 @@ struct MetalAncillaries {
 
 #include "util/half.h"
 #include "util/types.h"
-
-enum SamplerType {
-  SamplerFilterNearest_AddressRepeat,
-  SamplerFilterNearest_AddressClampEdge,
-  SamplerFilterNearest_AddressClampZero,
-  SamplerFilterNearest_AddressMirroredRepeat,
-
-  SamplerFilterLinear_AddressRepeat,
-  SamplerFilterLinear_AddressClampEdge,
-  SamplerFilterLinear_AddressClampZero,
-  SamplerFilterLinear_AddressMirroredRepeat,
-
-  SamplerCount
-};
-
-constexpr constant metal::array<metal::sampler, SamplerCount> metal_samplers = {
-    metal::sampler(metal::address::repeat, metal::filter::nearest),
-    metal::sampler(metal::address::clamp_to_edge, metal::filter::nearest),
-    metal::sampler(metal::address::clamp_to_zero, metal::filter::nearest),
-    metal::sampler(metal::address::mirrored_repeat, metal::filter::nearest),
-    metal::sampler(metal::address::repeat, metal::filter::linear),
-    metal::sampler(metal::address::clamp_to_edge, metal::filter::linear),
-    metal::sampler(metal::address::clamp_to_zero, metal::filter::linear),
-    metal::sampler(metal::address::mirrored_repeat, metal::filter::linear),
-};
 
 #ifdef __METAL_GLOBAL_BUILTINS__
 const uint metal_global_id [[thread_position_in_grid]];

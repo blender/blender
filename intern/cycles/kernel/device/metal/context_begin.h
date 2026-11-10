@@ -39,14 +39,14 @@ class MetalKernelContext {
     float4 ccl_gpu_image_object_read_2D(ccl_gpu_image_object_2D tex, const float x, float y) const {
       const uint tid(tex);
       const uint sid(tex >> 32);
-      return ((ccl_global Texture2DParamsMetal*)metal_ancillaries->textures)[tid].tex.sample(metal_samplers[sid], float2(x, y));
+      return ((ccl_global Texture2DParamsMetal*)metal_ancillaries->textures)[tid].tex.sample(metal_ancillaries->samplers[sid].s, float2(x, y));
     }
     template<>
     inline __attribute__((__always_inline__))
     float ccl_gpu_image_object_read_2D(ccl_gpu_image_object_2D tex, const float x, float y) const {
       const uint tid(tex);
       const uint sid(tex >> 32);
-      return ((ccl_global Texture2DParamsMetal*)metal_ancillaries->textures)[tid].tex.sample(metal_samplers[sid], float2(x, y)).x;
+      return ((ccl_global Texture2DParamsMetal*)metal_ancillaries->textures)[tid].tex.sample(metal_ancillaries->samplers[sid].s, float2(x, y)).x;
     }
 
 #    include "kernel/device/gpu/image.h"

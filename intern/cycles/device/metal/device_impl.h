@@ -100,6 +100,10 @@ class MetalDevice : public Device {
   id<MTLBuffer> image_bindings = nil;
   std::vector<id<MTLResource>> image_info_id_map;
 
+  /* Texture Samplers */
+  id<MTLSamplerState> sampler_states[8] = {nil};
+  id<MTLBuffer> sampler_bindings = nil;
+
   MetalPipelineType kernel_specialization_level = PSO_GENERIC;
 
   int device_id = 0;
@@ -202,6 +206,9 @@ class MetalDevice : public Device {
   void image_alloc_as_buffer(device_image &mem);
   void image_copy_to(device_image &mem);
   void image_free(device_image &mem);
+
+  void create_sampler_table();
+  void free_sampler_table();
 
   void flush_delayed_free_list();
 
