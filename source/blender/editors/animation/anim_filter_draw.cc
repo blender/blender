@@ -8,11 +8,14 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_library.hh"
+#include "BKE_screen.hh"
 
 #include "BLT_translation.hh"
 
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
+#include "DNA_listBase.h"
+#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
 #include "RNA_access.hh"
@@ -36,6 +39,8 @@
 #include "ED_undo.hh"
 
 #include "WM_api.hh"
+
+#include "anim_filter_source_intern.hh"
 
 namespace blender::ed::animfilter {
 
@@ -389,7 +394,8 @@ static bool get_actiongroup_color(const bActionGroup *agrp, uchar4 &r_color)
   return true;
 }
 
-static int icon_for_channel_setting(const ChannelSettingKey key, const ChannelSettingValue value)
+static BIFIconID icon_for_channel_setting(const ChannelSettingKey key,
+                                          const ChannelSettingValue value)
 {
   switch (key) {
     case ChannelSettingKey::VISIBLE_ANIM_EDITOR:
@@ -483,9 +489,22 @@ void ChannelItem::build_row(ui::Layout &layout)
     if (!state.is_defined()) {
       continue;
     }
-    PointerRNA op_ptr = layout.op(
-        "ANIM_OT_channel_flush_flag", "", icon_for_channel_setting(key, state.value));
-    RNA_int_set(&op_ptr, "setting", setting_int);
+    ui::Button *but = ui::uiDefIconBut(layout.block(),
+                                       ui::ButtonType::ButToggle,
+                                       icon_for_channel_setting(key, state.value),
+                                       0,
+                                       0,
+                                       UI_UNIT_X,
+                                       this->get_tree_view().row_height(),
+                                       nullptr,
+                                       0,
+                                       0,
+                                       "");
+    button_flag_enable(but, ui::BUT_DRAG_LOCK_X | ui::BUT_UNDO);
+    /* Passing the int value as the void pointer. */
+    button_func_set(but, setting_button_pushed, reinterpret_cast<void *>(setting_int), nullptr);
+    button_func_pushed_state_set(
+        but, [state](const ui::Button &) { return state.value == ChannelSettingValue::ON; });
   }
 
   if (channel_.type() == AnimationChannelType::DATA) {

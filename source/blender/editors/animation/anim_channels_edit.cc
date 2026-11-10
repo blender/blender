@@ -8,8 +8,6 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <functional>
 
 #include "MEM_guardedalloc.h"
@@ -75,6 +73,8 @@
 #include "WM_types.hh"
 
 #include "BLT_translation.hh"
+
+#include "anim_filter_source_intern.hh"
 
 namespace blender {
 
@@ -6083,40 +6083,44 @@ static void ANIM_OT_view_curve_in_graph_editor(wmOperatorType *ot)
                   "Hides all F-Curves other than the ones being framed");
 }
 
-static wmOperatorStatus channel_flush_flag_invoke(bContext *C,
-                                                  wmOperator *op,
-                                                  const wmEvent *event)
+/** \} */
+namespace ed::animfilter {
+
+void setting_button_pushed(bContext *C, void *setting_key, void * /*arg2*/)
 {
   using namespace ed::animfilter;
   std::optional<std::reference_wrapper<ChannelArena>> opt_arena = get_channels_from_space(*C);
   if (!opt_arena) {
-    return OPERATOR_CANCELLED;
+    return;
   }
   ChannelArena &arena = opt_arena->get();
   if (!arena.root()) {
-    return OPERATOR_CANCELLED;
+    return;
   }
   ScrArea *area = CTX_wm_area(C);
   /* In the graph editor we don't get the correct region from `bContext`. */
-  ARegion *channels_region = nullptr;
-  for (ARegion &region : area->regionbase) {
-    if (region.regiontype == RGN_TYPE_CHANNELS) {
-      channels_region = &region;
-    }
-  }
+  ARegion *channels_region = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
+  BLI_assert(channels_region);
   bDopeSheet *dope_sheet = get_dopesheet_from_space(*C);
   if (!dope_sheet) {
     BLI_assert_unreachable();
-    return OPERATOR_CANCELLED;
+    return;
   }
-  const bool show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+  bool show_summary = false;
+  if (area->spacetype == SPACE_ACTION) {
+    show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+  }
+  const wmWindow *win = CTX_wm_window(C);
+  float2 cursor(win->runtime->eventstate->xy);
+  cursor -= float2(channels_region->winrct.xmin, channels_region->winrct.ymin);
   AnimationChannel *channel_under_cursor = find_channel_at_y(
-      arena, *channels_region, event->mval[1], show_summary);
+      arena, *channels_region, cursor.y, show_summary);
   if (!channel_under_cursor) {
-    return OPERATOR_CANCELLED;
+    return;
   }
 
-  const ChannelSettingKey key = ChannelSettingKey(RNA_int_get(op->ptr, "setting"));
+  /* A bit dirty but we just pass the enum value as the pointer. */
+  const ChannelSettingKey key = ChannelSettingKey(reinterpret_cast<intptr_t>(setting_key));
   const ChannelSettings &channel_settings = channel_under_cursor->channel_settings();
   const ChannelSettingState state = channel_settings.get_state(key);
   BLI_assert_msg(state.is_defined(), "Non existent states shouldn't be drawn for a channel");
@@ -6124,34 +6128,9 @@ static wmOperatorStatus channel_flush_flag_invoke(bContext *C,
   channel_under_cursor->set_setting(key, state.value != ChannelSettingValue::ON);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
-
-  return OPERATOR_FINISHED;
 }
 
-static void ANIM_OT_channel_flush_flag(wmOperatorType *ot)
-{
-  ot->name = "Flush Flag";
-  ot->idname = "ANIM_OT_channel_flush_flag";
-  ot->description = "Flushes a setting from the summary channel under the cursor to its children.";
-
-  ot->invoke = channel_flush_flag_invoke;
-  ot->poll = channel_view_poll;
-
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  /* This could be an enum for `ChannelSettingKey` but for now this works. */
-  RNA_def_int(ot->srna,
-              "setting",
-              0,
-              0,
-              int(ed::animfilter::ChannelSettingKey::_MAX) - 1,
-              "Setting",
-              "Controls which setting to modify for the channel under the cursor",
-              0,
-              int(ed::animfilter::ChannelSettingKey::_MAX) - 1);
-}
-
-/** \} */
+}  // namespace ed::animfilter
 
 /* -------------------------------------------------------------------- */
 /** \name Operator Registration
@@ -6161,7 +6140,6 @@ void ED_operatortypes_animchannels()
 {
   WM_operatortype_append(ANIM_OT_channels_select_all);
   WM_operatortype_append(ANIM_OT_channels_select_box);
-  WM_operatortype_append(ANIM_OT_channel_flush_flag);
 
   WM_operatortype_append(ANIM_OT_channel_pin);
   WM_operatortype_append(ANIM_OT_channels_click);
