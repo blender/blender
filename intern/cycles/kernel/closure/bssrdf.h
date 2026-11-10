@@ -156,42 +156,23 @@ ccl_device float bssrdf_burley_pdf(const float d, const float r)
   return bssrdf_burley_eval(d, r) * (1.0f / BURLEY_TRUNCATE_CDF);
 }
 
-/* Find the radius for desired CDF value.
+/* Invert the CDF from equation (11) to find the radius for the desired CDF value.
  * Returns scaled radius, meaning the result is to be scaled up by d.
- * Since there's no closed form solution we do Newton-Raphson method to find it.
  */
-ccl_device_forceinline float bssrdf_burley_root_find(const float xi)
+ccl_device_forceinline float bssrdf_burley_inverse_cdf(const float xi)
 {
-  const float tolerance = 1e-6f;
-  const int max_iteration_count = 10;
-  /* Do initial guess based on manual curve fitting, this allows us to reduce
-   * number of iterations to maximum 4 across the [0..1] range. We keep maximum
-   * number of iteration higher just to be sure we didn't miss root in some
-   * corner case.
+  if (xi == 0.0f) {
+    return 0.0f;
+  }
+
+  /* The substitution x = exp(-r / 3) turns the CDF into x^3 + 3x = 4(1 - xi).
+   * Its only real root is x = 2 * sinh(asinh(2 * (1 - xi)) / 3). The identity
+   * asinh(y) = log(y + sqrt(y^2 + 1)) avoids requiring an asinh implementation on every device.
    */
-  float r;
-  if (xi <= 0.9f) {
-    r = expf(xi * xi * 2.4f) - 1.0f;
-  }
-  else {
-    /* TODO(sergey): Some nicer curve fit is possible here. */
-    r = 15.0f;
-  }
-  /* Solve against scaled radius. */
-  for (int i = 0; i < max_iteration_count; i++) {
-    const float exp_r_3 = expf(-r / 3.0f);
-    const float exp_r = exp_r_3 * exp_r_3 * exp_r_3;
-    const float f = 1.0f - 0.25f * exp_r - 0.75f * exp_r_3 - xi;
-    const float f_ = 0.25f * exp_r + 0.25f * exp_r_3;
-
-    if (fabsf(f) < tolerance || f_ == 0.0f) {
-      break;
-    }
-
-    r = r - f / f_;
-    r = fmaxf(r, 0.0f);
-  }
-  return r;
+  const float y = 2.0f - 2.0f * xi;
+  const float x = 2.0f * sinhf(logf(y + sqrtf(y * y + 1.0f)) / 3.0f);
+  /* Keep rounding near the endpoints inside the sampled range. */
+  return clamp(-3.0f * logf(x), 0.0f, BURLEY_TRUNCATE);
 }
 
 ccl_device void bssrdf_burley_sample(const float d,
@@ -200,7 +181,7 @@ ccl_device void bssrdf_burley_sample(const float d,
                                      ccl_private float *h)
 {
   const float Rm = BURLEY_TRUNCATE * d;
-  const float r_ = bssrdf_burley_root_find(xi * BURLEY_TRUNCATE_CDF) * d;
+  const float r_ = bssrdf_burley_inverse_cdf(xi * BURLEY_TRUNCATE_CDF) * d;
 
   *r = r_;
 
