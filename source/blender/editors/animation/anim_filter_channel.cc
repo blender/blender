@@ -1409,7 +1409,7 @@ void FCurveChannel::gather_channel_data()
   this->datapoints_.resize(fcurve->totvert);
   for (int i = 0; i < fcurve->totvert; i++) {
     BezTriple &key = fcurve->bezt[i];
-    KeyPoint p(key.vec[1][0]);
+    KeyPoint p(this->mapping_.map(key.vec[1][0]));
     p.is_selected = BEZT_ISSEL_ANY(&key);
     p.key_type = BEZKEYTYPE(&key);
     p.handle_type = handle_summary_from_key(key);
@@ -1484,7 +1484,8 @@ void FCurveChannel::set_setting(const ChannelSettingKey setting, const bool valu
 void FCurveChannel::change_datapoint_selection(const SelectionMode mode, const Bounds<float> range)
 {
   FCurve *fcurve = this->get_source<FCurve>();
-  change_fcurve_key_selection(*fcurve, mode, range);
+  change_fcurve_key_selection(
+      *fcurve, mode, {this->mapping_.unmap(range.min), this->mapping_.unmap(range.max)});
 }
 
 StringRefNull FCurveChannel::label() const
