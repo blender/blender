@@ -688,15 +688,18 @@ class SummaryChannel final : public AnimationChannel {
    * This is named after the call site, rather than after its specific functionality, as it's
    * intentionally doing multiple things. This way, the recursion only has to happen once.
    *
-   * - Determine the default UI state. This depends on the children (collapse if all children are
-   *   DataChannels), and so can only be done after grouping is complete.
+   * - Determine the default UI state. This depends on the children, and so can only be done after
+   * grouping is complete.
    * - Push this channel's identifier to its children. This ensures that any channel identifiers
    *   built for these channels include a value that is unique at least some aspects of their
    *   parent channel.
    *
+   * \param collapse_leaf_summaries determines if summary channels containing only data channels
+   * are collapsed or expanded.
+   *
    * \see #ChannelIdentifier::parent_session_uid
    */
-  void finalize_after_grouping();
+  void finalize_after_grouping(bool collapse_leaf_summaries);
 
   /**
    * Sort the children of this summary channel.
@@ -933,6 +936,12 @@ struct GroupingParameters {
    * If true, summary/group creation is skipped if it would move all chilren to a subgroup.
    */
   bool use_minimal_grouping = false;
+
+  /**
+   * If true, summaries with only data channels as children are collapsed by default. If false, all
+   * summaries are expanded.
+   */
+  bool collapse_leaf_summaries = false;
 
   bool operator==(const GroupingParameters &) const = default;
   bool operator!=(const GroupingParameters &) const = default;

@@ -1193,7 +1193,7 @@ static bool animation_channel_compare_function(const AnimationChannel *channel_a
   return channel_a->label() < channel_b->label();
 }
 
-void SummaryChannel::finalize_after_grouping()
+void SummaryChannel::finalize_after_grouping(const bool collapse_leaf_summaries)
 {
   const ChannelIdentifier my_ident = this->identifier();
 
@@ -1206,12 +1206,10 @@ void SummaryChannel::finalize_after_grouping()
     }
 
     all_children_are_datachannel = false;
-    reinterpret_cast<SummaryChannel *>(child)->finalize_after_grouping();
+    reinterpret_cast<SummaryChannel *>(child)->finalize_after_grouping(collapse_leaf_summaries);
   }
 
-  /* TODO: this is good for the dope sheet, but the graph editor may need to see everything by
-   * default. */
-  this->is_default_collapsed_ = all_children_are_datachannel;
+  this->is_default_collapsed_ = all_children_are_datachannel && collapse_leaf_summaries;
 }
 
 void SummaryChannel::sort_children()

@@ -4441,7 +4441,7 @@ void group_channels(ChannelArena &arena)
     channel->sort_children();
   }
 
-  root->finalize_after_grouping();
+  root->finalize_after_grouping(arena.grouping_params.collapse_leaf_summaries);
 
   gather_tags(*root);
 }

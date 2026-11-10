@@ -120,6 +120,7 @@ static std::optional<ed::animfilter::ChannelArena> build_summary_tree(
 
   arena.grouping_params.use_minimal_grouping = saction->ads.flag & ADS_FLAG_MINIMAL_GROUPING;
   arena.grouping_params.tag_order = tag_order_for_dope_sheet_mode(saction->mode);
+  arena.grouping_params.collapse_leaf_summaries = true;
   arena.compute_datachannel_hash();
 
   if (cached_arena && arena.is_same_as(*cached_arena)) {
