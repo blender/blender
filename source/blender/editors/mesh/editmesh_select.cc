@@ -2677,8 +2677,10 @@ static wmOperatorStatus edbm_select_all_exec(bContext *C, wmOperator *op)
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
     for (Object *obedit : objects) {
-      BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
-      if (bm->totvertsel || bm->totedgesel || bm->totfacesel) {
+      const Mesh *mesh = id_cast<const Mesh *>(obedit->data);
+      int count[3];
+      BKE_mesh_count_selected_items(mesh, count);
+      if (count[0] || count[1] || count[2]) {
         action = SEL_DESELECT;
         break;
       }
