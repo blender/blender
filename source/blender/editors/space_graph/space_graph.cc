@@ -167,13 +167,6 @@ static void graph_init(wmWindowManager *wm, ScrArea *area)
     sipo->ads->source = win ? id_cast<ID *>(WM_window_get_active_scene(win)) : nullptr;
   }
 
-  if (sipo->next && sipo->next->spacetype == SPACE_ACTION) {
-    const SpaceAction *dope_sheet = reinterpret_cast<SpaceAction *>(sipo->next);
-    ed::animfilter::sync_dopesheet(dope_sheet->ads, *sipo->ads);
-    ed::animfilter::sync_runtime(dope_sheet->runtime->animfilter_runtime,
-                                 sipo->runtime->animfilter_runtime);
-  }
-
   /* force immediate init of any invalid F-Curve colors */
   /* XXX: but, don't do SIPO_TEMP_NEEDCHANSYNC (i.e. channel select state sync)
    * as this is run on each region resize; setting this here will cause selection
