@@ -10,7 +10,7 @@
 #include "ply_data.hh"
 #include "ply_file_buffer.hh"
 
-#include "BLI_math_vector.hh"
+#include "BLI_math_color_c.hh"
 
 namespace blender::io::ply {
 
@@ -26,9 +26,10 @@ void write_vertices(FileBuffer &buffer, const PlyData &ply_data)
     }
 
     if (!ply_data.vertex_colors.is_empty()) {
-      /* PLY colors currently are exported as bytes, make sure inputs are clamped. */
-      float4 color = math::clamp(ply_data.vertex_colors[i], 0.0f, 1.0f) * 255.0f;
-      buffer.write_vertex_color(uchar(color.x), uchar(color.y), uchar(color.z), uchar(color.w));
+      /* PLY colors currently are exported as bytes. */
+      uchar color[4];
+      rgba_float_to_uchar(color, ply_data.vertex_colors[i]);
+      buffer.write_vertex_color(color[0], color[1], color[2], color[3]);
     }
 
     if (!ply_data.uv_coordinates.is_empty()) {

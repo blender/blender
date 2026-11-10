@@ -417,6 +417,20 @@ TEST_F(PLYExportTest, WriteVertexNormalsBinary)
   }
 }
 
+TEST_F(PLYExportTest, WriteByteColorsRoundedAndClamped)
+{
+  const std::string filepath = get_temp_ply_filename(temp_file_path);
+  PlyData data;
+  data.vertices.append({0, 0, 0});
+  data.vertex_colors.append({-0.1f, 0.5f, 1.1f, 0.5f});
+
+  FileBufferAscii buffer(filepath.c_str());
+  write_vertices(buffer, data);
+  buffer.close_file();
+
+  EXPECT_EQ(read_temp_file_in_string(filepath), "0 0 0 0 128 255 128\n");
+}
+
 class PLYExportPLYDataTest : public PLYExportTest {
  public:
   PlyData load_ply_data_from_blendfile(const std::string &blendfile, PLYExportParams &params)
