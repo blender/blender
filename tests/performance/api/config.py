@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import fnmatch
 import json
 import pathlib
 
@@ -10,6 +9,7 @@ from dataclasses import dataclass, field
 
 from .common import normalize_device_id
 from .test import TestCollection
+from .device import combine_devices
 
 
 def get_build_hash(args: None) -> str:
@@ -206,13 +206,30 @@ class TestConfig:
         need_gpus = any(device not in {'CPU', 'CPU-OSL'} for device in device_filters)
         machine = env.get_machine(need_gpus)
 
-        self.devices = []
-        for device in machine.devices:
-            for device_filter in device_filters:
-                if fnmatch.fnmatch(device.id, device_filter) or \
-                   fnmatch.fnmatch(normalize_device_id(device.id), normalize_device_id(device_filter)):
-                    self.devices.append(device)
-                    break
+        for device_filter in device_filters:
+            # Split the filter into parts, one for each device in a combined device situation.
+            # E.g. CPU+OPTIX for CPU+GPU Cycles rendering.
+            device_filter_parts = [d.strip() for d in device_filter.split("+")]
+
+            filtered_device_list = []
+
+            for device_part in device_filter_parts:
+                for device in machine.devices:
+                    if device.id == device_part or normalize_device_id(device.id) == normalize_device_id(device_part):
+                        filtered_device_list.append(device)
+                        break
+
+            if len(filtered_device_list) != len(device_filter_parts):
+                print(f"Skipping device combo '{device_filter}' because not all components could be found.")
+                print(f"Components found: {[d.id for d in filtered_device_list]}")
+                continue
+
+            if len(filtered_device_list) == 1:
+                new_device = filtered_device_list[0]
+            else:
+                new_device = combine_devices(filtered_device_list)
+
+            self.devices.append(new_device)
 
     def _update_queue(self, env) -> None:
         # Update queue to match configuration, adding and removing entries
@@ -272,7 +289,18 @@ class TestConfig:
             if test.use_device():
                 supported_device_types = test.supported_device_types()
 
-            devices = list(filter(lambda device: device.type in test.supported_device_types(), self.devices))
+            devices = []
+            for device in self.devices:
+                if '+' in device.type and not test.use_combined_devices():
+                    # Combined devices will have a plus in its device type.
+                    # E.g. CPU+OPTIX for CPU+GPU Cycles rendering.
+                    continue
+
+                device_type_parts = device.type.split('+')
+                if all(device_type_part in supported_device_types for device_type_part in device_type_parts):
+                    # Add the device only if all components are supported.
+                    devices.append(device)
+
             devices = test.remove_redundant_device_types(devices)
 
             for device in devices:

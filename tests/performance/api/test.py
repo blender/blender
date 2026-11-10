@@ -32,6 +32,12 @@ class Test:
         """
         return ['CPU']
 
+    def use_combined_devices(self) -> bool:
+        """
+        Test supports using multiple devices at once. E.g. CPU+GPU rendering in Cycles.
+        """
+        return False
+
     def remove_redundant_device_types(self, devices: list) -> list:
         """
         Remove redundant device types that do not improve coverage.

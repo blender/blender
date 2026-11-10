@@ -150,3 +150,11 @@ class TestMachine:
 
     def cpu_device(self) -> TestDevice:
         return self.devices[0]
+
+
+def combine_devices(devices: list[TestDevice]) -> TestDevice:
+    return TestDevice(device_type="+".join([device.type for device in devices]),
+                      device_id="+".join([device.id for device in devices]),
+                      name=" + ".join([device.name for device in devices]),
+                      cpu=devices[0].cpu,
+                      operating_system=devices[0].operating_system)

@@ -8,25 +8,43 @@ import api
 def _run(args):
     import bpy
 
-    device_info = args['device_type'].split("-")
-    device_type = device_info[0]
+    use_hwrt = False
+    use_osl = False
+    use_cpu = False
+    gpu_indexes = []
+    render_device_type = 'CPU'
+    for device in args['devices']:
+        device_info = device['device_type'].split("-")
+        device_type = device_info[0]
 
-    device_suffixes = device_info[1:]
-    use_hwrt = "RT" in device_suffixes
-    use_osl = "OSL" in device_suffixes
+        if device_type == 'CPU':
+            use_cpu = True
+        elif render_device_type == 'CPU':
+            render_device_type = device_type
+        elif render_device_type != device_type:
+            raise SystemExit("Cycles does not support combining GPUs of different backends.\n"
+                             f"Current backend: {render_device_type}\n"
+                             f"New backend: {device_type}")
 
-    for suffix in device_suffixes:
-        if suffix not in {"RT", "OSL"}:
-            raise SystemExit(f"Unknown device type suffix {suffix}")
+        if not device_type == 'CPU':
+            gpu_indexes.append(device['device_index'])
 
-    device_index = args['device_index']
+        device_suffixes = device_info[1:]
+        if "RT" in device_suffixes:
+            use_hwrt = True
+        if "OSL" in device_suffixes:
+            use_osl = True
+
+        for suffix in device_suffixes:
+            if suffix not in {"RT", "OSL"}:
+                raise SystemExit(f"Unknown device type suffix {suffix}")
 
     scene = bpy.context.scene
     scene.render.engine = 'CYCLES'
     scene.render.filepath = args['render_filepath']
     scene.render.image_settings.media_type = 'IMAGE'
     scene.render.image_settings.file_format = 'PNG'
-    scene.cycles.device = 'CPU' if device_type == 'CPU' else 'GPU'
+    scene.cycles.device = 'CPU' if render_device_type == 'CPU' else 'GPU'
 
     if scene.cycles.use_adaptive_sampling:
         # Render samples specified in file, no other way to measure
@@ -45,19 +63,19 @@ def _run(args):
         # Enable specified GPU in preferences.
         prefs = bpy.context.preferences
         cprefs = prefs.addons['cycles'].preferences
-        cprefs.compute_device_type = device_type
-        devices = cprefs.get_devices_for_type(device_type)
+        cprefs.compute_device_type = render_device_type
+        devices = cprefs.get_devices_for_type(render_device_type)
         for device in devices:
             device.use = False
 
         index = 0
         for device in devices:
-            if device.type == device_type:
-                if index == device_index:
+            if device.type == render_device_type:
+                if index in gpu_indexes:
                     device.use = True
-                    break
-                else:
-                    index += 1
+                index += 1
+            elif device.type == 'CPU' and use_cpu:
+                device.use = True
 
         cprefs.use_hiprt = use_hwrt
         cprefs.use_oneapirt = use_hwrt
@@ -87,12 +105,18 @@ class CyclesTest(api.Test):
             "CPU", "CPU-OSL", "CUDA", "OPTIX", "OPTIX-OSL", "ONEAPI", "ONEAPI-RT", "HIP", "HIP-RT", "METAL", "METAL-RT"
         ]
 
+    def use_combined_devices(self):
+        return True
+
     def run(self, env, device_id, gpu_backend):
-        tokens = device_id.split('_')
-        device_type = tokens[0]
-        device_index = int(tokens[1]) if len(tokens) > 1 else 0
-        args = {'device_type': device_type,
-                'device_index': device_index,
+        devices = []
+        for device_part in device_id.split("+"):
+            tokens = device_part.split('_')
+            device_type = tokens[0]
+            device_index = int(tokens[1]) if len(tokens) > 1 else 0
+            devices.append({'device_type': device_type, 'device_index': device_index})
+
+        args = {'devices': devices,
                 'render_filepath': str(env.log_file.parent / (env.log_file.stem + '.png'))}
 
         _, lines = env.run_in_blender(_run, args, ['--debug-cycles', '--verbose', '2', self.filepath])
