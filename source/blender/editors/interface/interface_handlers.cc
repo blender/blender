@@ -7523,7 +7523,35 @@ static bool numedit_but_HSVCUBE(Button *but,
     const float fac = mouse_scale_warp_factor(shift);
     data->relative_drag.x += float(mx - data->draglastx) * fac;
     data->relative_drag.y += float(my - data->draglasty) * fac;
-    BLI_rctf_clamp_pt_v(&but->rect, data->relative_drag);
+
+    switch (hsv_but->gradient_type) {
+      case GRAD_HV:
+      case GRAD_HS:
+      case GRAD_H:
+        /* Disable hue wrapping when snapping. */
+        if (snap != SNAP_OFF) {
+          BLI_rctf_clamp_pt_v(&but->rect, data->relative_drag);
+        }
+        else {
+          /* Wrap the hue around. */
+          data->relative_drag[0] = math::mod_periodic(data->relative_drag[0] - but->rect.xmin,
+                                                      but->rect.xmax - but->rect.xmin) +
+                                   but->rect.xmin;
+          data->relative_drag[1] = math::clamp(
+              data->relative_drag[1], but->rect.ymin, but->rect.ymax);
+        }
+        break;
+      case GRAD_SV:
+      case GRAD_V:
+      case GRAD_S:
+      case GRAD_L_ALT:
+      case GRAD_V_ALT:
+        BLI_rctf_clamp_pt_v(&but->rect, data->relative_drag);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
   }
   else {
     data->relative_drag.x = mx;
