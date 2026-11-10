@@ -67,13 +67,14 @@
 #define ccl_gpu_kernel_threads(block_num_threads)
 
 #  define __ccl_gpu_kernel_signature(name, ...) \
+class ccl_gpu_kernel_##name; \
 void oneapi_kernel_##name(KernelParamsOneAPI *ccl_restrict kernel_params, \
                           size_t kernel_global_size, \
                           size_t kernel_local_size, \
                           sycl::handler &cgh, \
                           __VA_ARGS__) { \
       (void)(kernel_params); \
-      cgh.parallel_for( \
+      cgh.parallel_for<ccl_gpu_kernel_##name>( \
           sycl::nd_range<1>(kernel_global_size, kernel_local_size), \
           [=](sycl::nd_item<1> item) {
 

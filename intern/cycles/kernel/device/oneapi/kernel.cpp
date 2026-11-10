@@ -171,7 +171,7 @@ bool oneapi_kernel_is_required_for_features(const std::string &kernel_name,
                                             const uint64_t kernel_features)
 {
   /* Skip all non-Cycles kernels */
-  if (kernel_name.find("oneapi_kernel_") == std::string::npos) {
+  if (kernel_name.find("ccl_gpu_kernel_") == std::string::npos) {
     return false;
   }
 

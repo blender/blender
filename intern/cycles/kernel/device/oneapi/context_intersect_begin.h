@@ -5,6 +5,7 @@
 #if defined(WITH_EMBREE_GPU)
 #  undef ccl_gpu_kernel_signature
 #  define ccl_gpu_kernel_signature(name, ...) \
+    class ccl_gpu_kernel_##name; \
     void oneapi_kernel_##name(KernelParamsOneAPI *ccl_restrict kernel_params, \
                               size_t kernel_global_size, \
                               size_t kernel_local_size, \
@@ -12,7 +13,7 @@
                               __VA_ARGS__) \
     { \
       (void)(kernel_params); \
-      cgh.parallel_for( \
+      cgh.parallel_for<ccl_gpu_kernel_##name>( \
           sycl::nd_range<1>(kernel_global_size, kernel_local_size), \
           [=](sycl::nd_item<1> item, sycl::kernel_handler oneapi_kernel_handler) { \
             KernelGlobalsGPU oneapi_kg{kernel_params, oneapi_kernel_handler};
