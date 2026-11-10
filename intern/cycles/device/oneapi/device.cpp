@@ -60,6 +60,9 @@ bool device_oneapi_init()
   /* As a fix for #159584, the v1 Level Zero adapter is not included. */
   set_env_default("SYCL_UR_USE_LEVEL_ZERO_V2", "1");
 
+  /* Ask the driver to refuse device memory allocations beyond capacity. */
+  set_env_default("NEO_LOCAL_MEMORY_ALLOCATION_MODE", "1");
+
   return true;
 #endif
 }
