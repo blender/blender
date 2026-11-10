@@ -21,6 +21,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 
 #include "editors/sculpt_paint/mesh/mesh_brush_common.hh"
@@ -36,6 +37,7 @@ inline namespace surface_smooth_cc {
 
 struct LocalData {
   Vector<float3> positions;
+  Vector<float3> local_positions;
   Vector<float> factors;
   Vector<float> distances;
   Vector<int> neighbor_offsets;
@@ -56,6 +58,7 @@ BLI_NOINLINE static void clamp_factors(const MutableSpan<float> factors)
 BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph,
                                                       const Sculpt &sd,
                                                       const Brush &brush,
+                                                      const float4x4 &mat,
                                                       const IndexMask &node_mask,
                                                       Object &object,
                                                       const MutableSpan<float3> all_laplacian_disp)
@@ -88,15 +91,32 @@ BLI_NOINLINE static void do_surface_smooth_brush_mesh(const Depsgraph &depsgraph
 
         const MutableSpan<float> factors = all_factors.as_mutable_span().slice(node_offsets[pos]);
         tls.distances.resize(verts.size());
-        calc_factors_common_mesh_indexed(depsgraph,
-                                         brush,
-                                         object,
-                                         attribute_data,
-                                         position_data.eval,
-                                         vert_normals,
-                                         nodes[i],
-                                         factors,
-                                         tls.distances);
+        if (BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt)) {
+          tls.local_positions.resize(verts.size());
+          const MutableSpan<float3> local_positions = tls.local_positions;
+          calc_cube_tip_factors_common_mesh_indexed(depsgraph,
+                                                    brush,
+                                                    object,
+                                                    mat,
+                                                    attribute_data,
+                                                    position_data.eval,
+                                                    vert_normals,
+                                                    local_positions,
+                                                    nodes[i],
+                                                    factors,
+                                                    tls.distances);
+        }
+        else {
+          calc_factors_common_mesh_indexed(depsgraph,
+                                           brush,
+                                           object,
+                                           attribute_data,
+                                           position_data.eval,
+                                           vert_normals,
+                                           nodes[i],
+                                           factors,
+                                           tls.distances);
+        }
 
         scale_factors(factors, cache.bstrength);
         clamp_factors(factors);
@@ -182,6 +202,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
     const Depsgraph &depsgraph,
     const Sculpt &sd,
     const Brush &brush,
+    const float4x4 &mat,
     const IndexMask &node_mask,
     Object &object,
     const MutableSpan<float3> all_laplacian_disp)
@@ -209,8 +230,23 @@ BLI_NOINLINE static void do_surface_smooth_brush_grids(
 
         const MutableSpan<float> factors = all_factors.as_mutable_span().slice(node_offsets[pos]);
         tls.distances.resize(positions.size());
-        calc_factors_common_grids(
-            depsgraph, brush, object, positions, nodes[i], factors, tls.distances);
+        if (BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt)) {
+          tls.local_positions.resize(positions.size());
+          const MutableSpan<float3> local_positions = tls.local_positions;
+          calc_cube_tip_factors_common_grids(depsgraph,
+                                             brush,
+                                             object,
+                                             mat,
+                                             positions,
+                                             local_positions,
+                                             nodes[i],
+                                             factors,
+                                             tls.distances);
+        }
+        else {
+          calc_factors_common_grids(
+              depsgraph, brush, object, positions, nodes[i], factors, tls.distances);
+        }
 
         scale_factors(factors, cache.bstrength);
         clamp_factors(factors);
@@ -282,6 +318,7 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
     const Depsgraph &depsgraph,
     const Sculpt &sd,
     const Brush &brush,
+    const float4x4 &mat,
     const IndexMask &node_mask,
     Object &object,
     const MutableSpan<float3> all_laplacian_disp)
@@ -307,8 +344,23 @@ BLI_NOINLINE static void do_surface_smooth_brush_bmesh(
 
         const MutableSpan<float> factors = all_factors.as_mutable_span().slice(node_offsets[pos]);
         tls.distances.resize(positions.size());
-        calc_factors_common_bmesh(
-            depsgraph, brush, object, positions, nodes[i], factors, tls.distances);
+        if (BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt)) {
+          tls.local_positions.resize(positions.size());
+          const MutableSpan<float3> local_positions = tls.local_positions;
+          calc_cube_tip_factors_common_bmesh(depsgraph,
+                                             brush,
+                                             object,
+                                             mat,
+                                             positions,
+                                             local_positions,
+                                             nodes[i],
+                                             factors,
+                                             tls.distances);
+        }
+        else {
+          calc_factors_common_bmesh(
+              depsgraph, brush, object, positions, nodes[i], factors, tls.distances);
+        }
 
         scale_factors(factors, cache.bstrength);
         clamp_factors(factors);
@@ -383,9 +435,12 @@ void do_surface_smooth_brush(const Depsgraph &depsgraph,
   SculptSession &ss = *object.runtime->sculpt_session;
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
+  const float4x4 mat = cube_tip_init(object, brush);
 
   if (ss.cache->surface_smooth_laplacian_disp.is_empty()) {
-    BLI_assert_msg(stroke_is_first_brush_step(*ss.cache),
+    /* TODO: Remove BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt) after #163212 lands. */
+    BLI_assert_msg(stroke_is_first_brush_step(*ss.cache) ||
+                       BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt),
                    "Should only be allocated on the first step");
     ss.cache->surface_smooth_laplacian_disp = Array<float3>(vertex_count_get(object), float3(0));
   }
@@ -393,17 +448,17 @@ void do_surface_smooth_brush(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     case bke::pbvh::Type::Mesh:
       do_surface_smooth_brush_mesh(
-          depsgraph, sd, brush, node_mask, object, ss.cache->surface_smooth_laplacian_disp);
+          depsgraph, sd, brush, mat, node_mask, object, ss.cache->surface_smooth_laplacian_disp);
       break;
     case bke::pbvh::Type::Grids: {
       do_surface_smooth_brush_grids(
-          depsgraph, sd, brush, node_mask, object, ss.cache->surface_smooth_laplacian_disp);
+          depsgraph, sd, brush, mat, node_mask, object, ss.cache->surface_smooth_laplacian_disp);
       break;
     }
     case bke::pbvh::Type::BMesh: {
       vert_random_access_ensure(object);
       do_surface_smooth_brush_bmesh(
-          depsgraph, sd, brush, node_mask, object, ss.cache->surface_smooth_laplacian_disp);
+          depsgraph, sd, brush, mat, node_mask, object, ss.cache->surface_smooth_laplacian_disp);
       break;
     }
   }
