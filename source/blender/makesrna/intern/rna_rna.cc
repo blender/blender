@@ -3166,7 +3166,7 @@ bool rna_property_override_apply_default(Main *bmain,
   }
 
   /* Default apply callback always call property update. */
-  if (ret_success) {
+  if (ret_success && bmain) {
     RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
   }
 

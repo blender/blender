@@ -267,7 +267,9 @@ static bool rna_Camera_background_images_override_apply(
   /* This handles nullptr anchor as expected by adding at head of list. */
   BLI_insertlinkafter(&cam_dst->bg_images, bgpic_anchor, bgpic_dst);
 
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 

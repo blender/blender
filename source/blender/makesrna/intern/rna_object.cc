@@ -678,7 +678,9 @@ static bool rna_Object_parent_override_apply(Main *bmain,
   else {
     ob->parent = parent_src;
   }
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 
@@ -724,7 +726,9 @@ static bool rna_Object_parent_type_override_apply(Main *bmain,
   }
 
   ob->partype = eObject_Partype(parent_type_src);
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 
@@ -809,7 +813,9 @@ static bool rna_Object_parent_bone_override_apply(Main *bmain,
   }
 
   STRNCPY(ob->parsubstr, parent_bone_src);
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 
@@ -1726,7 +1732,9 @@ bool rna_Object_constraints_override_apply(Main *bmain,
   BKE_constraint_unique_name(con_dst, &ob_dst->constraints);
 
   //  printf("%s: We inserted a constraint...\n", __func__);
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 
@@ -1851,6 +1859,8 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
      * `rna_CollisionSettings_dependency_update` does add the `eModifierType_Collision` singleton
      * modifier).
      *
+     * It can also happen if trying to add a ParticleSystem modifier without a Main currently.
+     *
      * Try to handle this by finding already existing one here. */
     const ModifierTypeInfo *mti = BKE_modifier_get_info(mod_src->type);
     if (mti->flags & eModifierTypeFlag_Single) {
@@ -1885,7 +1895,9 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
   BLI_insertlinkafter(&ob_dst->modifiers, mod_anchor, mod_dst);
 
   //  printf("%s: We inserted a modifier '%s'...\n", __func__, mod_dst->name);
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 
@@ -2281,10 +2293,11 @@ bool rna_Object_light_linking_override_apply(Main *bmain,
      * handle them here. */
   }
 
-  DEG_id_tag_update(&ob_dst->id, ID_RECALC_SHADING);
-
-  DEG_relations_tag_update(bmain);
-  WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob_dst->id);
+  if (bmain) {
+    DEG_id_tag_update_ex(bmain, &ob_dst->id, ID_RECALC_SHADING);
+    DEG_relations_tag_update(bmain);
+    WM_main_add_notifier(bmain, NC_OBJECT | ND_DRAW, &ob_dst->id);
+  }
   return true;
 }
 

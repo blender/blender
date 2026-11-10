@@ -2002,7 +2002,7 @@ static bool rna_Mesh_materials_override_apply(Main *bmain,
     }
   }
 
-  if (is_modified) {
+  if (is_modified && bmain) {
     RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
   }
 

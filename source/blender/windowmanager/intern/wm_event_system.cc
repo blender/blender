@@ -400,12 +400,16 @@ void WM_event_add_notifier(const bContext *C, uint type, void *reference)
   WM_event_add_notifier_ex(CTX_wm_manager(C), CTX_wm_window(C), type, reference);
 }
 
-void WM_main_add_notifier(uint type, void *reference)
+void WM_main_add_notifier(Main *bmain, uint type, void *reference)
 {
-  Main *bmain = G_MAIN;
   wmWindowManager *wm = bmain->wm.first();
 
   WM_event_add_notifier_ex(wm, nullptr, type, reference);
+}
+
+void WM_main_add_notifier(uint type, void *reference)
+{
+  WM_main_add_notifier(G_MAIN, type, reference);
 }
 
 void WM_main_remove_notifier_reference(const void *reference)

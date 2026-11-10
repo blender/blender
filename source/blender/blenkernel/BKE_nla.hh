@@ -63,13 +63,19 @@ void BKE_nla_tracks_free(ListBaseT<NlaTrack> *tracks, bool do_id_user);
 /**
  * Copy NLA strip
  *
- * \param use_same_action: When true, the existing action is used (instead of being duplicated)
+ * \param bmain May be null if `use_same_action` is `true`.
+ * \param use_same_action If `true`, re-use the same Action IDs, otherwise, create new copies of
+ * them for the new strips.
  * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_...
  * flags in BKE_lib_id.hh
  */
 NlaStrip *BKE_nlastrip_copy(Main *bmain, NlaStrip *strip, bool use_same_action, int flag);
 /**
  * Copy a single NLA Track.
+ *
+ * \param bmain May be null if `use_same_action` is `true`.
+ * \param use_same_action If `true`, re-use the same Action IDs, otherwise, create new copies of
+ * them for the new strips.
  * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_...
  * flags in BKE_lib_id.hh
  */

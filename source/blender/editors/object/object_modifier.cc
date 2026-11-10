@@ -176,6 +176,11 @@ ModifierData *modifier_add(
   }
 
   if (type == eModifierType_ParticleSystem) {
+    if (!bmain) {
+      BKE_report(reports, RPT_WARNING, "Cannot add ParticleSystem modifiers outside of Main");
+      return nullptr;
+    }
+
     /* don't need to worry about the new modifier's name, since that is set to the number
      * of particle systems which shouldn't have too many duplicates
      */
@@ -230,8 +235,10 @@ ModifierData *modifier_add(
 
   BKE_object_modifier_set_active(ob, new_md);
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  DEG_relations_tag_update(bmain);
+  if (bmain) {
+    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_GEOMETRY);
+    DEG_relations_tag_update(bmain);
+  }
 
   return new_md;
 }

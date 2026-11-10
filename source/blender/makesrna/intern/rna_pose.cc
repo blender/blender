@@ -518,7 +518,9 @@ bool rna_PoseChannel_constraints_override_apply(Main *bmain,
   BKE_constraint_unique_name(con_dst, &pchan_dst->constraints);
 
   //  printf("%s: We inserted a constraint...\n", __func__);
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 

@@ -154,6 +154,8 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain,
   NlaStrip *strip_d;
   NlaStrip *cs_d;
 
+  BLI_assert_msg(use_same_action || bmain, "Duplicating Action IDs requires a valid Main pointer");
+
   const bool do_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
 
   /* sanity check */
