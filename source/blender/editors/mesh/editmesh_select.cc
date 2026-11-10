@@ -2778,20 +2778,15 @@ void MESH_OT_select_interior_faces(wmOperatorType *ot)
  * Gets called via generic mouse select operator.
  * \{ */
 
-bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &params)
+static bool edbm_select_pick_bmesh(bContext *C,
+                                   ViewContext &vc,
+                                   const Span<Base *> bases,
+                                   const SelectPick_Params &params)
 {
   int base_index_active = -1;
   BMVert *eve = nullptr;
   BMEdge *eed = nullptr;
   BMFace *efa = nullptr;
-
-  /* Setup view context for argument to callbacks. */
-  ViewContext vc = em_setup_viewcontext(C);
-  vc.mval[0] = mval[0];
-  vc.mval[1] = mval[1];
-
-  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
-      *vc.bmain, vc.scene, vc.view_layer, vc.v3d);
 
   bool changed = false;
   bool found = unified_findnearest(&vc, bases, &base_index_active, &eve, &eed, &efa);
@@ -3017,6 +3012,19 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &p
   }
 
   return changed;
+}
+
+bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &params)
+{
+  /* Setup view context for argument to callbacks. */
+  ViewContext vc = em_setup_viewcontext(C);
+  vc.mval[0] = mval[0];
+  vc.mval[1] = mval[1];
+
+  const Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
+      *vc.bmain, vc.scene, vc.view_layer, vc.v3d);
+
+  return edbm_select_pick_bmesh(C, vc, bases, params);
 }
 
 /** \} */
