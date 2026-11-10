@@ -43,21 +43,13 @@
 namespace blender {
 
 /* -------------------------------------------------------------------- */
-/** \name Internal Clipping Utilities
+/** \name Clipping Utilities
  * \{ */
 
-/**
- * Calculate clipping planes to use when #V3D_PROJ_TEST_CLIP_CONTENT is enabled.
- *
- * Planes are selected from the viewpoint using `clip_flag`
- * to detect which planes should be applied (maximum 6).
- *
- * \return The number of planes written into `planes`.
- */
-static int content_planes_from_clip_flag(const ARegion *region,
-                                         const Object *ob,
-                                         const eV3DProjTest clip_flag,
-                                         float planes[6][4])
+int ED_view3d_content_planes_from_clip_flag(const ARegion *region,
+                                            const Object *ob,
+                                            const eV3DProjTest clip_flag,
+                                            float planes[6][4])
 {
   BLI_assert(clip_flag & V3D_PROJ_TEST_CLIP_CONTENT);
 
@@ -96,25 +88,16 @@ static int content_planes_from_clip_flag(const ARegion *region,
   return planes_len;
 }
 
-/**
- * Edge projection is more involved since part of the edge may be behind the view
- * or extend beyond the far limits. In the case of single points, these can be ignored.
- * However it just may still be visible on screen, so constrained the edge to planes
- * defined by the port to ensure both ends of the edge can be projected, see #32214.
- *
- * \note This is unrelated to #V3D_PROJ_TEST_CLIP_BB which must be checked separately.
- */
-static bool view3d_project_segment_to_screen_with_content_clip_planes(
-    const ARegion *region,
-    const float v_a[3],
-    const float v_b[3],
-    const eV3DProjTest clip_flag,
-    const rctf *win_rect,
-    const float content_planes[][4],
-    const int content_planes_len,
-    /* Output. */
-    float r_screen_co_a[2],
-    float r_screen_co_b[2])
+bool ED_view3d_project_segment_to_screen_with_content_clip_planes(const ARegion *region,
+                                                                  const float v_a[3],
+                                                                  const float v_b[3],
+                                                                  const eV3DProjTest clip_flag,
+                                                                  const rctf *win_rect,
+                                                                  const float content_planes[][4],
+                                                                  const int content_planes_len,
+                                                                  /* Output. */
+                                                                  float r_screen_co_a[2],
+                                                                  float r_screen_co_b[2])
 {
   /* Clipping already handled, no need to check in projection. */
   eV3DProjTest clip_flag_nowin = clip_flag & ~V3D_PROJ_TEST_CLIP_WIN;
@@ -386,15 +369,15 @@ static void mesh_foreachScreenEdge__mapFunc(void *user_data,
   }
 
   float screen_co_a[2], screen_co_b[2];
-  if (!view3d_project_segment_to_screen_with_content_clip_planes(data->vc.region,
-                                                                 v_a,
-                                                                 v_b,
-                                                                 data->clip_flag,
-                                                                 &data->win_rect,
-                                                                 data->content_planes,
-                                                                 data->content_planes_len,
-                                                                 screen_co_a,
-                                                                 screen_co_b))
+  if (!ED_view3d_project_segment_to_screen_with_content_clip_planes(data->vc.region,
+                                                                    v_a,
+                                                                    v_b,
+                                                                    data->clip_flag,
+                                                                    &data->win_rect,
+                                                                    data->content_planes,
+                                                                    data->content_planes_len,
+                                                                    screen_co_a,
+                                                                    screen_co_b))
   {
     return;
   }
@@ -437,7 +420,7 @@ void mesh_foreachScreenEdge(const ViewContext *vc,
   }
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) {
-    data.content_planes_len = content_planes_from_clip_flag(
+    data.content_planes_len = ED_view3d_content_planes_from_clip_flag(
         vc->region, vc->obedit, clip_flag, data.content_planes);
   }
   else {
@@ -479,15 +462,15 @@ static void mesh_foreachScreenEdge_clip_bb_segment__mapFunc(void *user_data,
   }
 
   float screen_co_a[2], screen_co_b[2];
-  if (!view3d_project_segment_to_screen_with_content_clip_planes(data->vc.region,
-                                                                 v_a_clip,
-                                                                 v_b_clip,
-                                                                 data->clip_flag,
-                                                                 &data->win_rect,
-                                                                 data->content_planes,
-                                                                 data->content_planes_len,
-                                                                 screen_co_a,
-                                                                 screen_co_b))
+  if (!ED_view3d_project_segment_to_screen_with_content_clip_planes(data->vc.region,
+                                                                    v_a_clip,
+                                                                    v_b_clip,
+                                                                    data->clip_flag,
+                                                                    &data->win_rect,
+                                                                    data->content_planes,
+                                                                    data->content_planes_len,
+                                                                    screen_co_a,
+                                                                    screen_co_b))
   {
     return;
   }
@@ -525,7 +508,7 @@ void mesh_foreachScreenEdge_clip_bb_segment(const ViewContext *vc,
   data.clip_flag = clip_flag;
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) {
-    data.content_planes_len = content_planes_from_clip_flag(
+    data.content_planes_len = ED_view3d_content_planes_from_clip_flag(
         vc->region, vc->obedit, clip_flag, data.content_planes);
   }
   else {
@@ -792,7 +775,7 @@ void armature_foreachScreenBone(const ViewContext *vc,
   rctf win_rect;
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) {
-    content_planes_len = content_planes_from_clip_flag(
+    content_planes_len = ED_view3d_content_planes_from_clip_flag(
         vc->region, vc->obedit, clip_flag, content_planes);
     win_rect.xmin = 0;
     win_rect.ymin = 0;
@@ -812,15 +795,15 @@ void armature_foreachScreenBone(const ViewContext *vc,
     const float *v_a = ebone.head, *v_b = ebone.tail;
 
     if (clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) {
-      if (!view3d_project_segment_to_screen_with_content_clip_planes(vc->region,
-                                                                     v_a,
-                                                                     v_b,
-                                                                     clip_flag,
-                                                                     &win_rect,
-                                                                     content_planes,
-                                                                     content_planes_len,
-                                                                     screen_co_a,
-                                                                     screen_co_b))
+      if (!ED_view3d_project_segment_to_screen_with_content_clip_planes(vc->region,
+                                                                        v_a,
+                                                                        v_b,
+                                                                        clip_flag,
+                                                                        &win_rect,
+                                                                        content_planes,
+                                                                        content_planes_len,
+                                                                        screen_co_a,
+                                                                        screen_co_b))
       {
         continue;
       }
@@ -864,7 +847,7 @@ void pose_foreachScreenBone(const ViewContext *vc,
   rctf win_rect;
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) {
-    content_planes_len = content_planes_from_clip_flag(
+    content_planes_len = ED_view3d_content_planes_from_clip_flag(
         vc->region, ob_eval, clip_flag, content_planes);
     win_rect.xmin = 0;
     win_rect.ymin = 0;
@@ -885,15 +868,15 @@ void pose_foreachScreenBone(const ViewContext *vc,
     const float *v_a = pchan_eval->pose_head, *v_b = pchan_eval->pose_tail;
 
     if (clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) {
-      if (!view3d_project_segment_to_screen_with_content_clip_planes(vc->region,
-                                                                     v_a,
-                                                                     v_b,
-                                                                     clip_flag,
-                                                                     &win_rect,
-                                                                     content_planes,
-                                                                     content_planes_len,
-                                                                     screen_co_a,
-                                                                     screen_co_b))
+      if (!ED_view3d_project_segment_to_screen_with_content_clip_planes(vc->region,
+                                                                        v_a,
+                                                                        v_b,
+                                                                        clip_flag,
+                                                                        &win_rect,
+                                                                        content_planes,
+                                                                        content_planes_len,
+                                                                        screen_co_a,
+                                                                        screen_co_b))
       {
         continue;
       }
