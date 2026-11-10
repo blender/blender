@@ -91,6 +91,11 @@ enum class ImageImport {
   Individual,
 };
 
+enum class AudioTracks {
+  All,
+  Single,
+};
+
 static const EnumPropertyItem rna_enum_image_import_type_items[] = {
     {int(ImageImport::Detect),
      "DETECT",
@@ -109,6 +114,16 @@ static const EnumPropertyItem rna_enum_image_import_type_items[] = {
      0,
      "Individual Images",
      "Add each selected image as an individual strip"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem rna_enum_audio_tracks_items[] = {
+    {int(AudioTracks::All), "ALL", 0, "All Tracks", "Add a sound strip for every audio track"},
+    {int(AudioTracks::Single),
+     "SINGLE",
+     0,
+     "Single Track",
+     "Only add the audio track with the given index"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -175,7 +190,10 @@ static bool sequencer_add_draw_check_fn(PointerRNA *ptr, PropertyRNA *prop, void
                    "move_strips_after_add",
                    "replace_sel",
                    "skip_locked_or_muted_channels",
-                   "use_sequence_detection");
+                   "use_sequence_detection",
+                   "sound",
+                   "audio_tracks",
+                   "audio_track_index");
 }
 
 static void sequencer_add_ui(bContext * /*C*/, wmOperator *op)
@@ -204,6 +222,16 @@ static void sequencer_add_ui(bContext * /*C*/, wmOperator *op)
                    nullptr,
                    ui::BUT_LABEL_ALIGN_NONE,
                    false);
+
+  if (RNA_struct_find_property(op->ptr, "sound")) {
+    layout.prop(op->ptr, "sound", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    if (RNA_boolean_get(op->ptr, "sound")) {
+      layout.row(true).prop(op->ptr, "audio_tracks", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+      if (AudioTracks(RNA_enum_get(op->ptr, "audio_tracks")) == AudioTracks::Single) {
+        layout.prop(op->ptr, "audio_track_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      }
+    }
+  }
 
   /* There is no effect strip add UI, so assume an image is being imported if "length" is found. */
   if (RNA_struct_find_property(op->ptr, "length") &&
@@ -1311,8 +1339,23 @@ static void sequencer_add_movie_strips_single_file(bContext *C,
   ColorManagedColorspaceSettings colorspace_settings;
   MovieReader *probe_anim = openanim_noload(
       filepath_abs, ImBufFlags::Zero, 0, true, &colorspace_settings);
+
   const int video_count = MOV_get_video_stream_count(probe_anim);
-  const int sound_count = load_sound ? BKE_sound_stream_count(bmain, filepath_abs) : 0;
+
+  const int sound_total = load_sound ? BKE_sound_stream_count(bmain, filepath_abs) : 0;
+  IndexRange sound_indices(sound_total);
+  if (AudioTracks(RNA_enum_get(op->ptr, "audio_tracks")) == AudioTracks::Single) {
+    const int index = RNA_int_get(op->ptr, "audio_track_index");
+    sound_indices = index < sound_total ? IndexRange(index, 1) : IndexRange();
+    if (load_sound && index >= sound_total) {
+      BKE_reportf(op->reports,
+                  RPT_WARNING,
+                  "File '%s' has no audio track with index %d",
+                  load_data->path,
+                  index);
+    }
+  }
+  const int sound_count = sound_indices.size();
 
   if (probe_anim != nullptr) {
     MOV_close(probe_anim);
@@ -1344,9 +1387,9 @@ static void sequencer_add_movie_strips_single_file(bContext *C,
   }
 
   /* Audio streams. */
-  for (const int sound_index : IndexRange(sound_count)) {
+  for (const int sound_index : sound_indices) {
     load_data->stream_index = sound_index;
-    load_data->channel = base_channel + sound_index;
+    load_data->channel = base_channel + sound_index - sound_indices.start();
     Strip *strip = seq::add_sound_strip(bmain, scene, ed->current_strips(), load_data);
     if (strip == nullptr) {
       continue;
@@ -1554,6 +1597,21 @@ void SEQUENCER_OT_movie_strip_add(wmOperatorType *ot)
                                         SEQPROP_VIEW_TRANSFORM | SEQPROP_PLAYBACK_RATE |
                                         SEQPROP_MOVE);
   RNA_def_boolean(ot->srna, "sound", true, "Sound", "Load sound with the movie");
+  RNA_def_enum(ot->srna,
+               "audio_tracks",
+               rna_enum_audio_tracks_items,
+               int(AudioTracks::All),
+               "Audio Tracks",
+               "Which audio tracks to add from the movie");
+  RNA_def_int(ot->srna,
+              "audio_track_index",
+              0,
+              0,
+              20,
+              "Audio Track Index",
+              "Index of the audio track to add",
+              0,
+              20);
   RNA_def_boolean(ot->srna,
                   "use_framerate",
                   true,
