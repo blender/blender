@@ -336,4 +336,27 @@ float3 sample_cos_hemisphere(const float3 rand_cylinder)
   return float3(rand_cylinder.yz * sin_from_cos(cos_theta), cos_theta);
 }
 
+/**
+ * Generate a sample following linearly transformed cosine hemispherical distribution (LTC).
+ */
+float3 sample_ltc(const float3x3 &M, const float2 rand)
+{
+  return normalize(M * sample_cos_hemisphere(rand));
+}
+
+/**
+ * The pdf of sampling a direction L with normal N following a LTC distribution defined by M.
+ * This is given by applying the Jacobian to the pdf of sampling the original cosine hemispherical
+ * distribution.
+ */
+float pdf_ltc(
+    float3 L, const float3 N, const float3x3 M, const float3x3 M_inv, const float det_M_inv)
+{
+  /* Convert to the original space. */
+  L = normalize(M_inv * L);
+
+  const float Jacobian = pow3f(length(M * L)) * det_M_inv;
+  return M_1_PI * saturate(dot(L, N)) * Jacobian;
+}
+
 /** \} */
