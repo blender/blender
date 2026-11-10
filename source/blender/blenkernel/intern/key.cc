@@ -538,7 +538,7 @@ static char *key_block_get_data(Key *key, KeyBlock *actkb, KeyBlock *kb, char **
       Mesh *mesh = id_cast<Mesh *>(key->from);
       const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
 
-      if (mesh->runtime->edit_mesh && bm->totvert == kb->totelem) {
+      if (bm && bm->totvert == kb->totelem) {
         int a = 0;
         float (*co)[3];
         co = MEM_new_array_uninitialized<float[3]>(size_t(bm->totvert), "key_block_get_data");
