@@ -4529,6 +4529,12 @@ void sync_runtime(const AnimfilterSpaceRuntime &from, AnimfilterSpaceRuntime &to
   /* We have to copy the last used too since it is compared to values baked into
    * `channel_states`.  */
   to.last_used = from.last_used;
+  if (to.channel_arena.has_value()) {
+    ChannelArena &arena = to.channel_arena.value();
+    for (SummaryChannel *summary : arena.summary_channels) {
+      summary->ui_state_map_set(&to.channel_states);
+    }
+  }
 }
 
 static ARegion *find_region_type(const ListBaseT<ARegion> &regionbase, const eRegion_Type type)
