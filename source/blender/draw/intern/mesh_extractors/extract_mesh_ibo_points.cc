@@ -278,7 +278,7 @@ static gpu::IndexBufPtr extract_points_subdiv_bmesh(const MeshRenderData &mr,
   const Span<int> corner_orig_verts = subdiv_cache.verts_orig_index->data<int>();
 
   const auto show_vert_bmesh = [&](const int vert_index) {
-    const BMVert *vert = bm_original_vert_get(mr, vert_index);
+    const BMVert *vert = BM_vert_at_index(mr.bm, vert_index);
     return !BM_elem_flag_test_bool(vert, BM_ELEM_HIDDEN);
   };
 
