@@ -401,12 +401,16 @@ static void rna_ColorRamp_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
         WM_main_add_notifier(NC_LINESTYLE, linestyle);
         break;
       }
-      /* Color Ramp for particle display is owned by the object (see #54422) */
-      case ID_OB:
+      case ID_OB: {
+        Object *ob = id_cast<Object *>(ptr->owner_id);
+        /* Color Ramp for particle display is owned by the object (see #54422) */
+        WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, ob);
+        break;
+      }
       case ID_PA: {
         ParticleSettings *part = id_cast<ParticleSettings *>(ptr->owner_id);
-
         WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, part);
+        break;
       }
       default:
         break;
