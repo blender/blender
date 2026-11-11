@@ -241,7 +241,8 @@ void ShadingView::update_view()
     float2 top_right = top_right_with_overscan;
     float2 render_size = render_size_with_overscan;
 
-    float overscan = inst_.camera.overscan();
+    /* Panoramic overscan widens the face FOV. */
+    float overscan = inst_.camera.is_panoramic() ? 0.0f : inst_.camera.overscan();
     if (overscan > 0.0f) {
       /* Size of overscan on the screen. */
       const float max_size_with_overscan = math::reduce_max(render_size);

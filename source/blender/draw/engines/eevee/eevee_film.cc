@@ -389,15 +389,30 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.offset = int2(output_rect->xmin, output_rect->ymin);
     data_.extent_inv = 1.0f / float2(data_.extent);
     data_.render_extent = divide_ceil(data_.extent, int2(data_.scaling_factor));
-    data_.overscan = overscan_pixels_get(inst_.camera.overscan(), data_.render_extent);
+    /* Panoramic overscan widens each face FOV (see `Camera::sync`). */
+    data_.overscan = inst_.camera.is_panoramic() ?
+                         0 :
+                         overscan_pixels_get(inst_.camera.overscan(), data_.render_extent);
     data_.render_extent += data_.overscan * 2;
 
-    is_valid_render_extent_ = data_.render_extent.x <= GPU_max_texture_size() &&
-                              data_.render_extent.y <= GPU_max_texture_size();
+    if (inst_.camera.is_panoramic()) {
+      /* Reshape into a square so each face's pixel density stays close to the final film.
+       * Overscan widens the face FOV, so the face grows by the same factor.
+       * TODO: Remove once per projection face clipping is implemented. */
+      int64_t render_pixel_count = data_.render_extent.x * int64_t(data_.render_extent.y);
+      float overscan_scale = (1.05f + inst_.camera.overscan()) / 1.05f;
+      render_extent_shading_view_ = int2(ceilf(sqrtf(float(render_pixel_count)) * overscan_scale));
+    }
+    else {
+      render_extent_shading_view_ = data_.render_extent;
+    }
+
+    const int2 max_render_extent = math::max(data_.render_extent, render_extent_shading_view_);
+    is_valid_render_extent_ = math::reduce_max(max_render_extent) <= GPU_max_texture_size();
     if (!is_valid_render_extent_) {
       inst_.info_append_i18n(
           "Required render size ({}px) is larger than reported texture size limit ({}px).",
-          max_ii(data_.render_extent.x, data_.render_extent.y),
+          math::reduce_max(max_render_extent),
           GPU_max_texture_size());
 
       data_.extent = int2(4, 4);
@@ -405,16 +420,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       data_.extent_inv = 1.0f / float2(data_.extent);
       data_.offset = int2(0, 0);
       data_.overscan = 0;
-    }
-
-    if (inst_.camera.is_panoramic()) {
-      /* Reshape into a square so each face's pixel density stays close to the final film.
-       * TODO: Remove once per projection face clipping is implemented. */
-      int64_t render_pixel_count = data_.render_extent.x * int64_t(data_.render_extent.y);
-      render_extent_shading_view_ = int2(ceilf(sqrtf(float(render_pixel_count))));
-    }
-    else {
-      render_extent_shading_view_ = data_.render_extent;
+      render_extent_shading_view_ = int2(4, 4);
     }
 
     data_.filter_radius = clamp_f(scene.r.gauss, 0.0f, 100.0f);
