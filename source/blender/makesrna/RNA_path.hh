@@ -164,7 +164,12 @@ template<int64_t N = 4> class ParsedRNAPath {
   {
     this->items.append(rna_path::Member{member});
   }
-  /** Append an rna_path::Member to the items. */
+  /**
+   * Append an rna_path::Member to the items.
+   *
+   * \note Do not use this to append string literals. Use "literal"_ustr with the above UString
+   * overload instead.
+   */
   void append_member(const StringRef member)
   {
     this->append_member(UString(member));
