@@ -590,6 +590,15 @@ class AnimationChannel {
   {
     return this->source_rna_path_;
   }
+  /**
+   * Returns the RNA path used to sort this channel
+   *
+   * By default the sorting is done based on the source RNA path, but some types sort by an aspect
+   * of their data (like #FCurveChannel using the F-Curve's data path, not its source path). */
+  virtual std::optional<ParsedSourcePath> sorting_rna_path() const
+  {
+    return this->source_rna_path_;
+  }
 
   bool is_selected() const
   {
@@ -837,6 +846,8 @@ class FCurveChannel : public DataChannel {
 
   /** Construct a label for the F-Curve, depending on its tags. */
   StringRefNull label() const override;
+
+  std::optional<ParsedSourcePath> sorting_rna_path() const override;
 
   void set_setting(ChannelSettingKey setting, bool value) override;
   void change_datapoint_selection(SelectionMode mode,

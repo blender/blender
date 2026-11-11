@@ -1190,6 +1190,15 @@ static bool animation_channel_compare_function(const AnimationChannel *channel_a
     }
   }
 
+  /* Sort by RNA path, if those are available. */
+  const std::optional<ParsedSourcePath> sorting_path_a = channel_a->sorting_rna_path();
+  const std::optional<ParsedSourcePath> sorting_path_b = channel_b->sorting_rna_path();
+  if (sorting_path_a && sorting_path_b) {
+    if (*sorting_path_a != *sorting_path_b) {
+      return *sorting_path_a < *sorting_path_b;
+    }
+  }
+
   return channel_a->label() < channel_b->label();
 }
 
@@ -1282,7 +1291,7 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
   /* This base priority ensures that when they appear under the same SummaryChannel, F-Curves are
    * sorted lower than Groups. This can happen when some but not all F-Curves are in groups. */
   FCurve &fcurve = *fcurve_ptr.data_as<FCurve>();
-  sorting_priority_ = -10000 - fcurve.array_index;
+  sorting_priority_ = -10000;
 
   const ParsedRNAPathRef rna_path = fcurve.rna_path_parsed();
   const std::optional<StringRefNull> last_member = last_rna_path_member(rna_path);
@@ -1299,9 +1308,6 @@ FCurveChannel::FCurveChannel(const PointerRNA &fcurve_ptr, const ParsedSourcePat
   }
   else if (last_member.value() == "scale") {
     sorting_priority_ += 100;
-  }
-  else {
-    sorting_priority_ = -fcurve.array_index;
   }
 }
 
@@ -1503,6 +1509,14 @@ StringRefNull FCurveChannel::label() const
   }
 
   return this->label_;
+}
+
+std::optional<ParsedSourcePath> FCurveChannel::sorting_rna_path() const
+{
+  FCurve *fcurve = this->get_source<FCurve>();
+  ParsedSourcePath rna_path = fcurve->rna_path_parsed();
+  rna_path.append_lookup(fcurve->array_index);
+  return rna_path;
 }
 
 /* ===== Driver Channel ===== */
