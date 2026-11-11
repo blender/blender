@@ -413,8 +413,12 @@ void vert_main([[resource_table]] const Uniform &uni,
       v_gpencil.thickness,
       v_gpencil.hardness);
 
-  /* Small bias to always be on top of the geom. */
-  out_pos.z -= 1e-3f;
+  if (!sel.consts.selectable) [[static_branch]] {
+    /* Small bias to always be on top of the geom.
+     * Skip during selection so GP does not unfairly win depth picking against
+     * nearby objects (especially in orthographic view). See: #156983. */
+    out_pos.z -= 1e-3f;
+  }
 
   if (clip.constants.use_clipping) [[static_branch]] {
     clip.set_clipping_distances(world_pos,
