@@ -148,6 +148,8 @@ class Prepass {
   Instance &inst_;
 
   PassMain pass_{"Prepass"};
+  PassMain pass_hide_from_raycast_{"Prepass.HideFromRaycast"};
+
   PassMain::Sub *subs_[2 /*hide from raycast*/][2 /*double sided*/][2 /*moving*/][2 /*write id*/] =
       {{{{nullptr}}}};
   PassMain::Sub *setup_subs_[2 /*hide from raycast*/][2 /*double sided*/][2 /*moving*/]
@@ -163,11 +165,6 @@ class Prepass {
   Texture dummy_raycast_id_tx_{"prepass.dummy_raycast_id_tx_"};
   Texture dummy_raycast_normal_tx_{"prepass.dummy_raycast_normal_tx_"};
 
-  /* Copies of UniformDataModule::pipeline with can_raycast overridden.
-   * Needed so we can render the whole Prepass in a single PassMain. */
-  draw::UniformBuffer<PipelineInfoData> pipeline_buf_copy_{"prepass.pipeline_buf"};
-  draw::UniformBuffer<PipelineInfoData> pipeline_buf_copy_hide_from_raycast_{
-      "prepass.pipeline_buf_hide_from_raycast"};
   gpu::Texture *fb_depth_tx_;
 
  public:
@@ -185,7 +182,10 @@ class Prepass {
 
   void end_sync();
 
-  void render(View &view, gpu::Texture *fb_depth_tx, bool can_raycast);
+  void render(View &view,
+              Framebuffer &prepass_hide_from_raycast_fb,
+              gpu::Texture *fb_depth_tx,
+              bool can_raycast);
 };
 
 /** \} */
@@ -263,6 +263,7 @@ class ForwardPipeline {
   void render(View &view,
               gpu::Texture *depth_tx,
               Framebuffer &prepass_fb,
+              Framebuffer &prepass_hide_from_raycast_fb,
               Framebuffer &transparent_fb,
               Framebuffer &combined_fb,
               int2 extent);
@@ -444,6 +445,7 @@ class DeferredLayer : DeferredLayerBase {
   /* Returns the radiance buffer to feed the next layer. */
   gpu::Texture *render(View &render_view,
                        Framebuffer &prepass_fb,
+                       Framebuffer &prepass_hide_from_raycast_fb,
                        Framebuffer &combined_fb,
                        Framebuffer &gbuffer_fb,
                        int2 extent,
@@ -479,6 +481,7 @@ class DeferredPipeline {
   void render(View &main_view,
               View &render_view,
               Framebuffer &prepass_fb,
+              Framebuffer &prepass_hide_from_raycast_fb,
               Framebuffer &combined_fb,
               Framebuffer &gbuffer_fb,
               int2 extent,
@@ -661,6 +664,7 @@ class DeferredProbePipeline {
 
   void render(View &view,
               Framebuffer &prepass_fb,
+              Framebuffer &prepass_hide_from_raycast_fb,
               Framebuffer &combined_fb,
               Framebuffer &gbuffer_fb,
               int2 extent);
@@ -719,7 +723,8 @@ class PlanarProbePipeline : DeferredLayerBase {
   void render(View &view,
               gpu::Texture *depth_layer_tx,
               Framebuffer &prepass_fb,
-              Framebuffer &gbuffer,
+              Framebuffer &prepass_hide_from_raycast_fb,
+              Framebuffer &gbuffer_fb,
               Framebuffer &combined_fb,
               int2 extent);
 };

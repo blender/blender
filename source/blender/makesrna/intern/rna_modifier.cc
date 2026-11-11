@@ -1198,7 +1198,9 @@ static bool rna_HookModifier_object_override_apply(Main *bmain,
     /* The only case where we do want default behavior (with matrix reset). */
     BKE_object_modifier_hook_reset(owner, hmd);
   }
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 
@@ -2312,8 +2314,10 @@ bool rna_NodesModifierBake_override_apply(Main *bmain,
     nmd_dst->runtime->cache->reset_cache(nmd_bake_dst->id);
   }
 
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
-  rna_NodesModifier_bake_update(bmain, nullptr, ptr_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+    rna_NodesModifier_bake_update(bmain, nullptr, ptr_dst);
+  }
   return true;
 }
 

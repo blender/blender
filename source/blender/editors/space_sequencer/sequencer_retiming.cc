@@ -756,7 +756,7 @@ SeqRetimingKey *retiming_mouseover_key_get(const Scene *scene,
                                            Strip **r_strip)
 {
   for (Strip *strip : sequencer_visible_strips_get(scene, v2d)) {
-    if (!seq::retiming_show_keys(strip)) {
+    if (!seq::retiming_show_keys(strip) || strip_is_too_small_for_retiming(scene, v2d, strip)) {
       continue;
     }
 
@@ -808,7 +808,9 @@ bool is_mouse_over_retiming_keys_box(const Scene *scene,
                                      const SpaceSeq *sseq,
                                      int mouse_co_region[2])
 {
-  if (!seq::retiming_show_keys(strip) || !retiming_overlay_enabled(sseq)) {
+  if (!seq::retiming_show_keys(strip) || !retiming_overlay_enabled(sseq) ||
+      strip_is_too_small_for_retiming(scene, v2d, strip))
+  {
     return false;
   }
 
@@ -978,7 +980,7 @@ wmOperatorStatus sequencer_retiming_box_select_exec(bContext *C, wmOperator *op)
     if (strip->channel < rectf.ymin || strip->channel > rectf.ymax) {
       continue;
     }
-    if (!seq::retiming_show_keys(strip)) {
+    if (!seq::retiming_show_keys(strip) || strip_is_too_small_for_retiming(scene, v2d, strip)) {
       continue;
     }
     realize_fake_keys_in_rect(scene, strip, rectf);
@@ -1040,6 +1042,12 @@ wmOperatorStatus sequencer_retiming_select_all_exec(bContext *C, wmOperator *op)
   int action = RNA_enum_get(op->ptr, "action");
 
   VectorSet<Strip *> strips = all_strips_from_context(C);
+
+  ARegion *region = CTX_wm_region(C);
+  if (region && (region->regiontype == RGN_TYPE_WINDOW)) {
+    strips.remove_if(
+        [&](Strip *strip) { return strip_is_too_small_for_retiming(scene, &region->v2d, strip); });
+  }
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;

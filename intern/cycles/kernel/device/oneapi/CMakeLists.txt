@@ -76,6 +76,8 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -DWITH_ONEAPI
     -O2
     -ffast-math
+    # strict aliasing is the default on Linux - use the same on all OSes.
+    -fstrict-aliasing
     -o"${cycles_kernel_oneapi_lib}"
     -I"${CMAKE_CURRENT_SOURCE_DIR}/../../.."
   )

@@ -1276,7 +1276,7 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
     dir = opendir(dirname);
 
     if (dir) {
-      ui::AutoComplete *autocpl = ui::autocomplete_begin(str, FILE_MAX);
+      ui::AutoComplete *autocpl = ui::autocomplete_begin(str, FILE_MAX, false);
 
       while ((de = readdir(dir)) != nullptr) {
         if (FILENAME_IS_CURRPAR(de->d_name)) {
@@ -1314,7 +1314,7 @@ int autocomplete_file(bContext *C, char *str, void * /*arg_v*/)
 
   /* search if str matches the beginning of name */
   if (str[0] && sfile->files) {
-    ui::AutoComplete *autocpl = ui::autocomplete_begin(str, FILE_MAX);
+    ui::AutoComplete *autocpl = ui::autocomplete_begin(str, FILE_MAX, false);
     int nentries = filelist_files_ensure(sfile->files);
 
     for (int i = 0; i < nentries; i++) {

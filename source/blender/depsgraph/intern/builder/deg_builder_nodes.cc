@@ -2396,6 +2396,9 @@ static bool strip_node_build_cb(Strip *strip, void *user_data)
       nb->build_scene_sequencer(strip->scene);
     }
     ViewLayer *strip_view_layer = BKE_view_layer_find(strip->scene, strip->scene_view_layer_name);
+    if (strip_view_layer == nullptr) {
+      strip_view_layer = BKE_view_layer_default_render(strip->scene);
+    }
     nb->build_scene_speakers(strip->scene, strip_view_layer);
   }
 

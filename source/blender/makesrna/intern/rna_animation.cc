@@ -1028,13 +1028,17 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
   if (adt_dst == nullptr && adt_src != nullptr) {
     /* Copy anim data from reference into final local ID. */
     BKE_animdata_copy_id(nullptr, ptr_dst->owner_id, ptr_src->owner_id, 0);
-    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+    if (bmain) {
+      RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+    }
     return true;
   }
   else if (adt_dst != nullptr && adt_src == nullptr) {
     /* Override has cleared/removed anim data from its reference. */
     BKE_animdata_free(ptr_dst->owner_id, true);
-    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+    if (bmain) {
+      RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+    }
     return true;
   }
   else if (adt_dst != nullptr && adt_src != nullptr) {
@@ -1068,8 +1072,10 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
     adt_dst->act_track = adt_src->act_track;
     adt_dst->actstrip = adt_src->actstrip;
 
-    DEG_relations_tag_update(bmain);
-    ANIM_id_update(bmain, ptr_dst->owner_id);
+    if (bmain) {
+      DEG_relations_tag_update(bmain);
+      ANIM_id_update(bmain, ptr_dst->owner_id);
+    }
   }
 
   return false;
@@ -1125,7 +1131,9 @@ bool rna_NLA_tracks_override_apply(Main *bmain, RNAPropertyOverrideApplyContext 
 
   // printf("%s: We inserted a NLA Track...\n", __func__);
 
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 

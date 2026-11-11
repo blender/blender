@@ -106,23 +106,6 @@ struct DenoiseSpatial {
   }
 };
 
-void transmission_thickness_amend_closure(ClosureUndetermined &cl, float3 &V, Thickness thickness)
-{
-  switch (cl.type) {
-    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      bxdf_ggx_context_amend_transmission(cl, V, thickness);
-      break;
-    case CLOSURE_NONE_ID:
-    case CLOSURE_BSDF_DIFFUSE_ID:
-    case CLOSURE_BSDF_OREN_NAYAR_ID:
-    case CLOSURE_BSDF_TRANSLUCENT_ID:
-    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-    case CLOSURE_BSSRDF_BURLEY_ID:
-    case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
-      break;
-  }
-}
-
 /**
  * Spatial ray reuse. Denoise raytrace result using ratio estimator.
  *
@@ -233,7 +216,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
 
   gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
 
-  ClosureUndetermined closure = reader.read_bin(texel_fullres, srt.closure_index);
+  BsdfClosure closure = reader.read_bin(texel_fullres, srt.closure_index);
 
   if (closure.type == CLOSURE_NONE_ID) {
     srt.invalid_pixel_write(texel_fullres);
@@ -263,12 +246,10 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
   float3 V = view.world_incident_vector(P);
 
   Thickness thickness = reader.read_thickness(gbuf_header, texel_fullres);
-  if (thickness.value() != 0.0f) {
-    transmission_thickness_amend_closure(closure, V, thickness);
-  }
+  closure.context_amend(V, thickness);
 
   /* Compute filter size and needed sample count */
-  float apparent_roughness = closure_apparent_roughness_get(closure);
+  float apparent_roughness = closure.perceived_roughness();
   /* Max filter size at 0.25 roughness. */
   float filter_size_factor = saturate(apparent_roughness * 8.0f);
   uint sample_count = 1u + uint(floor(15.0f * filter_size_factor + 0.5f));
@@ -351,7 +332,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
     /* Slide 54. */
     /* The reference is wrong.
      * The ratio estimator is `pdf_local / pdf_ray` instead of `bsdf_local / pdf_ray`. */
-    float pdf = closure_evaluate_pdf(closure, ray_direction, V, thickness);
+    float pdf = closure.eval(V, ray_direction, thickness).pdf;
     /* Avoid the weight exploding and summing to infinity. */
     float weight = min(1e30f, pdf * ray_pdf_inv);
 
@@ -702,14 +683,14 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
   float center_depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
   float3 center_P = view.point_screen_to_world(float3(center_uv, center_depth));
 
-  ClosureUndetermined center_closure = reader.read_bin(texel_fullres, srt.closure_index);
+  BsdfClosure center_closure = reader.read_bin(texel_fullres, srt.closure_index);
 
   if (center_closure.type == CLOSURE_NONE_ID) {
     /* Output nothing. This shouldn't even be loaded. */
     return;
   }
 
-  float roughness = closure_apparent_roughness_get(center_closure);
+  float roughness = center_closure.perceived_roughness();
   float variance = imageLoadFast(srt.in_variance_img, texel_fullres).r;
   float3 in_radiance = imageLoadFast(srt.in_radiance_img, texel_fullres).rgb;
 
@@ -765,7 +746,7 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
       continue;
     }
 
-    ClosureUndetermined sample_closure = reader.read_bin(sample_texel, srt.closure_index);
+    BsdfClosure sample_closure = reader.read_bin(sample_texel, srt.closure_index);
 
     if (sample_closure.type == CLOSURE_NONE_ID) {
       continue;

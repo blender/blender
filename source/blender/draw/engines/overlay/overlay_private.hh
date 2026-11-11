@@ -528,7 +528,7 @@ class ShaderModule {
   StaticShader armature_stick = shader_selectable("overlay_armature_stick");
   StaticShader armature_wire = shader_selectable("overlay_armature_wire");
   StaticShader depth_curves = shader_selectable("overlay_depth_curves");
-  StaticShader depth_grease_pencil = shader_selectable("overlay_depth_gpencil");
+  StaticShader depth_grease_pencil = shader_selectable("overlay_depth_grease_pencil");
   StaticShader depth_mesh = shader_selectable("overlay_depth_mesh");
   StaticShader depth_mesh_conservative = shader_selectable("overlay_depth_mesh_conservative");
   StaticShader depth_pointcloud = shader_selectable("overlay_depth_pointcloud");

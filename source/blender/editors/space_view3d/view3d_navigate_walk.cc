@@ -594,11 +594,11 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
     g_walk.userdef_speed = U.walk_navigation.walk_speed;
   }
 
-  if (fabsf(userdef_jump_height - g_walk.userdef_jump_height) > 0.1f ||
+  if (fabsf(U.walk_navigation.jump_height - g_walk.userdef_jump_height) > 0.1f ||
       fabsf(walk->grid - g_walk.grid) > FLT_EPSILON)
   {
     g_walk.jump_height = userdef_jump_height;
-    g_walk.userdef_jump_height = userdef_jump_height;
+    g_walk.userdef_jump_height = U.walk_navigation.jump_height;
     g_walk.grid = walk->grid;
   }
 

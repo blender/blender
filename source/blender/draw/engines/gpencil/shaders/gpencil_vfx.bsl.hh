@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gpencil_common_lib.glsl"
+#include "gpencil_blend_mode.bsl.hh"
 #include "gpu_shader_compat.hh"
 #include "gpu_shader_fullscreen.bsl.hh"
 

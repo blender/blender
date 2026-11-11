@@ -33,7 +33,10 @@ void FBX_import(bContext *C, const FBXImportParams &params)
   TimePoint start_time = Clock::now();
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
+  ViewLayer *view_layer = nullptr;
+  if (scene) {
+    view_layer = CTX_data_view_layer(C);
+  }
   io::fbx::importer_main(bmain, scene, view_layer, params);
   report_duration("import", start_time, params.filepath);
 }

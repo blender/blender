@@ -843,7 +843,7 @@ static void wm_draw_region_unbind(ARegion *region)
   }
 }
 
-static void wm_draw_region_blit(ARegion *region, int view)
+static void wm_draw_region_blit(ARegion *region, int view, const bool mask_alpha)
 {
   if (!region->runtime->draw_buffer) {
     return;
@@ -866,8 +866,12 @@ static void wm_draw_region_blit(ARegion *region, int view)
    *
    * Everything else drawn into the window blends with #GPU_BLEND_ALPHA which leaves an opaque
    * destination opaque, so masking here is enough to keep the window opaque for the whole frame,
-   * see #WM_window_csd_draw_corner_mask. */
-  GPU_color_mask(true, true, true, false);
+   * see #WM_window_csd_draw_corner_mask.
+   *
+   * Off-screens are not cleared, so there the region alpha must be written. */
+  if (mask_alpha) {
+    GPU_color_mask(true, true, true, false);
+  }
 
   if (region->runtime->draw_buffer->viewport) {
     GPU_viewport_draw_to_screen(region->runtime->draw_buffer->viewport, view, &region->winrct);
@@ -877,7 +881,9 @@ static void wm_draw_region_blit(ARegion *region, int view)
         region->runtime->draw_buffer->offscreen, region->winrct.xmin, region->winrct.ymin);
   }
 
-  GPU_color_mask(true, true, true, true);
+  if (mask_alpha) {
+    GPU_color_mask(true, true, true, true);
+  }
 }
 
 gpu::Texture *wm_draw_region_texture(ARegion *region, int view)
@@ -1168,7 +1174,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
   }
 }
 
-static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
+static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view, const bool mask_alpha)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   bScreen *screen = WM_window_get_active_screen(win);
@@ -1204,7 +1210,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 
       if (region.overlap == false) {
         /* Blit from off-screen buffer. */
-        wm_draw_region_blit(&region, view);
+        wm_draw_region_blit(&region, view, mask_alpha);
       }
     }
   }
@@ -1325,20 +1331,20 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   /* Now we draw into the window frame-buffer, in full window coordinates. */
   if (!stereo) {
     /* Regular mono drawing. */
-    wm_draw_window_onscreen(C, win, -1);
+    wm_draw_window_onscreen(C, win, -1, true);
   }
   else if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
     /* For page-flip we simply draw to both back buffers. */
     GPU_backbuffer_bind(GPU_BACKBUFFER_RIGHT);
-    wm_draw_window_onscreen(C, win, 1);
+    wm_draw_window_onscreen(C, win, 1, true);
 
     GPU_backbuffer_bind(GPU_BACKBUFFER_LEFT);
-    wm_draw_window_onscreen(C, win, 0);
+    wm_draw_window_onscreen(C, win, 0, true);
   }
   else if (ELEM(win->stereo3d_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
     /* For anaglyph and interlace, we draw individual regions with
      * stereo frame-buffers using different shaders. */
-    wm_draw_window_onscreen(C, win, -1);
+    wm_draw_window_onscreen(C, win, -1, true);
   }
   else {
     /* Determine desired offscreen format depending on HDR availability. */
@@ -1364,19 +1370,22 @@ static void wm_draw_window(bContext *C, wmWindow *win)
       for (int view = 0; view < 2; view++) {
         /* Draw view into offscreen buffer. */
         GPU_offscreen_bind(offscreen, false);
-        wm_draw_window_onscreen(C, win, view);
+        wm_draw_window_onscreen(C, win, view, false);
         GPU_offscreen_unbind(offscreen, false);
 
         /* Draw offscreen buffer to screen. */
         GPU_texture_bind(texture, 0);
 
         wmWindowViewport(win);
+        /* Keep the window alpha opaque, see #wm_draw_region_blit. */
+        GPU_color_mask(true, true, true, false);
         if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
           wm_stereo3d_draw_sidebyside(win, view);
         }
         else {
           wm_stereo3d_draw_topbottom(win, view);
         }
+        GPU_color_mask(true, true, true, true);
 
         GPU_texture_unbind(texture);
       }
@@ -1385,7 +1394,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
     }
     else {
       /* Still draw something in case of allocation failure. */
-      wm_draw_window_onscreen(C, win, 0);
+      wm_draw_window_onscreen(C, win, 0, true);
     }
   }
 
@@ -1540,7 +1549,7 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
   const uint rect_len = win_size[0] * win_size[1];
   uint8_t *rect = MEM_new_array_uninitialized<uint8_t>(4 * rect_len, __func__);
   GPU_offscreen_bind(offscreen, false);
-  wm_draw_window_onscreen(C, win, -1);
+  wm_draw_window_onscreen(C, win, -1, false);
   GPU_offscreen_unbind(offscreen, false);
   GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, rect);
   GPU_offscreen_free(offscreen);
@@ -1578,7 +1587,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
 
   float rect_pixel[4];
   GPU_offscreen_bind(offscreen, false);
-  wm_draw_window_onscreen(C, win, -1);
+  wm_draw_window_onscreen(C, win, -1, false);
   GPU_offscreen_unbind(offscreen, false);
   GPU_offscreen_read_color_region(offscreen, GPU_DATA_FLOAT, pos[0], pos[1], 1, 1, rect_pixel);
   GPU_offscreen_free(offscreen);

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13795,6 +13795,22 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
 
@@ -13815,8 +13831,12 @@ msgid "Bone Roll"
 msgstr "Kost"
 
 
-msgid "Clean Up"
-msgstr "Vyčistit"
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
 
 
 msgid "Pivot Point"
@@ -13831,16 +13851,12 @@ msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
-
-
 msgid "Mirror"
 msgstr "Zrcadlit"
+
+
+msgid "Instances"
+msgstr "Instance"
 
 
 msgid "UV Mapping"
@@ -13859,20 +13875,16 @@ msgid "Align View"
 msgstr "Zarovnat pohled"
 
 
+msgid "Import"
+msgstr "Importovat"
+
+
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
 
 
-msgid "Instances"
-msgstr "Instance"
-
-
 msgid "Assign Material"
 msgstr "Přiřadit Materiál"
-
-
-msgid "Import"
-msgstr "Importovat"
 
 
 msgid "Light"
@@ -13907,14 +13919,6 @@ msgid "Hooks"
 msgstr "Háky"
 
 
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
 msgid "Linked"
 msgstr "Propojené"
 
@@ -13923,20 +13927,16 @@ msgid "Layout"
 msgstr "Rozložení"
 
 
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
+msgid "Propagate"
+msgstr "Vložit"
 
 
 msgid "Keying"
 msgstr "Klíčovací sestava"
-
-
-msgid "Merge"
-msgstr "Sloučit"
 
 
 msgid "Tracking"
@@ -25871,10 +25871,6 @@ msgstr "Spojit Sbírku"
 msgctxt "Operator"
 msgid "New Collection"
 msgstr "Nová Kolekce"
-
-
-msgid "Add a new collection inside selected collection"
-msgstr "Přidat novou kolekci uvnitř vybrané kolekce"
 
 
 msgctxt "Operator"

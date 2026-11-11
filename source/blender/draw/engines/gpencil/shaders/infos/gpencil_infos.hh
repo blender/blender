@@ -87,57 +87,6 @@ GPU_SHADER_CREATE_END()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Full-Screen Shaders
- * \{ */
-
-GPU_SHADER_CREATE_INFO(gpencil_layer_blend)
-DO_STATIC_COMPILATION()
-SAMPLER(0, sampler2D, color_buf)
-SAMPLER(1, sampler2D, reveal_buf)
-SAMPLER(2, sampler2D, mask_buf)
-PUSH_CONSTANT(int, blend_mode)
-PUSH_CONSTANT(float, blend_opacity)
-/* Reminder: This is considered SRC color in blend equations.
- * Same operation on all buffers. */
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, fragRevealage)
-FRAGMENT_SOURCE("gpencil_layer_blend_frag.glsl")
-VERTEX_SOURCE("gpencil_fullscreen_vert.glsl")
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(gpencil_mask_invert)
-DO_STATIC_COMPILATION()
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, fragRevealage)
-FRAGMENT_SOURCE("gpencil_mask_invert_frag.glsl")
-VERTEX_SOURCE("gpencil_fullscreen_vert.glsl")
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(gpencil_depth_merge)
-DO_STATIC_COMPILATION()
-PUSH_CONSTANT(float4x4, gp_model_matrix)
-PUSH_CONSTANT(bool, stroke_order3d)
-SAMPLER(0, sampler2DDepth, depth_buf)
-VERTEX_SOURCE("gpencil_depth_merge_vert.glsl")
-FRAGMENT_SOURCE("gpencil_depth_merge_frag.glsl")
-DEPTH_WRITE(DepthWrite::ANY)
-ADDITIONAL_INFO(draw_view)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(gpencil_depth_pass_merge)
-DO_STATIC_COMPILATION()
-PUSH_CONSTANT(float4x4, gp_model_matrix)
-PUSH_CONSTANT(bool, stroke_order3d)
-SAMPLER(0, sampler2DDepth, depth_buf)
-IMAGE(0, SFLOAT_32, read_write, image2D, depth_pass_img)
-VERTEX_SOURCE("gpencil_depth_merge_vert.glsl")
-FRAGMENT_SOURCE("gpencil_depth_pass_merge_frag.glsl")
-ADDITIONAL_INFO(draw_view)
-GPU_SHADER_CREATE_END()
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Anti-Aliasing
  * \{ */
 
@@ -194,16 +143,6 @@ PUSH_CONSTANT(bool, only_alpha)
 FRAGMENT_OUT_DUAL(0, float4, out_color, SRC_0)
 FRAGMENT_OUT_DUAL(0, float4, out_reveal, SRC_1)
 ADDITIONAL_INFO(gpencil_antialiasing)
-DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(gpencil_antialiasing_accumulation)
-IMAGE(0, GPENCIL_RENDER_FORMAT, read, image2D, src_img)
-IMAGE(1, GPENCIL_ACCUM_FORMAT, read_write, image2D, dst_img)
-PUSH_CONSTANT(float, weight_src)
-PUSH_CONSTANT(float, weight_dst)
-FRAGMENT_SOURCE("gpencil_antialiasing_accumulation_frag.glsl")
-VERTEX_SOURCE("gpencil_fullscreen_vert.glsl")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 

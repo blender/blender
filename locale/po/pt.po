@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
-"PO-Revision-Date: 2026-11-01 03:45+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"PO-Revision-Date: 2026-11-06 20:21+0000\n"
 "Last-Translator: Duarte Ramos <duarte@duarteramos.pt>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -9106,7 +9106,7 @@ msgstr "Ajusta o brilho da textura."
 
 
 msgid "Color Ramp"
-msgstr "Gradiente de cores"
+msgstr "Gradiente de Cores"
 
 
 msgid "Contrast"
@@ -9122,15 +9122,15 @@ msgstr "Permite ajustar a saturação das cores na textura."
 
 
 msgid "Use Color Ramp"
-msgstr "Usar gradiente de cores"
+msgstr "Usar Gradiente de Cores"
 
 
 msgid "Toggle color ramp operations"
-msgstr "Alterna para operações com gradiente de cores."
+msgstr "Alternar operações de gradiente de cores"
 
 
 msgid "Color ramp mapping a scalar value to a color"
-msgstr "Gradiente de cor mapeando um valor escalar para uma cor."
+msgstr "Gradiente de cor mapeando um valor escalar para uma cor"
 
 
 msgid "Color Mode"
@@ -36648,12 +36648,44 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
+msgid "Enable Bone Options"
+msgstr "Activar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desativar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de selecção de malhas"
 
 
 msgid "Creative"
 msgstr "Criativo"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Select by Face Strength"
+msgstr "Seleccionar pela Força das Faces"
+
+
+msgid "Set Face Strength"
+msgstr "Definir Força das Faces"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Special Characters"
@@ -36676,8 +36708,12 @@ msgid "Bone Roll"
 msgstr "Rolagem do osso"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Utilities"
+msgstr "Utilidades"
 
 
 msgid "Pivot Point"
@@ -36708,16 +36744,32 @@ msgid "Vertex Group Locks"
 msgstr "Bloqueios de Grupos de Vértices"
 
 
-msgid "Math"
-msgstr "Matemática"
+msgid "Read"
+msgstr "Ler"
 
 
-msgid "Utilities"
-msgstr "Utilidades"
+msgid "Sample"
+msgstr "Amostrar"
+
+
+msgid "Write"
+msgstr "Escrever"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
+
+
+msgid "Gizmo"
+msgstr "Manipulador"
 
 
 msgid "Mirror"
 msgstr "Espelhar"
+
+
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "UV Mapping"
@@ -36728,36 +36780,24 @@ msgid "Local View"
 msgstr "Visão local"
 
 
-msgid "Read"
-msgstr "Ler"
-
-
 msgid "Viewpoint"
 msgstr "Ponto de Vista"
-
-
-msgid "Sample"
-msgstr "Amostrar"
 
 
 msgid "Navigation"
 msgstr "Navegação"
 
 
-msgid "Write"
-msgstr "Escrever"
-
-
 msgid "Align View"
 msgstr "Alinhar visualização"
 
 
+msgid "Import"
+msgstr "Importar"
+
+
 msgid "Align View to Active"
 msgstr "Alinhar vista para o activo"
-
-
-msgid "Primitives"
-msgstr "Primitivas"
 
 
 msgid "View Regions"
@@ -36776,6 +36816,10 @@ msgid "Select All by Trait"
 msgstr "Seleccionar todos por características..."
 
 
+msgid "Deprecated"
+msgstr "Obsoleto"
+
+
 msgid "Select Linked"
 msgstr "Seleccionar vinculados(as)"
 
@@ -36784,40 +36828,24 @@ msgid "Select Loops"
 msgstr "Seleccionar Circuitos"
 
 
-msgid "Gizmo"
-msgstr "Manipulador"
+msgid "Render Preview"
+msgstr "Pré-Visualização da Render"
 
 
-msgid "Instances"
-msgstr "Instâncias"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Aplicar Material"
 
 
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Deprecated"
-msgstr "Obsoleto"
-
-
 msgid "Light"
 msgstr "Leve"
 
 
-msgid "Render Preview"
-msgstr "Pré-Visualização da Render"
-
-
 msgid "Light Probe"
 msgstr "Sonda de Luz"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -36864,6 +36892,14 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
 msgid "Trim/Add"
 msgstr "Aparar/Adicionar"
 
@@ -36884,6 +36920,10 @@ msgid "Clear Transform"
 msgstr "Limpar transformações"
 
 
+msgid "Adjust"
+msgstr "Ajustar"
+
+
 msgid "In-Betweens"
 msgstr "Entre as continuidades"
 
@@ -36896,56 +36936,16 @@ msgid "Bone Collections"
 msgstr "Colecções de Ossos"
 
 
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Activar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desativar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de selecção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Select by Face Strength"
-msgstr "Seleccionar pela Força das Faces"
-
-
-msgid "Set Face Strength"
-msgstr "Definir Força das Faces"
-
-
-msgid "Adjust"
-msgstr "Ajustar"
-
-
 msgid "Keying"
 msgstr "Inserção de chaves"
 
 
-msgid "Merge"
-msgstr "Fundir"
-
-
 msgid "Tracking"
 msgstr "Rastreamento"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
 
 
 msgid "Keyframe Insert Pie"
@@ -80995,10 +80995,6 @@ msgid "New Collection"
 msgstr "Nova Colecção"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "Adicionar uma nova colecção dentro da colecção seleccionada"
-
-
 msgid "Nested"
 msgstr "Contida"
 
@@ -102081,16 +102077,8 @@ msgid "French - Français"
 msgstr "Francês - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 99%"
-msgstr "Código de língua: fr_FR. Progresso de tradução: 99%"
-
-
 msgid "Georgian - ქართული"
 msgstr "Georgiano - ქართული"
-
-
-msgid "Locale code: ka. Translation progress: 97%"
-msgstr "Código de língua: ta. Progresso de tradução: 97%"
 
 
 msgid "German - Deutsch"
@@ -102103,10 +102091,6 @@ msgstr "Código de língua: de_DE. Progresso de tradução: 35%"
 
 msgid "Greek - Ελληνικά"
 msgstr "Grego - Ελληνικά"
-
-
-msgid "Locale code: el_GR. Translation progress: 1%"
-msgstr "Código de língua: el_GR. Progresso de tradução: 1%"
 
 
 msgid "Hebrew - תירִבְעִ"
@@ -102151,10 +102135,6 @@ msgstr "Código de língua: it_IT. Progresso de tradução: 41%"
 
 msgid "Japanese - 日本語"
 msgstr "Japonês - 日本語"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "Código de língua: ja_JP. Progresso de tradução: 99%"
 
 
 msgid "Korean - 한국어"
@@ -102343,10 +102323,6 @@ msgstr "Código de língua: ur. Progresso de tradução: 80%"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "Vietnamita - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 99%"
-msgstr "Código de língua: vi_VN. Progresso de tradução: 99%"
 
 
 msgid "Reference Sphere Size"
@@ -129356,6 +129332,10 @@ msgid "Rotation"
 msgstr "Rotação"
 
 
+msgid "Convert Rotation Mode"
+msgstr "Modo Conversão de Rotação"
+
+
 msgid "Access"
 msgstr "Acesso"
 
@@ -131161,6 +131141,11 @@ msgstr "Sub-Passos de Amostragem"
 
 
 msgctxt "Operator"
+msgid "Resume"
+msgstr "Continuar"
+
+
+msgctxt "Operator"
 msgid "Free"
 msgstr "Libertar"
 
@@ -131193,6 +131178,14 @@ msgid "Baking All - ESC to pause"
 msgstr "Pré Calculando Tudo - ESC para pausar"
 
 
+msgid "Enable Grid Display to use range highlighting!"
+msgstr "Activar Exibição e Grelha para usar destaque de intervalo!"
+
+
+msgid "Range highlighting for flags is not available!"
+msgstr "Destaque de intervalo não disponível para etiquetas!"
+
+
 msgctxt "Operator"
 msgid "Baking Data - ESC to pause"
 msgstr "Pré Calculando Dados - ESC para pausar"
@@ -131206,8 +131199,58 @@ msgid "Fuel"
 msgstr "Combustível"
 
 
+msgid "Guide Mode"
+msgstr "Modo Guia"
+
+
+msgctxt "Operator"
+msgid "Baking Guides - ESC to pause"
+msgstr "Pré Calculando Guias - ESC para pausar"
+
+
+msgctxt "Simulation"
+msgid "Cache"
+msgstr "Armazenamento"
+
+
+msgid "Calculate Selected to Frame"
+msgstr "Calcular Seleccionados até Fotograma"
+
+
+msgid "Bake Selected"
+msgstr "Pré Calcular Seleccionados"
+
+
+msgid "Calculate to Frame"
+msgstr "Calcular Até Fotograma"
+
+
+msgid "Damping Translation"
+msgstr "Translação Amortecida"
+
+
+msgid "Velocity Linear"
+msgstr "Linear de Velocidade"
+
+
+msgid "This object is part of a compound shape"
+msgstr "Este objecto faz parte de uma forma composta"
+
+
 msgid "Second"
 msgstr "Segundo"
+
+
+msgid "X Stiffness"
+msgstr "Rigidez X"
+
+
+msgid "Y Stiffness"
+msgstr "Rigidez Y"
+
+
+msgid "Z Stiffness"
+msgstr "Rigidez Z"
 
 
 msgid "X Lower"
@@ -131262,8 +131305,101 @@ msgid "Volume Shadows"
 msgstr "Sombras Volumétricas"
 
 
+msgid "Temporal Reprojection"
+msgstr "Reprojecção Temporal"
+
+
+msgid "Jittered Shadows"
+msgstr "Sombras Tremuladas"
+
+
+msgid "Denoising Device"
+msgstr "Dispositivo de Redução de Ruído"
+
+
+msgid "Preview Quality"
+msgstr "Qualidade de Pré Visualização"
+
+
+msgid "Final Quality"
+msgstr "Qualidade Final"
+
+
+msgid "Shadow Pool"
+msgstr "Reserva de Sombras"
+
+
+msgid "Light Probes Volume Pool"
+msgstr "Reserva de Volumes de Sondas de Luz"
+
+
+msgid "SMAA Threshold"
+msgstr "Limite SMAA"
+
+
+msgid "SSAA Samples"
+msgstr "Amostras SSAA"
+
+
+msgid "Max Child Particles"
+msgstr "Máximo de Partículas Descendentes"
+
+
+msgid "Render Engine"
+msgstr "Motor de Renderização"
+
+
+msgid "HDR not supported with OpenGL backend"
+msgstr "HDR não suportado com sistema OpenGL"
+
+
+msgid "HDR display not supported"
+msgstr "Exibição HDR não suportada"
+
+
+msgid "General Override"
+msgstr "Revogação Geral"
+
+
 msgid "Paths:"
 msgstr "Caminhos:"
+
+
+msgid "Doppler Speed"
+msgstr "Velocidade Doppler"
+
+
+msgid "Simulation Range"
+msgstr "Intervalo de Simulação"
+
+
+msgid "Spheres Resolution"
+msgstr "Resolução de Esferas"
+
+
+msgid "Needed"
+msgstr "Necessário"
+
+
+msgid "Active Set Override"
+msgstr "Revogação de Conjunto Activo"
+
+
+msgid "Target ID-Block"
+msgstr "Bloco-ID Destino"
+
+
+msgid "Array All Items"
+msgstr "Dispor Todos os Itens"
+
+
+msgid "F-Curve Grouping"
+msgstr "Agrupamento de Curvas-F"
+
+
+msgctxt "Operator"
+msgid "Bake All Light Probe Volumes"
+msgstr "Pré Calcular todos os Volumes de Sonda de Luz"
 
 
 msgctxt "Operator"
@@ -131271,36 +131407,158 @@ msgid "Export to File"
 msgstr "Exportar para ficheiro"
 
 
+msgid "Alignment X"
+msgstr "Alinhamento X"
+
+
+msgctxt "Sound"
+msgid "Strip Volume"
+msgstr "Volume da Faixa"
+
+
+msgid "Playhead Offset"
+msgstr "Deslocamento do Cursor de Reprodução"
+
+
+msgid "Position X"
+msgstr "Posição X"
+
+
 msgid "Convert to Float"
 msgstr "Converter para ponto flutuante"
+
+
+msgid "Default Fade"
+msgstr "Desvanecimento Padrão"
+
+
+msgid "2D Stabilized Clip"
+msgstr "Clip Estabilizado 2D"
+
+
+msgid "Undistorted Clip"
+msgstr "Clip não Distorcido"
+
+
+msgid "Node group does not have an input of type Float. Fade is unused."
+msgstr "Grupo de Nós não tem uma entrada do tipo Flutuante. Desvanecimento não será usado."
+
+
+msgid "Node group must have an output."
+msgstr "Grupo de nós deve ter uma saída."
+
+
+msgid "Effect Fader"
+msgstr "Desvanecedor de Efeito"
+
+
+msgid "Pan Angle"
+msgstr "Ângulo de Panorama"
+
+
+msgid "The first node group output must have the Color type."
+msgstr "A primeira saída do grupo de nós deve ser do tipo Cor."
 
 
 msgid "Unpack"
 msgstr "Extrair"
 
 
+msgid "Node group must have at least {:d} Color input(s)."
+msgstr "Grupo de nós deve ter pelo menos {:d} entradas de cor."
+
+
 msgid "Source Channel"
 msgstr "Canal de fonte"
+
+
+msgid "Original frame range: {:d}-{:d} ({:d})"
+msgstr "Intervalo de fotogramas original: {:d}-{:d} ({:d})"
+
+
+msgid "Cut To"
+msgstr "Cortar Até"
 
 
 msgid "Two or more channels are needed below this strip"
 msgstr "Dois ou mais canais são necessários abaixo desta faixa."
 
 
+msgid "Second Basis"
+msgstr "Segunda Base"
+
+
 msgid "Calculate"
 msgstr "Calcular"
+
+
+msgid "Flip Axes"
+msgstr "Inverter Eixos"
 
 
 msgid "Dimension"
 msgstr "Dimensão"
 
 
+msgid "Third"
+msgstr "Terços"
+
+
+msgid "Fourth"
+msgstr "Quartos"
+
+
+msgid "Multiply R"
+msgstr "Multiplicar R"
+
+
+msgid "Enable the Color Ramp first"
+msgstr "Activar primeiro"
+
+
+msgid "Tiles"
+msgstr "Quadrículas"
+
+
+msgctxt "Amount"
+msgid "Even"
+msgstr "Uniforme"
+
+
 msgid "Odd"
 msgstr "Ímpar"
 
 
+msgid "Mapping X"
+msgstr "Mapeamento X"
+
+
+msgid "Map"
+msgstr "Mapa"
+
+
+msgid "Use for Rendering"
+msgstr "Usar para Renderização"
+
+
+msgid "Occlusion Distance"
+msgstr "Distância de Oclusão"
+
+
+msgid "Conflicts with another render pass with the same name"
+msgstr "Entra em conflito com outra passagem de renderização com o mesmo nome"
+
+
 msgid "Unknown add-ons"
 msgstr "Adições desconhecidas"
+
+
+msgid "category"
+msgstr "categoria"
+
+
+msgid "name"
+msgstr "nome"
 
 
 msgid "B/W"
@@ -131345,6 +131603,18 @@ msgid "Tripod"
 msgstr "Tripé"
 
 
+msgid "Optical Center"
+msgstr "Centro Óptico"
+
+
+msgid "Radial Distortion"
+msgstr "Distorção Radial"
+
+
+msgid "Tangential Distortion"
+msgstr "Distorção Tangencial"
+
+
 msgctxt "Operator"
 msgid "Solve Camera Motion"
 msgstr "Solucionar movimento da câmara"
@@ -131353,6 +131623,10 @@ msgstr "Solucionar movimento da câmara"
 msgctxt "Operator"
 msgid "Solve Object Motion"
 msgstr "Solucionar movimento do objecto"
+
+
+msgid "Pixel Aspect"
+msgstr "Proporção de Pixel"
 
 
 msgid "Build Original:"
@@ -131368,9 +131642,58 @@ msgid "Build Proxy"
 msgstr "Construir aproximação"
 
 
+msgid "Proxy Size"
+msgstr "Tamanho do Representante"
+
+
+msgctxt "Operator"
+msgid "Backwards"
+msgstr "Para Trás"
+
+
+msgctxt "Operator"
+msgid "Frame Backwards"
+msgstr "Fotograma Para Trás"
+
+
+msgctxt "Operator"
+msgid "Forwards"
+msgstr "Para a Frente"
+
+
+msgctxt "Operator"
+msgid "Frame Forwards"
+msgstr "Fotograma Para a Frente"
+
+
+msgctxt "Operator"
+msgid "Before"
+msgstr "Antes"
+
+
+msgctxt "Operator"
+msgid "After"
+msgstr "Depois"
+
+
 msgctxt "Operator"
 msgid "Track Path"
 msgstr "Caminho do Rastreador"
+
+
+msgctxt "Operator"
+msgid "Solution"
+msgstr "Resolução"
+
+
+msgctxt "Operator"
+msgid "Copy Settings to Defaults"
+msgstr "Copiar Definições para Pré Definição"
+
+
+msgctxt "Operator"
+msgid "Apply Default Settings"
+msgstr "Aplicar Definições Pré Definidas"
 
 
 msgctxt "Operator"
@@ -131384,8 +131707,29 @@ msgstr "Rastreadores de Rotação para Estabilização"
 
 
 msgctxt "Operator"
+msgid "Set Viewport Background"
+msgstr "Definir Fundo da Janela de Visualização"
+
+
+msgctxt "Operator"
 msgid "Set Floor"
 msgstr "Definir piso"
+
+
+msgid "Display Thin"
+msgstr "Mostrar Fino"
+
+
+msgid "Distortion Grid"
+msgstr "Grelha de Distorção"
+
+
+msgid "Viewport Overlays"
+msgstr "Sobreposições de Janela de Visualização"
+
+
+msgid "Viewport Gizmos"
+msgstr "Manipuladores de"
 
 
 msgid "Aspect Ratio"
@@ -131416,8 +131760,29 @@ msgid "No active track"
 msgstr "Nenhum Rastreador Activo"
 
 
+msgid "Custom Color Presets"
+msgstr "Pré Definições de Cores Personalizadas"
+
+
 msgid "No active plane track"
 msgstr "Sem planos de rastreamento activos"
+
+
+msgid "Tracks for Stabilization"
+msgstr "Faixas para Estabilização"
+
+
+msgid "Tracks for Location"
+msgstr "Faixas para Posição"
+
+
+msgid "No active movie clip"
+msgstr "Nenhum clip de filme activo"
+
+
+msgctxt "Operator"
+msgid "Zoom to Fit"
+msgstr "Ampliar para Enquadrar"
 
 
 msgctxt "Operator"
@@ -131435,8 +131800,44 @@ msgid "Show Tracks"
 msgstr "Mostrar Rastreadores"
 
 
+msgid "Normalization"
+msgstr "Normalização"
+
+
+msgid "Use Brute Force"
+msgstr "Usar Força Bruta"
+
+
+msgctxt "Operator"
+msgid "Match Previous"
+msgstr "Igualar Anterior"
+
+
+msgctxt "Operator"
+msgid "Match Keyframe"
+msgstr "Igualar Fotograma Chave"
+
+
+msgid "Tripod Solver"
+msgstr "Solucionador de Tripé"
+
+
+msgctxt "Operator"
+msgid "Set Keyframe A"
+msgstr "Definir Fotograma A"
+
+
+msgctxt "Operator"
+msgid "Set Keyframe B"
+msgstr "Definir Fotograma B"
+
+
 msgid "3D Markers"
 msgstr "Marcadores 3D"
+
+
+msgid "Tracks for Rotation/Scale"
+msgstr "Faixas para Rotação/Escala"
 
 
 msgctxt "Operator"
@@ -131450,12 +131851,87 @@ msgstr "Destrancar Rastreadores"
 
 
 msgctxt "Operator"
+msgid "Frame All Fit"
+msgstr "Enquadrar Tudo sem Cortar"
+
+
+msgid "Average Error: {:.2f} px"
+msgstr "Erro Médio: {:.2f} px"
+
+
+msgid "Solve error: {:.2f} px"
+msgstr "Erro de Solução: {:.2f} px"
+
+
+msgctxt "Operator"
+msgid "Copy as Script"
+msgstr "Copiar como Script"
+
+
+msgctxt "Operator"
 msgid "Autocomplete"
 msgstr "Autocompletar"
 
 
+msgctxt "Operator"
+msgid "Move to Previous Word"
+msgstr "Mover para Palavra Anterior"
+
+
+msgctxt "Operator"
+msgid "Move to Next Word"
+msgstr "Mover para Palavra Seguinte"
+
+
+msgctxt "Operator"
+msgid "Move to Line Begin"
+msgstr "Mover para Início de Linha"
+
+
+msgctxt "Operator"
+msgid "Move to Line End"
+msgstr "Mover para Fim de Linha"
+
+
+msgctxt "Operator"
+msgid "Delete Previous Word"
+msgstr "Apagar Palavra Anterior"
+
+
+msgctxt "Operator"
+msgid "Delete Next Word"
+msgstr "Apagar Palavra Seguinte"
+
+
+msgctxt "Operator"
+msgid "Backward in History"
+msgstr "Para Trás no Histórico"
+
+
+msgctxt "Operator"
+msgid "Forward in History"
+msgstr "Para a Frente no Histórico"
+
+
+msgid "Filter by Type:"
+msgstr "Filtrar por Tipo:"
+
+
 msgid "Snap To"
 msgstr "Atrair a"
+
+
+msgid "Playback Controls"
+msgstr "Controlos de Reprodução"
+
+
+msgid "Multi-Word Match Search"
+msgstr "Pesquisa por Correspondência de Múltiplas Palavras"
+
+
+msgctxt "Operator"
+msgid "Toggle Graph Editor"
+msgstr "Alternar Editor de Grafos"
 
 
 msgctxt "Operator"
@@ -131469,13 +131945,28 @@ msgstr "Depois do fotograma actual"
 
 
 msgctxt "Operator"
+msgid "Group Channels..."
+msgstr "Agrupar Canais..."
+
+
+msgctxt "Operator"
 msgid "Extrapolation Mode"
 msgstr "Modo de extrapolação"
 
 
 msgctxt "Operator"
+msgid "Replace Action..."
+msgstr "Substituir Acção..."
+
+
+msgctxt "Operator"
 msgid "Snap"
 msgstr "Atracção"
+
+
+msgctxt "Operator"
+msgid "Jump to Selected"
+msgstr "Saltar para Seleccionados"
 
 
 msgctxt "Operator"
@@ -131494,8 +131985,32 @@ msgstr "Modo de interpolação"
 
 
 msgctxt "Operator"
+msgid "Easing Mode"
+msgstr "Modo de Transição"
+
+
+msgctxt "Operator"
 msgid "Discontinuity (Euler) Filter"
 msgstr "Filtro de descontinuidade (Euler)"
+
+
+msgid "Grease Pencil Objects"
+msgstr "Objectos Grease Pencil"
+
+
+msgctxt "Operator"
+msgid "Frame Preview Range"
+msgstr "Intervalo de Pré-Visualização de Fotograma"
+
+
+msgctxt "Operator"
+msgid "Frame Scene Range"
+msgstr "Enquadrar Intervalo da Cena"
+
+
+msgctxt "Operator"
+msgid "Box Select (Axis Range)"
+msgstr "Rectângulo de Selecção (Intervalo do Eixo)"
 
 
 msgctxt "Operator"
@@ -131534,6 +132049,11 @@ msgstr "Limpar canais"
 
 
 msgctxt "Operator"
+msgid "Paste Flipped"
+msgstr "Colar Invertido"
+
+
+msgctxt "Operator"
 msgid "Extend"
 msgstr "Prolongar"
 
@@ -131541,6 +132061,11 @@ msgstr "Prolongar"
 msgctxt "Operator"
 msgid "Slide"
 msgstr "Deslizar"
+
+
+msgctxt "Operator"
+msgid "Mute Channels"
+msgstr "Silenciar Canais"
 
 
 msgctxt "Operator"

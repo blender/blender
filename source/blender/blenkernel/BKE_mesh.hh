@@ -474,6 +474,7 @@ void mesh_remove_invalid_attribute_strings(Mesh &mesh);
  *
  * \param allow_missing_edges: When true, faces with missing edges are not treated as errors.
  * Missing edges are still computed, but no error is printed and the return value is not affected.
+ * The corner-to-edge mapping may be uninitialized and is always rebuilt without checking it.
  * Useful for importers that produce faces without edges.
  *
  * \return True if the mesh was valid (fixes were not applied).
@@ -491,6 +492,12 @@ bool mesh_is_valid(const Mesh &mesh, bool verbose = true);
  * \return True if the indices were valid.
  */
 bool mesh_validate_material_indices(Mesh &mesh);
+
+/**
+ * Remove selection history elements (#Mesh::mselect) with indices outside of their domain's range.
+ * \return True if the selection history was valid.
+ */
+bool mesh_validate_selection_history(Mesh &mesh);
 
 /**
  * Check whether faces contain duplicate vertex indices.

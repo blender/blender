@@ -20,16 +20,6 @@
 #  define const
 #endif
 
-/* TODO(fclem): Move it to Gpencil lib. */
-float3 ray_plane_intersection(float3 ray_ori, float3 ray_dir, float4 plane)
-{
-  float d = dot(plane.xyz, ray_dir);
-  float3 plane_co = plane.xyz * (-plane.w / dot(plane.xyz, plane.xyz));
-  float3 h = ray_ori - plane_co;
-  float lambda = -dot(plane.xyz, h) / ((abs(d) < 1e-8f) ? 1e-8f : d);
-  return ray_ori + ray_dir * lambda;
-}
-
 namespace overlay::outline {
 
 struct VertOut {
@@ -274,7 +264,8 @@ void frag_main([[resource_table]] const Uniform &uni,
 
     float3 ray_ori = pos;
     float3 ray_dir = view.world_incident_vector(pos);
-    float3 isect = ray_plane_intersection(ray_ori, ray_dir, srt.gp_depth_plane);
+    float3 isect = draw::GreasePencil::ray_plane_intersection(
+        ray_ori, ray_dir, srt.gp_depth_plane);
     float4 ndc = view.point_world_to_homogenous(isect);
     out_depth = (ndc.z / ndc.w) * 0.5f + 0.5f;
   }

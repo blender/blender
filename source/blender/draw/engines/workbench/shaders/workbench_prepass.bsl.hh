@@ -17,6 +17,11 @@
 #include "workbench_material.bsl.hh"
 #include "workbench_world_light.bsl.hh"
 
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
+
 namespace workbench::prepass {
 
 struct ClippingConstant {
@@ -558,3 +563,8 @@ PipelineGraphic gsplat_transparent_flat_texture_no_clip(     vert_gsplat,     fr
 /* clang-format on */
 
 }  // namespace workbench::prepass
+
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  undef const
+#endif

@@ -21,7 +21,7 @@ namespace blender::eevee {
  * If we can find a way to avoid this we can bump this number up. */
 static constexpr int AOV_MAX = 128;
 
-struct [[host_shared]] AOVsInfoData {
+struct AOVsInfoData {
   /* Pack 4 hashes per uint4, using std140 packing rules.
    * Color AOV hashes are placed before value AOV hashes. */
   uint4 hash[AOV_MAX / 4];
@@ -34,7 +34,7 @@ struct [[host_shared]] AOVsInfoData {
   bool32_t display_is_value;
 };
 
-struct [[host_shared]] RenderBuffersInfoData {
+struct RenderBuffersInfoData {
   struct AOVsInfoData aovs;
   /* Color. */
   int color_len;

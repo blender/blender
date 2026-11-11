@@ -19,7 +19,7 @@ include(CMakeDependentOption)
 
 project(audaspace)
 
-set(AUDASPACE_VERSION 1.9)
+set(AUDASPACE_VERSION 1.10)
 set(AUDASPACE_LONG_VERSION ${AUDASPACE_VERSION}.0)
 
 if(DEFINED AUDASPACE_CMAKE_CFG)
@@ -90,6 +90,10 @@ set(SRC
 	src/fx/VolumeStorage.cpp
 	src/fx/Echo.cpp
 	src/fx/EchoReader.cpp
+	src/fx/Compressor.cpp
+	src/fx/CompressorReader.cpp
+	src/fx/PeakDetector.cpp
+	src/fx/PeakDetectorReader.cpp
 	src/generator/Sawtooth.cpp
 	src/generator/SawtoothReader.cpp
 	src/generator/Silence.cpp
@@ -207,6 +211,10 @@ set(PUBLIC_HDR
 	include/fx/VolumeStorage.h
 	include/fx/Echo.h
 	include/fx/EchoReader.h
+	include/fx/Compressor.h
+	include/fx/CompressorReader.h
+	include/fx/PeakDetector.h
+	include/fx/PeakDetectorReader.h
 	include/generator/Sawtooth.h
 	include/generator/SawtoothReader.h
 	include/generator/Silence.h

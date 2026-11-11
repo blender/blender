@@ -52,6 +52,8 @@
 #include "Exception.h"
 
 #include "fx/Echo.h"
+#include "fx/Compressor.h"
+#include "fx/PeakDetector.h"
 
 #ifdef WITH_CONVOLUTION
 #include "fx/BinauralSound.h"
@@ -792,6 +794,33 @@ AUD_API AUD_Sound* AUD_Sound_Echo(AUD_Sound* sound, float delay, float feedback,
 	try
 	{
 		return new AUD_Sound(new Echo(*sound, delay, feedback, mix, resetBuffer));
+	}
+	catch(Exception&)
+	{
+		return nullptr;
+	}
+}
+
+AUD_API AUD_Sound* AUD_Sound_Compress(AUD_Sound* sound, AUD_Sound* sidechain, float threshold, float ratio, float attack, float release, float makeupGain, float knee)
+{
+	assert(sound);
+	assert(sidechain);
+	try
+	{
+		return new AUD_Sound(new Compressor(*sound, *sidechain, threshold, ratio, attack, release, makeupGain, knee));
+	}
+	catch(Exception&)
+	{
+		return nullptr;
+	}
+}
+
+AUD_API AUD_Sound* AUD_Sound_peakDetector(AUD_Sound* sound)
+{
+	assert(sound);
+	try
+	{
+		return new AUD_Sound(new PeakDetector(*sound));
 	}
 	catch(Exception&)
 	{

@@ -942,13 +942,12 @@ static void ensure_non_lazy_normals(Mesh *mesh)
     case ME_WRAPPER_TYPE_BMESH: {
       bke::MeshWrapperCacheData &edit_data = *mesh->runtime->bmesh_wrapper_data;
       if (!edit_data.vert_positions.is_empty()) {
-        /* Note that 'ensure' is acceptable here since these values aren't modified in-place.
-         * If that changes we'll need to recalculate. */
-        BKE_editmesh_cache_ensure_vert_normals(*BKE_editmesh_bmesh_get_for_write(mesh), edit_data);
+        BKE_editmesh_cache_ensure_vert_normals(const_cast<BMesh &>(*BKE_editmesh_bmesh_get(mesh)),
+                                               edit_data);
       }
       else {
-        BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
-        BM_mesh_normals_update(bm);
+        /* Normals are derived data, so updating them doesn't change the #BMesh's state. */
+        BM_mesh_normals_update(const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh)));
       }
       break;
     }

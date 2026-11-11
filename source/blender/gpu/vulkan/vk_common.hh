@@ -131,6 +131,9 @@ bool vk_need_extended_usage_for_storage_image(const eGPUTextureUsage usage,
 /** Other format to use for binding a storage image when the format itself is not supported. */
 VkFormat vk_extended_usage_storage_image_format(const VkFormat format);
 
+/** Usage flags that an image view with format #format may have, based on the format's features. */
+VkImageUsageFlags vk_image_usage_supported_by_format(const VkFormat format);
+
 template<typename T> VkObjectType to_vk_object_type(T /*vk_obj*/)
 {
   const std::type_info &tid = typeid(T);

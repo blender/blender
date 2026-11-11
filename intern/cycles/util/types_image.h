@@ -121,13 +121,13 @@ struct KernelImageUDIM {
 
 /* Tile descriptor load status. Values lower than these mean the tile has been
  * successfully loaded, and the value encodes where the tile is stored.
- * - LOAD_NONE: Tile has never been accessed and is not in memory.
- * - LOAD_REQUEST: Kernel requests this tile to be loaded.
+ * - LOAD_NONE: Tile is not in memory.
  * - LOAD_FAILED: Tile loading failed, will not try again.
+ * - LOAD_IN_PROGRESS: A host thread is loading this tile.
  */
 #define KERNEL_TILE_LOAD_NONE 0xFFFFFFFFU
-#define KERNEL_TILE_LOAD_REQUEST (KERNEL_TILE_LOAD_NONE - 1)
-#define KERNEL_TILE_LOAD_FAILED (KERNEL_TILE_LOAD_NONE - 2)
+#define KERNEL_TILE_LOAD_FAILED (KERNEL_TILE_LOAD_NONE - 1)
+#define KERNEL_TILE_LOAD_IN_PROGRESS (KERNEL_TILE_LOAD_NONE - 2)
 
 /* Tile access state, written by the kernel and read back by the host.
  * - NONE: Tile has not been accessed since the last clear.
@@ -193,7 +193,7 @@ ccl_device_inline uint kernel_tile_descriptor_offset(const KernelTileDescriptor 
 
 ccl_device_inline bool kernel_tile_descriptor_loaded(const KernelTileDescriptor tile)
 {
-  return tile < KERNEL_TILE_LOAD_FAILED;
+  return tile < KERNEL_TILE_LOAD_IN_PROGRESS;
 }
 
 #ifndef __KERNEL_GPU__

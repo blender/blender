@@ -311,13 +311,11 @@ static bool build_hull(SkinOutput *so, Frame **frames, int totframe)
     for (i = 0; i < totframe; i++) {
       Frame *frame = frames[i];
 
-      if (!frame->detached) {
-        for (j = 0; j < 4; j++) {
-          if (frame->verts[j] == v) {
-            frame->inside_hull[j] = true;
-            frame->detached = true;
-            break;
-          }
+      for (j = 0; j < 4; j++) {
+        if (frame->verts[j] == v) {
+          frame->inside_hull[j] = true;
+          frame->detached = true;
+          break;
         }
       }
     }
@@ -732,7 +730,6 @@ static void build_emats_stack(BLI_Stack *stack,
                               EMat *emat,
                               GroupedSpan<int> emap,
                               const Span<int2> edges,
-                              const VArray<bool> &is_root,
                               const Span<float3> vert_positions)
 {
   EdgeStackElem stack_elem;
@@ -753,7 +750,7 @@ static void build_emats_stack(BLI_Stack *stack,
 
   /* Process edge */
 
-  parent_is_branch = ((emap[parent_v].size() > 2) || is_root[parent_v]);
+  parent_is_branch = (emap[parent_v].size() > 2);
 
   v = bke::mesh::edge_other_vert(edges[e], parent_v);
   emat[e].origin = parent_v;
@@ -783,6 +780,33 @@ static void build_emats_stack(BLI_Stack *stack,
   }
 }
 
+/**
+ * If the root vertex is interior in an open chain, find one of the endpoints of the chain.
+ */
+static int find_chain_start_vert(const int v_start, GroupedSpan<int> emap, const Span<int2> edges)
+{
+  if (emap[v_start].size() != 2) {
+    return v_start;
+  }
+
+  int v_curr = v_start;
+  int e_curr = emap[v_start][0];
+
+  while (true) {
+    int v_next = bke::mesh::edge_other_vert(edges[e_curr], v_curr);
+    if (v_next == v_start) {
+      return v_start;
+    }
+    if (emap[v_next].size() != 2) {
+      return v_next;
+    }
+
+    int e_next = (emap[v_next][0] == e_curr) ? emap[v_next][1] : emap[v_next][0];
+    e_curr = e_next;
+    v_curr = v_next;
+  }
+}
+
 static EMat *build_edge_mats(const VArray<bool> &is_root,
                              const Span<float3> vert_positions,
                              const int verts_num,
@@ -806,15 +830,19 @@ static EMat *build_edge_mats(const VArray<bool> &is_root,
   for (v = 0; v < verts_num; v++) {
     if (is_root[v]) {
       if (emap[v].size() >= 1) {
-        const int2 &edge = edges[emap[v][0]];
-        calc_edge_mat(stack_elem.mat,
-                      vert_positions[v],
-                      vert_positions[bke::mesh::edge_other_vert(edge, v)]);
-        stack_elem.parent_v = v;
+        /* Traversing from the root vertex means, for open chains there will be two traversals
+         * outwards from the root which can cause degenerate geometry. In that case, traverse
+         * from one of the endpoints of the chain. See #66963 */
+        const int v_start = find_chain_start_vert(v, emap, edges);
+        stack_elem.parent_v = v_start;
 
         /* Add adjacent edges to stack */
-        for (i = 0; i < emap[v].size(); i++) {
-          stack_elem.e = emap[v][i];
+        for (i = 0; i < emap[v_start].size(); i++) {
+          const int2 &edge = edges[emap[v_start][i]];
+          calc_edge_mat(stack_elem.mat,
+                        vert_positions[v_start],
+                        vert_positions[bke::mesh::edge_other_vert(edge, v_start)]);
+          stack_elem.e = emap[v_start][i];
           BLI_stack_push(stack, &stack_elem);
         }
 
@@ -829,7 +857,7 @@ static EMat *build_edge_mats(const VArray<bool> &is_root,
   }
 
   while (!BLI_stack_is_empty(stack)) {
-    build_emats_stack(stack, visited_e, emat, emap, edges, is_root, vert_positions);
+    build_emats_stack(stack, visited_e, emat, emap, edges, vert_positions);
   }
 
   MEM_delete(visited_e);

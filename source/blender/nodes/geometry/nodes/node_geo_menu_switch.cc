@@ -576,7 +576,7 @@ static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
         tree, node, [&](PointerRNA *item_ptr) {
           panel->use_property_split_set(true);
           panel->use_property_decorate_set(false);
-          panel->prop(item_ptr, "description", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+          panel->textbox(C, item_ptr, "description");
         });
   }
 }

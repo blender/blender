@@ -51,6 +51,7 @@ class ShadingView {
   DepthOfFieldBuffer dof_buffer_;
 
   Framebuffer prepass_fb_ = {"prepass_fb_"};
+  Framebuffer prepass_hide_from_raycast_fb_ = {"prepass_hide_from_raycast_fb_"};
   Framebuffer combined_fb_ = {"combined_fb_"};
   Framebuffer gbuffer_fb_ = {"gbuffer_fb_"};
   Framebuffer transparent_fb_ = {"transparent"};

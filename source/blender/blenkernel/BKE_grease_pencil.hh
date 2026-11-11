@@ -986,6 +986,12 @@ const AttributeAccessorFunctions &get_attribute_accessor_functions();
  */
 void ensure_non_empty_layer_names(Main &bmain, GreasePencil &grease_pencil);
 
+enum class StrokeType : int8_t { Stroke = 0, Fill = 1, Both = 2 };
+
+void set_stroke_type(bke::MutableAttributeAccessor attributes,
+                     const IndexMask &selection,
+                     StrokeType type);
+
 }  // namespace greasepencil
 
 class GreasePencilRuntime {
@@ -1021,6 +1027,8 @@ class GreasePencilDrawingEditHints {
   const greasepencil::Drawing *drawing_orig = nullptr;
   /* Deformed positions for original points. Data has the same topology as the original curves. */
   ImplicitSharingPtrAndData positions_data;
+  ImplicitSharingPtrAndData handle_positions_left_data;
+  ImplicitSharingPtrAndData handle_positions_right_data;
 
   /**
    * Matrices which transform point movement vectors from original data to corresponding movements
@@ -1029,7 +1037,11 @@ class GreasePencilDrawingEditHints {
   std::optional<Array<float3x3>> deform_mats;
 
   std::optional<Span<float3>> positions() const;
+  std::optional<Span<float3>> handle_positions_left() const;
+  std::optional<Span<float3>> handle_positions_right() const;
   std::optional<MutableSpan<float3>> positions_for_write();
+  std::optional<MutableSpan<float3>> handle_positions_left_for_write();
+  std::optional<MutableSpan<float3>> handle_positions_right_for_write();
 };
 
 /**

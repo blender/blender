@@ -99,8 +99,8 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
       BLI_assert(mesh->runtime->edit_mesh != nullptr);
       BLI_assert(mesh->runtime->bmesh_wrapper_data != nullptr);
 
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
-      BM_mesh_bm_to_me_for_eval(*bm, *mesh, &mesh->runtime->cd_mask_extra);
+      const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
+      BM_mesh_bm_to_me_for_eval(*const_cast<BMesh *>(bm), *mesh, &mesh->runtime->cd_mask_extra);
 
       /* Adding original index layers here assumes that all BMesh Mesh wrappers are created from
        * original edit mode meshes (the only case where adding original indices makes sense).
@@ -151,8 +151,8 @@ Span<float3> BKE_mesh_wrapper_face_normals(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return BKE_editmesh_cache_ensure_face_normals(*BKE_editmesh_bmesh_get_for_write(mesh),
-                                                    *mesh->runtime->bmesh_wrapper_data);
+      return BKE_editmesh_cache_ensure_face_normals(
+          const_cast<BMesh &>(*BKE_editmesh_bmesh_get(mesh)), *mesh->runtime->bmesh_wrapper_data);
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->face_normals();

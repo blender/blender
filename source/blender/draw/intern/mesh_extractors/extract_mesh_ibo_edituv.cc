@@ -557,18 +557,16 @@ static void extract_edituv_points_bmesh(const MeshRenderData &mr,
   }
 }
 
-static void extract_edituv_points_mapped_bmesh(const MeshRenderData &mr,
-                                               const bool sync_selection,
-                                               GPUIndexBufBuilder &builder)
+static void add_points_from_face_selection(const MeshRenderData &mr,
+                                           const IndexMask &selection,
+                                           GPUIndexBufBuilder &builder)
 {
   const OffsetIndices faces = mr.faces;
   const Span<int> corner_verts = mr.corner_verts;
   const Span<int> orig_index_vert = mr.orig_index_vert ?
                                         Span<int>(mr.orig_index_vert, mr.verts_num) :
                                         Span<int>();
-  IndexMaskMemory memory;
-  const IndexMask visible = calc_face_visibility_mapped_bmesh(mr, sync_selection, memory);
-  visible.foreach_index([&](const int face_index) {
+  selection.foreach_index([&](const int face_index) {
     for (const int corner : faces[face_index]) {
       const int vert = corner_verts[corner];
       if (!orig_index_vert.is_empty() && orig_index_vert[vert] == ORIGINDEX_NONE) {
@@ -577,6 +575,15 @@ static void extract_edituv_points_mapped_bmesh(const MeshRenderData &mr,
       GPU_indexbuf_add_point_vert(&builder, corner);
     }
   });
+}
+
+static void extract_edituv_points_mapped_bmesh(const MeshRenderData &mr,
+                                               const bool sync_selection,
+                                               GPUIndexBufBuilder &builder)
+{
+  IndexMaskMemory memory;
+  add_points_from_face_selection(
+      mr, calc_face_visibility_mapped_bmesh(mr, sync_selection, memory), builder);
 }
 
 gpu::IndexBufPtr extract_edituv_points(const MeshRenderData &mr)
@@ -620,16 +627,12 @@ static void extract_edituv_points_subdiv_bmesh(const MeshRenderData &mr,
   }
 }
 
-static void extract_edituv_points_subdiv_mapped_bmesh(const MeshRenderData &mr,
-                                                      const DRWSubdivCache &subdiv_cache,
-                                                      const bool sync_selection,
-                                                      GPUIndexBufBuilder &builder)
+static void add_points_from_subdiv_quad_selection(const DRWSubdivCache &subdiv_cache,
+                                                  const IndexMask &selection,
+                                                  GPUIndexBufBuilder &builder)
 {
   const Span<int> subdiv_loop_vert_index = subdiv_cache.verts_orig_index->data<int>();
-  IndexMaskMemory memory;
-  const IndexMask visible_faces = calc_face_visibility_mapped_bmesh(mr, sync_selection, memory);
-  const IndexMask visible = calc_subdiv_quad_visibility(mr, subdiv_cache, visible_faces, memory);
-  visible.foreach_index([&](const int subdiv_quad) {
+  selection.foreach_index([&](const int subdiv_quad) {
     for (const int subdiv_corner : IndexRange(subdiv_quad * 4, 4)) {
       const int coarse_vert = subdiv_loop_vert_index[subdiv_corner];
       if (coarse_vert == -1) {
@@ -638,6 +641,17 @@ static void extract_edituv_points_subdiv_mapped_bmesh(const MeshRenderData &mr,
       GPU_indexbuf_add_point_vert(&builder, subdiv_corner);
     }
   });
+}
+
+static void extract_edituv_points_subdiv_mapped_bmesh(const MeshRenderData &mr,
+                                                      const DRWSubdivCache &subdiv_cache,
+                                                      const bool sync_selection,
+                                                      GPUIndexBufBuilder &builder)
+{
+  IndexMaskMemory memory;
+  const IndexMask visible_faces = calc_face_visibility_mapped_bmesh(mr, sync_selection, memory);
+  add_points_from_subdiv_quad_selection(
+      subdiv_cache, calc_subdiv_quad_visibility(mr, subdiv_cache, visible_faces, memory), builder);
 }
 
 gpu::IndexBufPtr extract_edituv_points_subdiv(const MeshRenderData &mr,
@@ -679,12 +693,12 @@ static gpu::IndexBufPtr extract_edituv_face_dots_bmesh(const MeshRenderData &mr,
   return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, bm.totface, false));
 }
 
-static gpu::IndexBufPtr extract_edituv_face_dots_mapped_bmesh(const MeshRenderData &mr,
-                                                              const bool sync_selection)
+static gpu::IndexBufPtr build_face_dots_from_face_selection(const MeshRenderData &mr,
+                                                            const IndexMask &selection)
 {
   const OffsetIndices faces = mr.faces;
   IndexMaskMemory memory;
-  IndexMask visible = calc_face_visibility_mapped_bmesh(mr, sync_selection, memory);
+  IndexMask visible = selection;
   if (mr.use_subsurf_fdots) {
     const BitSpan facedot_tags = mr.mesh->runtime->subsurf_face_dot_tags;
     const Span<int> corner_verts = mr.corner_verts;
@@ -700,6 +714,14 @@ static gpu::IndexBufPtr extract_edituv_face_dots_mapped_bmesh(const MeshRenderDa
   GPU_indexbuf_init(&builder, GPU_PRIM_POINTS, visible.size(), faces.size());
   visible.to_indices(GPU_indexbuf_get_data(&builder).cast<int>());
   return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, faces.size(), false));
+}
+
+static gpu::IndexBufPtr extract_edituv_face_dots_mapped_bmesh(const MeshRenderData &mr,
+                                                              const bool sync_selection)
+{
+  IndexMaskMemory memory;
+  return build_face_dots_from_face_selection(
+      mr, calc_face_visibility_mapped_bmesh(mr, sync_selection, memory));
 }
 
 gpu::IndexBufPtr extract_edituv_face_dots(const MeshRenderData &mr)

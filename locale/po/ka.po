@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
-"PO-Revision-Date: 2026-11-02 06:18+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"PO-Revision-Date: 2026-11-08 18:20+0000\n"
 "Last-Translator: Tamar <TamMebonia@gmail.com>\n"
 "Language-Team: Georgian <https://translate.blender.org/projects/blender-ui/ui/ka/>\n"
 "Language: ka\n"
@@ -36589,12 +36589,44 @@ msgid "Editor menu containing buttons"
 msgstr "რედაქტორის მენიუ, რომელიც ღილაკებს შეიცავს"
 
 
-msgid "Show/Hide"
-msgstr "ჩვენება/დამალვა"
+msgid "Enable Bone Options"
+msgstr "ძვლის ვარიანტების ჩართვა"
+
+
+msgid "Disable Bone Options"
+msgstr "ძვლის ვარიანტების გათიშვა"
+
+
+msgid "Mesh Select Mode"
+msgstr "მეშის მონიშვნის რეჟიმი"
 
 
 msgid "Creative"
 msgstr "კრეატიული"
+
+
+msgid "Face Data"
+msgstr "წახნაგების მონაცემები"
+
+
+msgid "Select by Face Strength"
+msgstr "მონიშვნა წახნაგების სიძლიერის მიხედვით"
+
+
+msgid "Set Face Strength"
+msgstr "წახნაგების სიძლიერის დაყენება"
+
+
+msgid "Clean Up"
+msgstr "გასუფთავება"
+
+
+msgid "Merge"
+msgstr "შერწყმა"
+
+
+msgid "Show/Hide"
+msgstr "ჩვენება/დამალვა"
 
 
 msgid "Special Characters"
@@ -36617,8 +36649,12 @@ msgid "Bone Roll"
 msgstr "ძვლის ტრიალი"
 
 
-msgid "Clean Up"
-msgstr "გასუფთავება"
+msgid "Math"
+msgstr "მათემატიკა"
+
+
+msgid "Utilities"
+msgstr "უტილიტები"
 
 
 msgid "Pivot Point"
@@ -36649,16 +36685,32 @@ msgid "Vertex Group Locks"
 msgstr "წვეროთა ჯგუფების ბლოკები"
 
 
-msgid "Math"
-msgstr "მათემატიკა"
+msgid "Read"
+msgstr "წაკითხვა"
 
 
-msgid "Utilities"
-msgstr "უტილიტები"
+msgid "Sample"
+msgstr "ნიმუშის აღება"
+
+
+msgid "Write"
+msgstr "წერა"
+
+
+msgid "Primitives"
+msgstr "პრიმიტივები"
+
+
+msgid "Gizmo"
+msgstr "გიზმო"
 
 
 msgid "Mirror"
 msgstr "გასარკისებურება"
+
+
+msgid "Instances"
+msgstr "ინსტანციები"
 
 
 msgid "UV Mapping"
@@ -36669,36 +36721,24 @@ msgid "Local View"
 msgstr "ლოკალური ხედი"
 
 
-msgid "Read"
-msgstr "წაკითხვა"
-
-
 msgid "Viewpoint"
 msgstr "თვალთახედვა"
-
-
-msgid "Sample"
-msgstr "ნიმუშის აღება"
 
 
 msgid "Navigation"
 msgstr "ნავიგაცია"
 
 
-msgid "Write"
-msgstr "წერა"
-
-
 msgid "Align View"
 msgstr "ხედის მისადაგება"
 
 
+msgid "Import"
+msgstr "იმპორტი"
+
+
 msgid "Align View to Active"
 msgstr "ხედის მისადაგება აქტიურზე"
-
-
-msgid "Primitives"
-msgstr "პრიმიტივები"
 
 
 msgid "View Regions"
@@ -36717,6 +36757,10 @@ msgid "Select All by Trait"
 msgstr "ყველას მონიშვნა თვისებით"
 
 
+msgid "Deprecated"
+msgstr "არარეკომენდირებული"
+
+
 msgid "Select Linked"
 msgstr "დაკავშირებულის მონიშვნა"
 
@@ -36725,40 +36769,24 @@ msgid "Select Loops"
 msgstr "მარყუჟების მონიშვნა"
 
 
-msgid "Gizmo"
-msgstr "გიზმო"
+msgid "Render Preview"
+msgstr "რენდერის გადახედვა"
 
 
-msgid "Instances"
-msgstr "ინსტანციები"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "მასალის მიკუთვნება"
 
 
-msgid "Import"
-msgstr "იმპორტი"
-
-
-msgid "Deprecated"
-msgstr "არარეკომენდირებული"
-
-
 msgid "Light"
 msgstr "სინათლე"
 
 
-msgid "Render Preview"
-msgstr "რენდერის გადახედვა"
-
-
 msgid "Light Probe"
 msgstr "სინათლის ზონდი"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -36805,6 +36833,14 @@ msgid "Hooks"
 msgstr "კაუჭები"
 
 
+msgid "Linked"
+msgstr "დაკავშირებული"
+
+
+msgid "Layout"
+msgstr "განლაგება"
+
+
 msgid "Trim/Add"
 msgstr "მოკრეჭა/დამატება"
 
@@ -36825,6 +36861,10 @@ msgid "Clear Transform"
 msgstr "გარდაქმნის გასუფთავება"
 
 
+msgid "Adjust"
+msgstr "რეგულირება"
+
+
 msgid "In-Betweens"
 msgstr "შუალები"
 
@@ -36837,56 +36877,16 @@ msgid "Bone Collections"
 msgstr "ძვლების კოლექციები"
 
 
-msgid "Linked"
-msgstr "დაკავშირებული"
-
-
-msgid "Layout"
-msgstr "განლაგება"
-
-
-msgid "Toggle Bone Options"
-msgstr "ძვლის პარამეტრების ვარიანტები"
-
-
-msgid "Enable Bone Options"
-msgstr "ძვლის ვარიანტების ჩართვა"
-
-
-msgid "Disable Bone Options"
-msgstr "ძვლის ვარიანტების გათიშვა"
-
-
-msgid "Mesh Select Mode"
-msgstr "მეშის მონიშვნის რეჟიმი"
-
-
-msgid "Face Data"
-msgstr "წახნაგების მონაცემები"
-
-
-msgid "Select by Face Strength"
-msgstr "მონიშვნა წახნაგების სიძლიერის მიხედვით"
-
-
-msgid "Set Face Strength"
-msgstr "წახნაგების სიძლიერის დაყენება"
-
-
-msgid "Adjust"
-msgstr "რეგულირება"
-
-
 msgid "Keying"
 msgstr "ამოჭრა"
 
 
-msgid "Merge"
-msgstr "შერწყმა"
-
-
 msgid "Tracking"
 msgstr "თვალის დევნება"
+
+
+msgid "Toggle Bone Options"
+msgstr "ძვლის პარამეტრების ვარიანტები"
 
 
 msgid "Keyframe Insert Pie"
@@ -80826,10 +80826,6 @@ msgid "New Collection"
 msgstr "ახალი კოლექცია"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "დაამატე ახალი კოლექცია მონიშნულ კოლექციაში"
-
-
 msgid "Nested"
 msgstr "ჩადგმული"
 
@@ -101563,10 +101559,6 @@ msgstr "ლოკალური კოდი: de_DE. თარგმანი�
 
 msgid "Greek - Ελληνικά"
 msgstr "ბერძნული - Ελληνικά"
-
-
-msgid "Locale code: el_GR. Translation progress: 1%"
-msgstr "ლოკალური კოდი: el_GR. თარგმანის პროგრესი: 1%"
 
 
 msgid "Hebrew - תירִבְעִ"
@@ -131562,6 +131554,11 @@ msgid "Disable in Render"
 msgstr "გათიშვა რენდერში"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "ახალი"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "ინსტანცია სცენაში"
@@ -131596,11 +131593,6 @@ msgstr "ერთი დონის დამალვა"
 msgctxt "Operator"
 msgid "Relocate"
 msgstr "გადატანა"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "ახალი"
 
 
 msgctxt "Operator"
@@ -140787,6 +140779,10 @@ msgid "Operator cannot redo"
 msgstr "ოპერატორს გაუქმებულის აღდგენა არ შეუძლია"
 
 
+msgid "Built-In"
+msgstr "ჩაშენებული"
+
+
 msgid "Size: {}"
 msgstr "ზომა: {}"
 
@@ -147139,16 +147135,64 @@ msgid "Strip None"
 msgstr "ლენტის გარეშე"
 
 
-msgid "Built-In"
-msgstr "ჩაშენებული"
+msgid "Create Project"
+msgstr "პროექტის შექმნა"
 
 
 msgid "Add Asset Library"
 msgstr "აქტივთა ბიბლიოთეკის დამატება"
 
 
+msgid "Untitled Project"
+msgstr "უსათაურო პროექტი"
+
+
+msgid "Invalid project root folder"
+msgstr "პროექტის ძირეული საქაღალდე უვარგისია"
+
+
+msgid "Missing project name"
+msgstr "პროექტის სახელი დაკარგულია"
+
+
+msgid "Folder already part of a project"
+msgstr "საქაღალდე უკვე პროექტის ნაწილია"
+
+
+msgid "Can not create project for a blend file in the home or root folder"
+msgstr "ძირეულ საქაღალდეში blend ფაილისთვის პროექტი ვერ შეიქმნება"
+
+
+msgid "Asset libraries defined by an extension are removed by uninstalling the extension"
+msgstr "გაფართოების მიერ განსაზღვრული აქტივთა ბიბლიოთეკები გაფართოების წაშლის შედეგად იშლება"
+
+
+msgid "Failed to create folder \"%s\""
+msgstr "საქაღალდე \"%s\" ვერ შეიქმნა"
+
+
+msgid "Failed to write project config in \"%s\""
+msgstr "პროექის კონფიგურაცია \"%s\"-ში ვერ ჩაიწერა"
+
+
+msgid "Folder '%s' does not belong to a project"
+msgstr "საქაღალდე %s პროექტს არ ეკუთვნის"
+
+
+msgid "Failed to load project from path: %s"
+msgstr "პროექტი მისამართზე: %s ვერ ჩაიტვირთა"
+
+
 msgid "There is no asset library to remove"
 msgstr "აქტივთა ბიბლიოთეკა მოსაცილებლად არ არის"
+
+
+msgid "Failed to load image \"%s\""
+msgstr "გამოსახულება \"%s\" ვერ ჩაიტვირთა"
+
+
+msgid "Failed to write \"%s\""
+msgstr "\"%s\" ვერ ჩაიწერა"
 
 
 msgid "Cannot reload with running modal operators"
@@ -147647,6 +147691,10 @@ msgid "See '%s' in the text editor"
 msgstr "ნახე '%s' ტექსტურ რედაქტორში"
 
 
+msgid "Project: {}"
+msgstr "პროექტი: {}"
+
+
 msgid "Clear Recent Files List..."
 msgstr "ბოლოდროინდელი ფაილების სიის გასუფთავება..."
 
@@ -148044,6 +148092,34 @@ msgid " (Clipped)"
 msgstr " (მოკვეცილი)"
 
 
+msgid " (Flipped) (Rolled)"
+msgstr " (შეტრიალებული) (გადატრიალებული)"
+
+
+msgid " (Flipped X)"
+msgstr " (შეტრიალებული X)"
+
+
+msgid " (Flipped Y)"
+msgstr " (შეტრიალებული Y)"
+
+
+msgid " (90\xC2\xB0)"
+msgstr " (90xC2xB0)"
+
+
+msgid " (180\xC2\xB0)"
+msgstr " (180xC2xB0)"
+
+
+msgid " (-90\xC2\xB0)"
+msgstr " (-90xC2xB0)"
+
+
+msgid " (Rolled)"
+msgstr " (გადატრიალებული)"
+
+
 msgid " (Viewer)"
 msgstr " (მაჩვენებელი)"
 
@@ -148137,8 +148213,20 @@ msgid "Depth too large"
 msgstr "სიღრმე მეტისმეტად დიდია"
 
 
+msgid "No valid selected objects to copy"
+msgstr "ვარგისი დასაკოპირებელი ობიექტები მონიშნული არაა"
+
+
 msgid "No objects to paste"
 msgstr "ჩასასმელი ობიექტები არ არის"
+
+
+msgid "Cannot copy the linked object '%s' to the internal clipboard"
+msgstr "დაკავშირებული ობიექტი '%s'-(ი)ს გაცვლის შიდა ბუფერში გადაკოპირება შეუძლებელია"
+
+
+msgid "Cannot copy the linked packed object '%s' to the internal clipboard"
+msgstr "დაკავშირებული შეფუთული ობიექტი '%s'-(ი)ს გაცვლის ბუფერში გადაკოპირება შეუძლებელია"
 
 
 msgid "Copied %d selected object(s)"
@@ -148408,8 +148496,24 @@ msgid "'Rotate Normals' is only supported in mesh edit mode"
 msgstr "'ნორმალების ბრუნვას' მხოლოდ მეშის რედაქტირების რეჟიმში აქვს მხარდაჭერა"
 
 
+msgid "Sequence Slide: %s%s | Overlap: %s"
+msgstr "თანამიმდევრობის გაცურება: %s%s | პირგადადება: %s"
+
+
+msgid " | Insert: %s"
+msgstr " | ჩასმა: %s"
+
+
 msgid "Snap Invert"
 msgstr "მიკვრის შებრუნება"
+
+
+msgid "Clear Constraints"
+msgstr "ბორკილების გასუფთავება"
+
+
+msgid "Clamp Handles"
+msgstr "სახელურების ჩაჭერა"
 
 
 msgid "Set Snap Base"
@@ -149106,6 +149210,42 @@ msgid "SVG has gradients, Grease Pencil color will be approximated"
 msgstr "SVG-ს აქვს გრადიენტები, გრიზ ფენსილის ფერი მიახლოებითი იქნება"
 
 
+msgid "Strip '%s' was not exported, its type is currently unsupported"
+msgstr "ლენტი '%s' არ ექსპორტირებულა, მისი ტიპი ამჟამად მხარდაუჭერელია"
+
+
+msgid "Transition strip '%s' was not exported, its inputs must be on the same channel"
+msgstr "გარდასვლის ლენტი '%s' არ ექსპორტირებულა, მისი შენატანები ერთსა და იმავე არხზე უნდა იყოს"
+
+
+msgid "Failed to write OTIO file '%s'"
+msgstr "OTIO ფაილის ჩაწერა ვერ მოხერხდა: %s"
+
+
+msgid "%d scene strip(s) found, this is currently unsupported"
+msgstr "ნაპოვნია სცენის %d ლენტი, ამჟამად ეს მხარდაუჭერელია"
+
+
+msgid "%d image sequence(s) with non-sequential filenames found, this is currently unsupported"
+msgstr "ნაპოვნია გამოსახულებათა %d თანამიმდევრობა ფაილთა არათანმიმდევრული სახელებით, ამჟამად ეს მხარდაუჭერელია"
+
+
+msgid "OTIO Import"
+msgstr "OTIO-ს იმპორტი"
+
+
+msgid "Clip '%s' was not imported, its media is not supported"
+msgstr "კლიპი '%s' არ იმპორტირდა, მისი მედია მხარდაჭერილი არაა"
+
+
+msgid "Effect '%s' was not imported, its inputs are missing"
+msgstr "ეფექტი '%s' არ იმპორტირდა, მისი შენატანები დაკარგულია"
+
+
+msgid "Failed to read OTIO timeline '%s'"
+msgstr "OTIO-ს დროის ზოლის '%s'-ის წაკითხვა ვერ მოხერხდა"
+
+
 msgid "PLY Export: Unable to find collection '%s'"
 msgstr "PLY ექსპორტი: კოლექციის '%s' მოძიება ვერ მოხერხდა"
 
@@ -149124,6 +149264,126 @@ msgstr "PLY იმპორტიორი: იმპორტი წარუ�
 
 msgid "PLY Importer: %s: %s"
 msgstr "PLY იმპორტიორი: %s: %s"
+
+
+msgid "PLY Importer: failed importing %s: %s"
+msgstr "PLY იმპორტიორი: %s: %s-ის იმპორტი ვერ მოხერხდა"
+
+
+msgid "PLY Importer: Spherical harmonics degree above the supported %d, spherical harmonics are not imported"
+msgstr "PLY იმპორტიორი: სფერული ჰარმონიკების ხარისხი აღემატება მხარდაჭერილ %d-ს, სფერული ჰარმონიკები არ იმპორტირდება"
+
+
+msgid "PLY Importer: Unexpected number of f_rest properties %d, spherical harmonics are not imported"
+msgstr "PLY იმპორტიორი: f_rest თვისებების მოულოდნელი რაოდენობა %d, სფერული ჰარმონიკები არ იმპორტირდება"
+
+
+msgid "PLY Importer: Incomplete spherical harmonics band, importing %d of %d coefficients"
+msgstr "PLY იმპორტიორი: სფერული ჰარმონიკების არასრული ზოლი, იმპორტირდება %d კოეფიციენტი %d-დან"
+
+
+msgid "Unexpected SPZ header magic 0x{:X}"
+msgstr "SPZ-ის სათაურის მოულოდნელი სიგნატურა 0x{:X}"
+
+
+msgid "Unsupported SPZ version {}"
+msgstr "SPZ-ის მხარდაუჭერელი ვერსია {}"
+
+
+msgid "Too many points"
+msgstr "მეტისმეტად ბევრი წერტილი"
+
+
+msgid "Unsupported SH degree {}"
+msgstr "სფერული ჰარმონიკის მხარდაუჭერელი ხარისხი {}"
+
+
+msgid "Unsupported number of position fractional bits {}"
+msgstr "პოზიციის წილადური ბიტების მხარდაუჭერელი რაოდენობა {}"
+
+
+msgid "TOC byte offset is less than the size of the header"
+msgstr "შიგთავსის ცხრილის ბაიტური აცდენა სათაურის ზომას ჩამოუვარდება"
+
+
+msgid "Unexpected number of Zstd streams"
+msgstr "Zstd ნაკადების მოულოდნელი რიცხვი"
+
+
+msgid "SPZ Read: Big endian machines are not supported"
+msgstr "SPZ-ს კითხვა: 'Big-endian'-ის ტიპის მოწყობილობები მხარდაჭერილი არაა"
+
+
+msgid "SPZ Read: Error opening file for read"
+msgstr "SPZ-ს კითხვა: შეცდომა ფაილის წასაკითხად გახსნისას"
+
+
+msgid "SPZ Read: Error reading magic value from file"
+msgstr "SPZ-ს კითხვა: შეცდომა ფაილიდან სიგნატურის კითხვისას"
+
+
+msgid "SPZ Read: Error initializing Zlib decompression"
+msgstr "SPZ-ს კითხვა: შეცდომა Zlib-ის დეკომპრესირების ინიციალიზირებისას"
+
+
+msgid "SPZ Read: Error reading header from GZip stream"
+msgstr "SPZ-ს კითხვა: შეცდომა GZip-ის ნაკადიდან სათაურის წაკითხვისას"
+
+
+msgid "SPZ Read: %s"
+msgstr "SPZ-ს კითხვა: %s"
+
+
+msgid "SPZ Read: Error initializing positions reader"
+msgstr "SPZ-ს კითხვა: შეცდომა პოზიციების წამკითხველის ინიციალიზირებისას"
+
+
+msgid "SPZ Read: Error reading positions"
+msgstr "SPZ-ს კითხვა: შეცდომა პოზიციების წაკითხვისას"
+
+
+msgid "SPZ Read: Error initializing alphas reader"
+msgstr "SPZ-ს კითხვა: შეცდომა ალფების წამკითხველის ინიციალიზირებისას"
+
+
+msgid "SPZ Read: Error reading alphas"
+msgstr "SPZ-ს კითხვა: შეცდომა ალფების წაკითხვისას"
+
+
+msgid "SPZ Read: Error initializing colors reader"
+msgstr "SPZ-ს კითხვა: შეცდომა ფერთა წამკითხველის ინიციალიზირებისას"
+
+
+msgid "SPZ Read: Error reading colors"
+msgstr "SPZ-ს კითხვა: შეცდომა ფერების წაკითხვისას"
+
+
+msgid "SPZ Read: Error initializing scales reader"
+msgstr "SPZ-ს კითხვა: შეცდომა მასშტაბების წამკითხველის ინიციალიზირებისას"
+
+
+msgid "SPZ Read: Error reading scales"
+msgstr "SPZ-ს კითხვა: შეცდომა მასშტაბების წაკითხვისას"
+
+
+msgid "SPZ Read: Error initializing rotations reader"
+msgstr "SPZ-ს კითხვა: შეცდომა ბრუნვების წამკითხველის ინიციალიზირებისას"
+
+
+msgid "SPZ Read: Error reading rotations"
+msgstr "SPZ-ს კითხვა: შეცდომა ბრუნვების წაკითხვისას"
+
+
+msgid "SPZ Read: Error initializing SH reader"
+msgstr "SPZ-ს კითხვა: შეცდომა სფერული ჰარმონიკის წამკითხველის ინიციალიზირებისას"
+
+
+msgid "SPZ Read: Error reading spherical harmonics"
+msgstr "SPZ Read: შეცდომა სფერული ჰარმონიკის წაკითხვისას"
+
+
+msgid "SPZ Read: Error reading NGSP header"
+msgstr "SPZ Read: შეცდომა NGSP-ს სათაურის წაკითხვისას"
 
 
 msgid "STL Export: Cannot open file '%s'"
@@ -150928,6 +151188,10 @@ msgid "Style module could not be removed"
 msgstr "სტილის მოდული ვერ მოცილდა"
 
 
+msgid "Effect was not found in the stack"
+msgstr "ეფექტი სტეკში ვერ მოიძებნა"
+
+
 msgid "View Layer '%s' not found in scene '%s'"
 msgstr "ხედის შრე '%s' სცენაში '%s' ვერ მოიძებნა"
 
@@ -150956,6 +151220,10 @@ msgid "Could not move layer from index '%d' to '%d'"
 msgstr "შრის გადატანა ინდექსიდან '%d' '%d'-ზე ვერ მოხერხდა"
 
 
+msgid "Only for side-panels"
+msgstr "მხოლოდ გვერდითა პანელებისთვის"
+
+
 msgid "Only supported for \"TEMPORARY\" type regions (pop-ups)"
 msgstr "მხოლოდ \"დროებითი\" ტიპის მონაკვეთებისთვის აქვს მხარდაჭერა (კონტექსტურები)"
 
@@ -150980,12 +151248,36 @@ msgid "Modifier \"%s\" is not in the strip's modifier list"
 msgstr "მოდიფიკატორი \"%s\" ლენტის მოდიფიკატორების სიაში არაა"
 
 
+msgid "Unable to open sound file"
+msgstr "ხმოვანი ფაილის გახსნა ვერ მოხერხდა"
+
+
 msgid "Blender compiled without Audaspace support"
 msgstr "Blender კომპილირება Audaspace-ის მხარდაჭერის გარეშე მოახდინა"
 
 
+msgid "Invalid length"
+msgstr "უვარგისი სიგრძე"
+
+
+msgid "Effect takes 1 input strip"
+msgstr "ეფექტი 1 შემავალ ლენტს იღებს"
+
+
+msgid "Effect takes 2 input strips"
+msgstr "ეფექტი 2 შემავალ ლენტს იღებს"
+
+
+msgid "Cannot pop the last element"
+msgstr "ბოლო ელემენტის გაქრობა შეუძლებელია"
+
+
 msgid "StripElements.pop: cannot pop the last element"
 msgstr "StripElements.pop: ბოლო ელემენტის გაქრობა შეუძლებელია"
+
+
+msgid "Effect expects more than 2 inputs (%d, should never happen!)"
+msgstr "ეფექტი 2-ზე მეტ შენატანს ელის (%d, არასდროს უნდა მოხდეს!)"
 
 
 msgid "Strip '%s' not in scene '%s'"
@@ -154277,6 +154569,10 @@ msgid "Rest Pose"
 msgstr "უძრაობის პოზა"
 
 
+msgid "Radius Tail"
+msgstr "რადიუსი - კუდი"
+
+
 msgid "Object is not an armature"
 msgstr "ობიექტი არმატურა არაა"
 
@@ -154377,6 +154673,10 @@ msgid "A cube mesh enclosing the input geometry"
 msgstr "კუბის მეში, რომელიც შემავალ გეომეტრიას შემოსაზღვრავს"
 
 
+msgid "Object is not a camera"
+msgstr "ობიექტი კამერა არაა"
+
+
 msgid "Projection Matrix"
 msgstr "პროექციის მატრიცა"
 
@@ -154460,6 +154760,22 @@ msgstr "კოლექციის ინსტანცია, ან კო�
 
 msgid "Bundle Items"
 msgstr "შეკვრის საგნები"
+
+
+msgid "List with one element per item"
+msgstr "სია თითო საგნისთვის თითო ელემენტით"
+
+
+msgid "Positions"
+msgstr "პოზიციები"
+
+
+msgid "A list of the point positions in all curves"
+msgstr "ყველა წირში არსებულ წერტილთა პოზიციების სია"
+
+
+msgid "A list with a size one larger than the number of curves storing the first point index of each curve and a final value for the total number of points. This is a prefix sum of the curve sizes"
+msgstr "სია, რომელიც ერთით მეტია იმ წირების რიცხვზე, რომლებიც თითოეული წირის პირველი წერტილის ინდექსსა და წერტილთა ჯამური რიცხვის საბოლოო მნიშვნელობას ინახავენ. ეს წირების ზომათა წინსართავი ჯამია"
 
 
 msgid "Disabled, Blender was compiled without Bullet"
@@ -155219,6 +155535,14 @@ msgid "Implicit type conversion when evaluating closure"
 msgstr "ტიპის არაპირდაპირი კონვერტირება ჩაკეტვის შეფასებისას"
 
 
+msgid "Closure not have output: \"{}\""
+msgstr "ჩაკეტვას არ აქვს გამონატანი: \"{}\""
+
+
+msgid "Closure not have input: \"{}\""
+msgstr "ჩაკეტვას არ აქვს შენატანი: \"{}\""
+
+
 msgid "Offset Scale"
 msgstr "აცდენის მასშტაბი"
 
@@ -155661,8 +155985,72 @@ msgid "Replace inactive tiles with inactive nodes. Faster than tolerance-based p
 msgstr "ჩაანაცვლე არააქტიური ფილები არააქტიური კვანძებით. უფრო სწრაფია, ვიდრე ტოლერანტულობაზე დაფუძნებული გამარტივება, გამოსადეგია ისეთ შემთხვევებში, როგორიცაა ვიწრო ზოლის SDF ბადეები მხოლოდ შიდა, ან გარეთა ფონის მნიშვნელობებით."
 
 
+msgid "Max Iterations"
+msgstr "იტერაციების მაქსიმუმი"
+
+
 msgid "Error Threshold"
 msgstr "შეცდომების მიჯნა"
+
+
+msgid "Threshold Mode"
+msgstr "მიჯნის რეჟიმი"
+
+
+msgid "Boundary Value"
+msgstr "ზღუდის მნიშვნელობა"
+
+
+msgid "Boundary Gradient"
+msgstr "ზღუდის გრადიენტი"
+
+
+msgid "Boundary Factor"
+msgstr "ზღუდის კოეფიციენტი"
+
+
+msgid "Solution"
+msgstr "ამონახსენი"
+
+
+msgid "Absolute Error"
+msgstr "აბსოლუტური შეცდომა"
+
+
+msgid "Relative Error"
+msgstr "შეფარდებითი შეცდომა"
+
+
+msgid "Debug Boundary Value"
+msgstr "ზღუდის მნიშვნელობის ხარვეზების აღმოფხვრა"
+
+
+msgid "Debug Boundary Gradient"
+msgstr "ზღუდის გრადიენტის ხარვეზების აღმოფხვრა"
+
+
+msgid "Debug Boundary Factor"
+msgstr "ზღუდის კოეფიციენტის ხარვეზების აღმოფხვრა"
+
+
+msgid "Solution to the Poisson equation"
+msgstr "პუასონის განტოლების ამოხსნა"
+
+
+msgid "If the solver converged successfully"
+msgstr "მოხდა თუ არა ამომხსნელის კონვერგენცია"
+
+
+msgid "Number of iterations performed"
+msgstr "რამდენი იტერაცია ჩატარდა"
+
+
+msgid "Final absolute error of the solution"
+msgstr "ამოხსნის საბოლოო აბსოლუტური შეცდომა"
+
+
+msgid "Final relative error of the solution"
+msgstr "ამოხსნის საბოლოო შეფარდებითი შეცდომა"
 
 
 msgid "Right-hand side of the Poisson equation"

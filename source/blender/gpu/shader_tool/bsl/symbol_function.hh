@@ -103,6 +103,8 @@ struct SymbolFunction : SymbolScope {
   bool is_virtual = false;
   /* True if function is declared as pure virtual (makes it not callable under BSL rules). */
   bool is_pure_virtual = false;
+  /* True for methods with const qualifier. */
+  bool is_const = false;
 
   /* Identifier of the temporary return variable.
    * The real identifier is then specialized per instantiation. */
@@ -124,6 +126,7 @@ struct SymbolFunction : SymbolScope {
         /* Note: We leave to the C++ linting to catch invalid keyword usage. */
         is_virtual(decl.virtual_qualifier().is_valid() || decl.virtual_specifier().is_valid()),
         is_pure_virtual(is_virtual && decl.pure_specifier().is_valid()),
+        is_const(decl.is_const()),
         fn_type(decl.is_method() ? (decl.is_static() ? STATIC : MEMBER) : GLOBAL),
         entry_point_type(EntryPointType::NONE)
   {
@@ -187,6 +190,15 @@ struct SymbolFunction : SymbolScope {
     return override_next;
   }
 
+  /* This uses GLSL rules for comparing signature: references and pointers are not taken into
+   * account.
+   * Note that we do not compare array extents as overloading based on them has different
+   * behavior in GLSL and C++/MSL. */
+  bool has_same_signature(const SymbolFunction &other) const
+  {
+    return is_const == other.is_const && arg_types == other.arg_types;
+  }
+
   /* Only used for sorting purpose. Return a unique location. */
   SourceLocation decl_loc() const
   {
@@ -206,7 +218,7 @@ struct SymbolFunction : SymbolScope {
 
   void reserve_arguments(int n);
 
-  bool is_compatible(ResourceType res_type);
+  bool is_compatible(ResourceType res_type) const;
 
   static Result<vector<const SymbolClass *>> to_arg_types(const SymbolTable &table,
                                                           const SymbolScope &scope,

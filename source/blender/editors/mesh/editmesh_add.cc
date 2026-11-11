@@ -161,7 +161,7 @@ static void make_prim_finish(bContext *C,
     ed::sculpt_paint::undo::geometry_end(*obedit);
   }
   else {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     EDBM_selectmode_flush_ex(bm, SCE_SELECT_VERTEX);
     /* TODO(@ideasman42): maintain UV sync for newly created data. */
     EDBM_uvselect_clear(bm);
@@ -213,7 +213,7 @@ static bool make_prim_from_bmo_args(bContext *C,
     }
   }
   else {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (calc_uvs) {
       ED_mesh_uv_ensure(id_cast<Mesh *>(obedit->data), nullptr);
     }

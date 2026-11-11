@@ -236,7 +236,6 @@ class EvaluateClosureComputeContext : public NodeComputeContext {
 
 class ClosureToListComputeContext : public NodeComputeContext {
  private:
-  int32_t node_id_;
   int list_index_;
 
  public:

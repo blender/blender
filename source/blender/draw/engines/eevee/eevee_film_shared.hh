@@ -19,19 +19,19 @@ namespace blender::eevee {
 static constexpr int FILM_PRECOMP_SAMPLE_MAX = 16;
 static constexpr int FILM_PANORAMIC_SAMPLE_LEN = 4;
 
-enum [[host_shared]] eFilmWeightLayerIndex : uint32_t {
+enum eFilmWeightLayerIndex : uint32_t {
   FILM_WEIGHT_LAYER_ACCUMULATION,
   FILM_WEIGHT_LAYER_DISTANCE,
 };
 
-enum [[host_shared]] ePassStorageType : uint32_t {
+enum ePassStorageType : uint32_t {
   PASS_STORAGE_COLOR,
   PASS_STORAGE_VALUE,
   PASS_STORAGE_CRYPTOMATTE,
   PASS_STORAGE_DENOISING_DEPTH
 };
 
-enum [[host_shared]] PassCategory : uint32_t {
+enum PassCategory : uint32_t {
   PASS_CATEGORY_DATA = 1u << 0,
   PASS_CATEGORY_COLOR_1 = 1u << 1,
   PASS_CATEGORY_COLOR_2 = 1u << 2,
@@ -44,14 +44,14 @@ enum [[host_shared]] PassCategory : uint32_t {
 ENUM_OPERATORS(PassCategory)
 #endif
 
-struct [[host_shared]] FilmSample {
+struct FilmSample {
   int2 texel;
   float weight;
   /** Used for accumulation. */
   float weight_sum_inv;
 };
 
-struct [[host_shared]] FilmData {
+struct FilmData {
   /** Size of the film in pixels. */
   int2 extent;
   /** Offset to convert from Display space to Film space, in pixels. */

@@ -120,22 +120,8 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
     LOG_INFO << "oneAPI will use hardware ray tracing for intersection acceleration.";
   }
 
-  size_t globals_segment_size;
-  is_finished_ok = kernel_globals_size(globals_segment_size);
-  if (is_finished_ok == false) {
-    set_error("oneAPI constant memory initialization got runtime exception \"" +
-              oneapi_error_string_ + "\"");
-  }
-  else {
-    LOG_TRACE << "Successfully created global/constant memory segment (kernel globals object)";
-  }
-
-  kg_memory_ = usm_aligned_alloc_host(device_queue_, globals_segment_size, 16);
-  usm_memset(device_queue_, kg_memory_, 0, globals_segment_size);
-
-  kg_memory_device_ = usm_alloc_device(device_queue_, globals_segment_size);
-
-  kg_memory_size_ = globals_segment_size;
+  kernel_params_ = usm_alloc_device(device_queue_, sizeof(KernelParamsOneAPI));
+  usm_memset(device_queue_, kernel_params_, 0, sizeof(KernelParamsOneAPI));
 
   max_memory_on_device_ = get_memcapacity();
   init_host_memory();
@@ -160,10 +146,7 @@ OneapiDevice::~OneapiDevice()
 #  endif
 
   image_info.free();
-  usm_free(device_queue_, kg_memory_);
-  usm_free(device_queue_, kg_memory_device_);
-
-  const_mem_map_.clear();
+  usm_free(device_queue_, kernel_params_);
 
   if (device_queue_) {
     free_queue(device_queue_);
@@ -404,9 +387,9 @@ int OneapiDevice::scene_max_shaders()
   return scene_max_shaders_;
 }
 
-void *OneapiDevice::kernel_globals_device_pointer()
+void *OneapiDevice::kernel_params_device_pointer()
 {
-  return kg_memory_device_;
+  return kernel_params_;
 }
 
 void *OneapiDevice::host_alloc(const MemoryType type, const size_t size)
@@ -641,27 +624,20 @@ void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size
 #  endif
   }
 
-  ConstMemMap::iterator i = const_mem_map_.find(name);
-  device_vector<uchar> *data;
-
-  if (i == const_mem_map_.end()) {
-    unique_ptr<device_vector<uchar>> data_ptr = make_unique<device_vector<uchar>>(
-        this, name, MEM_READ_ONLY);
-    data_ptr->alloc(size);
-    data = data_ptr.get();
-    const_mem_map_.insert(ConstMemMap::value_type(name, std::move(data_ptr)));
-  }
-  else {
-    data = i->second.get();
-  }
-
-  assert(data->memory_size() <= size);
-  memcpy(data->data(), host, size);
-  data->copy_to_device();
-
-  set_global_memory(device_queue_, kg_memory_, name, (void *)data->device_pointer);
-
-  usm_memcpy(device_queue_, kg_memory_device_, kg_memory_, kg_memory_size_);
+  /* Update data storage pointers in launch parameters. */
+#  define KERNEL_DATA_ARRAY(data_type, data_name) \
+    if (strcmp(name, #data_name) == 0) { \
+      assert(size <= sizeof(KernelParamsOneAPI::data_name)); \
+      usm_memcpy(device_queue_, \
+                 static_cast<char *>(kernel_params_) + offsetof(KernelParamsOneAPI, data_name), \
+                 host, \
+                 size); \
+      return; \
+    }
+  KERNEL_DATA_ARRAY(KernelData, data)
+  KERNEL_DATA_ARRAY(IntegratorStateGPU, integrator_state)
+#  include "kernel/data_arrays.h"
+#  undef KERNEL_DATA_ARRAY
 }
 
 void OneapiDevice::global_alloc(device_memory &mem)
@@ -674,9 +650,7 @@ void OneapiDevice::global_alloc(device_memory &mem)
   generic_alloc(mem);
   generic_copy_to(mem);
 
-  set_global_memory(device_queue_, kg_memory_, mem.global_name(), (void *)mem.device_pointer);
-
-  usm_memcpy(device_queue_, kg_memory_device_, kg_memory_, kg_memory_size_);
+  const_copy_to(mem.global_name(), &mem.device_pointer, sizeof(mem.device_pointer));
 }
 
 void OneapiDevice::global_copy_to(device_memory &mem)
@@ -1255,52 +1229,6 @@ bool OneapiDevice::queue_synchronize(SyclQueue *queue_)
     oneapi_error_string_ = e.what();
     return false;
   }
-}
-
-bool OneapiDevice::kernel_globals_size(size_t &kernel_global_size)
-{
-  kernel_global_size = sizeof(KernelGlobalsGPU);
-
-  return true;
-}
-
-void OneapiDevice::set_global_memory(SyclQueue *queue_,
-                                     void *kernel_globals,
-                                     const char *memory_name,
-                                     void *memory_device_pointer)
-{
-  assert(queue_);
-  assert(kernel_globals);
-  assert(memory_name);
-  assert(memory_device_pointer);
-  KernelGlobalsGPU *globals = (KernelGlobalsGPU *)kernel_globals;
-  OneapiDevice::check_usm(queue_, memory_device_pointer, true);
-  OneapiDevice::check_usm(queue_, kernel_globals, true);
-
-  std::string matched_name(memory_name);
-
-/* This macro will change global ptr of KernelGlobals via name matching. */
-#  define KERNEL_DATA_ARRAY(type, name) \
-    else if (#name == matched_name) \
-    { \
-      globals->__##name = (type *)memory_device_pointer; \
-      return; \
-    }
-  if (false) {
-  }
-  else if ("integrator_state" == matched_name) {
-    globals->integrator_state = (IntegratorStateGPU *)memory_device_pointer;
-    return;
-  }
-  KERNEL_DATA_ARRAY(KernelData, data)
-#  include "kernel/data_arrays.h"
-  else
-  {
-    std::cerr << "Can't found global/constant memory with name \"" << matched_name << "\"!"
-              << std::endl;
-    assert(false);
-  }
-#  undef KERNEL_DATA_ARRAY
 }
 
 bool OneapiDevice::enqueue_kernel(KernelContext *kernel_context,

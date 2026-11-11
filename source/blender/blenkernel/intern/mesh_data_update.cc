@@ -90,7 +90,7 @@ static void mesh_set_only_copy(Mesh *mesh, const CustomData_MeshMasks *mask)
 
 /* orco custom data layer */
 static Span<float3> get_orco_coords(const Object &ob,
-                                    BMesh *bm,
+                                    const BMesh *bm,
                                     eCustomDataType layer_type,
                                     Array<float3> &storage)
 {
@@ -125,11 +125,14 @@ static Span<float3> get_orco_coords(const Object &ob,
   return {};
 }
 
-static Mesh *create_orco_mesh(const Object &ob, const Mesh &mesh, BMesh *bm, eCustomDataType layer)
+static Mesh *create_orco_mesh(const Object &ob,
+                              const Mesh &mesh,
+                              const BMesh *bm,
+                              eCustomDataType layer)
 {
   Mesh *orco_mesh;
   if (bm) {
-    orco_mesh = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, &mesh);
+    orco_mesh = BKE_mesh_from_bmesh_for_eval_nomain(const_cast<BMesh *>(bm), nullptr, &mesh);
     BKE_mesh_ensure_default_orig_index_customdata(orco_mesh);
   }
   else {
@@ -157,7 +160,7 @@ static MutableSpan<float3> orco_coord_layer_ensure(Mesh &mesh, const eCustomData
 }
 
 static void add_orco_mesh(
-    Object &ob, BMesh *bm, Mesh &mesh, const Mesh *mesh_orco, const eCustomDataType layer)
+    Object &ob, const BMesh *bm, Mesh &mesh, const Mesh *mesh_orco, const eCustomDataType layer)
 {
   const int totvert = mesh.verts_num;
 
@@ -720,7 +723,7 @@ static GeometrySet editbmesh_calc_modifiers(Depsgraph &depsgraph,
                                             const CustomData_MeshMasks &dataMask)
 {
   const Mesh &mesh_input = *id_cast<const Mesh *>(ob.data);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(&ob);
+  BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(&mesh_input));
 
   /* Mesh with constructive modifiers but no deformation applied. Tracked
    * along with final mesh if undeformed / orco coordinates are requested

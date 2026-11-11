@@ -739,6 +739,11 @@ eRNAStatus RNA_property_collection_move(PointerRNA *ptr,
 /**
  * Copy the given property value from `fromtptr` to `ptr` data.
  *
+ * \param bmain Main database containing the owner of the _destination_ `ptr` PointerRNA. May be
+ * null (e.g. in evaluated data case, no-main IDs, etc.), in which case some features may not work
+ * (e.g. default apply callback will skip calling the 'update' callback on the destination
+ * property).
+ *
  * \return True if copy was successful, false otherwise.
  */
 bool RNA_property_copy(Main *bmain,

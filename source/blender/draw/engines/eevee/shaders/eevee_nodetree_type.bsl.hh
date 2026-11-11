@@ -14,7 +14,7 @@
 
 #include "gpu_shader_compat.hh"
 
-struct [[host_shared]] NodeTree {
+struct NodeTree {
   float crypto_hash;
   bool32_t thickness_mode;
   float _pad1;

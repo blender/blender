@@ -13,14 +13,14 @@
 #if 0
 template<typename T0, typename T1, typename T2>
 void oneapi_call(
-    KernelGlobalsGPU *kg,
+    KernelParamsOneAPI *kernel_params,
     sycl::handler &cgh,
   const size_t global_size,
   const size_t local_size,
     void **args,
-    void (*func)(const KernelGlobalsGPU *, size_t, size_t, sycl::handler &, T0, T1, T2))
+    void (*func)(KernelParamsOneAPI *, size_t, size_t, sycl::handler &, T0, T1, T2))
 {
-  func(kg, global_size, local_size, cgh, *(T0 *)(args[0]), *(T1 *)(args[1]), *(T2 *)(args[2]));
+  func(kernel_params, global_size, local_size, cgh, *(T0 *)(args[0]), *(T1 *)(args[1]), *(T2 *)(args[2]));
 }
 #endif
 
@@ -85,14 +85,14 @@ void oneapi_call(
 #define oneapi_template(...) \
   template<ONEAPI_CALL_FOR(ONEAPI_TYP, __VA_ARGS__)> \
   void oneapi_call( \
-      KernelGlobalsGPU *kg, \
+      KernelParamsOneAPI *kernel_params, \
       sycl::handler &cgh, \
       size_t global_size, \
       size_t local_size, \
       void **args, \
-      void (*func)(KernelGlobalsGPU*, size_t, size_t, sycl::handler &, ONEAPI_CALL_FOR(ONEAPI_T, __VA_ARGS__))) \
+      void (*func)(KernelParamsOneAPI*, size_t, size_t, sycl::handler &, ONEAPI_CALL_FOR(ONEAPI_T, __VA_ARGS__))) \
   { \
-        func(kg, \
+        func(kernel_params, \
              global_size, \
              local_size, \
              cgh, \

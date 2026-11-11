@@ -23,7 +23,7 @@ namespace blender::draw {
 static VectorSet<StringRef> mesh_extract_uv_format_init(GPUVertFormat *format,
                                                         const MeshBatchCache &cache,
                                                         const Mesh &mesh,
-                                                        const MeshExtractType extract_type)
+                                                        const bool is_edit_mode_uv)
 {
   GPU_vertformat_deinterleave(format);
 
@@ -36,7 +36,7 @@ static VectorSet<StringRef> mesh_extract_uv_format_init(GPUVertFormat *format,
   const StringRef default_name = mesh.default_uv_map_name();
 
   /* HACK to fix #68857 */
-  if (extract_type == MeshExtractType::BMesh && cache.cd_used.edit_uv == 1) {
+  if (is_edit_mode_uv && cache.cd_used.edit_uv == 1) {
     if (!bke::attribute_name_is_anonymous(default_name)) {
       uv_layers.add(default_name);
     }
@@ -81,7 +81,7 @@ gpu::VertBufPtr extract_uv_maps(const MeshRenderData &mr, const MeshBatchCache &
 
   int v_len = mr.corners_num;
   const VectorSet<StringRef> uv_layers = mesh_extract_uv_format_init(
-      &format, cache, *mr.mesh, mr.extract_type);
+      &format, cache, *mr.mesh, mr.extract_type == MeshExtractType::BMesh);
   if (uv_layers.is_empty()) {
     /* VBO will not be used, only allocate minimum of memory. */
     v_len = 1;
@@ -141,7 +141,7 @@ gpu::VertBufPtr extract_uv_maps_subdiv(const DRWSubdivCache &subdiv_cache,
   GPUVertFormat format = {0};
 
   const VectorSet<StringRef> uv_layers = mesh_extract_uv_format_init(
-      &format, cache, *coarse_mesh, MeshExtractType::Mesh);
+      &format, cache, *coarse_mesh, false);
 
   uint v_len = subdiv_cache.num_subdiv_loops;
   if (uv_layers.is_empty()) {

@@ -64,7 +64,7 @@ static wmOperatorStatus edbm_circularize_exec(bContext *C, wmOperator *op)
   bool has_valid_selection = false;
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totvertsel < 3) {
       continue;
     }

@@ -336,7 +336,7 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
   /* Else, make sure that any groups with higher indices are adjusted accordingly */
   else if (ob->type == OB_MESH) {
     Mesh *mesh = id_cast<Mesh *>(ob->data);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
     const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
 
     BMIter iter;

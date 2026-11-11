@@ -55,6 +55,9 @@ void GeometryComponentEditData::clear()
 
 static ImplicitSharingPtrAndData save_shared_attribute(const GAttributeReader &attribute)
 {
+  if (!attribute) {
+    return {};
+  }
   if (attribute.sharing_info && attribute.varray.is_span()) {
     const void *data = attribute.varray.get_internal_span().data();
     attribute.sharing_info->add_user();
@@ -128,6 +131,10 @@ static void remember_deformed_grease_pencil_if_necessary(const GreasePencil *gre
       continue;
     }
     drawing_hints.positions_data = save_shared_attribute(curves.attributes().lookup("position"));
+    drawing_hints.handle_positions_left_data = save_shared_attribute(
+        curves.attributes().lookup("handle_left"));
+    drawing_hints.handle_positions_right_data = save_shared_attribute(
+        curves.attributes().lookup("handle_right"));
   }
 }
 

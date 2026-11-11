@@ -2444,6 +2444,73 @@ void ensure_non_empty_layer_names(Main &bmain, GreasePencil &grease_pencil)
   }
 }
 
+void set_stroke_type(bke::MutableAttributeAccessor attributes,
+                     const IndexMask &selection,
+                     const StrokeType type)
+{
+  bke::SpanAttributeWriter<bool> hide_stroke = attributes.ensure_for_write_span<bool>(
+      "hide_stroke", bke::AttrDomain::Curve);
+  bke::SpanAttributeWriter<int> fill_ids = attributes.ensure_for_write_span<int>(
+      "fill_id", bke::AttrDomain::Curve);
+
+  switch (type) {
+    case StrokeType::Stroke: {
+      index_mask::masked_fill(hide_stroke.span, false, selection);
+      index_mask::masked_fill(fill_ids.span, 0, selection);
+      break;
+    }
+    case StrokeType::Fill: {
+      index_mask::masked_fill(hide_stroke.span, true, selection);
+      break;
+    }
+    case StrokeType::Both: {
+      index_mask::masked_fill(hide_stroke.span, false, selection);
+      break;
+    }
+  }
+
+  if (ELEM(type, StrokeType::Fill, StrokeType::Both)) {
+    IndexMaskMemory memory;
+    const IndexMask selected_non_fill_strokes = IndexMask::from_predicate(
+        selection, memory, [&](const int64_t index) { return fill_ids.span[index] == 0; });
+    gather_next_available_fill_ids(
+        fill_ids.span.varray(), selected_non_fill_strokes, fill_ids.span);
+    bke::SpanAttributeWriter<float> fill_opacities = attributes.ensure_for_write_span<float>(
+        "fill_opacity", bke::AttrDomain::Curve);
+
+    /* Each non fill selected stroke becomes a new fill. */
+    index_mask::masked_fill(fill_opacities.span, 1.0f, selected_non_fill_strokes);
+    fill_opacities.finish();
+  }
+
+  hide_stroke.finish();
+  fill_ids.finish();
+
+  if (type == StrokeType::Stroke) {
+    if (std::all_of(fill_ids.span.begin(),
+                    fill_ids.span.end(),
+                    [&](const int64_t fill_id) { return fill_id == 0; }))
+    {
+      /* Remove #fill_id attribute if there are no fills left. */
+      attributes.remove("fill_id");
+    }
+  }
+
+  if (ELEM(type, StrokeType::Stroke, StrokeType::Both)) {
+    const array_utils::BooleanMix hide_strokes_mix = array_utils::booleans_mix_calc(
+        hide_stroke.span.varray());
+    if (hide_strokes_mix == array_utils::BooleanMix::AllFalse) {
+      /* Remove #hide_stroke attribute if all strokes are visible. */
+      attributes.remove("hide_stroke");
+    }
+    else {
+      /* If some strokes got unhidden, make sure that we create the radius attribute if it
+       * doesn't exist already. */
+      attributes.add<float>("radius", bke::AttrDomain::Point, bke::AttributeInitValue(0.005f));
+    }
+  }
+}
+
 }  // namespace bke::greasepencil
 
 namespace bke {
@@ -2460,6 +2527,24 @@ std::optional<Span<float3>> GreasePencilDrawingEditHints::positions() const
   return Span(static_cast<const float3 *>(this->positions_data.data), points_num);
 }
 
+std::optional<Span<float3>> GreasePencilDrawingEditHints::handle_positions_left() const
+{
+  if (!this->handle_positions_left_data.has_value()) {
+    return std::nullopt;
+  }
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  return Span(static_cast<const float3 *>(this->handle_positions_left_data.data), points_num);
+}
+
+std::optional<Span<float3>> GreasePencilDrawingEditHints::handle_positions_right() const
+{
+  if (!this->handle_positions_right_data.has_value()) {
+    return std::nullopt;
+  }
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  return Span(static_cast<const float3 *>(this->handle_positions_right_data.data), points_num);
+}
+
 std::optional<MutableSpan<float3>> GreasePencilDrawingEditHints::positions_for_write()
 {
   if (!this->positions_data.has_value()) {
@@ -2474,6 +2559,50 @@ std::optional<MutableSpan<float3>> GreasePencilDrawingEditHints::positions_for_w
   }
   else {
     auto *new_sharing_info = new ImplicitSharedValue<Array<float3>>(*this->positions());
+    data.sharing_info = ImplicitSharingPtr<>(new_sharing_info);
+    data.data = new_sharing_info->data.data();
+  }
+
+  return MutableSpan(const_cast<float3 *>(static_cast<const float3 *>(data.data)), points_num);
+}
+
+std::optional<MutableSpan<float3>> GreasePencilDrawingEditHints::handle_positions_left_for_write()
+{
+  if (!this->handle_positions_left_data.has_value()) {
+    return std::nullopt;
+  }
+
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  ImplicitSharingPtrAndData &data = this->handle_positions_left_data;
+  if (data.sharing_info->is_mutable()) {
+    /* If the referenced component is already mutable, return it directly. */
+    data.sharing_info->tag_ensured_mutable();
+  }
+  else {
+    auto *new_sharing_info = new ImplicitSharedValue<Array<float3>>(
+        *this->handle_positions_left());
+    data.sharing_info = ImplicitSharingPtr<>(new_sharing_info);
+    data.data = new_sharing_info->data.data();
+  }
+
+  return MutableSpan(const_cast<float3 *>(static_cast<const float3 *>(data.data)), points_num);
+}
+
+std::optional<MutableSpan<float3>> GreasePencilDrawingEditHints::handle_positions_right_for_write()
+{
+  if (!this->handle_positions_right_data.has_value()) {
+    return std::nullopt;
+  }
+
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  ImplicitSharingPtrAndData &data = this->handle_positions_right_data;
+  if (data.sharing_info->is_mutable()) {
+    /* If the referenced component is already mutable, return it directly. */
+    data.sharing_info->tag_ensured_mutable();
+  }
+  else {
+    auto *new_sharing_info = new ImplicitSharedValue<Array<float3>>(
+        *this->handle_positions_right());
     data.sharing_info = ImplicitSharingPtr<>(new_sharing_info);
     data.data = new_sharing_info->data.data();
   }

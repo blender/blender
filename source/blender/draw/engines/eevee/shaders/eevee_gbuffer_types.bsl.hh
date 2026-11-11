@@ -20,6 +20,7 @@
  * without dealing with none-closures.
  */
 
+#include "eevee_bxdf_types.bsl.hh"
 #include "eevee_defines.hh"
 
 #include "eevee_thickness_lib.bsl.hh"
@@ -143,11 +144,6 @@ bool color_is_grayscale(float3 color)
   return all(equal(color.rgb, color.gbr));
 }
 
-bool closure_is_empty(ClosureUndetermined cl)
-{
-  return cl.weight() <= CLOSURE_WEIGHT_CUTOFF || cl.type == CLOSURE_NONE_ID;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -197,7 +193,7 @@ float ior_unpack(float ior_packed)
                                           (ior_packed / ior_packed_lt_1_scale);
 }
 
-float thickness_pack(Thickness thickness)
+float thickness_pack(const Thickness thickness)
 {
   /* TODO(fclem): If needed, we could increase precision by defining a ceiling value like the view
    * distance and remap to it. Or tweak the hyperbole equality. */
@@ -205,7 +201,7 @@ float thickness_pack(Thickness thickness)
   /* Remap [0..+inf) to [0..1/2]. */
   float thickness_packed = thickness.value() / (1.0f + 2.0f * thickness.value());
   /* Mirror the negative from [0..1/2] to [1..1/2]. O is mapped to 0 for precision. */
-  return thickness.mode() == ThicknessMode::Slab ? 1.0f - thickness_packed : thickness_packed;
+  return thickness.is_sphere() ? thickness_packed : 1.0f - thickness_packed;
 }
 
 Thickness thickness_unpack(float thickness_packed)
@@ -525,7 +521,7 @@ struct AdditionalInfo {
   }
 };
 
-/* Almost 1:1 match with ClosureUndetermined but has packed data. */
+/* Almost 1:1 match with BsdfClosure but has packed data. */
 struct ClosurePacking {
   /* Packed data layer 0. Always used. */
   float4 data0;
@@ -573,36 +569,36 @@ using ClosurePacking = gbuffer::ClosurePacking;
  * \{ */
 
 struct Subsurface {
-  static void pack_additional(ClosurePacking &cl_packed, ClosureUndetermined cl)
+  static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
   {
     cl_packed.data1 = gbuffer::sss_radii_pack(cl.data.xyz);
   }
 
-  static void unpack_additional(ClosureUndetermined &cl, float4 data1)
+  static void unpack_additional(BsdfClosure &cl, float4 data1)
   {
     cl.data.rgb = gbuffer::sss_radii_unpack(data1);
   }
 };
 
 struct Reflection {
-  static void pack_additional(ClosurePacking &cl_packed, ClosureUndetermined cl)
+  static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
   {
     cl_packed.data1 = float4(cl.data.x, 0.0f, 0.0f, 0.0f);
   }
 
-  static void unpack_additional(ClosureUndetermined &cl, float4 data1)
+  static void unpack_additional(BsdfClosure &cl, float4 data1)
   {
     cl.data.x = data1.x; /* Roughness. */
   }
 };
 
 struct Refraction {
-  static void pack_additional(ClosurePacking &cl_packed, ClosureUndetermined cl)
+  static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
   {
     cl_packed.data1 = float4(cl.data.x, gbuffer::ior_pack(cl.data.y), 0.0f, 0.0f);
   }
 
-  static void unpack_additional(ClosureUndetermined &cl, float4 data1)
+  static void unpack_additional(BsdfClosure &cl, float4 data1)
   {
     cl.data.x = data1.x; /* Roughness. */
     cl.data.y = gbuffer::ior_unpack(data1.y);
@@ -610,12 +606,12 @@ struct Refraction {
 };
 
 struct ThinRefraction {
-  static void pack_additional(ClosurePacking &cl_packed, ClosureUndetermined cl)
+  static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
   {
     cl_packed.data1 = float4(cl.data.x, 0.0f, 0.0f, 0.0f);
   }
 
-  static void unpack_additional(ClosureUndetermined &cl, float4 data1)
+  static void unpack_additional(BsdfClosure &cl, float4 data1)
   {
     cl.data.x = data1.x; /* Roughness. */
   }
@@ -623,12 +619,12 @@ struct ThinRefraction {
 
 /* Special case where we can save 1 data layers per closure. */
 struct ReflectionColorless {
-  static void pack_additional(ClosurePacking &cl_packed, ClosureUndetermined cl)
+  static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
   {
     cl_packed.data0 = float4(cl.data.x, 0.0f, cl_packed.data0.zw);
   }
 
-  static void unpack_additional(ClosureUndetermined &cl, float4 data0)
+  static void unpack_additional(BsdfClosure &cl, float4 data0)
   {
     cl.color = cl.color.zzz;
     cl.data.x = data0.x; /* Roughness. */
@@ -637,12 +633,12 @@ struct ReflectionColorless {
 
 /* Special case where we can save 1 data layers per closure. */
 struct RefractionColorless {
-  static void pack_additional(ClosurePacking &cl_packed, ClosureUndetermined cl)
+  static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
   {
     cl_packed.data0 = float4(cl.data.x, gbuffer::ior_pack(cl.data.y), cl_packed.data0.zw);
   }
 
-  static void unpack_additional(ClosureUndetermined &cl, float4 data0)
+  static void unpack_additional(BsdfClosure &cl, float4 data0)
   {
     cl.color = cl.color.zzz;
     cl.data.x = data0.x; /* Roughness. */
@@ -652,12 +648,12 @@ struct RefractionColorless {
 
 /* Special case where we can save 1 data layers per closure. */
 struct ThinRefractionColorless {
-  static void pack_additional(ClosurePacking &cl_packed, ClosureUndetermined cl)
+  static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
   {
     cl_packed.data0 = float4(cl.data.x, 0.0f, cl_packed.data0.zw);
   }
 
-  static void unpack_additional(ClosureUndetermined &cl, float4 data0)
+  static void unpack_additional(BsdfClosure &cl, float4 data0)
   {
     cl.color = cl.color.zzz;
     cl.data.x = data0.x; /* Roughness. */
@@ -665,12 +661,12 @@ struct ThinRefractionColorless {
 };
 
 struct OrenNayar {
-  static void pack_additional(ClosurePacking &cl_packed, ClosureUndetermined cl)
+  static void pack_additional(ClosurePacking &cl_packed, BsdfClosure cl)
   {
     cl_packed.data1 = float4(cl.data.x, 0.0f, 0.0f, 0.0f);
   }
 
-  static void unpack_additional(ClosureUndetermined &cl, float4 data1)
+  static void unpack_additional(BsdfClosure &cl, float4 data1)
   {
     cl.data.x = data1.x; /* Roughness. */
   }

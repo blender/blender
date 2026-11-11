@@ -125,7 +125,7 @@ static wmOperatorStatus mesh_bisect_invoke(bContext *C, wmOperator *op, const wm
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
-    const BMesh *bm = BKE_editmesh_bmesh_get(obedit);
+    const BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totedgesel != 0) {
       valid_objects++;
     }
@@ -161,7 +161,7 @@ static wmOperatorStatus mesh_bisect_invoke(bContext *C, wmOperator *op, const wm
     /* Store the mesh backups. */
     for (const int ob_index : objects.index_range()) {
       Object *obedit = objects[ob_index];
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
       if (bm->totedgesel != 0) {
         opdata->backup[ob_index].is_valid = true;
         opdata->backup[ob_index].mesh_backup = EDBM_redo_state_store(bm);
@@ -296,7 +296,7 @@ static wmOperatorStatus mesh_bisect_exec(bContext *C, wmOperator *op)
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
     EditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
     if (opdata != nullptr) {
       if (opdata->backup[ob_index].is_dirty) {

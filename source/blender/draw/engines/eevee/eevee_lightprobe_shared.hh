@@ -22,18 +22,18 @@ namespace blender::eevee {
 /** \name Probe Spheres
  * \{ */
 
-struct [[host_shared]] ReflectionProbeLowFreqLight {
+struct ReflectionProbeLowFreqLight {
   packed_float3 direction;
   float ambient;
 };
 
-enum [[host_shared]] LightProbeShape : uint32_t {
+enum LightProbeShape : uint32_t {
   SHAPE_ELLIPSOID,
   SHAPE_CUBOID,
 };
 
 /* Sampling coordinates using UV space. */
-struct [[host_shared]] SphereProbeUvArea {
+struct SphereProbeUvArea {
   /* Offset in UV space to the start of the sampling space of the octahedron map. */
   float2 offset;
   /* Scaling of the squared UV space of the octahedron map. */
@@ -43,7 +43,7 @@ struct [[host_shared]] SphereProbeUvArea {
 };
 
 /* Pixel read/write coordinates using pixel space. */
-struct [[host_shared]] SphereProbePixelArea {
+struct SphereProbePixelArea {
   /* Offset in pixel space to the start of the writing space of the octahedron map.
    * Note that the writing space is not the same as the sampling space as we have borders. */
   int2 offset;
@@ -54,7 +54,7 @@ struct [[host_shared]] SphereProbePixelArea {
 };
 
 /** Mapping data to locate a reflection probe in texture. */
-struct [[host_shared]] SphereProbeData {
+struct SphereProbeData {
   /** Transform to probe local position with non-uniform scaling. */
   float3x4 world_to_probe_transposed;
 
@@ -77,7 +77,7 @@ struct [[host_shared]] SphereProbeData {
 };
 
 /** Viewport Display Pass. */
-struct [[host_shared]] SphereProbeDisplayData {
+struct SphereProbeDisplayData {
   int probe_index;
   float display_size;
   float _pad0;
@@ -86,14 +86,14 @@ struct [[host_shared]] SphereProbeDisplayData {
 
 /* Used for sphere probe spherical harmonics extraction. Output one for each thread-group
  * and do a sum afterward. Reduces bandwidth usage. */
-struct [[host_shared]] SphereProbeHarmonic {
+struct SphereProbeHarmonic {
   float4 L0_M0;
   float4 L1_Mn1;
   float4 L1_M0;
   float4 L1_Mp1;
 };
 
-struct [[host_shared]] SphereProbeSunLight {
+struct SphereProbeSunLight {
   float4 direction;
   packed_float3 radiance;
   float _pad0;
@@ -105,7 +105,7 @@ struct [[host_shared]] SphereProbeSunLight {
 /** \name Planar Volume
  * \{ */
 
-struct [[host_shared]] PlanarProbeData {
+struct PlanarProbeData {
   /** Matrices used to render the planar capture. */
   float4x4 viewmat;
   float4x4 winmat;
@@ -124,7 +124,7 @@ struct [[host_shared]] PlanarProbeData {
 };
 
 /** Viewport Display Pass. */
-struct [[host_shared]] PlanarProbeDisplayData {
+struct PlanarProbeDisplayData {
   float4x4 plane_to_world;
   int probe_index;
   float _pad0;
@@ -138,7 +138,7 @@ struct [[host_shared]] PlanarProbeDisplayData {
 /** \name Probe Volume
  * \{ */
 
-struct [[host_shared]] VolumeProbeData {
+struct VolumeProbeData {
   /** World to non-normalized local grid space [0..size-1]. Stored transposed for compactness. */
   float3x4 world_to_grid_transposed;
   /** Number of bricks for this grid. */
@@ -179,7 +179,7 @@ static inline IrradianceBrick irradiance_brick_unpack(IrradianceBrickPacked bric
 /** \name Baking structures
  * \{ */
 
-struct [[host_shared]] SurfelRadiance {
+struct SurfelRadiance {
   /* Actually stores radiance and world (sky) visibility. Stored normalized. */
   float4 front;
   float4 back;
@@ -190,7 +190,7 @@ struct [[host_shared]] SurfelRadiance {
   float _pad1;
 };
 
-struct [[host_shared]] Surfel {
+struct Surfel {
   /** World position of the surfel. */
   packed_float3 position;
   /** Previous surfel index in the ray link-list. Only valid after sorting. */
@@ -221,7 +221,7 @@ struct [[host_shared]] Surfel {
   struct SurfelRadiance radiance_indirect[2];
 };
 
-struct [[host_shared]] CaptureInfoData {
+struct CaptureInfoData {
   /** Grid size without padding. */
   packed_int3 irradiance_grid_size;
   /** True if the surface shader needs to write the surfel data. */
@@ -271,7 +271,7 @@ struct [[host_shared]] CaptureInfoData {
   struct SphereProbeUvArea world_atlas_coord;
 };
 
-struct [[host_shared]] SurfelListInfoData {
+struct SurfelListInfoData {
   /** Size of the grid used to project the surfels into linked lists. */
   int2 ray_grid_size;
   /** Maximum number of list. Is equal to `ray_grid_size.x * ray_grid_size.y`. */

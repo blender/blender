@@ -81,7 +81,7 @@ static wmOperatorStatus edbm_fit_edge_loops_to_annotation_exec(bContext *C, wmOp
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
     Vector<Vector<float3>> all_points;
     if (gpf) {

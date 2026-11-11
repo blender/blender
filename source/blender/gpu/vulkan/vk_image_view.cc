@@ -33,16 +33,14 @@ VKImageView::VKImageView(VKTexture &texture, const VKImageViewInfo &info, String
   image_view_info.subresourceRange.baseArrayLayer = info.layer_range.first();
   image_view_info.subresourceRange.layerCount = info.layer_range.size();
 
-  /* When extended usage is enabled for storage images, it means the original format
-   * is not supported. So we must strip USAGE_STORAGE for the image view that has the
-   * same format as the image, and only leave it for the other image view with the
-   * format that will be used for storage. */
+  /* Restrict the view usage to what the view format supports. */
+  const VkImageUsageFlags image_usage = texture.vk_image_usage_get();
   VkImageViewUsageCreateInfo view_usage_info = {VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO};
-  if (vk_need_extended_usage_for_storage_image(texture.usage_get(), texture.format_flag_get()) &&
-      info.vk_format == to_vk_format(texture.device_format_get()))
-  {
-    view_usage_info.usage = texture.vk_image_usage_get() & ~VK_IMAGE_USAGE_STORAGE_BIT;
-    BLI_assert(view_usage_info.usage != 0);
+  const VkImageUsageFlags view_usage = image_usage &
+                                       vk_image_usage_supported_by_format(info.vk_format);
+  if (view_usage != image_usage) {
+    view_usage_info.usage = view_usage;
+    BLI_assert(view_usage != 0);
     view_usage_info.pNext = image_view_info.pNext;
     image_view_info.pNext = &view_usage_info;
   }

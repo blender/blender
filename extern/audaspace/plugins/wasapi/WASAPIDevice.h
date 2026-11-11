@@ -50,9 +50,13 @@ private:
 	ComPtr<IMMDeviceEnumerator> m_imm_device_enumerator;
 	ComPtr<IMMDevice> m_imm_device;
 	ComPtr<IAudioClient> m_audio_client;
+	ComPtr<IAudioClock> m_audio_clock;
 	WAVEFORMATEXTENSIBLE m_wave_format_extensible;
 	bool m_default_device_changed;
 	LONG m_reference_count;
+
+	UINT64 m_synchronizer_start_time{0};
+	double m_synchronizer_start_position{0.0};
 
 	AUD_LOCAL HRESULT setupRenderClient(IAudioRenderClient*& render_client, UINT32& buffer_size);
 
@@ -78,6 +82,9 @@ private:
 	WASAPIDevice(const WASAPIDevice&) = delete;
 	WASAPIDevice& operator=(const WASAPIDevice&) = delete;
 
+protected:
+	virtual void playing(bool playing);
+
 public:
 	/**
 	 * Opens the WASAPI audio device for playback.
@@ -92,6 +99,11 @@ public:
 	 * Closes the WASAPI audio device.
 	 */
 	virtual ~WASAPIDevice();
+
+	virtual void seekSynchronizer(double time);
+	virtual double getSynchronizerPosition();
+	virtual void playSynchronizer();
+	virtual void stopSynchronizer();
 
 	/**
 	 * Registers this plugin.

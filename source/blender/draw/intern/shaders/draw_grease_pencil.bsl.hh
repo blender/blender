@@ -528,6 +528,15 @@ struct GreasePencil {
     return stroke_hardess_mask(dist, hardfac);
   }
 
+  static float3 ray_plane_intersection(float3 ray_ori, float3 ray_dir, float4 plane)
+  {
+    float d = dot(plane.xyz, ray_dir);
+    float3 plane_co = plane.xyz * (-plane.w / dot(plane.xyz, plane.xyz));
+    float3 h = ray_ori - plane_co;
+    float lambda = -dot(plane.xyz, h) / ((abs(d) < 1e-8f) ? 1e-8f : d);
+    return ray_ori + ray_dir * lambda;
+  }
+
  private:
   static float stroke_hardess_mask(float dist, float hardfac)
   {

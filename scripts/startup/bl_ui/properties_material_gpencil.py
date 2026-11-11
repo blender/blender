@@ -110,6 +110,25 @@ class MATERIAL_PT_gpencil_surface(GPMaterialButtonsPanel, Panel):
         layout.use_property_split = True
 
 
+def draw_image_settings(layout, gpcolor, image, image_name, image_user):
+    layout.template_ID(gpcolor, image_name, open="image.open")
+    layout.prop(image, "source")
+
+    if image.source in ["SEQUENCE", "MOVIE"]:
+        col = layout.column(align=True)
+        row = col.row()
+        row.prop(image_user, "frame_duration")
+        row.operator("IMAGE_OT_match_movie_length", icon='FILE_REFRESH', text="")
+        col.prop(image_user, "frame_start")
+        col.prop(image_user, "frame_offset")
+
+        col.prop(image_user, "use_cyclic")
+        col.prop(image_user, "use_auto_refresh")
+
+    layout.template_colorspace_settings(image, "colorspace_settings")
+    layout.prop(image, "alpha_mode")
+
+
 class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
     bl_label = "Stroke"
     bl_parent_id = "MATERIAL_PT_gpencil_surface"
@@ -152,7 +171,9 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
             if gpcolor.stroke_style == 'TEXTURE':
                 row = col.row()
                 col = row.column(align=True)
-                col.template_ID(gpcolor, "stroke_image", open="image.open")
+
+                draw_image_settings(col, gpcolor, gpcolor.stroke_image, "stroke_image", gpcolor.stroke_image_user)
+                col.separator()
 
             if gpcolor.stroke_style == 'TEXTURE':
                 row = col.row()
@@ -260,7 +281,8 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
             col.prop(gpcolor, "fill_color", text="Base Color")
             col.prop(gpcolor, "use_fill_holdout")
 
-            col.template_ID(gpcolor, "fill_image", open="image.open")
+            draw_image_settings(col, gpcolor, gpcolor.fill_image, "fill_image", gpcolor.fill_image_user)
+            col.separator()
 
             col.prop(gpcolor, "mix_factor", text="Blend", slider=True)
 

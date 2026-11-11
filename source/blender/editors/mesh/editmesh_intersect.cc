@@ -91,7 +91,7 @@ static int bm_face_isect_pair_swap(BMFace *f, void * /*user_data*/)
 static void edbm_intersect_select(Mesh *mesh, bool do_select)
 {
   EditMesh *em = mesh->runtime->edit_mesh.get();
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
   if (do_select) {
     BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
@@ -194,7 +194,7 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
     EditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totfacesel == 0) {
       continue;
     }
@@ -361,7 +361,7 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
     EditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totfacesel == 0) {
       continue;
     }
@@ -807,7 +807,7 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
       *bmain, scene, view_layer, CTX_wm_view3d(C));
   for (Object *obedit : objects) {
     EditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if ((bm->totedgesel == 0) || (bm->totfacesel == 0)) {
       continue;
     }

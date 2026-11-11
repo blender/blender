@@ -718,10 +718,13 @@ class Cameras : Overlay {
         r_use_alpha_premult = (image->alpha_mode == IMA_ALPHA_PREMUL);
         r_use_view_transform = (image->flag & IMA_VIEW_AS_RENDER) != 0;
 
-        BKE_image_user_frame_calc(image, iuser, ctime);
-        if (image->source == IMA_SRC_SEQUENCE && !(iuser->flag & IMA_USER_FRAME_IN_RANGE)) {
-          /* Frame is out of range, don't show. */
-          return nullptr;
+        /* Match the depsgraph, which keeps the stored frame without Auto Refresh. */
+        if (iuser->flag & (IMA_ANIM_ALWAYS | IMA_NEED_FRAME_RECALC)) {
+          BKE_image_user_frame_calc(image, iuser, ctime);
+          if (image->source == IMA_SRC_SEQUENCE && !(iuser->flag & IMA_USER_FRAME_IN_RANGE)) {
+            /* Frame is out of range, don't show. */
+            return nullptr;
+          }
         }
 
         Images::stereo_setup(state.scene, state.v3d, image, iuser);

@@ -18,6 +18,7 @@
 #include "BLI_listbase.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_threads.hh"
 #include "BLI_time.hh"
 #include "BLI_utildefines.hh"
 
@@ -6554,6 +6555,12 @@ static wmOperatorStatus screen_animation_step_invoke(bContext *C,
                                                      wmOperator * /*op*/,
                                                      const wmEvent *event)
 {
+  /* This function touches a lot of things that only the main thread should touch.
+   * For example cfra and the animation timer.
+   * If this is not called by the main thread we will run into a lot of race conditions.
+   */
+  BLI_assert(BLI_thread_is_main());
+
   bScreen *screen = CTX_wm_screen(C);
   wmTimer *wt = screen->animtimer;
 
@@ -6597,7 +6604,17 @@ static wmOperatorStatus screen_animation_step_invoke(bContext *C,
   else if ((scene->audio.flag & AUDIO_SYNC) && (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
            isfinite(time = BKE_sound_sync_scene(scene_eval)))
   {
+    /* Go to the closest frame according to the audio backend. */
     scene->r.cfra = round(time * scene->frames_per_second());
+
+    /* Calculate how much offset there is between the audio backend and the blender frame timer.
+     * As we can't know how long each frame will take to render, we just try to make sure
+     * that the audio clock and Blender's frame pacing clock is aligned.
+     */
+    double seconds_per_frame = 1.0 / scene->frames_per_second();
+    double audio_delay = remainder(time, seconds_per_frame);
+    double time_to_next_refresh = wt->time_next - BLI_time_now_seconds();
+    double time_offset = audio_delay + time_to_next_refresh - seconds_per_frame;
 
 #ifdef PROFILE_AUDIO_SYNC
     newfra_int = scene->r.cfra;
@@ -6607,9 +6624,34 @@ static wmOperatorStatus screen_animation_step_invoke(bContext *C,
     else if (newfra_int > old_frame + 1) {
       printf("forward +%d jump detected, frame %d!\n", newfra_int - old_frame, old_frame);
     }
+    printf("frame: %f\n", time * scene->frames_per_second());
+    printf("delta time: %f ms, audio delay: %f ms, time offset %f ms\n",
+           wt->time_delta * 1000.0,
+           audio_delay * 1000.0,
+           time_offset * 1000.0);
+
     fflush(stdout);
     old_frame = newfra_int;
 #endif
+
+    double abs_time_offset = abs(time_offset);
+    if (abs_time_offset > 0.02) {
+      /* The desync is larger than 20 ms, do quick adjustment to try to get us back on time as
+       * quick as possible.
+       */
+      wt->time_last -= time_offset;
+      wt->time_next -= time_offset;
+      wt->time_start -= time_offset;
+    }
+    else if (abs_time_offset > 0.001) {
+      /* The desync is between 1ms and 20 ms. Try to slowly nudge the timer in the right direction
+       * to remedy the drift.
+       */
+      time_offset *= 0.1;
+      wt->time_last -= time_offset;
+      wt->time_next -= time_offset;
+      wt->time_start -= time_offset;
+    }
   }
   else {
     if (sync) {

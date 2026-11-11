@@ -34,11 +34,6 @@ template<typename T> struct kernel_array {
     return data[index];
   }
 
-  ccl_always_inline void write(const int index, const T &value) const
-  {
-    data[index] = value;
-  }
-
   T *data = nullptr;
   int width = 0;
 };
@@ -102,7 +97,6 @@ using KernelGlobals = const ThreadKernelGlobalsCPU *;
 
 /* Abstraction macros */
 #define kernel_data_fetch(name, index) (kg->name.fetch(index))
-#define kernel_data_write(name, index, value) (kg->name.write(index, value))
 #define kernel_data_array(name) (kg->name.data)
 #define kernel_data (kg->data)
 #if defined(WITH_PATH_GUIDING)

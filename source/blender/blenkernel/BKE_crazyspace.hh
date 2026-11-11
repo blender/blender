@@ -43,6 +43,11 @@ struct GeometryDeformation {
    * evaluated data. This may be empty if not available.
    */
   Span<float3x3> deform_mats;
+  /**
+   * Will be empty when handle attribute does not exist.
+   */
+  Span<float3> handle_positions_left;
+  Span<float3> handle_positions_right;
 
   float3 translation_from_deformed_to_original(const int position_i,
                                                const float3 &translation) const

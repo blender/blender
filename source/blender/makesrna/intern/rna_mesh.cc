@@ -1869,21 +1869,21 @@ static std::optional<std::string> rna_MeshColor_path(const PointerRNA *ptr)
 
 static int rna_Mesh_tot_vert_get(PointerRNA *ptr)
 {
-  Mesh *mesh = rna_mesh(ptr);
-  const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
-  return bm ? bm->totvertsel : 0;
+  int count[3];
+  BKE_mesh_count_selected_items(rna_mesh(ptr), count);
+  return count[0];
 }
 static int rna_Mesh_tot_edge_get(PointerRNA *ptr)
 {
-  Mesh *mesh = rna_mesh(ptr);
-  const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
-  return bm ? bm->totedgesel : 0;
+  int count[3];
+  BKE_mesh_count_selected_items(rna_mesh(ptr), count);
+  return count[1];
 }
 static int rna_Mesh_tot_face_get(PointerRNA *ptr)
 {
-  Mesh *mesh = rna_mesh(ptr);
-  const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
-  return bm ? bm->totfacesel : 0;
+  int count[3];
+  BKE_mesh_count_selected_items(rna_mesh(ptr), count);
+  return count[2];
 }
 
 static PointerRNA rna_Mesh_vertex_color_new(Mesh *mesh,
@@ -2002,7 +2002,7 @@ static bool rna_Mesh_materials_override_apply(Main *bmain,
     }
   }
 
-  if (is_modified) {
+  if (is_modified && bmain) {
     RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
   }
 

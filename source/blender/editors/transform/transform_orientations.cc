@@ -977,7 +977,7 @@ int getTransformOrientation_ex(const Main &bmain,
     ob = obedit;
 
     if (ob->type == OB_MESH) {
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
       BMEditSelection ese;
 
       /* Use last selected with active. */

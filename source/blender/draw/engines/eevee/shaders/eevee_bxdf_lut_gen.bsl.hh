@@ -65,13 +65,13 @@ struct GGXBrdfClosure {
     GGXBrdfData brdf = {};
 
     /* Sample light vector, recover half vector as microfacet normal. */
-    float3 L = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
+    float3 L = GGX::sample_reflection(Xi, V, roughness, false).direction;
     float3 H = normalize(V + L);
 
     /* Restrict light vector to positive hemisphere. */
     float NL = L.z;
     if (NL > 0.0f) {
-      float weight = bxdf_ggx_eval_reflection(N, L, V, roughness, false).weight;
+      float weight = GGX::eval_reflection(N, L, V, roughness, false).weight;
       float VH = saturate(dot(V, H));
 
       /* Schlick's Fresnel. */
@@ -143,7 +143,7 @@ struct GGXBsdfClosure {
     GGXBsdfData bsdf = {};
 
     /* Reflection, restricted to positive hemisphere. */
-    float3 R = bxdf_ggx_sample_reflection(Xi, V, roughness, false).direction;
+    float3 R = GGX::sample_reflection(Xi, V, roughness, false).direction;
     float NR = R.z;
     if (NR > 0.0f) {
       /* Recover half vector as GGX normal. */
@@ -154,13 +154,13 @@ struct GGXBsdfClosure {
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0f - saturate(HL)));
 
-      float weight = bxdf_ggx_eval_reflection(N, R, V, roughness, false).weight;
+      float weight = GGX::eval_reflection(N, R, V, roughness, false).weight;
       bsdf.scale = (1.0f - s) * weight;
       bsdf.bias = s * weight;
     }
 
     /* Refraction, restricted to negative hemisphere. */
-    float3 T = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, Thickness{}, false).direction;
+    float3 T = GGX::sample_refraction(Xi, V, roughness, ior, Thickness{}, false).direction;
     float NT = T.z;
     /* In the case of TIR, `T == float3(0)`. */
     if (NT < 0.0f) {
@@ -171,7 +171,7 @@ struct GGXBsdfClosure {
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0f - saturate(HL)));
 
-      float weight = bxdf_ggx_eval_refraction(N, T, V, roughness, ior, Thickness{}, false).weight;
+      float weight = GGX::eval_refraction(N, T, V, roughness, ior, Thickness{}, false).weight;
       bsdf.transmission_factor = (1.0f - s) * weight;
     }
 
@@ -279,7 +279,7 @@ struct GGXBtdfGt1Closure {
     GGXBtdfGt1Data btdf = {};
 
     /* Refraction, restricted to negative hemisphere. */
-    float3 L = bxdf_ggx_sample_refraction(Xi, V, roughness, ior, Thickness{}, false).direction;
+    float3 L = GGX::sample_refraction(Xi, V, roughness, ior, Thickness{}, false).direction;
     float NL = L.z;
     if (NL < 0.0f) {
       /* Recover half vector as GGX normal. */
@@ -289,7 +289,7 @@ struct GGXBtdfGt1Closure {
       /* Schlick's Fresnel. */
       float s = saturate(pow5f(1.0f - saturate(HV)));
 
-      float weight = bxdf_ggx_eval_refraction(N, L, V, roughness, ior, Thickness{}, false).weight;
+      float weight = GGX::eval_refraction(N, L, V, roughness, ior, Thickness{}, false).weight;
       btdf.transmission_factor = (1.0f - s) * weight;
     }
 
@@ -489,7 +489,7 @@ template<typename T> float3 average_light_dir(const T &lut)
     const float3 rand = sample_cylinder(random::hammersley_2d(i, sample_count));
     const float3 L = lut.closure.bsdf_sample(rand, lut.V).direction;
     if (L.z > 0.0f) {
-      average_dir += lut.closure.bsdf_eval(N, L, lut.V).weight * L;
+      average_dir += lut.closure.bsdf_eval(N, lut.V, L).weight * L;
     }
   }
 
@@ -527,7 +527,7 @@ template<typename BSDF> float error_(const LTCFitter &fitter, const BSDF &bsdf, 
   /* Geometric normal. */
   constexpr float3 N = float3(0.0f, 0.0f, 1.0f);
 
-  const BsdfEval eval_closure = bsdf.closure.bsdf_eval(N, L, bsdf.V);
+  const BsdfEval eval_closure = bsdf.closure.bsdf_eval(N, bsdf.V, L);
   const BsdfEval eval_ltc = fitter.eval(L);
   const float error = abs(eval_closure.throughput - eval_ltc.throughput);
 
@@ -699,7 +699,7 @@ template<typename BSDF> float4 fit_ltc(const float3 coords, const float epsilon 
 }
 template float4 fit_ltc<OrenNayarClosure>(const float3, const float);
 
-[[compute]] [[local_size(LUT_WORKGROUP_SIZE, LUT_WORKGROUP_SIZE)]]
+[[compute]] [[local_size(LUT_WORKGROUP_SIZE, LUT_WORKGROUP_SIZE)]] [[no_fast_math]]
 void comp_main([[global_invocation_id]] const uint3 global_id, [[resource_table]] LUT &lut)
 {
   /* Make sure coordinates are covering the whole [0..1] range at texel center. */

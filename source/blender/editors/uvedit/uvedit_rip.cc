@@ -738,7 +738,7 @@ static bool uv_rip_object(
 {
   const ToolSettings *ts = scene->toolsettings;
 
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
   if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
     uvedit_select_prepare_sync_select(scene, bm);

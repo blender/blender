@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-09-06 05:02+0000\n"
 "Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -35011,12 +35011,44 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
+msgid "Enable Bone Options"
+msgstr "뼈대 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "뼈대 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메시 선택 모드"
 
 
 msgid "Creative"
 msgstr "크리에이티브"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
+msgid "Merge"
+msgstr "병합"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
 
 
 msgid "Special Characters"
@@ -35039,8 +35071,12 @@ msgid "Bone Roll"
 msgstr "뼈대 롤"
 
 
-msgid "Clean Up"
-msgstr "정리"
+msgid "Math"
+msgstr "수학"
+
+
+msgid "Utilities"
+msgstr "유틸리티"
 
 
 msgid "Pivot Point"
@@ -35071,16 +35107,32 @@ msgid "Vertex Group Locks"
 msgstr "버텍스 그룹 잠금"
 
 
-msgid "Math"
-msgstr "수학"
+msgid "Read"
+msgstr "읽기"
 
 
-msgid "Utilities"
-msgstr "유틸리티"
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Write"
+msgstr "쓰기"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
+
+
+msgid "Gizmo"
+msgstr "기즈모"
 
 
 msgid "Mirror"
 msgstr "미러"
+
+
+msgid "Instances"
+msgstr "인스턴스"
 
 
 msgid "UV Mapping"
@@ -35091,36 +35143,24 @@ msgid "Local View"
 msgstr "로컬 뷰"
 
 
-msgid "Read"
-msgstr "읽기"
-
-
 msgid "Viewpoint"
 msgstr "뷰포트"
-
-
-msgid "Sample"
-msgstr "샘플"
 
 
 msgid "Navigation"
 msgstr "네비게이션"
 
 
-msgid "Write"
-msgstr "쓰기"
-
-
 msgid "Align View"
 msgstr "뷰를 정렬"
 
 
+msgid "Import"
+msgstr "가져오기"
+
+
 msgid "Align View to Active"
 msgstr "뷰를 활성에 정렬"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
 
 
 msgid "View Regions"
@@ -35139,6 +35179,10 @@ msgid "Select All by Trait"
 msgstr "형질로 모두 선택"
 
 
+msgid "Deprecated"
+msgstr "사용 중단"
+
+
 msgid "Select Linked"
 msgstr "연결된 선택"
 
@@ -35147,40 +35191,24 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
-msgid "Gizmo"
-msgstr "기즈모"
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
 
 
-msgid "Instances"
-msgstr "인스턴스"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "머티리얼을 할당"
 
 
-msgid "Import"
-msgstr "가져오기"
-
-
-msgid "Deprecated"
-msgstr "사용 중단"
-
-
 msgid "Light"
 msgstr "라이트"
 
 
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
-
-
 msgid "Light Probe"
 msgstr "라이트 프로브"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -35227,6 +35255,14 @@ msgid "Hooks"
 msgstr "후크"
 
 
+msgid "Linked"
+msgstr "연결됨"
+
+
+msgid "Layout"
+msgstr "레이아웃"
+
+
 msgid "Trim/Add"
 msgstr "트림/추가"
 
@@ -35247,6 +35283,10 @@ msgid "Clear Transform"
 msgstr "변환을 지우기"
 
 
+msgid "Adjust"
+msgstr "조정"
+
+
 msgid "In-Betweens"
 msgstr "사이에서"
 
@@ -35259,56 +35299,16 @@ msgid "Bone Collections"
 msgstr "뼈대 컬렉션"
 
 
-msgid "Linked"
-msgstr "연결됨"
-
-
-msgid "Layout"
-msgstr "레이아웃"
-
-
-msgid "Toggle Bone Options"
-msgstr "뼈대 옵션을 토글"
-
-
-msgid "Enable Bone Options"
-msgstr "뼈대 옵션을 사용"
-
-
-msgid "Disable Bone Options"
-msgstr "뼈대 옵션을 사용 중지"
-
-
-msgid "Mesh Select Mode"
-msgstr "메시 선택 모드"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Adjust"
-msgstr "조정"
-
-
 msgid "Keying"
 msgstr "키잉"
 
 
-msgid "Merge"
-msgstr "병합"
-
-
 msgid "Tracking"
 msgstr "트래킹"
+
+
+msgid "Toggle Bone Options"
+msgstr "뼈대 옵션을 토글"
 
 
 msgid "Keyframe Insert Pie"
@@ -76443,10 +76443,6 @@ msgid "New Collection"
 msgstr "새로운 컬렉션"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "선택한 컬렉션 내부에 새 컬렉을션 추가"
-
-
 msgid "Nested"
 msgstr "중첩됨"
 
@@ -95765,10 +95761,6 @@ msgstr "독일어 - Deutsch"
 
 msgid "Greek - Ελληνικά"
 msgstr "그리스어 - Ελληνικά"
-
-
-msgid "Locale code: el_GR. Translation progress: 1%"
-msgstr "로캘 코드: el_GR. 번역 진행률: 1%"
 
 
 msgid "Hebrew - תירִבְעִ"
@@ -123728,6 +123720,11 @@ msgid "Disable in Render"
 msgstr "렌더에서 사용 안 함"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "신규"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "씬으로 인스턴스"
@@ -123762,11 +123759,6 @@ msgstr "하나의 레벨을 숨기기"
 msgctxt "Operator"
 msgid "Relocate"
 msgstr "이전"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "신규"
 
 
 msgctxt "Operator"

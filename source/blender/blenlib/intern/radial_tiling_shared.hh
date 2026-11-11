@@ -834,7 +834,9 @@ ccl_device float4 calculate_out_variables(bool calculate_r_gon_parameter_field,
         if (segment_divider_A_coord < segment_divider_A_angle_bisector) {
           r_gon_parameter *= -float(1.0);
         }
-        if (normalize_r_gon_parameter && (r_gon_sides != float(2.0))) {
+        if (normalize_r_gon_parameter && (r_gon_sides != float(2.0)) &&
+            (l_angle_bisector != float(0.0)))
+        {
           r_gon_parameter /= l_angle_bisector * tanf(segment_divider_A_angle_bisector);
         }
       }
@@ -1018,7 +1020,7 @@ ccl_device float4 calculate_out_variables(bool calculate_r_gon_parameter_field,
           if (segment_divider_A_coord < segment_divider_A_angle_bisector) {
             r_gon_parameter *= -float(1.0);
           }
-          if (normalize_r_gon_parameter) {
+          if (normalize_r_gon_parameter && (l_angle_bisector != float(0.0))) {
             r_gon_parameter /= l_angle_bisector * tanf(segment_divider_A_angle_bisector);
           }
         }

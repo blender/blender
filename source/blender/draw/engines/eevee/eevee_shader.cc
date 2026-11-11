@@ -1390,7 +1390,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
 
     vert_gen << "#line 1 \"" __FILE__ "\"\n";
     vert_gen << "#line " STRINGIFY(__LINE__) "\n";
-    vert_gen << "float3 nodetree_displacement(KernelGlobals kg, _ref(ShadingData, sd))\n";
+    vert_gen << "float3 nodetree_displacement_vert(KernelGlobals kg, _ref(ShadingData, sd))\n";
     vert_gen << "{\n";
     vert_gen << ((use_vertex_displacement) ? codegen.displacement.serialized :
                                              "return float3(0);\n");

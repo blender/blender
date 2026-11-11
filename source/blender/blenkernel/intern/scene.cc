@@ -2729,7 +2729,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
     {
       if (check_rendered_viewport_visible(bmain)) {
         Mesh *mesh = id_cast<Mesh *>(obedit->data);
-        BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+        BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
         BMeshToMeshParams params{};
         params.calc_object_remap = true;
         params.update_shapekey_indices = true;

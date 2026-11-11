@@ -84,7 +84,7 @@ void vert([[resource_table]] const Resources &srt,
           [[position]] float4 &out_pos)
 {
   if (sel.consts.selectable) [[static_branch]] {
-    sel_out.select_id = sel.in_select_buf[inst_index];
+    sel_out.select_id = uint(srt.in_select_id);
   }
 
   int cell = vert_id / 8;
@@ -396,7 +396,7 @@ void vert([[resource_table]] const Resources &srt,
           [[position]] float4 &out_pos)
 {
   if (sel.consts.selectable) [[static_branch]] {
-    sel_out.select_id = sel.in_select_buf[inst_index];
+    sel_out.select_id = uint(srt.in_select_id);
   }
 
   int cell = vert_id / 2; /* Line */

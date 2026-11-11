@@ -740,8 +740,11 @@ static bool rna_XrSessionState_is_running(bContext *C)
 static void rna_XrSessionState_runtime_name_get(PointerRNA *ptr, char *r_value)
 {
 #  ifdef WITH_XR_OPENXR
+  /* The RNA buffer is only sized for the string, not XR_MAX_RUNTIME_NAME_SIZE. */
+  char name[128]; /* XR_MAX_RUNTIME_NAME_SIZE */
   const wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
-  WM_xr_session_runtime_name_get(xr, r_value);
+  WM_xr_session_runtime_name_get(xr, name);
+  strcpy(r_value, name);
 #  else
   UNUSED_VARS(ptr);
   r_value[0] = '\0';

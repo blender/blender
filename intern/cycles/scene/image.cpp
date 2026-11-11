@@ -262,13 +262,15 @@ void ImageManager::load_image_metadata(ImageSingle *img, Progress &progress)
    * application processing. */
   isolate_task([&]() {
     /* Change image to use tx file if supported. */
+    bool metadata_incomplete = false;
     const ImageLoaderParams params = {.use_texture_cache = use_texture_cache,
                                       .auto_texture_cache = auto_texture_cache,
                                       .texture_cache_path = texture_cache_path,
                                       .colorspace = img->params.colorspace,
                                       .alpha_type = img->params.alpha_type,
                                       .load_failure_num = load_failure_num,
-                                      .tx_failure_num = tx_failure_num};
+                                      .tx_failure_num = tx_failure_num,
+                                      .metadata_incomplete = metadata_incomplete};
 
     ImageMetaData &metadata = img->metadata;
     metadata = ImageMetaData();
@@ -284,7 +286,7 @@ void ImageManager::load_image_metadata(ImageSingle *img, Progress &progress)
     metadata.finalize(img->params.alpha_type);
 
     /* Load again next update if cancelled, tx generation might be incomplete. */
-    if (!progress.get_cancel()) {
+    if (!metadata_incomplete) {
       img->need_metadata = false;
     }
   });

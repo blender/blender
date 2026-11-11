@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-09-15 16:12+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28210,24 +28210,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Merge"
+msgstr "Unganisha"
+
+
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
 
 msgid "Metaball"
 msgstr "Mpira wa miguu"
-
-
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
-msgid "Snap"
-msgstr "Picha"
 
 
 msgid "Math"
@@ -28238,8 +28234,12 @@ msgid "Utilities"
 msgstr "Huduma"
 
 
-msgid "Mirror"
-msgstr "Kioo"
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Read"
@@ -28250,10 +28250,6 @@ msgid "Sample"
 msgstr "Mfano"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
 msgid "Write"
 msgstr "Andika"
 
@@ -28262,12 +28258,16 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Mirror"
+msgstr "Kioo"
 
 
 msgid "Instances"
 msgstr "Matukio"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
 msgid "Import"
@@ -28276,6 +28276,10 @@ msgstr "Ingiza"
 
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Light"
@@ -28294,10 +28298,6 @@ msgid "Asset"
 msgstr "Mali"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
 msgid "Linked"
 msgstr "Imeunganishwa"
 
@@ -28310,12 +28310,12 @@ msgid "Adjust"
 msgstr "Rekebisha"
 
 
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
 msgid "Keying"
 msgstr "Kuweka"
-
-
-msgid "Merge"
-msgstr "Unganisha"
 
 
 msgid "Tracking"
@@ -61409,10 +61409,6 @@ msgstr "Unganisha mikusanyiko iliyochaguliwa kwenye eneo linalotumika"
 msgctxt "Operator"
 msgid "New Collection"
 msgstr "Mkusanyiko Mpya"
-
-
-msgid "Add a new collection inside selected collection"
-msgstr "Ongeza mkusanyiko mpya ndani ya mkusanyiko uliochaguliwa"
 
 
 msgid "Nested"
@@ -95809,6 +95805,11 @@ msgid "Disable in Render"
 msgstr "Zima katika Kutoa"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "Mpya"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "Mfano kwa Onyesho"
@@ -95834,11 +95835,6 @@ msgstr "Yaliyomo ya Kitu"
 msgctxt "Operator"
 msgid "Hide One Level"
 msgstr "Ficha Ngazi Moja"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "Mpya"
 
 
 msgctxt "Operator"

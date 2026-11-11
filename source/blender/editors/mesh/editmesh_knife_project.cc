@@ -131,7 +131,7 @@ static wmOperatorStatus knifeproject_exec(bContext *C, wmOperator *op)
   for (Object *obedit : objects) {
     ED_view3d_viewcontext_init_object(&vc, obedit);
     EditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
     /* select only tagged faces */
     BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);

@@ -6,8 +6,6 @@
  * \ingroup draw
  */
 
-#include "DNA_meshdata_types.h"
-
 #include "extract_mesh.hh"
 
 namespace blender::draw {
@@ -17,25 +15,14 @@ struct SkinRootData {
   float3 local_pos;
 };
 
-gpu::VertBufPtr extract_skin_roots(const MeshRenderData &mr)
+static void extract_skin_roots_bmesh(const MeshRenderData &mr, Vector<SkinRootData> &skin_roots)
 {
-  /* Exclusively for edit mode. */
-  BLI_assert(mr.bm);
-
-  static const GPUVertFormat format = []() {
-    GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "size", gpu::VertAttrType::SFLOAT_32);
-    GPU_vertformat_attr_add(&format, "local_pos", gpu::VertAttrType::SFLOAT_32_32_32);
-    return format;
-  }();
-
-  Vector<SkinRootData> skin_roots;
   const int radius_offset = CustomData_get_offset_named(
       &mr.bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius");
   const int root_offset = CustomData_get_offset_named(
       &mr.bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
   if (radius_offset == -1 || root_offset == -1) {
-    return {};
+    return;
   }
 
   BMIter iter;
@@ -47,6 +34,19 @@ gpu::VertBufPtr extract_skin_roots(const MeshRenderData &mr)
       skin_roots.append({((*radius)[0] + (*radius)[1]) * 0.5f, bm_vert_co_get(mr, vert)});
     }
   }
+}
+
+gpu::VertBufPtr extract_skin_roots(const MeshRenderData &mr)
+{
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
+    GPU_vertformat_attr_add(&format, "size", gpu::VertAttrType::SFLOAT_32);
+    GPU_vertformat_attr_add(&format, "local_pos", gpu::VertAttrType::SFLOAT_32_32_32);
+    return format;
+  }();
+
+  Vector<SkinRootData> skin_roots;
+  extract_skin_roots_bmesh(mr, skin_roots);
 
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vbo, skin_roots.size());

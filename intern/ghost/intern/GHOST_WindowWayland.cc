@@ -509,7 +509,7 @@ static bool gwl_window_state_set_for_xdg(xdg_toplevel *toplevel,
       }
       break;
     case GHOST_kWindowStateMaximized: {
-      /* Unset fullscreen before maximizing (required by the XDG shell spec). */
+      /* Needed as `set_maximized` has no effect while fullscreen, see: #153799. */
       if (state_current == GHOST_kWindowStateFullScreen) {
         xdg_toplevel_unset_fullscreen(toplevel);
       }
@@ -521,10 +521,7 @@ static bool gwl_window_state_set_for_xdg(xdg_toplevel *toplevel,
       break;
     }
     case GHOST_kWindowStateFullScreen: {
-      /* Unset maximized before going fullscreen (required by the XDG shell spec). */
-      if (state_current == GHOST_kWindowStateMaximized) {
-        xdg_toplevel_unset_maximized(toplevel);
-      }
+      /* Don't unset maximized, the compositor restores it on `unset_fullscreen`, see: #166082. */
       xdg_toplevel_set_fullscreen(toplevel, nullptr);
       break;
     }
@@ -1236,10 +1233,9 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
       }
     }
 
-    /* Must run on all state change so the "Decor" redraw event is always sent. */
+    /* Must run on all state changes so the "Decor" redraw event is always sent,
+     * otherwise `wmWindow::windowstate` is left out of sync with GHOST, see: #153799. */
     if (state_changed) {
-      /* In cases where geometry of the window doesn't change, we need to make
-       * sure that the decor gets redrawn to correctly show the new state we are in. */
       win->ghost_window->notify_decor_redraw();
     }
 

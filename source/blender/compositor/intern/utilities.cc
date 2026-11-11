@@ -95,7 +95,6 @@ ResultType socket_data_type_to_result_type(const eNodeSocketDatatype data_type,
     case SOCK_CLOSURE:
       return ResultType::Closure;
     default:
-      BLI_assert_unreachable();
       return ResultType::Float;
   }
 }

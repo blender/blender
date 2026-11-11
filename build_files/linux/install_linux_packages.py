@@ -10,6 +10,7 @@ __all__ = (
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -19,6 +20,7 @@ DISTRO_ID_DEBIAN = "debian"
 DISTRO_ID_FEDORA = "fedora"
 DISTRO_ID_SUSE = "suse"
 DISTRO_ID_ARCH = "arch"
+DISTRO_ID_VOID = "void"
 
 
 def find_privilege_escalation_tool():
@@ -27,12 +29,7 @@ def find_privilege_escalation_tool():
         return []
 
     for cmd in ("sudo", "doas"):
-        if subprocess.run(
-            ["command", "-v", cmd],
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-        ).returncode == 0:
+        if shutil.which(cmd) is not None:
             return [cmd]
 
     return []
@@ -137,6 +134,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                               DISTRO_ID_FEDORA: "gcc",
                                               DISTRO_ID_SUSE: "gcc",
                                               DISTRO_ID_ARCH: ...,
+                                              DISTRO_ID_VOID: ...,
                                               },
                         ),
                 Package(name="GCC-C++",
@@ -144,6 +142,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                               DISTRO_ID_FEDORA: "gcc-c++",
                                               DISTRO_ID_SUSE: "gcc-c++",
                                               DISTRO_ID_ARCH: ...,
+                                              DISTRO_ID_VOID: ...,
                                               },
                         ),
                 Package(name="make",
@@ -151,6 +150,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                               DISTRO_ID_FEDORA: "make",
                                               DISTRO_ID_SUSE: "make",
                                               DISTRO_ID_ARCH: ...,
+                                              DISTRO_ID_VOID: ...,
                                               },
                         ),
                 Package(name="glibc",
@@ -158,6 +158,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                               DISTRO_ID_FEDORA: "glibc-devel",
                                               DISTRO_ID_SUSE: "glibc-devel",
                                               DISTRO_ID_ARCH: ...,
+                                              DISTRO_ID_VOID: ...,
                                               },
                         ),
             ),
@@ -165,6 +166,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: ...,
                                   DISTRO_ID_SUSE: ...,
                                   DISTRO_ID_ARCH: "base-devel",
+                                  DISTRO_ID_VOID: "base-devel",
                                   },
             ),
     Package(name="Git", is_group=True,
@@ -174,6 +176,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                               DISTRO_ID_FEDORA: "git-lfs",
                                               DISTRO_ID_SUSE: "git-lfs",
                                               DISTRO_ID_ARCH: "git-lfs",
+                                              DISTRO_ID_VOID: "git-lfs",
                                               },
                         ),
             ),
@@ -181,6 +184,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "git",
                                   DISTRO_ID_SUSE: "git",
                                   DISTRO_ID_ARCH: "git",
+                                  DISTRO_ID_VOID: "git",
                                   },
             ),
     Package(name="CMake",
@@ -188,6 +192,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "cmake",
                                   DISTRO_ID_SUSE: "cmake",
                                   DISTRO_ID_ARCH: "cmake",
+                                  DISTRO_ID_VOID: "cmake",
                                   },
             ),
     Package(name="X11 library",
@@ -195,6 +200,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "libX11-devel",
                                   DISTRO_ID_SUSE: "libX11-devel",
                                   DISTRO_ID_ARCH: "libx11",
+                                  DISTRO_ID_VOID: "libX11-devel",
                                   },
             ),
     Package(name="Xxf86vm Library",
@@ -202,6 +208,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "libXxf86vm-devel",
                                   DISTRO_ID_SUSE: "libXxf86vm-devel",
                                   DISTRO_ID_ARCH: "libxxf86vm",
+                                  DISTRO_ID_VOID: "libXxf86vm-devel",
                                   },
             ),
     Package(name="XCursor Library",
@@ -209,6 +216,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "libXcursor-devel",
                                   DISTRO_ID_SUSE: "libXcursor-devel",
                                   DISTRO_ID_ARCH: "libxcursor",
+                                  DISTRO_ID_VOID: "libXcursor-devel",
                                   },
             ),
     Package(name="Xi Library",
@@ -216,6 +224,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "libXi-devel",
                                   DISTRO_ID_SUSE: "libXi-devel",
                                   DISTRO_ID_ARCH: "libxi",
+                                  DISTRO_ID_VOID: "libXi-devel",
                                   },
             ),
     Package(name="XRandr Library",
@@ -223,6 +232,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "libXrandr-devel",
                                   DISTRO_ID_SUSE: "libXrandr-devel",
                                   DISTRO_ID_ARCH: "libxrandr",
+                                  DISTRO_ID_VOID: "libXrandr-devel",
                                   },
             ),
     Package(name="Xinerama Library",
@@ -230,6 +240,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "libXinerama-devel",
                                   DISTRO_ID_SUSE: "libXinerama-devel",
                                   DISTRO_ID_ARCH: "libxinerama",
+                                  DISTRO_ID_VOID: "libXinerama-devel",
                                   },
             ),
     Package(name="XKbCommon Library",
@@ -237,6 +248,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "libxkbcommon-devel",
                                   DISTRO_ID_SUSE: "libxkbcommon-devel",
                                   DISTRO_ID_ARCH: "libxkbcommon",
+                                  DISTRO_ID_VOID: "libxkbcommon-devel",
                                   },
             ),
     Package(name="Wayland Library",
@@ -244,6 +256,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "wayland-devel",
                                   DISTRO_ID_SUSE: "wayland-devel",
                                   DISTRO_ID_ARCH: "wayland",
+                                  DISTRO_ID_VOID: "wayland-devel",
                                   },
             ),
     Package(name="Wayland Protocols",
@@ -251,6 +264,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "wayland-protocols-devel",
                                   DISTRO_ID_SUSE: "wayland-protocols-devel",
                                   DISTRO_ID_ARCH: "wayland-protocols",
+                                  DISTRO_ID_VOID: "wayland-protocols",
                                   },
             ),
     Package(name="DBus Library",
@@ -258,6 +272,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "dbus-devel",
                                   DISTRO_ID_SUSE: "dbus-1-devel",
                                   DISTRO_ID_ARCH: "dbus",
+                                  DISTRO_ID_VOID: "dbus-devel",
                                   },
             ),
     Package(name="OpenGL Library",
@@ -265,6 +280,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "mesa-libGL-devel",
                                   DISTRO_ID_SUSE: "Mesa-libGL-devel",
                                   DISTRO_ID_ARCH: "libglvnd",
+                                  DISTRO_ID_VOID: "libglvnd-devel",
                                   },
             ),
     Package(name="EGL Library",
@@ -272,6 +288,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "mesa-libEGL-devel",
                                   DISTRO_ID_SUSE: "Mesa-libEGL-devel",
                                   DISTRO_ID_ARCH: None,  # Included in `libglvnd`.
+                                  DISTRO_ID_VOID: None,  # Included in `libglvnd-devel`.
                                   },
             ),
 )
@@ -284,6 +301,7 @@ BUILD_OPTIONAL_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "ninja-build",
                                   DISTRO_ID_SUSE: "ninja",
                                   DISTRO_ID_ARCH: "ninja",
+                                  DISTRO_ID_VOID: "ninja",
                                   },
             ),
     Package(name="CMake commandline GUI",
@@ -291,6 +309,7 @@ BUILD_OPTIONAL_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: None,
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: None,
+                                  DISTRO_ID_VOID: None,
                                   },
             ),
     Package(name="CMake GUI",
@@ -298,6 +317,7 @@ BUILD_OPTIONAL_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "cmake-gui",
                                   DISTRO_ID_SUSE: "cmake-gui",
                                   DISTRO_ID_ARCH: None,
+                                  DISTRO_ID_VOID: "cmake-gui",
                                   },
             ),
     Package(name="Patch",
@@ -305,6 +325,7 @@ BUILD_OPTIONAL_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "patch",
                                   DISTRO_ID_SUSE: "patch",
                                   DISTRO_ID_ARCH: "patch",
+                                  DISTRO_ID_VOID: "patch",
                                   },
             ),
     # Basic optional set of common sound libraries to build Blender with. Not bundled as pre-compiled libraries.
@@ -313,6 +334,7 @@ BUILD_OPTIONAL_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "jack-audio-connection-kit-devel",
                                   DISTRO_ID_SUSE: None,
                                   DISTRO_ID_ARCH: "jack2",
+                                  DISTRO_ID_VOID: "jack-devel",
                                   },
             ),
     Package(name="Pulse Library",
@@ -320,6 +342,7 @@ BUILD_OPTIONAL_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "pulseaudio-libs-devel",
                                   DISTRO_ID_SUSE: "libpulse-devel",
                                   DISTRO_ID_ARCH: "libpulse",
+                                  DISTRO_ID_VOID: "pulseaudio-devel",
                                   },
             ),
     Package(name="Pipewire Library",
@@ -327,6 +350,7 @@ BUILD_OPTIONAL_SUBPACKAGES = (
                                   DISTRO_ID_FEDORA: "pipewire-devel",
                                   DISTRO_ID_SUSE: "pipewire-devel",
                                   DISTRO_ID_ARCH: "pipewire",
+                                  DISTRO_ID_VOID: "pipewire-devel",
                                   },
             ),
 )
@@ -1065,12 +1089,79 @@ class PackageInstallerArch(PackageInstaller):
             yield package_distro_name + "-" + v + suffix
 
 
+class PackageInstallerVoid(PackageInstaller):
+    """Void package installer, using xbps."""
+    _instance = None
+
+    def __new__(cls, settings):
+        if cls._instance is None:
+            cls._instance = super(PackageInstallerVoid, cls).__new__(cls, settings)
+        return cls._instance
+
+    _install_command = [*MAYSUDO, "xbps-install", "-y"]
+    _update_command = [*MAYSUDO, "xbps-install", "-S"]
+
+    def package_version_get(self, command):
+        result = self.run_command(command)
+        output = result.stdout.decode().strip()
+        if not output:
+            return None
+        return self.version_sanitize(output.rsplit("-", 1)[1])
+
+    def package_installed_version_get(self, package_distro_name):
+        return self.package_version_get(["xbps-query", "-p", "pkgver", package_distro_name])
+
+    def package_query_version_get_impl(self, package_distro_name):
+        return self.package_version_get(["xbps-query", "-R", "-p", "pkgver", package_distro_name])
+
+    def package_name_version_gen(
+            self,
+            package,
+            package_distro_name,
+            version=...,
+            suffix="",
+            do_range_version_names=False):
+        if version is ...:
+            version = package.version_short
+        # Generate versions variants with version between main name and '-devel' suffix, if any.
+        tmp_package_name = package_distro_name.removesuffix("-devel")
+        if tmp_package_name != package_distro_name:
+            for pn in self.package_name_version_gen(
+                    package,
+                    tmp_package_name,
+                    version,
+                    suffix="-devel" + suffix,
+                    do_range_version_names=do_range_version_names):
+                yield pn
+        # Strip any 'version-like' numbers at the end of the package name (already stripped of '-devel' suffix)
+        # and generate versions variants out of it.
+        tmp_package_name = tmp_package_name.rstrip("0123456789.-")
+        if tmp_package_name != package_distro_name:
+            for pn in self.package_name_version_gen(
+                    package,
+                    tmp_package_name,
+                    version,
+                    suffix=suffix,
+                    do_range_version_names=do_range_version_names):
+                yield pn
+        # Generate version variants from given package name.
+        versions = [version]
+        if do_range_version_names:
+            # Also search for major version numbers around the target one, within to allowed range.
+            # Necessary for packages like llvm e.g.
+            versions += [*self.versions_range_gen(package, set(versions))]
+        for v in versions:
+            yield package_distro_name + v + suffix
+            yield package_distro_name + "-" + v + suffix
+
+
 DISTRO_IDS_INSTALLERS = {
     ...: PackageInstaller,
     DISTRO_ID_DEBIAN: PackageInstallerDebian,
     DISTRO_ID_FEDORA: PackageInstallerFedora,
     DISTRO_ID_SUSE: PackageInstallerSuse,
     DISTRO_ID_ARCH: PackageInstallerArch,
+    DISTRO_ID_VOID: PackageInstallerVoid,
 }
 
 

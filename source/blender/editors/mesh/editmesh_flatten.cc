@@ -55,7 +55,7 @@ static wmOperatorStatus edbm_flatten_exec(bContext *C, wmOperator *op)
   RegionView3D *rv3d = method == FLATTEN_VIEW ? CTX_wm_region_view3d(C) : nullptr;
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
     float view_normal[3] = {0.0f, 0.0f, 1.0f};
     if (rv3d) {

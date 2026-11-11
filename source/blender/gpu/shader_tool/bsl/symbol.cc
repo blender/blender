@@ -35,6 +35,54 @@ static std::string scope_prefix(const SymbolScope &scope)
   return prefix;
 }
 
+static const char *resource_final_identifier(ResourceType res_type)
+{
+  switch (res_type) {
+    case ResourceType::BASE_INSTANCE:
+      return "gpu_BaseInstance";
+    case ResourceType::FRONT_FACING:
+      return "gl_FrontFacing";
+    case ResourceType::INSTANCE_ID:
+      return "gl_InstanceID";
+    case ResourceType::POINT_SIZE:
+      return "gl_PointSize";
+    case ResourceType::CLIP_DISTANCES:
+      return "gl_ClipDistance";
+    case ResourceType::LAYER:
+      return "gl_Layer";
+    case ResourceType::INSTANCE_INDEX:
+      return "gpu_InstanceIndex";
+    case ResourceType::VIEWPORT_INDEX:
+      return "gpu_ViewportIndex";
+    case ResourceType::VERTEX_ID:
+      return "gl_VertexID";
+    case ResourceType::POSITION:
+      return "gl_Position";
+    case ResourceType::FRAG_DEPTH:
+      return "gl_FragDepth";
+    case ResourceType::FRAG_COORD:
+      return "gl_FragCoord";
+    case ResourceType::BARY_COORD:
+      return "gpu_BaryCoord";
+    case ResourceType::STENCIL_REF:
+      return "gl_FragStencilRefARB";
+    case ResourceType::POINT_COORD:
+      return "gl_PointCoord";
+    case ResourceType::LOCAL_INVOCATION_ID:
+      return "gl_LocalInvocationID";
+    case ResourceType::LOCAL_INVOCATION_INDEX:
+      return "gl_LocalInvocationIndex";
+    case ResourceType::GLOBAL_INVOCATION_ID:
+      return "gl_GlobalInvocationID";
+    case ResourceType::WORK_GROUP_ID:
+      return "gl_WorkGroupID";
+    case ResourceType::NUM_WORK_GROUP:
+      return "gl_NumWorkGroups";
+    default:
+      return nullptr;
+  }
+}
+
 struct SymbolParser : NodeErrorHandler {
   SymbolTable &table;
 
@@ -196,10 +244,10 @@ struct SymbolParser : NodeErrorHandler {
 
   void parse_function_return_type(SymbolScope &scope, ast::IdType return_type)
   {
-    SymbolFunction &fn_sym = *scope.as_function();
-    fn_sym.return_type = &fn_sym.lookup_class(table, return_type.identifier()).unwrap(this);
+    SymbolFunction &fn = *scope.as_function();
+    fn.return_type = &fn.lookup_class(table, return_type.identifier()).unwrap(this);
 
-    if (fn_sym.is_entry_point() && fn_sym.return_type != table.void_cls) {
+    if (fn.is_entry_point() && fn.return_type != table.void_cls) {
       error(return_type, Diag::EntryPointVoidReturn);
     }
   }
@@ -208,9 +256,7 @@ struct SymbolParser : NodeErrorHandler {
    * Also create declaration for `this_`. */
   void parse_function_arguments(SymbolScope &scope, FuncArgList arg_list)
   {
-    SymbolFunction &fn_sym = *scope.as_function();
-    const bool is_entry_point = fn_sym.is_entry_point();
-    const auto entry_point_type = fn_sym.entry_point_type;
+    SymbolFunction &fn = *scope.as_function();
 
     for (FuncArg arg : arg_list.children_of_type<FuncArg>()) {
       auto attr = resource_type_from_attributes(arg.attributes()).unwrap(this);
@@ -226,171 +272,14 @@ struct SymbolParser : NodeErrorHandler {
         error(var.loc.tok, Diag::Redefinition, var.identifier);
       }
       /* Register argument type for argument resolution. */
-      fn_sym.add_argument(arg.type().is_const(), type, decl.initial_value().expr());
+      fn.add_argument(arg.type().is_const(), type, decl.initial_value().expr());
 
-      switch (attr.res_type) {
-        case ResourceType::BASE_INSTANCE:
-          var.identifier = "gpu_BaseInstance";
-          break;
-        case ResourceType::FRONT_FACING:
-          var.identifier = "gl_FrontFacing";
-          break;
-        case ResourceType::INSTANCE_ID:
-          var.identifier = "gl_InstanceID";
-          break;
-        case ResourceType::POINT_SIZE:
-          var.identifier = "gl_PointSize";
-          break;
-        case ResourceType::CLIP_DISTANCES:
-          var.identifier = "gl_ClipDistance";
-          break;
-        case ResourceType::LAYER:
-          var.identifier = "gl_Layer";
-          break;
-        case ResourceType::INSTANCE_INDEX:
-          var.identifier = "gpu_InstanceIndex";
-          break;
-        case ResourceType::VIEWPORT_INDEX:
-          var.identifier = "gpu_ViewportIndex";
-          break;
-        case ResourceType::VERTEX_ID:
-          var.identifier = "gl_VertexID";
-          break;
-        case ResourceType::POSITION:
-          var.identifier = "gl_Position";
-          break;
-        case ResourceType::FRAG_DEPTH:
-          var.identifier = "gl_FragDepth";
-          break;
-        case ResourceType::FRAG_COORD:
-          var.identifier = "gl_FragCoord";
-          break;
-        case ResourceType::BARY_COORD:
-          var.identifier = "gpu_BaryCoord";
-          break;
-        case ResourceType::STENCIL_REF:
-          var.identifier = "gl_FragStencilRefARB";
-          break;
-        case ResourceType::POINT_COORD:
-          var.identifier = "gl_PointCoord";
-          break;
-        case ResourceType::LOCAL_INVOCATION_ID:
-          var.identifier = "gl_LocalInvocationID";
-          break;
-        case ResourceType::LOCAL_INVOCATION_INDEX:
-          var.identifier = "gl_LocalInvocationIndex";
-          break;
-        case ResourceType::GLOBAL_INVOCATION_ID:
-          var.identifier = "gl_GlobalInvocationID";
-          break;
-        case ResourceType::WORK_GROUP_ID:
-          var.identifier = "gl_WorkGroupID";
-          break;
-        case ResourceType::NUM_WORK_GROUP:
-          var.identifier = "gl_NumWorkGroups";
-          break;
-        case ResourceType::RESOURCE_TABLE:
-          if (type.srt_type != ResourceTableType::RESOURCE_TABLE) {
-            error(arg.type(),
-                  Diag::ExpectedResourceOfType,
-                  to_str(ResourceTableType::RESOURCE_TABLE),
-                  to_str(type.srt_type));
-          }
-          break;
-        case ResourceType::OUT:
-          switch (entry_point_type) {
-            case SymbolFunction::EntryPointType::COMP:
-              error(arg.type(), Diag::AttributeNotAllowedInComp, "out");
-              break;
-            case SymbolFunction::EntryPointType::FRAG:
-              if (type.srt_type != ResourceTableType::FRAGMENT_OUT) {
-                error(arg.type().identifier(),
-                      Diag::ExpectedResourceOfType,
-                      to_str(ResourceTableType::FRAGMENT_OUT),
-                      to_str(type.srt_type));
-              }
-              if (arg.is_const()) {
-                error(arg.type().constant(), Diag::ExpectedResourceNonConst);
-              }
-              break;
-            case SymbolFunction::EntryPointType::VERT:
-              if (type.srt_type != ResourceTableType::VERTEX_OUT) {
-                error(arg.type().identifier(),
-                      Diag::ExpectedResourceOfType,
-                      to_str(ResourceTableType::VERTEX_IN),
-                      to_str(type.srt_type));
-              }
-              if (arg.is_const()) {
-                error(arg.type().constant(), Diag::ExpectedResourceNonConst);
-              }
-              break;
-            case SymbolFunction::EntryPointType::NONE:
-              error(arg.type().identifier(), Diag::AttributeOnlyEntryPointsCanUseOut);
-              break;
-          }
-          break;
-        case ResourceType::IN:
-          switch (entry_point_type) {
-            case SymbolFunction::EntryPointType::COMP:
-              error(arg.type().identifier(), Diag::AttributeNotAllowedInComp, "in");
-              break;
-            case SymbolFunction::EntryPointType::FRAG:
-              if (type.srt_type != ResourceTableType::FRAGMENT_IN &&
-                  type.srt_type != ResourceTableType::VERTEX_OUT)
-              {
-                error(arg.type().identifier(),
-                      Diag::ExpectedResourceOfEitherType,
-                      to_str(ResourceTableType::FRAGMENT_IN),
-                      to_str(ResourceTableType::VERTEX_OUT),
-                      to_str(type.srt_type));
-              }
-              if (!arg.is_const()) {
-                error(arg.type(), Diag::ExpectedResourceConst);
-              }
-              break;
-            case SymbolFunction::EntryPointType::VERT:
-              if (type.srt_type != ResourceTableType::VERTEX_IN) {
-                error(arg.type().identifier(),
-                      Diag::ExpectedResourceOfType,
-                      to_str(ResourceTableType::VERTEX_IN),
-                      to_str(type.srt_type));
-              }
-              if (!arg.is_const()) {
-                error(arg.type(), Diag::ExpectedResourceConst);
-              }
-              break;
-            case SymbolFunction::EntryPointType::NONE:
-              error(arg.type().identifier(), Diag::AttributeOnlyEntryPointsCanUseIn);
-              break;
-          }
-          break;
-        default:
-          break;
+      /* Override the identifier for builtin variables (e.g. "gpu_InstanceIndex"). */
+      if (const char *builtin_id = resource_final_identifier(attr.res_type); builtin_id) {
+        var.identifier = builtin_id;
       }
 
-      if (is_entry_point && attr.srt_type != ResourceTableType::ENTRY_POINT &&
-          attr.res_type != ResourceType::RESOURCE_TABLE)
-      {
-        error(arg, Diag::ExpectedEntryPointResourceAttribute, to_str(attr.srt_type));
-      }
-      else if (!is_entry_point && attr.srt_type != ResourceTableType::NONE &&
-               attr.res_type != ResourceType::RESOURCE_TABLE)
-      {
-        error(arg, Diag::ResourceAttributesOnlyOnEntryPointArgs);
-      }
-      else if (is_entry_point && attr.srt_type == ResourceTableType::ENTRY_POINT &&
-               !fn_sym.is_compatible(attr.res_type))
-      {
-        error(arg,
-              Diag::ResourceAttributesIncompatibleEntryPoint,
-              var.original,
-              to_str(attr.res_type),
-              to_str(fn_sym.entry_point_type));
-      }
-
-      if (!is_entry_point && attr.condition.is_valid()) {
-        error(arg, Diag::ConditionAttributeNotOnResource);
-      }
+      check_resource_argument(fn, attr, type, arg, var);
 
       if (attr.condition.is_valid()) {
         var.condition = attr.condition;
@@ -415,6 +304,117 @@ struct SymbolParser : NodeErrorHandler {
           scope.variable_emplace(&var);
         }
       }
+    }
+  }
+
+  void check_resource_argument(const SymbolFunction &fn,
+                               const ParsedAttribute &attr,
+                               const SymbolClass &type,
+                               FuncArg arg,
+                               const SymbolVariable &var)
+  {
+    switch (attr.res_type) {
+      case ResourceType::RESOURCE_TABLE:
+        if (type.srt_type != ResourceTableType::RESOURCE_TABLE) {
+          error(arg.type(),
+                Diag::ExpectedResourceOfType,
+                to_str(ResourceTableType::RESOURCE_TABLE),
+                to_str(type.srt_type));
+        }
+        break;
+      case ResourceType::OUT:
+        switch (fn.entry_point_type) {
+          case SymbolFunction::EntryPointType::COMP:
+            error(arg.type(), Diag::AttributeNotAllowedInComp, "out");
+            break;
+          case SymbolFunction::EntryPointType::FRAG:
+            if (type.srt_type != ResourceTableType::FRAGMENT_OUT) {
+              error(arg.type().identifier(),
+                    Diag::ExpectedResourceOfType,
+                    to_str(ResourceTableType::FRAGMENT_OUT),
+                    to_str(type.srt_type));
+            }
+            if (arg.is_const()) {
+              error(arg.type().constant(), Diag::ExpectedResourceNonConst);
+            }
+            break;
+          case SymbolFunction::EntryPointType::VERT:
+            if (type.srt_type != ResourceTableType::VERTEX_OUT) {
+              error(arg.type().identifier(),
+                    Diag::ExpectedResourceOfType,
+                    to_str(ResourceTableType::VERTEX_IN),
+                    to_str(type.srt_type));
+            }
+            if (arg.is_const()) {
+              error(arg.type().constant(), Diag::ExpectedResourceNonConst);
+            }
+            break;
+          case SymbolFunction::EntryPointType::NONE:
+            error(arg.type().identifier(), Diag::AttributeOnlyEntryPointsCanUseOut);
+            break;
+        }
+        break;
+      case ResourceType::IN:
+        switch (fn.entry_point_type) {
+          case SymbolFunction::EntryPointType::COMP:
+            error(arg.type().identifier(), Diag::AttributeNotAllowedInComp, "in");
+            break;
+          case SymbolFunction::EntryPointType::FRAG:
+            if (type.srt_type != ResourceTableType::FRAGMENT_IN &&
+                type.srt_type != ResourceTableType::VERTEX_OUT)
+            {
+              error(arg.type().identifier(),
+                    Diag::ExpectedResourceOfEitherType,
+                    to_str(ResourceTableType::FRAGMENT_IN),
+                    to_str(ResourceTableType::VERTEX_OUT),
+                    to_str(type.srt_type));
+            }
+            if (!arg.is_const()) {
+              error(arg.type(), Diag::ExpectedResourceConst);
+            }
+            break;
+          case SymbolFunction::EntryPointType::VERT:
+            if (type.srt_type != ResourceTableType::VERTEX_IN) {
+              error(arg.type().identifier(),
+                    Diag::ExpectedResourceOfType,
+                    to_str(ResourceTableType::VERTEX_IN),
+                    to_str(type.srt_type));
+            }
+            if (!arg.is_const()) {
+              error(arg.type(), Diag::ExpectedResourceConst);
+            }
+            break;
+          case SymbolFunction::EntryPointType::NONE:
+            error(arg.type().identifier(), Diag::AttributeOnlyEntryPointsCanUseIn);
+            break;
+        }
+        break;
+      default:
+        break;
+    }
+
+    const bool is_entry_point = fn.is_entry_point();
+    if (is_entry_point && attr.srt_type != ResourceTableType::ENTRY_POINT &&
+        attr.res_type != ResourceType::RESOURCE_TABLE)
+    {
+      error(arg, Diag::ExpectedEntryPointResourceAttribute, to_str(attr.srt_type));
+    }
+    else if (!is_entry_point && attr.srt_type != ResourceTableType::NONE &&
+             attr.res_type != ResourceType::RESOURCE_TABLE)
+    {
+      error(arg, Diag::ResourceAttributesOnlyOnEntryPointArgs);
+    }
+    else if (is_entry_point && attr.srt_type == ResourceTableType::ENTRY_POINT &&
+             !fn.is_compatible(attr.res_type))
+    {
+      error(arg,
+            Diag::ResourceAttributesIncompatibleEntryPoint,
+            var.original,
+            to_str(attr.res_type),
+            to_str(fn.entry_point_type));
+    }
+    else if (!is_entry_point && attr.condition.is_valid()) {
+      error(arg, Diag::ConditionAttributeNotOnResource);
     }
   }
 
@@ -733,6 +733,10 @@ struct SymbolParser : NodeErrorHandler {
       if (parent_cls->is_error) {
         error(parent_id, Diag::UnknownIdentifier);
       }
+      else if (parent_cls == &cls || parent_cls->get_conversion_index(cls) != 0) {
+        /* The class is still incomplete. Inheriting from it would recurse forever. */
+        error(parent_id, Diag::UnknownIdentifier, parent_id.str());
+      }
       else {
         cls.base_classes.emplace_back(parent_id, parent_cls);
         inherit_members(cls, *parent_cls);
@@ -777,14 +781,16 @@ struct SymbolParser : NodeErrorHandler {
     }
     /* Emplace the function into the scope so it becomes available during function lookups. */
     bool is_overload = scope.function_emplace(&fn);
-    if (is_overload && fn.is_entry_point()) {
-      error(decl.identifier(), Diag::RedefinitionOfEntryPointFunction, decl.identifier().str());
-    }
+
     /* Parse the return type and arguments to correctly populate matching criteria. */
     parse_function_return_type(fn, decl.return_type());
     parse_function_arguments(fn, decl.arguments());
     /* Record as function prototype. */
     scope.function_prototypes.emplace_back(decl, &fn);
+
+    if (is_overload) {
+      check_overload_validity(decl.identifier(), fn, scope);
+    }
 
     /* Set resolved identifier in case the declaration is emitted without the definition. */
     switch (fn.fn_type) {
@@ -797,6 +803,10 @@ struct SymbolParser : NodeErrorHandler {
         /* Member function use overload resolution. */
         fn.identifier = "_" + fn.identifier;
         break;
+    }
+
+    if (fn.fn_type == SymbolFunction::MEMBER) {
+      link_virtual_overrides(fn, *fn.parent_class());
     }
   }
 
@@ -823,6 +833,7 @@ struct SymbolParser : NodeErrorHandler {
       }
     }
 
+    bool is_overload = false;
     SymbolScope &scope = ns ? *ns : def_scope;
     if (auto [fdecl, fn_ptr] = scope.lookup_function_forward_decl(func); fdecl.is_valid()) {
       fn = fn_ptr;
@@ -840,6 +851,10 @@ struct SymbolParser : NodeErrorHandler {
       fn->arg_defaults.clear();
       /* Also reset the identifier. */
       fn->identifier = id.name().str();
+
+      if (fn->is_pure_virtual) {
+        error(id.name(), Diag::UnsupportedPureVirtualFunctionBody);
+      }
     }
     else if (ns) {
       error(id.name(), Diag::FunctionOutOfClassDefinition, id.name().str(), ns->original);
@@ -852,10 +867,7 @@ struct SymbolParser : NodeErrorHandler {
        * instantiation. */
       fn = &table.fun_arena.alloc(scope, *table.err_cls, func, suffix);
 
-      bool is_overload = scope.function_emplace(fn);
-      if (is_overload && fn->is_entry_point()) {
-        error(func.identifier(), Diag::RedefinitionOfEntryPointFunction, func.identifier().str());
-      }
+      is_overload = scope.function_emplace(fn);
     }
 
     if (fn->fn_type == SymbolFunction::MEMBER) {
@@ -895,6 +907,15 @@ struct SymbolParser : NodeErrorHandler {
 
     parse_scope(*fn, func.body(), fn_prefix + fn->identifier + ns_sep, temp_params);
 
+    if (is_overload) {
+      check_overload_validity(func.identifier(), *fn, scope);
+    }
+
+    /* Template functions cannot override. */
+    if (fn->fn_type == SymbolFunction::MEMBER && !func.is_template()) {
+      link_virtual_overrides(*fn, *fn->parent_class());
+    }
+
     /* Set resolved identifier. */
     switch (fn->fn_type) {
       case SymbolFunction::GLOBAL:
@@ -919,8 +940,75 @@ struct SymbolParser : NodeErrorHandler {
     return fn;
   }
 
+  void check_overload_validity(ast::IdQualified id,
+                               const SymbolFunction &fn,
+                               const SymbolScope &scope)
+  {
+    if (fn.is_entry_point()) {
+      error(id, Diag::RedefinitionOfEntryPointFunction, id.str());
+    }
+    /* Check if any overload has already the same signature w.r.t. the GLSL rules. */
+    const SymbolFunction &base = scope.lookup_function_base(table, id);
+    for (const SymbolFunction *overload = &base; overload; overload = overload->overload_next) {
+      if (overload != &fn) {
+        if (overload->has_same_signature(fn)) {
+          ast::Node decl = overload->fwd.is_valid() ? overload->fwd.identifier() :
+                                                      overload->decl.identifier();
+          NOTE(decl, Diag::NotePreviousDefinition, id.str());
+          error(id, Diag::RedefinitionFunction, id.str());
+        }
+      }
+    }
+  }
+
+  /* Mark the virtual functions overridden by the member function `fn` in the bases of `cls`.
+   * Requires the arguments of `fn` to be parsed. */
+  void link_virtual_overrides(SymbolFunction &fn, const SymbolClass &cls)
+  {
+    for (auto [_, base_cls] : cls.base_classes) {
+      if (auto it = base_cls->functions.find(fn.original); it != base_cls->functions.end()) {
+        /* Overloads with another signature are only hidden, not overridden. */
+        for (SymbolFunction *base_fn = it->second.second; base_fn;
+             base_fn = base_fn->overload_next)
+        {
+          if (base_fn->is_virtual && fn.has_same_signature(*base_fn)) {
+            base_fn->override_next = &fn;
+            /* Function becomes virtual if at least one ancestor is virtual. */
+            fn.is_virtual = true;
+          }
+        }
+      }
+      /* A virtual function can be hidden from `base_cls` by another overload. */
+      link_virtual_overrides(fn, *base_cls);
+    }
+  }
+
+  /* Report template functions without a body, which are neither a function nor a class template.
+   * Return true if `decl` is one of them. */
+  bool is_invalid_template_decl(FuncForwardDecl decl)
+  {
+    if (!decl.is_valid()) {
+      /* Not a function forward decl. */
+      return false;
+    }
+
+    if (decl.defaulted_body().is_valid()) {
+      error(decl.defaulted_body(), Diag::UnsupportedDefaultedBody);
+    }
+    else if (decl.deleted_body().is_valid()) {
+      error(decl.deleted_body(), Diag::UnsupportedDeletedBody);
+    }
+    else {
+      error(decl.identifier(), Diag::TemplateMissingDefinition);
+    }
+    return true;
+  }
+
   void parse_template_decl(SymbolScope &scope, TemplateDecl decl)
   {
+    if (is_invalid_template_decl(decl.decl())) {
+      return;
+    }
     /* Do not parse. Only keep the symbol definition. The instantiation will do the parsing. */
     if (decl.is_function()) {
       FuncDecl fn_decl(decl.decl());
@@ -1046,6 +1134,9 @@ struct SymbolParser : NodeErrorHandler {
 
   void parse_template_spec(SymbolScope &scope, TemplateSpec temp, const std::string &prefix)
   {
+    if (is_invalid_template_decl(temp.decl())) {
+      return;
+    }
     TemplateParamList temp_params = temp.parameters();
     /* Instantiate the whole symbol into the current namespace. */
     if (temp.is_function()) {

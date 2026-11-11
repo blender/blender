@@ -71,7 +71,10 @@ bool OIIOImageLoader::load_metadata(ImageMetaData &metadata,
                    cancel))
       {
         texture_cache_filepath_.clear();
-        if (!cancelled) {
+        if (cancelled) {
+          params.metadata_incomplete = true;
+        }
+        else {
           params.tx_failure_num++;
         }
       }

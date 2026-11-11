@@ -257,7 +257,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
     TransData *td = nullptr;
     TransData2D *td2d = nullptr;
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(tc->obedit);
     BMFace *efa;
     BMIter iter, liter;
     UvElementMap *elementmap = nullptr;
@@ -635,7 +635,7 @@ static UVGroups *mesh_uv_groups_get(TransDataContainer *tc, BMesh *bm, const BMU
 Array<TransDataVertSlideVert> transform_mesh_uv_vert_slide_data_create(
     const TransInfo *t, TransDataContainer *tc, Vector<float3> &r_loc_dst_buffer)
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(tc->obedit);
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   UVGroups *uv_groups = mesh_uv_groups_get(tc, bm, offsets);
@@ -820,7 +820,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(const Tra
                                                                        int *r_group_len)
 {
   Array<TransDataEdgeSlideVert> sv_array;
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(tc->obedit);
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   const bool check_edge = ED_uvedit_select_mode_get(t->scene) == UV_SELECT_EDGE;

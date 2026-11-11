@@ -97,6 +97,27 @@ static OperatorType to_operator_type(TokenType tok_type)
   }
 }
 
+/* Binary operator applied by a compound assignment. Example: `a /= b` > `a / b`. */
+static TokenType compound_assignment_operator(TokenType tok_type)
+{
+  switch (tok_type) {
+    case AssignAdd:
+      return Plus;
+    case AssignSub:
+      return Minus;
+    case AssignMul:
+      return Multiply;
+    case AssignDiv:
+      return Divide;
+    case AssignLShift:
+      return LShift;
+    case AssignRShift:
+      return RShift;
+    default:
+      return Invalid;
+  }
+}
+
 namespace builtin {
 
 /* Matrices only support a subset of the operators, with their own dimension rules.
@@ -155,6 +176,13 @@ ClassId binary_operator_return_type(const SymbolClass &lhs, TokenType op, const 
   const OperatorType o = to_operator_type(op);
 
   if (o == OP_ASSIGN) {
+    /* A matrix compound assignment must be a valid matrix operation keeping the left type.
+     * Example: `m /= 2.0f` is invalid since matrices have no division. */
+    if (op != Assign && ((l | r) & MATRIX_MASK)) {
+      const ClassId result = matrix_binary_operator_return_type(
+          l, compound_assignment_operator(op), r);
+      return (result == lhs.builtin_class) ? result : ClassId::Invalid;
+    }
     return lhs.builtin_class;
   }
 

@@ -2156,6 +2156,7 @@ bool button_context_poll_operator(bContext *C, wmOperatorType *ot, const Button 
 
 void block_post_layout_callbacks_exec(const bContext *C, ARegion *region, Block *block)
 {
+  BLI_assert(region);
   BLI_assert(block->active);
   for (const std::function<void(const bContext &C, ui::Block &block)> &callback :
        region->runtime->post_block_layout_fns)
@@ -2282,7 +2283,11 @@ void block_end_ex(const bContext *C,
 
   block->endblock = true;
   if (!postpone_callbacks) {
-    block_post_layout_callbacks_exec(C, region, block);
+    /* Post layout callbacks are stored in region data, skip blocks created without a region (like
+     * the `F3` search menu).  */
+    if (region) {
+      block_post_layout_callbacks_exec(C, region, block);
+    }
   }
   else {
     block->post_block_layout_fns_pending = true;
@@ -5342,9 +5347,10 @@ struct AutoComplete {
   int matches;
   MutableCStr truncate;
   const char *startname;
+  bool is_utf8;
 };
 
-AutoComplete *autocomplete_begin(const char *startname, size_t maxncpy)
+AutoComplete *autocomplete_begin(const char *startname, size_t maxncpy, bool is_utf8)
 {
   AutoComplete *autocpl;
 
@@ -5352,6 +5358,7 @@ AutoComplete *autocomplete_begin(const char *startname, size_t maxncpy)
   autocpl->matches = 0;
   autocpl->truncate = MutableCStr(MEM_new_array_zeroed<char>(maxncpy, __func__), maxncpy);
   autocpl->startname = startname;
+  autocpl->is_utf8 = is_utf8;
 
   return autocpl;
 }
@@ -5395,6 +5402,14 @@ void autocomplete_update_name(AutoComplete *autocpl, const StringRef name)
 
 int autocomplete_end(AutoComplete *autocpl, char *autoname)
 {
+  if (autocpl->is_utf8) {
+    /* Byte-wise matching can stop part way through a multi-byte character. */
+    char *truncate = autocpl->truncate.data();
+    size_t len_bytes;
+    BLI_strnlen_utf8_ex(truncate, strlen(truncate), &len_bytes);
+    truncate[len_bytes] = '\0';
+  }
+
   int match = AUTOCOMPLETE_NO_MATCH;
   if (autocpl->truncate[0]) {
     if (autocpl->matches == 1) {

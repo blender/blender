@@ -146,7 +146,7 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   Mesh *active_mesh = ED_mesh_context(C);
-  BMesh *active_bm = BKE_editmesh_bmesh_get_for_write(active_mesh);
+  BMesh *active_bm = BKE_editmesh_bmesh_ensure(active_mesh);
   AttributeOwner active_owner = AttributeOwner::from_id(&active_mesh->id);
   const StringRef name = *BKE_attributes_active_name_get(active_owner);
   const BMDataLayerLookup active_attr = BM_data_layer_lookup(*active_bm, name);
@@ -164,7 +164,7 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
   for (Object *object : objects) {
     Mesh *mesh = id_cast<Mesh *>(object->data);
     EditMesh *em = BKE_editmesh_from_object(object);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
     BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name);
     if (!attr) {
       continue;
@@ -216,7 +216,7 @@ static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
                                                   const wmEvent *event)
 {
   Mesh *mesh = ED_mesh_context(C);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
 
   const StringRef name = *BKE_attributes_active_name_get(owner);
@@ -252,7 +252,7 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
   layout.use_property_decorate_set(false);
 
   Mesh *mesh = ED_mesh_context(C);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   const StringRef name = *BKE_attributes_active_name_get(owner);
   const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name);

@@ -69,8 +69,10 @@ static void extract_edituv_data_mapped_bmesh(const MeshRenderData &mr,
         vbo_data.slice(face).fill({});
         continue;
       }
+      EditLoopData face_value = {};
+      mesh_render_data_face_flag(mr, face_orig, offsets, face_value);
       for (const int corner : face) {
-        EditLoopData value = {};
+        EditLoopData value = face_value;
         BMVert *vert = bm_original_vert_get(mr, corner_verts[corner]);
         BMEdge *edge = bm_original_edge_get(mr, corner_edges[corner]);
         if (edge && vert) {

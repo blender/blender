@@ -130,10 +130,12 @@ ClosureSignature ClosureSignature::from_closure_to_list_node(const bNode &node)
   for (const int i : IndexRange(storage.items_num)) {
     const GeometryNodeClosureToListItem &item = storage.items[i];
     const auto type = eNodeSocketDatatype(item.socket_type);
-    signature.outputs.add(
-        {.key = item.name,
-         .type = bke::node_socket_type_find_static(type),
-         .structure_type = NodeSocketInterfaceStructureType(item.structure_type)});
+    if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(type)) {
+      signature.outputs.add(
+          {.key = item.name,
+           .type = stype,
+           .structure_type = NodeSocketInterfaceStructureType(item.structure_type)});
+    }
   }
   return signature;
 }

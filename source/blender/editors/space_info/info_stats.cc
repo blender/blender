@@ -241,15 +241,15 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     const BMesh *bm = BKE_editmesh_bmesh_get(obedit);
 
     stats->totvert += bm->totvert;
-    stats->totvertsel += bm->totvertsel;
-
     stats->totedge += bm->totedge;
-    stats->totedgesel += bm->totedgesel;
-
     stats->totface += bm->totface;
-    stats->totfacesel += bm->totfacesel;
-
     stats->tottri += poly_to_tri_count(bm->totface, bm->totloop);
+
+    int selected[3];
+    BKE_mesh_count_selected_items(id_cast<const Mesh *>(obedit->data), selected);
+    stats->totvertsel += selected[0];
+    stats->totedgesel += selected[1];
+    stats->totfacesel += selected[2];
   }
   else if (obedit->type == OB_ARMATURE) {
     /* Armature Edit */

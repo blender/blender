@@ -1127,16 +1127,14 @@ class XpbdSolverStep {
         BLI_assert(math::is_unit(math::cross(edge_direction_local, edge_normal_local)));
 
         /* Use geometric average as edge friction coefficient. */
-        const float static_friction = math::sqrt(
-            math::square(this->compute_contact_friction(geo_data.static_frictions[point0],
-                                                        collider.friction)) +
-            math::square(this->compute_contact_friction(geo_data.static_frictions[point1],
-                                                        collider.friction)));
-        const float dynamic_friction = math::sqrt(
-            math::square(this->compute_contact_friction(geo_data.dynamic_frictions[point0],
-                                                        collider.friction)) +
-            math::square(this->compute_contact_friction(geo_data.dynamic_frictions[point1],
-                                                        collider.friction)));
+        const float static_friction = this->compute_contact_friction(
+            geo_data.static_frictions[point0],
+            geo_data.static_frictions[point1],
+            collider.friction);
+        const float dynamic_friction = this->compute_contact_friction(
+            geo_data.dynamic_frictions[point0],
+            geo_data.dynamic_frictions[point1],
+            collider.friction);
 
         const int contact_i = r_edge_contacts.point_pairs.append_and_get_index({point0, point1});
         r_edge_contacts.point_radii.append({radius_local0, radius_local1});
@@ -1458,7 +1456,7 @@ class XpbdSolverStep {
         IndexRange(substeps_ + 1), std::max(1024 / verts_num, 1), [&](const IndexRange range) {
           TLS &tls = tls_.local();
           for (const int mesh_i : range) {
-            const float mix_factor = (mesh_i - 1) / float(substeps_) *
+            const float mix_factor = mesh_i / float(substeps_) *
                                          (interpolation_end_ - interpolation_begin_) +
                                      interpolation_begin_;
             const Mesh *substep_mesh = nullptr;
@@ -2026,7 +2024,7 @@ class XpbdSolverStep {
         const int face1_dir = face1_verts[(face1_i1 + 1) % face1_size] == edge_v0 ? 1 : -1;
         /* Some corners may be ignored if they if both faces have a different number of
          * corners. */
-        const int cross_edge_num = std::max(face0_size, face1_size) - 2;
+        const int cross_edge_num = std::min(face0_size, face1_size) - 2;
         for (const int i : IndexRange(cross_edge_num)) {
           const int cross_edge_v0 = face0_verts[mod_i(face0_i0 - face0_dir * (i + 1), face0_size)];
           const int cross_edge_v1 = face1_verts[mod_i(face1_i1 - face1_dir * (i + 1), face1_size)];
@@ -2214,19 +2212,19 @@ class XpbdSolverStep {
       const PinPositionConstraint &constraint =
           constraints_.pin_position_constraints[constraint_usage.constraint_i];
 
-      /* Detect hard pinned points. */
-      for (const int pin_i : constraint_usage.points.index_range()) {
+      const IndexRange pin_range = unique_sorted_indices::find_content_range<int>(
+          constraint_usage.points, chunk.points_range);
+      if (pin_range.is_empty()) {
+        continue;
+      }
+
+      /* Detect hard pinned points in this chunk. */
+      for (const int pin_i : pin_range) {
         const int point_i = constraint_usage.points[pin_i];
         const float compliance = constraint_usage.compliances[pin_i];
         if (compliance <= 0.0f) {
           geo_data.is_hard_pinned[point_i] = true;
         }
-      }
-
-      const IndexRange pin_range = unique_sorted_indices::find_content_range<int>(
-          constraint_usage.points, chunk.points_range);
-      if (pin_range.is_empty()) {
-        continue;
       }
       chunk_data.pin_position_constraints.append({constraint_usage_i, pin_range});
       chunk_data.static_constraints.append(&tls.scope.construct<xpbd::PinPositionConstraintSet>(
@@ -2473,11 +2471,11 @@ class XpbdSolverStep {
           this->simulate__update_velocities__chunk(chunk_i, solver_refs_i);
         });
         this->simulate__velocity_solve(solver_refs_i);
-        this->parallel_for_each_chunk(16, [&](const int chunk_i) {
-          this->simulate__ensure_final_data_in_outputs__chunk(chunk_i);
-        });
         solver_refs_i = 1 - solver_refs_i;
       }
+      this->parallel_for_each_chunk(16, [&](const int chunk_i) {
+        this->simulate__ensure_final_data_in_outputs__chunk(chunk_i);
+      });
     }
 
     return Result{math::sqrt(average_error_squared)};
@@ -2648,6 +2646,8 @@ class XpbdSolverStep {
     ChunkData &chunk_data = chunks_data_[chunk_i];
     chunk_data.external_face_contacts.lambdas_normal.fill(0.0f);
     chunk_data.external_face_contacts.lambdas_friction.fill(0.0f);
+    chunk_data.external_edge_contacts.lambdas_normal.fill(0.0f);
+    chunk_data.external_edge_contacts.lambdas_friction.fill(0.0f);
     for (xpbd::ConstraintSet *constraint : chunk_data.static_constraints) {
       constraint->reset_forces();
     }
@@ -2923,7 +2923,15 @@ class XpbdSolverStep {
 
   float compute_contact_friction(const float point_friction, const float collider_friction) const
   {
-    return math::sqrt(point_friction * collider_friction);
+    /* Friction values stored in attributes may be negative which would lead to NaN. */
+    return math::sqrt(std::max(point_friction, 0.0f) * std::max(collider_friction, 0.0f));
+  }
+
+  float compute_contact_friction(const float point0_friction,
+                                 const float point1_friction,
+                                 const float collider_friction) const
+  {
+    return math::pow(point0_friction * point1_friction * collider_friction, 1.0f / 3.0f);
   }
 
   float get_max_search_distance(const float delta_time)

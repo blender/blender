@@ -1998,6 +1998,10 @@ ccl_device void volume_integrate_null_scattering(KernelGlobals kg,
 
   volume_direct_scatter_mis(ray, vstate, equiangular_coeffs, result);
 
+  if (sd->runtime_flag & SR_CACHE_MISS) {
+    return;
+  }
+
   /* Write accumulated emission. */
   if (!is_zero(vstate.emission)) {
     if (light_link_object_match(kg, light_link_receiver_forward(kg, state), sd->object)) {
@@ -2420,6 +2424,10 @@ ccl_device_forceinline void volume_integrate_ray_marching(
         break;
       }
     }
+  }
+
+  if (sd->runtime_flag & SR_CACHE_MISS) {
+    return;
   }
 
   /* Write accumulated emission. */

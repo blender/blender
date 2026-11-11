@@ -631,7 +631,7 @@ int searchbox_autocomplete(bContext *C, ARegion *region, Button *but, char *str)
       /* The string length is dynamic, just assume a reasonable length. */
       maxncpy = strlen(str) + 1024;
     }
-    data->items.autocpl = autocomplete_begin(str, maxncpy);
+    data->items.autocpl = autocomplete_begin(str, maxncpy, but_is_utf8(but));
 
     searchbox_update_fn(C, search_but, but->editstr, &data->items);
 

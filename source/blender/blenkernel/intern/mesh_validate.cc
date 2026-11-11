@@ -301,6 +301,23 @@ static bool find_faces_bad_edges(const Mesh &mesh,
   return !bad_faces.is_empty();
 }
 
+static void fill_corner_edges(Mesh &mesh, const EdgeMap &unique_edges)
+{
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
+  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int face_i : range) {
+      const IndexRange face = faces[face_i];
+      for (const int corner : face) {
+        const int corner_next = mesh::face_corner_next(face, corner);
+        corner_edges[corner] = unique_edges.index_of(
+            OrderedEdge(corner_verts[corner], corner_verts[corner_next]));
+      }
+    }
+  });
+}
+
 IndexMask find_duplicate_faces(const OffsetIndices<int> faces,
                                const Span<int> corner_verts,
                                const IndexMask &mask,
@@ -687,39 +704,38 @@ static bool validate_material_indices(const Mesh &mesh,
   return false;
 }
 
-static bool validate_selection_history(const Mesh &mesh, const bool verbose, Mesh *mesh_mut)
+static IndexMask find_invalid_selection_history(const Mesh &mesh, IndexMaskMemory &memory)
 {
   if (!mesh.mselect) {
-    return true;
+    return {};
   }
   const Span<MSelect> mselect(mesh.mselect, mesh.totselect);
+  return IndexMask::from_predicate(mselect.index_range(), memory, [&](const int i) {
+    const int domain_size = [&]() {
+      switch (mselect[i].type) {
+        case ME_VSEL:
+          return mesh.verts_num;
+        case ME_ESEL:
+          return mesh.edges_num;
+        case ME_FSEL:
+          return mesh.faces_num;
+      }
+      return 0;
+    }();
+    return !IndexRange(domain_size).contains(mselect[i].index);
+  });
+}
+
+static bool validate_selection_history(const Mesh &mesh, const bool verbose, Mesh *mesh_mut)
+{
   IndexMaskMemory memory;
-  const IndexMask invalid = IndexMask::from_predicate(
-      mselect.index_range(), memory, [&](const int i) {
-        if (mselect[i].index < 0) {
-          return true;
-        }
-        const int domain_size = [&]() {
-          switch (mselect[i].type) {
-            case ME_VSEL:
-              return mesh.verts_num;
-            case ME_ESEL:
-              return mesh.edges_num;
-            case ME_FSEL:
-              return mesh.faces_num;
-          }
-          return 0;
-        }();
-        if (mselect[i].index >= domain_size) {
-          return true;
-        }
-        return false;
-      });
+  const IndexMask invalid = find_invalid_selection_history(mesh, memory);
   if (invalid.is_empty()) {
     return true;
   }
 
   if (verbose) {
+    const Span<MSelect> mselect(mesh.mselect, mesh.totselect);
     invalid.foreach_index([&](const int i) {
       CLOG_ERROR(&LOG,
                  "Selection element (%d, %d) has invalid index, must not be negative",
@@ -728,7 +744,16 @@ static bool validate_selection_history(const Mesh &mesh, const bool verbose, Mes
     });
   }
   if (mesh_mut) {
-    MEM_SAFE_DELETE(mesh_mut->mselect);
+    const Span<MSelect> src(mesh_mut->mselect, mesh_mut->totselect);
+    const IndexMask valid = invalid.complement(src.index_range(), memory);
+    MSelect *dst = nullptr;
+    if (!valid.is_empty()) {
+      dst = MEM_new_array<MSelect>(valid.size(), __func__);
+      index_mask::gather_assign(src, valid, MutableSpan(dst, valid.size()));
+    }
+    MEM_delete(mesh_mut->mselect);
+    mesh_mut->mselect = dst;
+    mesh_mut->totselect = valid.size();
   }
 
   return false;
@@ -931,7 +956,10 @@ static bool mesh_validate_impl(const Mesh &mesh,
   const IndexMask valid_and_missing_edge_faces = valid_faces;
   valid_faces = IndexMask::from_difference(valid_faces, faces_missing_edges, memory);
 
-  const bool any_corner_edges_bad = find_faces_bad_edges(mesh, valid_faces, memory, verbose);
+  /* When missing edges are allowed, the corner-to-edge mapping can be uninitialized.
+   * Rebuild it below after invalid topology has been removed. */
+  const bool any_corner_edges_bad = !allow_missing_edges &&
+                                    find_faces_bad_edges(mesh, valid_faces, memory, verbose);
 
   const int64_t valid_faces_count = allow_missing_edges ? valid_and_missing_edge_faces.size() :
                                                           valid_faces.size();
@@ -952,6 +980,11 @@ static bool mesh_validate_impl(const Mesh &mesh,
     /* Regenerate edges if edges are missing or corner edges are bad. */
     if (any_corner_edges_bad || any_edges_removed || !faces_missing_edges.is_empty()) {
       mesh_calc_edges(mesh, true, false);
+    }
+    else if (allow_missing_edges) {
+      /* All edges are present and none were removed, so the unique_edges lookup
+       * is valid; build corner-to-edge mapping directly from it. */
+      fill_corner_edges(mesh, unique_edges);
     }
   }
 
@@ -988,6 +1021,11 @@ bool mesh_is_valid(const Mesh &mesh, const bool verbose)
 bool mesh_validate_material_indices(Mesh &mesh)
 {
   return validate_material_indices(mesh, false, false, &mesh);
+}
+
+bool mesh_validate_selection_history(Mesh &mesh)
+{
+  return validate_selection_history(mesh, false, &mesh);
 }
 
 IndexMask mesh_find_faces_duplicate_verts(const Mesh &mesh, IndexMaskMemory &memory)

@@ -108,7 +108,8 @@ static void deform_verts_EM(ModifierData *md,
                             Mesh *mesh,
                             MutableSpan<float3> positions)
 {
-  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
+  const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
+  if (!bm) {
     deform_verts(md, ctx, mesh, positions);
     return;
   }
@@ -125,7 +126,7 @@ static void deform_verts_EM(ModifierData *md,
                                           lmd->flag,
                                           lmd->name,
                                           lmd->strength,
-                                          *BKE_editmesh_bmesh_get(mesh));
+                                          *bm);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

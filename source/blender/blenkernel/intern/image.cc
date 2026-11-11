@@ -3171,7 +3171,7 @@ static void image_walk_id_all_users(
     case ID_CA: {
       Camera *cam = id_cast<Camera *>(id);
       for (CameraBGImage &bgpic : cam->bg_images) {
-        callback(bgpic.ima, nullptr, &bgpic.iuser, customdata);
+        callback(bgpic.ima, &cam->id, &bgpic.iuser, customdata);
       }
       break;
     }
@@ -5533,6 +5533,24 @@ bool BKE_image_has_alpha(Image *image)
   bool result = ibuf ? ibuf->can_contain_alpha() : false;
   BKE_image_release_ibuf(image, ibuf, lock);
   return result;
+}
+
+bool BKE_image_is_float(Image *image)
+{
+  if (image == nullptr) {
+    return false;
+  }
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, nullptr, &lock);
+  if (ibuf == nullptr) {
+    BKE_image_release_ibuf(image, ibuf, &lock);
+    return false;
+  }
+
+  const bool is_float = ibuf->float_data() != nullptr;
+  BKE_image_release_ibuf(image, ibuf, lock);
+  return is_float;
 }
 
 void BKE_image_get_size(Image *image, ImageUser *iuser, int *r_width, int *r_height)

@@ -525,7 +525,7 @@ class Dynamic : public SocketDeclaration {
   friend DynamicBuilder;
 
  public:
-  static constexpr eNodeSocketDatatype static_socket_type = SOCK_CUSTOM;
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_DYNAMIC;
 
   using Builder = DynamicBuilder;
 

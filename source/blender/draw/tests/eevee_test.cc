@@ -2042,12 +2042,14 @@ static void test_eevee_lut_gen()
   auto bsdf_ggx_gen = Precompute(manager, LUT_GGX_BSDF_SPLIT_SUM, {64, 64, 16}).data<float3>();
   auto burley_gen = Precompute(manager, LUT_BURLEY_SSS_PROFILE, {64, 1, 1}).data<float1>();
   auto rand_walk_gen = Precompute(manager, LUT_RANDOM_WALK_SSS_PROFILE, {64, 1, 1}).data<float1>();
+  auto oren_nayar_gen = Precompute(manager, LUT_OREN_NAYAR_SPLIT_SUM, {64, 64, 1}).data<float2>();
 
   Span<float3> brdf_ggx_lut((const float3 *)&eevee::lut::brdf_ggx, 64 * 64);
   Span<float1> btdf_ggx_lut((const float1 *)&eevee::lut::btdf_ggx, 64 * 64 * 16);
   Span<float3> bsdf_ggx_lut((const float3 *)&eevee::lut::bsdf_ggx, 64 * 64 * 16);
   Span<float1> burley_sss_lut((const float1 *)&eevee::lut::burley_sss_profile, 64);
   Span<float1> rand_walk_lut((const float1 *)&eevee::lut::random_walk_sss_profile, 64);
+  Span<float2> oren_nayar_lut((const float2 *)&eevee::lut::oren_nayar, 64 * 64);
 
   const float eps = 3e-3f;
   EXPECT_NEAR_ARRAY_ND(brdf_ggx_lut.data(), brdf_ggx_gen.data(), brdf_ggx_gen.size(), 3, eps);
@@ -2055,19 +2057,20 @@ static void test_eevee_lut_gen()
   EXPECT_NEAR_ARRAY_ND(bsdf_ggx_lut.data(), bsdf_ggx_gen.data(), bsdf_ggx_gen.size(), 3, eps);
   EXPECT_NEAR_ARRAY_ND(burley_gen.data(), burley_sss_lut.data(), burley_sss_lut.size(), 1, eps);
   EXPECT_NEAR_ARRAY_ND(rand_walk_gen.data(), rand_walk_lut.data(), rand_walk_lut.size(), 1, eps);
+  EXPECT_NEAR_ARRAY_ND(
+      oren_nayar_gen.data(), oren_nayar_lut.data(), oren_nayar_lut.size(), 2, eps);
 
-#if 0
-  auto oren_nayar_gen = Precompute(manager, LUT_OREN_NAYAR_SPLIT_SUM, {64, 64, 1}).data<float2>();
-  auto oren_nayar_ltc_gen = Precompute(manager, LUT_OREN_NAYAR_LTC, {64, 64, 1}).data<float4>();
-  Span<float2> oren_nayar_lut((const float2 *)&eevee::lut::oren_nayar, 64 * 64);
-  Span<float4> oren_nayar_ltc_lut((const float4 *)&eevee::lut::ltc_mat_oren_nayar, 64 * 64);
-  /* Fast math has higher error on Mac. */
-  EXPECT_NEAR_ARRAY_ND(
-      oren_nayar_gen.data(), oren_nayar_lut.data(), oren_nayar_lut.size(), 1, 5e-3f);
-  /* LTC fitting has higher error. */
-  EXPECT_NEAR_ARRAY_ND(
-      oren_nayar_ltc_gen.data(), oren_nayar_ltc_lut.data(), oren_nayar_ltc_lut.size(), 1, 0.05f);
-#endif
+  /* Test hangs on Windows. */
+  if (!GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+    auto oren_nayar_ltc_gen = Precompute(manager, LUT_OREN_NAYAR_LTC, {64, 64, 1}).data<float4>();
+    Span<float4> oren_nayar_ltc_lut((const float4 *)&eevee::lut::ltc_mat_oren_nayar, 64 * 64);
+    EXPECT_NEAR_ARRAY_ND_WITH_FAILURE_RATE(oren_nayar_ltc_gen.data(),
+                                           oren_nayar_ltc_lut.data(),
+                                           oren_nayar_ltc_lut.size(),
+                                           4,
+                                           eps,
+                                           0.2f);
+  }
 
   GPU_render_end();
 }

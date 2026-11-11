@@ -60,11 +60,11 @@ void tile_classify([[resource_table]] TileClassify &srt,
     gbuffer::Header header = reader.read_header(texel);
 
     for (uchar i = 0; i < GBUFFER_LAYER_MAX; i++) {
-      ClosureUndetermined cl = reader.read_bin(header, texel, i);
+      BsdfClosure cl = reader.read_bin(header, texel, i);
       if (cl.type == CLOSURE_NONE_ID) {
         continue;
       }
-      float roughness = closure_apparent_roughness_get(cl);
+      float roughness = cl.perceived_roughness();
       float ray_roughness_fac = ray_roughness_factor(uni.raytrace_buf, roughness);
 
       /* We don't care about race condition here. */

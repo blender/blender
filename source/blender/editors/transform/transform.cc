@@ -2296,8 +2296,12 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
 
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
-        bool do_skip = false;
+        if (t->flag & T_MODAL) {
+          RNA_property_boolean_set(op->ptr, prop, false);
+          continue;
+        }
+
+        BMesh *bm = BKE_editmesh_bmesh_ensure(tc->obedit);
 
         /* Currently only used for two of three most frequent transform ops,
          * can include more ops.
@@ -2306,21 +2310,16 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         if (ELEM(t->mode, TFM_TRANSLATION, TFM_ROTATION)) {
           if (bm->totvertsel == bm->totvert) {
             /* No need to invalidate if whole mesh is selected. */
-            do_skip = true;
+            continue;
           }
         }
 
-        if (t->flag & T_MODAL) {
-          RNA_property_boolean_set(op->ptr, prop, false);
+        const bool preserve_clnor = RNA_property_boolean_get(op->ptr, prop);
+        if (preserve_clnor) {
+          BKE_editmesh_lnorspace_update(bm);
+          t->flag |= T_CLNOR_REBUILD;
         }
-        else if (!do_skip) {
-          const bool preserve_clnor = RNA_property_boolean_get(op->ptr, prop);
-          if (preserve_clnor) {
-            BKE_editmesh_lnorspace_update(bm);
-            t->flag |= T_CLNOR_REBUILD;
-          }
-          BM_lnorspace_invalidate(bm, true);
-        }
+        BM_lnorspace_invalidate(bm, true);
       }
     }
   }
@@ -2377,7 +2376,7 @@ wmOperatorStatus transformEnd(bContext *C, TransInfo *t)
     else {
       if (t->flag & T_CLNOR_REBUILD) {
         FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-          BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
+          BMesh *bm = BKE_editmesh_bmesh_ensure(tc->obedit);
           BM_lnorspace_rebuild(bm, true);
         }
       }

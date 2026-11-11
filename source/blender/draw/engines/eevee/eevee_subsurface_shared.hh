@@ -26,7 +26,7 @@ static constexpr float SSS_TRANSMIT_LUT_SCALE = ((SSS_TRANSMIT_LUT_SIZE - 1.0f) 
 static constexpr float SSS_TRANSMIT_LUT_BIAS = (0.5f / float(SSS_TRANSMIT_LUT_SIZE));
 static constexpr float SSS_TRANSMIT_LUT_STEP_RES = 64.0f;
 
-struct [[host_shared]] SubsurfaceData {
+struct SubsurfaceData {
   /** xy: 2D sample position [-1..1], zw: sample_bounds. */
   /* NOTE(fclem) Using float4 for alignment. */
   float4 samples[SSS_SAMPLE_MAX];

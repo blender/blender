@@ -37,7 +37,9 @@ ImBuf *imb_load_tiff(const uchar *mem,
   ImBuf *ibuf = imb_oiio_read(ctx, config, r_colorspace, spec);
   if (ibuf) {
     if (flag_is_set(flags, ImBufFlags::AlphaDetect)) {
-      if (spec.nchannels == 4 && spec.format == TypeDesc::UINT16) {
+      if (spec.nchannels == 4 && spec.format == TypeDesc::UINT16 &&
+          !spec.get_int_attribute("oiio:UnassociatedAlpha"))
+      {
         ibuf->flags |= ImBufFlags::AlphaPremul;
       }
     }

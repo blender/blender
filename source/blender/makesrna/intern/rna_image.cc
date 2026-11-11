@@ -259,7 +259,8 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   ImageUser *iuser = static_cast<ImageUser *>(ptr->data);
   ID *id = ptr->owner_id;
 
-  if (scene != nullptr) {
+  /* Without Auto Refresh the stored frame must be kept, nothing recomputes it afterwards. */
+  if (scene != nullptr && (iuser->flag & IMA_ANIM_ALWAYS)) {
     BKE_image_user_frame_calc(nullptr, iuser, scene->r.cfra);
   }
 
@@ -294,6 +295,22 @@ static std::optional<std::string> rna_ImageUser_path(const PointerRNA *ptr)
         return rna_Node_ImageUser_path(ptr);
       case ID_CA:
         return rna_CameraBackgroundImage_image_or_movieclip_user_path(ptr);
+      case ID_MA: {
+        const Material *material = reinterpret_cast<Material *>(ptr->owner_id);
+        const ImageUser *iuser = static_cast<ImageUser *>(ptr->data);
+
+        if (!material->gp_style) {
+          break;
+        }
+
+        if (material->gp_style->stroke_iuser == iuser) {
+          return "grease_pencil.stroke_image_user";
+        }
+        if (material->gp_style->fill_iuser == iuser) {
+          return "grease_pencil.fill_image_user";
+        }
+        break;
+      }
       case ID_SCR: {
         const bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
         const ImageUser *iuser = static_cast<ImageUser *>(ptr->data);

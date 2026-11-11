@@ -154,8 +154,8 @@ struct CodegenContext : NodeErrorHandler {
   struct CodegenExpressionParser
       : public PrattParser<CodegenExpressionParser, CodegenResult, ast::Node> {
     using Base = PrattParser<CodegenExpressionParser, CodegenResult, ast::Node>;
-    using ErrorType = Base::ErrorType;
-    using BindingPower = Base::BindingPower;
+    using Base::BindingPower;
+    using Base::ErrorType;
 
    private:
     CodegenContext &ctx;
@@ -567,7 +567,7 @@ struct CodegenContext : NodeErrorHandler {
         ctx.error(call, Diag::InvalidInlinedFunctionLocation);
       }
 
-      if (sym.is_virtual && sym.is_overridden()) {
+      if (sym.is_virtual && (sym.is_overridden() || sym.is_pure_virtual)) {
         ctx.error(call, Diag::InvalidVirtualFunctionCall, sym.original);
         return {"", *ctx.table.err_cls};
       }
@@ -596,7 +596,7 @@ struct CodegenContext : NodeErrorHandler {
             params_str += caller_class->get_path_to_base_class(*callee_class);
           }
         }
-        if (sym.arg_types.size() > 0) {
+        if (!sym.arg_types.empty()) {
           params_str += ", ";
         }
       }
@@ -904,6 +904,11 @@ struct CodegenContext : NodeErrorHandler {
       builder.ss << start.buf_->substr(start, end, true);
     };
 
+    /* A positional value doesn't name its constant, and would be dropped without an error. */
+    for (Initializer init : list.children_of_type<Initializer>()) {
+      error(init, Diag::ExpectedDesignatedInitializer);
+    }
+
     Token curr = list.front();
     for (DesignatedInitializer init : list.children_of_type<DesignatedInitializer>()) {
       Expr value = init.assign().child_first();
@@ -913,7 +918,9 @@ struct CodegenContext : NodeErrorHandler {
       }
 
       auto result = table.expr_type_analysis(scope, value.child_first()).unwrap(this);
-      if (!result.is_constexpr()) {
+      if (!result.is_constexpr() || result.array_dim != 0 || !result.value.is_scalar() ||
+          result.value.comp_type() == ConstexprValue::FLOAT)
+      {
         error(value, Diag::ExprNotIntegralConstant);
         continue;
       }
@@ -1407,6 +1414,15 @@ struct CodegenContext : NodeErrorHandler {
     }
   }
 
+  SymbolClass &lookup_class(IdQualified id, const SymbolScope &scope, int nested_id)
+  {
+    if (id.is_valid()) {
+      return scope.lookup_class(table, id).unwrap(this);
+    }
+    SymbolClass *cls = scope.lookup_class("a" + to_string(nested_id));
+    return cls ? *cls : *table.err_cls;
+  }
+
   void class_decl(ClassDecl decl,
                   SymbolScope &scope,
                   int nested_id = 0,
@@ -1418,16 +1434,7 @@ struct CodegenContext : NodeErrorHandler {
       return;
     }
 
-    SymbolClass *cls_ptr = inst_cls;
-    if (!cls_ptr) {
-      if (decl.identifier().is_valid()) {
-        cls_ptr = &scope.lookup_class(table, decl.identifier()).unwrap(this);
-      }
-      else {
-        cls_ptr = scope.lookup_class("a" + to_string(nested_id));
-      }
-    }
-    SymbolClass &cls = *cls_ptr;
+    SymbolClass &cls = inst_cls ? *inst_cls : lookup_class(decl.identifier(), scope, nested_id);
     if (cls.is_error) {
       error(decl, Diag::UnknownClassInstantiation);
       return;
@@ -1515,6 +1522,11 @@ struct CodegenContext : NodeErrorHandler {
       return;
     }
 
+    if (cls.parent->as_class()) {
+      /* Do not emit member functions for nested classes, let the parent class do it. */
+      return;
+    }
+
     /* Member functions. */
 
     for (auto [id, base] : cls.base_classes) {
@@ -1538,6 +1550,15 @@ struct CodegenContext : NodeErrorHandler {
 
   void class_functions_prototypes(LocalScope body, SymbolClass &cls)
   {
+    /* Nested classes. */
+    for (auto decl : body.children_of_type<ClassDecl>()) {
+      /* Don't process anonymous classes. */
+      if (decl.identifier().is_valid()) {
+        SymbolClass &nested = cls.lookup_class(table, decl.identifier()).unwrap(this);
+        class_functions_prototypes(decl.body(), nested);
+      }
+    }
+
     if (!body.child_first(NodeType::FuncDecl).is_valid() &&
         !body.child_first(NodeType::FuncForwardDecl).is_valid())
     {
@@ -1560,6 +1581,15 @@ struct CodegenContext : NodeErrorHandler {
 
   void class_functions_decl(LocalScope body, SymbolClass &cls)
   {
+    /* Nested classes. */
+    for (auto decl : body.children_of_type<ClassDecl>()) {
+      /* Don't process anonymous classes. */
+      if (decl.identifier().is_valid()) {
+        SymbolClass &nested = cls.lookup_class(table, decl.identifier()).unwrap(this);
+        class_functions_decl(decl.body(), nested);
+      }
+    }
+
     /* Emit function members. */
     for (FuncDecl decl : body.children_of_type<FuncDecl>()) {
       func_decl(decl, cls);
@@ -2148,6 +2178,10 @@ struct CodegenContext : NodeErrorHandler {
     if (!fn.is_inline) {
       return {nullptr, {}};
     }
+
+    if (fn.is_virtual && (fn.is_overridden() || fn.is_pure_virtual)) {
+      error(call, Diag::InvalidVirtualFunctionCall, fn.original);
+    }
     return {&fn, call};
   }
 
@@ -2206,7 +2240,7 @@ struct CodegenContext : NodeErrorHandler {
         /* Change the mangled name of the argument. */
         var.identifier = id;
 
-        Expr init_expr = (param.is_valid()) ? param : fn->arg_defaults[arg_i];
+        Expr init_expr = param.is_valid() ? param : fn->arg_defaults[arg_i];
         builder.ss << fn->arg_types[arg_i]->identifier << " " << id;
         builder.ss << " = " << expr(init_expr, scope).str << "; ";
       }
@@ -2252,6 +2286,9 @@ struct CodegenContext : NodeErrorHandler {
       else if (id == "metal_max_total_threads_per_threadgroup") {
         create_info_decl += "MTL_MAX_TOTAL_THREADS_PER_THREADGROUP" +
                             string(attr.parameters().str()) + "\n";
+      }
+      else if (id == "no_fast_math") {
+        create_info_decl += "NO_FAST_MATH()\n";
       }
     }
 
@@ -2377,12 +2414,11 @@ struct CodegenContext : NodeErrorHandler {
     builder.curr = list.front();
     match_if('(');
 
-    FuncDecl decl = list.parent();
     /* Check the symbol and not the declaration, out-of-class definitions are not marked static. */
     if (fn.fn_type == SymbolFunction::MEMBER) {
       const SymbolClass *cls = fn.parent_class();
 
-      if (decl.is_const()) {
+      if (fn.is_const) {
         builder.ss << "const ";
       }
 
@@ -3007,7 +3043,7 @@ struct CodegenContext : NodeErrorHandler {
     IdQualified id = decl.identifier();
     ArrayDecl array = decl.array();
 
-    SymbolVariable *var = (id.is_valid()) ? &scope.lookup_variable(table, id) : nullptr;
+    SymbolVariable *var = id.is_valid() ? &scope.lookup_variable(table, id) : nullptr;
 
     if (var == nullptr || var->is_error) {
       error(id, Diag::UnknownVariable, string(id.str()));
@@ -3468,71 +3504,85 @@ struct CodegenContext : NodeErrorHandler {
       case ResourceType::COMPILATION_CONST:
       case ResourceType::PUSH_CONST:
       case ResourceType::SHARED:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .contains_pointer = var.is_ptr};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .contains_pointer = var.is_ptr,
+        };
       case ResourceType::SPECIALIZATION_CONST:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_value = string(attr.param1.str()),
-                .res_condition = parse_condition(cls, attr.condition)};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_value = string(attr.param1.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+        };
       case ResourceType::ACCELERATION_STRUCTURE:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency)};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+        };
       case ResourceType::SAMPLER:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency)};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+        };
       case ResourceType::UNIFORM_BUF:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency),
-                .contains_pointer = var.is_ptr};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+            .contains_pointer = var.is_ptr,
+        };
       case ResourceType::STORAGE_BUF:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_qualifier = string(attr.param2.str()),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency),
-                .contains_pointer = var.is_ptr};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_qualifier = string(attr.param2.str()),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+            .contains_pointer = var.is_ptr,
+        };
       case ResourceType::IMAGE:
-        return {.line = 0,
-                .var_type = type,
-                .var_name = name,
-                .var_array = array_size_to_string(array, cls),
-                .res_type = string(attr.attr.identifier().str()),
-                .res_slot = string(attr.param1.str()),
-                .res_qualifier = string(attr.param2.str()),
-                .res_format = parse_image_format(cls, attr.param3),
-                .res_condition = parse_condition(cls, attr.condition),
-                .res_frequency = parse_frequency(attr.frequency)};
+        return {
+            .line = 0,
+            .var_type = type,
+            .var_name = name,
+            .var_array = array_size_to_string(array, cls),
+            .res_type = string(attr.attr.identifier().str()),
+            .res_slot = string(attr.param1.str()),
+            .res_qualifier = string(attr.param2.str()),
+            .res_format = parse_image_format(cls, attr.param3),
+            .res_condition = parse_condition(cls, attr.condition),
+            .res_frequency = parse_frequency(attr.frequency),
+        };
         break;
       default:
         assert(0);

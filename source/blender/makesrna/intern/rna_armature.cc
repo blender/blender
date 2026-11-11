@@ -566,7 +566,9 @@ static bool rna_Armature_collections_override_apply(Main *bmain,
     bcoll->flags |= BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL;
   }
 
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 

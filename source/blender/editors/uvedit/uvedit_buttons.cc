@@ -56,7 +56,7 @@ static int uvedit_center(Scene *scene, const Span<Object *> objects, float cente
   zero_v2(center);
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
@@ -90,7 +90,7 @@ static void uvedit_translate(Scene *scene, const Span<Object *> objects, const f
   float *luv;
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {

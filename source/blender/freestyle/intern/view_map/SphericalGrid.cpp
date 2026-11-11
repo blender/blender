@@ -8,6 +8,7 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <stdexcept>
 
 #include "SphericalGrid.h"
@@ -223,8 +224,9 @@ Vec3r SphericalGrid::Transform::sphericalProjection(const Vec3r &M)
 {
   Vec3r newPoint;
 
-  newPoint[0] = ::atan(M[0] / M[2]);
-  newPoint[1] = ::atan(M[1] / M[2]);
+  const double sign = std::signbit(M[2]) ? -1.0 : 1.0;
+  newPoint[0] = ::atan2(sign * M[0], ::fabs(M[2]));
+  newPoint[1] = ::atan2(sign * M[1], ::fabs(M[2]));
   newPoint[2] = ::sqrt(M[0] * M[0] + M[1] * M[1] + M[2] * M[2]);
 
   return newPoint;

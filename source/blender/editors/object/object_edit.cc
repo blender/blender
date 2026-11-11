@@ -901,7 +901,7 @@ bool editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
 
     EditMesh *em = BKE_editmesh_from_object(ob);
     if (em) [[likely]] {
-      BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_get_for_write(ob));
+      BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_ensure(ob));
     }
 
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_MESH, nullptr);

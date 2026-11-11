@@ -232,419 +232,429 @@ void DRW_text_cache_draw(DRWTextStore *dt, const ARegion *region, const View3D *
   }
 }
 
+namespace {
+
+struct MeasureStatsContext {
+  const View3D *v3d;
+  const Object *ob;
+  const UnitSettings *unit;
+  DRWTextStore *dt;
+  /* Do not use ASCII when using non-default unit system, some unit chars are UTF8
+   * (micro, square, etc.). See #36090. */
+  short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
+  /** Use a float conversion matching the grid size. */
+  const char *conv_float;
+  float4x4 clip_planes;
+  /** When 2 or more edge-info options are enabled, space apart. */
+  short edge_tex_sep;
+  short edge_index_yoffs;
+  bool do_global;
+  bool do_moving;
+  bool is_rad;
+  short selectmode;
+  uchar4 edge_len_col;
+  uchar4 edge_ang_col;
+  uchar4 face_area_col;
+  uchar4 face_ang_col;
+  uchar4 index_col;
+};
+
+}  // namespace
+
+static std::optional<float3> edge_text_position(const MeasureStatsContext &ctx,
+                                                const float3 &v1,
+                                                const float3 &v2)
+{
+  float3 v1_clip, v2_clip;
+  if (!clip_segment_v3_plane_n(v1, v2, ctx.clip_planes.ptr(), 4, v1_clip, v2_clip)) {
+    return std::nullopt;
+  }
+  return math::transform_point(ctx.ob->object_to_world(), 0.5 * (v1_clip + v2_clip));
+}
+
+static void edge_length_text_add(const MeasureStatsContext &ctx, float3 v1, float3 v2)
+{
+  const std::optional<float3> co = edge_text_position(ctx, v1, v2);
+  if (!co) {
+    return;
+  }
+  if (ctx.do_global) {
+    v1 = ctx.ob->object_to_world().view<3, 3>() * v1;
+    v2 = ctx.ob->object_to_world().view<3, 3>() * v2;
+  }
+  char numstr[32];
+  const size_t numstr_len =
+      ctx.unit->system ? BKE_unit_value_as_string_scaled(
+                             numstr, len_v3v3(v1, v2), 3, B_UNIT_LENGTH, *ctx.unit, false, true) :
+                         SNPRINTF_RLEN(numstr, ctx.conv_float, len_v3v3(v1, v2));
+  DRW_text_cache_add(
+      ctx.dt, *co, numstr, numstr_len, 0, ctx.edge_tex_sep, ctx.txt_flag, ctx.edge_len_col);
+}
+
+static void edge_angle_text_add(
+    const MeasureStatsContext &ctx, const float3 &v1, const float3 &v2, float3 no_a, float3 no_b)
+{
+  const std::optional<float3> co = edge_text_position(ctx, v1, v2);
+  if (!co) {
+    return;
+  }
+  if (ctx.do_global) {
+    const float3x3 normal_matrix = math::transpose(float3x3(ctx.ob->world_to_object()));
+    no_a = math::normalize(normal_matrix * no_a);
+    no_b = math::normalize(normal_matrix * no_b);
+  }
+  const float angle = angle_normalized_v3v3(no_a, no_b);
+  char numstr[32];
+  const size_t numstr_len = SNPRINTF_RLEN(numstr,
+                                          "%.3f%s",
+                                          (ctx.is_rad) ? angle : RAD2DEGF(angle),
+                                          (ctx.is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
+  DRW_text_cache_add(
+      ctx.dt, *co, numstr, numstr_len, 0, -ctx.edge_tex_sep, ctx.txt_flag, ctx.edge_ang_col);
+}
+
+static float triangle_area(const MeasureStatsContext &ctx, float3 v1, float3 v2, float3 v3)
+{
+  if (ctx.do_global) {
+    v1 = ctx.ob->object_to_world().view<3, 3>() * v1;
+    v2 = ctx.ob->object_to_world().view<3, 3>() * v2;
+    v3 = ctx.ob->object_to_world().view<3, 3>() * v3;
+  }
+  return area_tri_v3(v1, v2, v3);
+}
+
+static void face_area_text_add(const MeasureStatsContext &ctx,
+                               const float area,
+                               const float3 &center)
+{
+  const float3 co = math::transform_point(ctx.ob->object_to_world(), center);
+  char numstr[32];
+  const size_t numstr_len = ctx.unit->system ?
+                                BKE_unit_value_as_string_scaled(
+                                    numstr, area, 3, B_UNIT_AREA, *ctx.unit, false, true) :
+                                SNPRINTF_RLEN(numstr, ctx.conv_float, area);
+  DRW_text_cache_add(ctx.dt, co, numstr, numstr_len, 0, 0, ctx.txt_flag, ctx.face_area_col);
+}
+
+static void face_corner_angle_text_add(const MeasureStatsContext &ctx,
+                                       float3 v_prev,
+                                       const float3 &v,
+                                       float3 v_next,
+                                       const float3 &face_center)
+{
+  const float3 co = math::transform_point(ctx.ob->object_to_world(),
+                                          math::interpolate(face_center, v, 0.8f));
+  float3 v_angle = v;
+  if (ctx.do_global) {
+    v_prev = ctx.ob->object_to_world().view<3, 3>() * v_prev;
+    v_angle = ctx.ob->object_to_world().view<3, 3>() * v_angle;
+    v_next = ctx.ob->object_to_world().view<3, 3>() * v_next;
+  }
+  const float angle = angle_v3v3v3(v_prev, v_angle, v_next);
+  char numstr[32];
+  const size_t numstr_len = SNPRINTF_RLEN(numstr,
+                                          "%.3f%s",
+                                          (ctx.is_rad) ? angle : RAD2DEGF(angle),
+                                          (ctx.is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
+  DRW_text_cache_add(ctx.dt, co, numstr, numstr_len, 0, 0, ctx.txt_flag, ctx.face_ang_col);
+}
+
+static void index_text_add(const MeasureStatsContext &ctx, const float3 &co, const int index)
+{
+  char numstr[32];
+  const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", index);
+  DRW_text_cache_add(ctx.dt,
+                     math::transform_point(ctx.ob->object_to_world(), co),
+                     numstr,
+                     numstr_len,
+                     0,
+                     0,
+                     ctx.txt_flag,
+                     ctx.index_col,
+                     true,
+                     false);
+}
+
+static void edge_index_text_add(const MeasureStatsContext &ctx,
+                                const float3 &v1,
+                                const float3 &v2,
+                                const int index)
+{
+  const std::optional<float3> co = edge_text_position(ctx, v1, v2);
+  if (!co) {
+    return;
+  }
+  char numstr[32];
+  const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", index);
+  DRW_text_cache_add(ctx.dt,
+                     *co,
+                     numstr,
+                     numstr_len,
+                     0,
+                     ctx.edge_index_yoffs,
+                     ctx.txt_flag,
+                     ctx.index_col,
+                     true,
+                     false);
+}
+
+static void edit_mesh_measure_stats_bmesh(const MeasureStatsContext &ctx,
+                                          const Mesh &cage,
+                                          const EditMesh &em,
+                                          BMesh &bm)
+{
+  const eView3DOverlay_EditFlag edit_flag = ctx.v3d->overlay.edit_flag;
+  const bool do_moving = ctx.do_moving;
+  /* Allow for displaying shape keys and deform modifiers. The cage is indexed with BMesh indices,
+   * so it needs at least as many elements. Modifiers like Mirror append after the originals. */
+  const bool cage_covers_bmesh = BKE_mesh_wrapper_vert_len(&cage) >= bm.totvert &&
+                                 BKE_mesh_wrapper_face_len(&cage) >= bm.totface;
+  const Span<float3> vert_positions = cage_covers_bmesh ? BKE_mesh_wrapper_vert_coords(&cage) :
+                                                          Span<float3>();
+  const bool use_coords = !vert_positions.is_empty();
+  if (use_coords) {
+    BM_mesh_elem_index_ensure(&bm, BM_VERT);
+  }
+  const auto vert_co = [&](const BMVert *v) -> float3 {
+    return use_coords ? vert_positions[BM_elem_index_get(v)] : float3(v->co);
+  };
+
+  BMIter iter;
+
+  if (edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
+    BMEdge *eed;
+    BM_ITER_MESH (eed, &iter, &bm, BM_EDGES_OF_MESH) {
+      /* Draw selected edges, or edges next to selected verts while dragging. */
+      if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
+          (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
+                         BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))))
+      {
+        edge_length_text_add(ctx, vert_co(eed->v1), vert_co(eed->v2));
+      }
+    }
+  }
+
+  if (edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG) {
+    Span<float3> face_normals;
+    if (use_coords) {
+      BM_mesh_elem_index_ensure(&bm, BM_FACE);
+      /* TODO: This is not const correct for wrapper meshes, but it should be okay because
+       * every evaluated object gets its own evaluated cage mesh (they are not shared). */
+      face_normals = BKE_mesh_wrapper_face_normals(const_cast<Mesh *>(&cage));
+    }
+    const auto face_no = [&](const BMFace *f) -> float3 {
+      return use_coords ? face_normals[BM_elem_index_get(f)] : float3(f->no);
+    };
+
+    BMEdge *eed;
+    BM_ITER_MESH (eed, &iter, &bm, BM_EDGES_OF_MESH) {
+      BMLoop *l_a, *l_b;
+      if (!BM_edge_loop_pair(eed, &l_a, &l_b)) {
+        continue;
+      }
+      /* Draw selected edges, or edges next to selected verts while dragging. */
+      if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
+          (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
+                         BM_elem_flag_test(eed->v2, BM_ELEM_SELECT) ||
+                         /* Special case, this is useful to show when verts connected
+                          * to this edge via a face are being transformed. */
+                         BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
+                         BM_elem_flag_test(l_a->prev->v, BM_ELEM_SELECT) ||
+                         BM_elem_flag_test(l_b->next->next->v, BM_ELEM_SELECT) ||
+                         BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT))))
+      {
+        edge_angle_text_add(
+            ctx, vert_co(eed->v1), vert_co(eed->v2), face_no(l_a->f), face_no(l_b->f));
+      }
+    }
+  }
+
+  if (edit_flag & V3D_OVERLAY_EDIT_FACE_AREA) {
+    /* would be nice to use BM_face_calc_area, but that is for 2d faces
+     * so instead add up tessellation triangle areas */
+    BMFace *f;
+    /* Alternative to using `poly_to_tri_count(i, BM_elem_index_get(f->l_first))`
+     * without having to add an extra loop. */
+    int tri_index = 0;
+    BM_ITER_MESH (f, &iter, &bm, BM_FACES_OF_MESH) {
+      const int f_corner_tris_len = f->len - 2;
+      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+        float area = 0.0f;
+        float3 center(0.0f);
+        for (const std::array<BMLoop *, 3> &tri :
+             em.looptris.as_span().slice(tri_index, f_corner_tris_len))
+        {
+          const float3 v1 = vert_co(tri[0]->v);
+          const float3 v2 = vert_co(tri[1]->v);
+          const float3 v3 = vert_co(tri[2]->v);
+          center += v1;
+          center += v2;
+          center += v3;
+          area += triangle_area(ctx, v1, v2, v3);
+        }
+        face_area_text_add(ctx, area, center * (1.0f / float(f_corner_tris_len * 3)));
+      }
+      tri_index += f_corner_tris_len;
+    }
+  }
+
+  if (edit_flag & V3D_OVERLAY_EDIT_FACE_ANG) {
+    BMFace *efa;
+    BM_ITER_MESH (efa, &iter, &bm, BM_FACES_OF_MESH) {
+      const bool is_face_sel = BM_elem_flag_test_bool(efa, BM_ELEM_SELECT);
+      if (!(is_face_sel || do_moving)) {
+        continue;
+      }
+      std::optional<float3> center;
+      BMIter liter;
+      BMLoop *loop;
+      BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
+        if (!(is_face_sel || (do_moving && (BM_elem_flag_test(loop->v, BM_ELEM_SELECT) ||
+                                            BM_elem_flag_test(loop->prev->v, BM_ELEM_SELECT) ||
+                                            BM_elem_flag_test(loop->next->v, BM_ELEM_SELECT)))))
+        {
+          continue;
+        }
+        /* Lazy init center calculation. */
+        if (!center) {
+          center.emplace();
+          if (use_coords) {
+            BM_face_calc_center_bounds_vcos(&bm, efa, *center, vert_positions);
+          }
+          else {
+            BM_face_calc_center_bounds(efa, *center);
+          }
+        }
+        face_corner_angle_text_add(
+            ctx, vert_co(loop->prev->v), vert_co(loop->v), vert_co(loop->next->v), *center);
+      }
+    }
+  }
+
+  /* This option is for mesh ops and addons debugging; only available in UI if Blender starts
+   * with `--debug`. */
+  if (edit_flag & V3D_OVERLAY_EDIT_INDICES) {
+    int i;
+    if (ctx.selectmode & SCE_SELECT_VERTEX) {
+      BMVert *v;
+      BM_ITER_MESH_INDEX (v, &iter, &bm, BM_VERTS_OF_MESH, i) {
+        if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+          index_text_add(ctx, vert_co(v), i);
+        }
+      }
+    }
+    if (ctx.selectmode & SCE_SELECT_EDGE) {
+      BMEdge *eed;
+      BM_ITER_MESH_INDEX (eed, &iter, &bm, BM_EDGES_OF_MESH, i) {
+        if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+          edge_index_text_add(ctx, vert_co(eed->v1), vert_co(eed->v2), i);
+        }
+      }
+    }
+    if (ctx.selectmode & SCE_SELECT_FACE) {
+      BMFace *f;
+      BM_ITER_MESH_INDEX (f, &iter, &bm, BM_FACES_OF_MESH, i) {
+        if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+          float3 co;
+          if (use_coords) {
+            BM_face_calc_center_median_vcos(&bm, f, co, vert_positions);
+          }
+          else {
+            BM_face_calc_center_median(f, co);
+          }
+          index_text_add(ctx, co, i);
+        }
+      }
+    }
+  }
+}
+
 void DRW_text_edit_mesh_measure_stats(const ARegion *region,
                                       const View3D *v3d,
                                       const Object *ob,
                                       const UnitSettings &unit,
                                       DRWTextStore *dt)
 {
-  /* Do not use ASCII when using non-default unit system, some unit chars are UTF8
-   * (micro, square, etc.). See #36090. */
-  const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
   const Mesh *mesh = BKE_object_get_editmesh_eval_cage(ob);
   if (!mesh) {
     return;
   }
   const EditMesh *em = mesh->runtime->edit_mesh.get();
-  if (!BKE_editmesh_eval_orig_map_available(*mesh, BKE_object_get_pre_modified_mesh(ob))) {
+  const Mesh *mesh_orig = BKE_object_get_pre_modified_mesh(ob);
+  if (!BKE_editmesh_eval_orig_map_available(*mesh, mesh_orig)) {
     return;
   }
-  BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh));
-  char numstr[32];             /* Stores the measurement display text here */
-  const char *conv_float;      /* Use a float conversion matching the grid size */
-  uchar4 col = {0, 0, 0, 255}; /* color of the text to draw */
-  const float grid = unit.system ? unit.scale_length : v3d->grid;
-  const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
-  const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
-  float4x4 clip_planes;
-  /* allow for displaying shape keys and deform mods */
-  BMIter iter;
-  const Span<float3> vert_positions = BKE_mesh_wrapper_vert_coords(mesh);
-  const bool use_coords = !vert_positions.is_empty();
+  const eView3DOverlay_EditFlag edit_flag = v3d->overlay.edit_flag;
 
-  /* when 2 or more edge-info options are enabled, space apart */
+  MeasureStatsContext ctx;
+  ctx.v3d = v3d;
+  ctx.ob = ob;
+  ctx.unit = &unit;
+  ctx.dt = dt;
+  ctx.selectmode = em->selectmode;
+  ctx.do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
+  ctx.do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
+  ctx.is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
+
   short edge_tex_count = 0;
-  if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
+  if (edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
     edge_tex_count += 1;
   }
-  if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG) {
+  if (edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG) {
     edge_tex_count += 1;
   }
-  if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) && (em->selectmode & SCE_SELECT_EDGE)) {
+  if ((edit_flag & V3D_OVERLAY_EDIT_INDICES) && (em->selectmode & SCE_SELECT_EDGE)) {
     edge_tex_count += 1;
   }
-  const short edge_tex_sep = short((edge_tex_count - 1) * 5.0f * UI_SCALE_FAC);
-
-  /* Make the precision of the display value proportionate to the grid-size. */
-
-  if (grid <= 0.01f) {
-    conv_float = "%.6g";
-  }
-  else if (grid <= 0.1f) {
-    conv_float = "%.5g";
-  }
-  else if (grid <= 1.0f) {
-    conv_float = "%.4g";
-  }
-  else if (grid <= 10.0f) {
-    conv_float = "%.3g";
+  ctx.edge_tex_sep = short((edge_tex_count - 1) * 5.0f * UI_SCALE_FAC);
+  if (edge_tex_count == 2) {
+    ctx.edge_index_yoffs = (edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) ? -ctx.edge_tex_sep :
+                                                                     ctx.edge_tex_sep;
   }
   else {
-    conv_float = "%.2g";
+    ctx.edge_index_yoffs = 0;
   }
 
-  if (v3d->overlay.edit_flag &
+  /* Make the precision of the display value proportionate to the grid-size. */
+  const float grid = unit.system ? unit.scale_length : v3d->grid;
+  if (grid <= 0.01f) {
+    ctx.conv_float = "%.6g";
+  }
+  else if (grid <= 0.1f) {
+    ctx.conv_float = "%.5g";
+  }
+  else if (grid <= 1.0f) {
+    ctx.conv_float = "%.4g";
+  }
+  else if (grid <= 10.0f) {
+    ctx.conv_float = "%.3g";
+  }
+  else {
+    ctx.conv_float = "%.2g";
+  }
+
+  if (edit_flag &
       (V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_EDGE_ANG | V3D_OVERLAY_EDIT_INDICES))
   {
     BoundBox bb;
     const rcti rect = {0, region->winx, 0, region->winy};
 
-    ED_view3d_clipping_calc(&bb, clip_planes.ptr(), region, ob, &rect);
+    ED_view3d_clipping_calc(&bb, ctx.clip_planes.ptr(), region, ob, &rect);
   }
 
-  if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
-    BMEdge *eed;
+  ctx.edge_len_col = uchar4(0, 0, 0, 255);
+  ctx.edge_ang_col = uchar4(0, 0, 0, 255);
+  ctx.face_area_col = uchar4(0, 0, 0, 255);
+  ctx.face_ang_col = uchar4(0, 0, 0, 255);
+  ui::theme::get_color_3ubv(TH_DRAWEXTRA_EDGELEN, ctx.edge_len_col);
+  ui::theme::get_color_3ubv(TH_DRAWEXTRA_EDGEANG, ctx.edge_ang_col);
+  ui::theme::get_color_3ubv(TH_DRAWEXTRA_FACEAREA, ctx.face_area_col);
+  ui::theme::get_color_3ubv(TH_DRAWEXTRA_FACEANG, ctx.face_ang_col);
+  ui::theme::get_color_4ubv(TH_TEXT_HI, ctx.index_col);
 
-    ui::theme::get_color_3ubv(TH_DRAWEXTRA_EDGELEN, col);
-
-    if (use_coords) {
-      BM_mesh_elem_index_ensure(bm, BM_VERT);
-    }
-
-    BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-      /* draw selected edges, or edges next to selected verts while dragging */
-      if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
-          (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-                         BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))))
-      {
-        float3 v1, v2;
-        float3 v1_clip, v2_clip;
-
-        if (use_coords) {
-          v1 = vert_positions[BM_elem_index_get(eed->v1)];
-          v2 = vert_positions[BM_elem_index_get(eed->v2)];
-        }
-        else {
-          v1 = eed->v1->co;
-          v2 = eed->v2->co;
-        }
-
-        if (clip_segment_v3_plane_n(v1, v2, clip_planes.ptr(), 4, v1_clip, v2_clip)) {
-          const float3 co = math::transform_point(ob->object_to_world(),
-                                                  0.5 * (v1_clip + v2_clip));
-
-          if (do_global) {
-            v1 = ob->object_to_world().view<3, 3>() * v1;
-            v2 = ob->object_to_world().view<3, 3>() * v2;
-          }
-
-          const size_t numstr_len =
-              unit.system ? BKE_unit_value_as_string_scaled(
-                                numstr, len_v3v3(v1, v2), 3, B_UNIT_LENGTH, unit, false, true) :
-                            SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
-
-          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, edge_tex_sep, txt_flag, col);
-        }
-      }
-    }
-  }
-
-  if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG) {
-    const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
-    BMEdge *eed;
-
-    ui::theme::get_color_3ubv(TH_DRAWEXTRA_EDGEANG, col);
-
-    Span<float3> face_normals;
-    if (use_coords) {
-      BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
-      /* TODO: This is not const correct for wrapper meshes, but it should be okay because
-       * every evaluated object gets its own evaluated cage mesh (they are not shared). */
-      face_normals = BKE_mesh_wrapper_face_normals(const_cast<Mesh *>(mesh));
-    }
-
-    BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-      BMLoop *l_a, *l_b;
-      if (BM_edge_loop_pair(eed, &l_a, &l_b)) {
-        /* Draw selected edges, or edges next to selected verts while dragging. */
-        if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
-            (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(eed->v2, BM_ELEM_SELECT) ||
-                           /* Special case, this is useful to show when verts connected
-                            * to this edge via a face are being transformed. */
-                           BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(l_a->prev->v, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(l_b->next->next->v, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT))))
-        {
-          float3 v1, v2;
-          float3 v1_clip, v2_clip;
-
-          if (use_coords) {
-            v1 = vert_positions[BM_elem_index_get(eed->v1)];
-            v2 = vert_positions[BM_elem_index_get(eed->v2)];
-          }
-          else {
-            v1 = eed->v1->co;
-            v2 = eed->v2->co;
-          }
-
-          if (clip_segment_v3_plane_n(v1, v2, clip_planes.ptr(), 4, v1_clip, v2_clip)) {
-            float3 no_a, no_b;
-
-            const float3 co = math::transform_point(ob->object_to_world(),
-                                                    0.5 * (v1_clip + v2_clip));
-
-            if (use_coords) {
-              no_a = face_normals[BM_elem_index_get(l_a->f)];
-              no_b = face_normals[BM_elem_index_get(l_b->f)];
-            }
-            else {
-              no_a = l_a->f->no;
-              no_b = l_b->f->no;
-            }
-
-            if (do_global) {
-              no_a = math::normalize(ob->world_to_object().view<3, 3>() * no_a);
-              no_b = math::normalize(ob->world_to_object().view<3, 3>() * no_b);
-            }
-
-            const float angle = angle_normalized_v3v3(no_a, no_b);
-
-            const size_t numstr_len = SNPRINTF_RLEN(numstr,
-                                                    "%.3f%s",
-                                                    (is_rad) ? angle : RAD2DEGF(angle),
-                                                    (is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
-
-            DRW_text_cache_add(dt, co, numstr, numstr_len, 0, -edge_tex_sep, txt_flag, col);
-          }
-        }
-      }
-    }
-  }
-
-  if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_AREA) {
-    /* would be nice to use BM_face_calc_area, but that is for 2d faces
-     * so instead add up tessellation triangle areas */
-
-    ui::theme::get_color_3ubv(TH_DRAWEXTRA_FACEAREA, col);
-
-    int i;
-    BMFace *f = nullptr;
-    /* Alternative to using `poly_to_tri_count(i, BM_elem_index_get(f->l_first))`
-     * without having to add an extra loop. */
-    int tri_index = 0;
-    BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
-      const int f_corner_tris_len = f->len - 2;
-      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-        int n = 0;
-        float area = 0; /* area of the face */
-        float3 vmid(0.0f);
-        const std::array<BMLoop *, 3> *ltri_array = &em->looptris[tri_index];
-        for (int j = 0; j < f_corner_tris_len; j++) {
-          float3 v1, v2, v3;
-
-          if (use_coords) {
-            v1 = vert_positions[BM_elem_index_get(ltri_array[j][0]->v)];
-            v2 = vert_positions[BM_elem_index_get(ltri_array[j][1]->v)];
-            v3 = vert_positions[BM_elem_index_get(ltri_array[j][2]->v)];
-          }
-          else {
-            v1 = ltri_array[j][0]->v->co;
-            v2 = ltri_array[j][1]->v->co;
-            v3 = ltri_array[j][2]->v->co;
-          }
-
-          vmid += v1;
-          vmid += v2;
-          vmid += v3;
-          n += 3;
-
-          if (do_global) {
-            v1 = ob->object_to_world().view<3, 3>() * v1;
-            v2 = ob->object_to_world().view<3, 3>() * v2;
-            v3 = ob->object_to_world().view<3, 3>() * v3;
-          }
-
-          area += area_tri_v3(v1, v2, v3);
-        }
-
-        vmid *= 1.0f / float(n);
-        vmid = math::transform_point(ob->object_to_world(), vmid);
-
-        const size_t numstr_len = unit.system ?
-                                      BKE_unit_value_as_string_scaled(
-                                          numstr, area, 3, B_UNIT_AREA, unit, false, true) :
-                                      SNPRINTF_RLEN(numstr, conv_float, area);
-
-        DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
-      }
-      tri_index += f_corner_tris_len;
-    }
-  }
-
-  if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_ANG) {
-    BMFace *efa;
-    const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
-
-    ui::theme::get_color_3ubv(TH_DRAWEXTRA_FACEANG, col);
-
-    if (use_coords) {
-      BM_mesh_elem_index_ensure(bm, BM_VERT);
-    }
-
-    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-      const bool is_face_sel = BM_elem_flag_test_bool(efa, BM_ELEM_SELECT);
-
-      if (is_face_sel || do_moving) {
-        BMIter liter;
-        BMLoop *loop;
-        bool is_first = true;
-
-        BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (is_face_sel || (do_moving && (BM_elem_flag_test(loop->v, BM_ELEM_SELECT) ||
-                                            BM_elem_flag_test(loop->prev->v, BM_ELEM_SELECT) ||
-                                            BM_elem_flag_test(loop->next->v, BM_ELEM_SELECT))))
-          {
-            float3 v1, v2, v3;
-            float3 vmid;
-
-            /* lazy init center calc */
-            if (is_first) {
-              if (use_coords) {
-                BM_face_calc_center_bounds_vcos(bm, efa, vmid, vert_positions);
-              }
-              else {
-                BM_face_calc_center_bounds(efa, vmid);
-              }
-              is_first = false;
-            }
-            if (use_coords) {
-              v1 = vert_positions[BM_elem_index_get(loop->prev->v)];
-              v2 = vert_positions[BM_elem_index_get(loop->v)];
-              v3 = vert_positions[BM_elem_index_get(loop->next->v)];
-            }
-            else {
-              v1 = loop->prev->v->co;
-              v2 = loop->v->co;
-              v3 = loop->next->v->co;
-            }
-
-            const float3 v2_local = v2;
-
-            if (do_global) {
-              v1 = ob->object_to_world().view<3, 3>() * v1;
-              v2 = ob->object_to_world().view<3, 3>() * v2;
-              v3 = ob->object_to_world().view<3, 3>() * v3;
-            }
-
-            const float angle = angle_v3v3v3(v1, v2, v3);
-
-            const size_t numstr_len = SNPRINTF_RLEN(numstr,
-                                                    "%.3f%s",
-                                                    (is_rad) ? angle : RAD2DEGF(angle),
-                                                    (is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
-            const float3 co = math::transform_point(ob->object_to_world(),
-                                                    math::interpolate(vmid, v2_local, 0.8f));
-            DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col);
-          }
-        }
-      }
-    }
-  }
-
-  /* This option is for mesh ops and addons debugging; only available in UI if Blender starts
-   * with
-   * --debug */
-  if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) {
-    int i;
-
-    ui::theme::get_color_4ubv(TH_TEXT_HI, col);
-
-    if (em->selectmode & SCE_SELECT_VERTEX) {
-      BMVert *v;
-
-      if (use_coords) {
-        BM_mesh_elem_index_ensure(bm, BM_VERT);
-      }
-      BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-        if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-          const float3 co = math::transform_point(
-              ob->object_to_world(), use_coords ? vert_positions[BM_elem_index_get(v)] : v->co);
-
-          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
-          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col, true, false);
-        }
-      }
-    }
-
-    if (em->selectmode & SCE_SELECT_EDGE) {
-      BMEdge *eed;
-
-      const bool use_edge_tex_sep = (edge_tex_count == 2);
-      const bool use_edge_tex_len = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN);
-
-      BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
-        if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-          float3 v1, v2;
-          float3 v1_clip, v2_clip;
-
-          if (use_coords) {
-            v1 = vert_positions[BM_elem_index_get(eed->v1)];
-            v2 = vert_positions[BM_elem_index_get(eed->v2)];
-          }
-          else {
-            v1 = eed->v1->co;
-            v2 = eed->v2->co;
-          }
-
-          if (clip_segment_v3_plane_n(v1, v2, clip_planes.ptr(), 4, v1_clip, v2_clip)) {
-            const float3 co = math::transform_point(ob->object_to_world(),
-                                                    0.5 * (v1_clip + v2_clip));
-
-            const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
-            DRW_text_cache_add(
-                dt,
-                co,
-                numstr,
-                numstr_len,
-                0,
-                (use_edge_tex_sep) ? (use_edge_tex_len) ? -edge_tex_sep : edge_tex_sep : 0,
-                txt_flag,
-                col,
-                true,
-                false);
-          }
-        }
-      }
-    }
-
-    if (em->selectmode & SCE_SELECT_FACE) {
-      BMFace *f;
-
-      if (use_coords) {
-        BM_mesh_elem_index_ensure(bm, BM_VERT);
-      }
-
-      BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
-        if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-          float3 co;
-
-          if (use_coords) {
-            BM_face_calc_center_median_vcos(bm, f, co, vert_positions);
-          }
-          else {
-            BM_face_calc_center_median(f, co);
-          }
-
-          co = math::transform_point(ob->object_to_world(), co);
-
-          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
-          DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col, true, false);
-        }
-      }
-    }
-  }
+  /* The cage is drawn, but the original elements' state decides how to access it. */
+  BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(mesh_orig));
+  edit_mesh_measure_stats_bmesh(ctx, *mesh, *em, *bm);
 }
 
 }  // namespace blender

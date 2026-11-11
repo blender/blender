@@ -3964,6 +3964,8 @@ static ModifierData *object_add_or_copy_particle_system(
   ModifierData *md;
   ParticleSystemModifierData *psmd;
 
+  BLI_assert(bmain);
+
   if (!ob || ob->type != OB_MESH) {
     return nullptr;
   }
@@ -4006,8 +4008,10 @@ static ModifierData *object_add_or_copy_particle_system(
     psys->cfra = BKE_scene_frame_to_ctime(scene, scene->r.cfra + 1);
   }
 
-  DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  if (bmain) {
+    DEG_relations_tag_update(bmain);
+    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_GEOMETRY);
+  }
 
   return md;
 }
@@ -4134,6 +4138,7 @@ void object_remove_particle_system(Main *bmain,
 
 ParticleSettings *BKE_particlesettings_add(Main *bmain, const char *name)
 {
+  BLI_assert(bmain);
   ParticleSettings *part;
 
   part = BKE_id_new<ParticleSettings>(bmain, name);

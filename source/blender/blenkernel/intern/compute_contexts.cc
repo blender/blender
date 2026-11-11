@@ -240,12 +240,12 @@ ClosureToListComputeContext::ClosureToListComputeContext(const ComputeContext *p
 
 ComputeContextHash ClosureToListComputeContext::compute_hash() const
 {
-  return ComputeContextHash::from(parent_, "CLOSURE_TO_LIST", node_id_, list_index_);
+  return ComputeContextHash::from(parent_, "CLOSURE_TO_LIST", this->node_id(), list_index_);
 }
 
 void ClosureToListComputeContext::print_current_in_line(std::ostream &stream) const
 {
-  stream << "Closure to List ID: " << node_id_ << ", List Index: " << list_index_;
+  stream << "Closure to List ID: " << this->node_id() << ", List Index: " << list_index_;
 }
 
 OperatorComputeContext::OperatorComputeContext() : OperatorComputeContext(nullptr) {}

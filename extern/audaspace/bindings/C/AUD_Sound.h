@@ -405,6 +405,27 @@ extern AUD_API AUD_Sound* AUD_Sound_mutable(AUD_Sound* sound);
      */
 extern AUD_API AUD_Sound* AUD_Sound_Echo(AUD_Sound* sound, float delay, float feedback, float mix, bool resetBuffer);
 
+    /**
+     * Adds Compressor effect to the sound.
+     * \param sound The handle of the sound to be compressed.
+     * \param sidechain The sidechain sound whose amplitude determines the amount of compression (usually the output of a peak or RMS detector).
+     * \param threshold The threshold ratio (0.0 to 1.0) over which to start compression.
+     * \param ratio The compression ratio (e.g., 4.0 for 4:1).
+     * \param attack The attack time in seconds.
+     * \param release The release time in seconds.
+     * \param makeupGain The output gain ratio to apply after compression (1.0 for no gain).
+     * \param knee The knee ratio (1.0 for hard knee, higher for soft knee).
+     * \return A handle of the compressed sound.
+    */
+extern AUD_API AUD_Sound* AUD_Sound_Compress(AUD_Sound* sound, AUD_Sound* sidechain, float threshold, float ratio, float attack, float release, float makeupGain, float knee);
+
+    /**
+     * Calculates the peak amplitude of a sound across all channels for each frame.
+     * \param sound The input sound.
+     * \return A handle of the created mono sound containing the peak amplitude for each frame.
+     */
+extern AUD_API AUD_Sound* AUD_Sound_peakDetector(AUD_Sound* sound);
+
 #ifdef WITH_CONVOLUTION
 	extern AUD_API AUD_Sound* AUD_Sound_Convolver(AUD_Sound* sound, AUD_ImpulseResponse* filter, AUD_ThreadPool* threadPool);
 	extern AUD_API AUD_Sound* AUD_Sound_Binaural(AUD_Sound* sound, AUD_HRTF* hrtfs, AUD_Source* source, AUD_ThreadPool* threadPool);

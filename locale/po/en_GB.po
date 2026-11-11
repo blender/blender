@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-02-16 18:12+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34674,12 +34674,44 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Show/Hide"
-msgstr "Show/Hide"
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
 
 
 msgid "Creative"
 msgstr "Creative"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
 
 
 msgid "Special Characters"
@@ -34702,8 +34734,12 @@ msgid "Bone Roll"
 msgstr "Bone Roll"
 
 
-msgid "Clean Up"
-msgstr "Clean Up"
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Utilities"
+msgstr "Utilities"
 
 
 msgid "Pivot Point"
@@ -34734,16 +34770,32 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
-msgid "Math"
-msgstr "Maths"
+msgid "Read"
+msgstr "Read"
 
 
-msgid "Utilities"
-msgstr "Utilities"
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
 msgid "Mirror"
 msgstr "Mirror"
+
+
+msgid "Instances"
+msgstr "Instances"
 
 
 msgid "UV Mapping"
@@ -34754,36 +34806,24 @@ msgid "Local View"
 msgstr "Local View"
 
 
-msgid "Read"
-msgstr "Read"
-
-
 msgid "Viewpoint"
 msgstr "Viewpoint"
-
-
-msgid "Sample"
-msgstr "Sample"
 
 
 msgid "Navigation"
 msgstr "Navigation"
 
 
-msgid "Write"
-msgstr "Write"
-
-
 msgid "Align View"
 msgstr "Align View"
 
 
+msgid "Import"
+msgstr "Import"
+
+
 msgid "Align View to Active"
 msgstr "Align View to Active"
-
-
-msgid "Primitives"
-msgstr "Primitives"
 
 
 msgid "View Regions"
@@ -34802,6 +34842,10 @@ msgid "Select All by Trait"
 msgstr "Select All by Trait"
 
 
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
 msgid "Select Linked"
 msgstr "Select Linked"
 
@@ -34810,40 +34854,24 @@ msgid "Select Loops"
 msgstr "Select Loops"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
+msgid "Render Preview"
+msgstr "Render Preview"
 
 
-msgid "Instances"
-msgstr "Instances"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Assign Material"
 msgstr "Assign Material"
 
 
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
 msgid "Light"
 msgstr "Light"
 
 
-msgid "Render Preview"
-msgstr "Render Preview"
-
-
 msgid "Light Probe"
 msgstr "Light Probe"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Add Image"
@@ -34890,6 +34918,14 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
+msgid "Linked"
+msgstr "Linked"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Trim/Add"
 msgstr "Trim/Add"
 
@@ -34910,6 +34946,10 @@ msgid "Clear Transform"
 msgstr "Clear Transform"
 
 
+msgid "Adjust"
+msgstr "Adjust"
+
+
 msgid "In-Betweens"
 msgstr "In-Betweens"
 
@@ -34922,56 +34962,16 @@ msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
-msgid "Linked"
-msgstr "Linked"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
-
-
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
-
-
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Adjust"
-msgstr "Adjust"
-
-
 msgid "Keying"
 msgstr "Keying"
 
 
-msgid "Merge"
-msgstr "Merge"
-
-
 msgid "Tracking"
 msgstr "Tracking"
+
+
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
 
 
 msgid "Keyframe Insert Pie"
@@ -76573,10 +76573,6 @@ msgid "New Collection"
 msgstr "New Collection"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "Add a new collection inside selected collection"
-
-
 msgid "Nested"
 msgstr "Nested"
 
@@ -96145,10 +96141,6 @@ msgstr "German - Deutsch"
 
 msgid "Greek - Ελληνικά"
 msgstr "Greek - Ελληνικά"
-
-
-msgid "Locale code: el_GR. Translation progress: 1%"
-msgstr "Locale code: el_GR. Translation progress: 1%"
 
 
 msgid "Hebrew - תירִבְעִ"
@@ -124734,6 +124726,11 @@ msgid "Disable in Render"
 msgstr "Disable in Render"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "New"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "Instance to Scene"
@@ -124768,11 +124765,6 @@ msgstr "Hide One Level"
 msgctxt "Operator"
 msgid "Relocate"
 msgstr "Relocate"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "New"
 
 
 msgctxt "Operator"

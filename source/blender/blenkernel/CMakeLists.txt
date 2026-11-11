@@ -805,6 +805,7 @@ if(WITH_GTESTS)
     intern/lib_remap_test.cc
     intern/main_namemap_test.cc
     intern/main_test.cc
+    intern/mesh_validate_test.cc
     intern/nla_test.cc
     intern/node_socket_value_iter_test.cc
     intern/node_socket_value_test.cc

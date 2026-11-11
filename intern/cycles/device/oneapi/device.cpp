@@ -26,60 +26,42 @@ bool device_oneapi_init()
   return false;
 #else
 
+  /* Set an environment variable only if it isn't already set, so values
+   * provided by end-users are never overwritten. */
+  auto set_env_default = [](const char *name, const char *value) {
+#  ifdef _WIN32
+    if (getenv(name) == nullptr) {
+      _putenv_s(name, value);
+    }
+#  else
+    setenv(name, value, false);
+#  endif
+  };
+
   /* NOTE(@nsirgien): we need to enable JIT cache from here and
    * right now this cache policy is controlled by env. variables. */
-  /* NOTE(@xavierh-intel) we enable the use of copy engine, incl. for fill
+  set_env_default("SYCL_CACHE_PERSISTENT", "1");
+  set_env_default("SYCL_CACHE_THRESHOLD", "0");
+
+  /* Enable only Level-Zero by default and if all devices are allowed,
+   * everything but OpenCL, which isn't currently well supported. */
+  set_env_default("ONEAPI_DEVICE_SELECTOR",
+                  getenv("CYCLES_ONEAPI_ALL_DEVICES") == nullptr ? "level_zero:*" : "!opencl:*");
+
+  /* SYSMAN is needed for free_memory queries. */
+  set_env_default("ZES_ENABLE_SYSMAN", "1");
+
+  /* NOTE(@xavierh-intel): we enable the use of copy engine, incl. for fill
    * operations as it lowers the overhead from zeCommandListAppendMemoryFill
-   * when running paths_array kernels on Linux+A750.
-   * All these env variable can be set beforehand by end-users and
-   * will in that case -not- be overwritten. */
-  /* By default, enable only Level-Zero and if all devices are allowed, also CUDA and HIP.
-   * OpenCL backend isn't currently well supported. */
-#  ifdef _WIN32
-  if (getenv("SYCL_CACHE_PERSISTENT") == nullptr) {
-    _putenv_s("SYCL_CACHE_PERSISTENT", "1");
-  }
-  if (getenv("SYCL_CACHE_THRESHOLD") == nullptr) {
-    _putenv_s("SYCL_CACHE_THRESHOLD", "0");
-  }
-  if (getenv("ONEAPI_DEVICE_SELECTOR") == nullptr) {
-    if (getenv("CYCLES_ONEAPI_ALL_DEVICES") == nullptr) {
-      _putenv_s("ONEAPI_DEVICE_SELECTOR", "level_zero:*");
-    }
-    else {
-      _putenv_s("ONEAPI_DEVICE_SELECTOR", "!opencl:*");
-    }
-  }
-  /* SYSMAN is needed for free_memory queries. */
-  if (getenv("ZES_ENABLE_SYSMAN") == nullptr) {
-    _putenv_s("ZES_ENABLE_SYSMAN", "1");
-  }
-  if (getenv("UR_L0_USE_COPY_ENGINE") == nullptr) {
-    _putenv_s("UR_L0_USE_COPY_ENGINE", "1");
-  }
-  if (getenv("UR_L0_USE_COPY_ENGINE_FOR_FILL") == nullptr) {
-    _putenv_s("UR_L0_USE_COPY_ENGINE_FOR_FILL", "1");
-  }
-  /* As a fix for #163040, the v1 Level Zero adapter is not included. */
-  if (getenv("SYCL_UR_USE_LEVEL_ZERO_V2") == nullptr) {
-    _putenv_s("SYCL_UR_USE_LEVEL_ZERO_V2", "1");
-  }
-#  elif __linux__
-  setenv("SYCL_CACHE_PERSISTENT", "1", false);
-  setenv("SYCL_CACHE_THRESHOLD", "0", false);
-  if (getenv("CYCLES_ONEAPI_ALL_DEVICES") == nullptr) {
-    setenv("ONEAPI_DEVICE_SELECTOR", "level_zero:*", false);
-  }
-  else {
-    setenv("ONEAPI_DEVICE_SELECTOR", "!opencl:*", false);
-  }
-  /* SYSMAN is needed for free_memory queries. */
-  setenv("ZES_ENABLE_SYSMAN", "1", false);
-  setenv("UR_L0_USE_COPY_ENGINE", "1", false);
-  setenv("UR_L0_USE_COPY_ENGINE_FOR_FILL", "1", false);
+   * when running paths_array kernels on Linux+A750. */
+  set_env_default("UR_L0_USE_COPY_ENGINE", "1");
+  set_env_default("UR_L0_USE_COPY_ENGINE_FOR_FILL", "1");
+
   /* As a fix for #159584, the v1 Level Zero adapter is not included. */
-  setenv("SYCL_UR_USE_LEVEL_ZERO_V2", "1", false);
-#  endif
+  set_env_default("SYCL_UR_USE_LEVEL_ZERO_V2", "1");
+
+  /* Ask the driver to refuse device memory allocations beyond capacity. */
+  set_env_default("NEO_LOCAL_MEMORY_ALLOCATION_MODE", "1");
 
   return true;
 #endif

@@ -135,28 +135,31 @@ inline const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh
   return mesh;
 }
 
+/**
+ * Index of the original element an evaluated one came from, or -1 without an original.
+ * Without an original index layer the evaluated mesh's topology matches the original.
+ */
+inline int orig_index_get(const int *orig_index, const int index)
+{
+  return orig_index ? orig_index[index] : index;
+}
+
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData &mr, int idx)
 {
-  return ((mr.orig_index_face != nullptr) && (mr.orig_index_face[idx] != ORIGINDEX_NONE) &&
-          mr.bm) ?
-             BM_face_at_index(mr.bm, mr.orig_index_face[idx]) :
-             nullptr;
+  const int orig = orig_index_get(mr.orig_index_face, idx);
+  return orig == ORIGINDEX_NONE ? nullptr : BM_face_at_index(mr.bm, orig);
 }
 
 BLI_INLINE BMEdge *bm_original_edge_get(const MeshRenderData &mr, int idx)
 {
-  return ((mr.orig_index_edge != nullptr) && (mr.orig_index_edge[idx] != ORIGINDEX_NONE) &&
-          mr.bm) ?
-             BM_edge_at_index(mr.bm, mr.orig_index_edge[idx]) :
-             nullptr;
+  const int orig = orig_index_get(mr.orig_index_edge, idx);
+  return orig == ORIGINDEX_NONE ? nullptr : BM_edge_at_index(mr.bm, orig);
 }
 
 BLI_INLINE BMVert *bm_original_vert_get(const MeshRenderData &mr, int idx)
 {
-  return ((mr.orig_index_vert != nullptr) && (mr.orig_index_vert[idx] != ORIGINDEX_NONE) &&
-          mr.bm) ?
-             BM_vert_at_index(mr.bm, mr.orig_index_vert[idx]) :
-             nullptr;
+  const int orig = orig_index_get(mr.orig_index_vert, idx);
+  return orig == ORIGINDEX_NONE ? nullptr : BM_vert_at_index(mr.bm, orig);
 }
 
 BLI_INLINE const float *bm_vert_co_get(const MeshRenderData &mr, const BMVert *eve)

@@ -356,13 +356,13 @@ static void rna_SceneStrip_view_layer_set(PointerRNA *ptr,
   if (strip->scene == nullptr) {
     return;
   }
-  if (!rna_SceneStrip_view_layer_is_compatible(strip->scene, value)) {
-    return;
-  }
   const ViewLayer *view_layer = static_cast<const ViewLayer *>(value.data);
   if (view_layer == nullptr) {
     MEM_delete(strip->scene_view_layer_name);
     strip->scene_view_layer_name = BLI_strdup(BKE_view_layer_default_render(strip->scene)->name);
+    return;
+  }
+  if (!rna_SceneStrip_view_layer_is_compatible(strip->scene, value)) {
     return;
   }
 

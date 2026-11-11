@@ -967,7 +967,7 @@ static void stitch_propagate_uv_final_position(const Scene *scene,
                                                StitchState *state,
                                                const bool final)
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(state->obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(state->obedit);
   StitchPreviewer *preview = state->stitch_preview;
 
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
@@ -1048,7 +1048,7 @@ static int stitch_process_data(StitchStateContainer *ssc,
   StitchPreviewer *preview;
   IslandStitchData *island_stitch_data = nullptr;
   int previous_island = ssc->static_island;
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(state->obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(state->obedit);
   BMFace *efa;
   BMIter iter;
   UVVertAverage *final_position = nullptr;
@@ -1938,7 +1938,7 @@ static StitchState *stitch_init(const Scene *scene,
   StitchState *state;
   ToolSettings *ts = scene->toolsettings;
 
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   state = MEM_new_zeroed<StitchState>("stitch state obj");
@@ -2525,7 +2525,7 @@ static wmOperatorStatus stitch_invoke(bContext *C, wmOperator *op, const wmEvent
   for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
     StitchState *state = ssc->states[ob_index];
     Object *obedit = state->obedit;
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (synced_selection && (bm->totvertsel == 0)) {
       continue;
     }
@@ -2605,7 +2605,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
   for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
     StitchState *state = ssc->states[ob_index];
     Object *obedit = state->obedit;
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (synced_selection && (bm->totvertsel == 0)) {
       continue;
     }

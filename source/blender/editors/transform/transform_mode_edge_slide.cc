@@ -252,7 +252,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
         t->depsgraph, scene_eval, obedit_eval, bmbvh_coord_storage);
 
     bmbvh = BKE_bmbvh_new_from_editmesh(em,
-                                        BKE_editmesh_bmesh_get_for_write(tc->obedit),
+                                        BKE_editmesh_bmesh_ensure(tc->obedit),
                                         BMBVH_RESPECT_HIDDEN,
                                         vert_positions.is_empty() ? nullptr :
                                                                     vert_positions.data(),

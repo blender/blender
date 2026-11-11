@@ -662,8 +662,10 @@ void ImageCache::load_tile(Device &device,
    * Copying a pooled tile image on every CPU cache miss is not needed. */
   const thread_scoped_lock device_lock(device_mutex);
 
-  /* Another thread may have loaded the same tile concurrently, keep that one. */
+  /* Another thread should never loaded the same tile concurrently, but
+   * guard against it just in cast. */
   if (kernel_tile_descriptor_loaded(r_tile_descriptor)) {
+    assert(!"Image cache tile loaded by another thread");
     free_tile(tile_descriptor, false);
     return;
   }
@@ -706,6 +708,15 @@ static int image_tile_find_miplevel(const KernelTileDescriptor *levels,
   return miplevel;
 }
 
+/* Atomically claim a tile for loading by this thread. Fails if the tile is loaded,
+ * failed or being loaded by another thread. */
+static bool image_tile_claim_load(KernelTileDescriptor &r_tile_descriptor)
+{
+  return atomic_cas_uint32(&r_tile_descriptor,
+                           KERNEL_TILE_LOAD_NONE,
+                           KERNEL_TILE_LOAD_IN_PROGRESS) == KERNEL_TILE_LOAD_NONE;
+}
+
 void ImageCache::load_requested_tiles(Device &device,
                                       DeviceScene &dscene,
                                       const KernelImageTexture &tex,
@@ -729,18 +740,8 @@ void ImageCache::load_requested_tiles(Device &device,
       continue;
     }
 
-    /* Skip if tile is already loaded or failed. */
-    const KernelTileDescriptor existing = descriptors[tile_idx];
-    if (kernel_tile_descriptor_loaded(existing) || existing == KERNEL_TILE_LOAD_FAILED) {
-      continue;
-    }
-
-    /* Atomically claim this tile slot. If another thread or GPU callback wins the race,
-     * skip and let the winner load it. We don't require KERNEL_TILE_LOAD_REQUEST because
-     * the access state might be set without it even if that race condition is unlikely. */
-    const KernelTileDescriptor old = atomic_cas_uint32(
-        &descriptors[tile_idx], KERNEL_TILE_LOAD_NONE, KERNEL_TILE_LOAD_REQUEST);
-    if (old != KERNEL_TILE_LOAD_NONE && old != KERNEL_TILE_LOAD_REQUEST) {
+    /* Skip if already loaded, failed or being loaded by another thread. */
+    if (!image_tile_claim_load(descriptors[tile_idx])) {
       continue;
     }
 
@@ -782,37 +783,36 @@ void ImageCache::load_requested_tile(Device &device,
 {
   /* This is called by the CPU kernel to immediately load a tile. */
 
-  /* If we can atomically set KERNEL_TILE_LOAD_REQUEST, this thread is responsible
-   * for loading the tile. */
-  const KernelTileDescriptor tile_descriptor_old = atomic_cas_uint32(
-      &r_tile_descriptor, KERNEL_TILE_LOAD_NONE, KERNEL_TILE_LOAD_REQUEST);
-  if (tile_descriptor_old == KERNEL_TILE_LOAD_NONE) {
-    const InterpolationType interpolation = InterpolationType(tex.interpolation);
-    const ExtensionType extension = ExtensionType(tex.extension);
-    const size_t bit_index = &r_tile_descriptor - dscene.image_texture_tile_descriptors.data();
-
-    load_tile(device,
-              dscene,
-              loader,
-              metadata,
-              interpolation,
-              extension,
-              miplevel + miplevel_offset,
-              x,
-              y,
-              bit_index,
-              r_tile_descriptor);
-    return;
-  }
-  if (tile_descriptor_old != KERNEL_TILE_LOAD_REQUEST) {
-    return;
-  }
-
-  /* Wait for other thread to load the tile. */
+  /* Wait while another thread loads the tile, or load it if we can claim it. */
   OIIO::atomic_backoff backoff;
-  while (atomic_load_uint32(&r_tile_descriptor) == KERNEL_TILE_LOAD_REQUEST) {
+  while (true) {
+    const KernelTileDescriptor tile_descriptor = atomic_load_uint32(&r_tile_descriptor);
+    if (kernel_tile_descriptor_loaded(tile_descriptor) ||
+        tile_descriptor == KERNEL_TILE_LOAD_FAILED)
+    {
+      return;
+    }
+    if (tile_descriptor == KERNEL_TILE_LOAD_NONE && image_tile_claim_load(r_tile_descriptor)) {
+      break;
+    }
     backoff();
   }
+
+  const InterpolationType interpolation = InterpolationType(tex.interpolation);
+  const ExtensionType extension = ExtensionType(tex.extension);
+  const size_t bit_index = &r_tile_descriptor - dscene.image_texture_tile_descriptors.data();
+
+  load_tile(device,
+            dscene,
+            loader,
+            metadata,
+            interpolation,
+            extension,
+            miplevel + miplevel_offset,
+            x,
+            y,
+            bit_index,
+            r_tile_descriptor);
 }
 
 /* Statistics. */

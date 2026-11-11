@@ -43,7 +43,7 @@ static bool edbm_automerge_impl(Object *obedit,
                                 const bool use_connected,
                                 const bool use_centroid)
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
   int totvert_prev = bm->totvert;
 
   BMOperator findop, weldop;
@@ -107,7 +107,7 @@ bool EDBM_automerge_and_split(Object *obedit,
 {
   bool ok = false;
 
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
 #ifdef DEBUG_TIME
   EditMesh *em = BKE_editmesh_from_object(obedit);

@@ -64,7 +64,7 @@ static void edbm_flag_disable_all_multi(
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       bmain, scene, view_layer, v3d);
   for (Object *ob_iter : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob_iter);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(ob_iter);
     if (bm->totvertsel) {
       EDBM_flag_disable_all(bm, hflag);
       DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
@@ -111,7 +111,7 @@ static bool edbm_preselect_or_active(bContext *C, const View3D *v3d, Base **r_ba
     BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
     Base *base = BKE_view_layer_active_base_get(view_layer);
     Object *obedit = base->object;
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     *r_base = base;
     *r_ele = BM_mesh_active_elem_get(bm);
   }
@@ -137,7 +137,7 @@ static wmOperatorStatus edbm_polybuild_transform_at_cursor_invoke(bContext *C,
   Base *basact = nullptr;
   BMElem *ele_act = nullptr;
   ViewContext vc = edbm_preselect_or_active_init_viewcontext(C, &basact, &ele_act);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(vc.obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc.obedit);
 
   invert_m4_m4(vc.obedit->runtime->world_to_object.ptr(), vc.obedit->object_to_world().ptr());
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
@@ -201,7 +201,7 @@ static wmOperatorStatus edbm_polybuild_delete_at_cursor_invoke(bContext *C,
   Base *basact = nullptr;
   BMElem *ele_act = nullptr;
   ViewContext vc = edbm_preselect_or_active_init_viewcontext(C, &basact, &ele_act);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(vc.obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc.obedit);
 
   invert_m4_m4(vc.obedit->runtime->world_to_object.ptr(), vc.obedit->object_to_world().ptr());
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
@@ -295,7 +295,7 @@ static wmOperatorStatus edbm_polybuild_face_at_cursor_invoke(bContext *C,
   Base *basact = nullptr;
   BMElem *ele_act = nullptr;
   ViewContext vc = edbm_preselect_or_active_init_viewcontext(C, &basact, &ele_act);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(vc.obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc.obedit);
 
   invert_m4_m4(vc.obedit->runtime->world_to_object.ptr(), vc.obedit->object_to_world().ptr());
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
@@ -471,7 +471,7 @@ static wmOperatorStatus edbm_polybuild_split_at_cursor_invoke(bContext *C,
   Base *basact = nullptr;
   BMElem *ele_act = nullptr;
   ViewContext vc = edbm_preselect_or_active_init_viewcontext(C, &basact, &ele_act);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(vc.obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc.obedit);
 
   invert_m4_m4(vc.obedit->runtime->world_to_object.ptr(), vc.obedit->object_to_world().ptr());
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
@@ -553,7 +553,7 @@ static wmOperatorStatus edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
   Base *basact = nullptr;
   BMElem *ele_act = nullptr;
   ViewContext vc = edbm_preselect_or_active_init_viewcontext(C, &basact, &ele_act);
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(vc.obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(vc.obedit);
 
   if (ele_act == nullptr) {
     /* pass */

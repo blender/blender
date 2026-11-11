@@ -352,6 +352,64 @@ void f(C  c) {
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
   }
+
+  {
+    string input = R"(
+struct A {
+  virtual int foo() = 0;
+};
+
+int A::foo()
+{
+  return 0;
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Pure virtual function with body are not supported");
+  }
+  {
+    string input = R"(
+struct A {
+  virtual int foo() = 0;
+};
+
+void g(A &a)
+{
+  a.foo();
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(
+        error,
+        "Call to virtual function 'foo' is not allowed, manually call the final override instead");
+  }
+  {
+    string input = R"(
+struct A {
+  [[force_inline]] virtual int f()
+  {
+    return 0;
+  }
+
+  int g()
+  {
+    int x = f();
+    return x;
+  }
+};
+
+struct B : A {
+  int f() override
+  {
+    return 1;
+  }
+};
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(
+        error,
+        "Call to virtual function 'f' is not allowed, manually call the final override instead");
+  }
 }
 
 TEST(shader_tool, DefaultArguments)
@@ -579,6 +637,46 @@ void func()
     auto [output, _, error] = process_test_string(input, shader::Language::BSL);
     EXPECT_EQ(output, expect);
     EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+void f(int a){}
+void f(int a){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
+  {
+    string input = R"(
+void f(int a){}
+void f(const int a){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
+  {
+    string input = R"(
+void f(int a){}
+void f(int &a){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
+  {
+    string input = R"(
+void f(int a){}
+void f(const int &a){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
+  {
+    string input = R"(
+void f(int a){}
+void f(const int &a[2]){}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
   }
 }
 

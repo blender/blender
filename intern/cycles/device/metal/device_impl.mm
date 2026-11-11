@@ -198,6 +198,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
 
     image_bindings = [mtlDevice newBufferWithLength:8192 options:MTLResourceStorageModeShared];
     metal_mem_alloc(image_bindings);
+    create_sampler_table();
 
     launch_params_buffer = [mtlDevice newBufferWithLength:sizeof(KernelParamsMetal)
                                                   options:MTLResourceStorageModeShared];
@@ -227,6 +228,7 @@ MetalDevice::~MetalDevice()
   free_bvh();
   metal_mem_free(launch_params_buffer);
   metal_mem_free(image_bindings);
+  free_sampler_table();
   image_info.free();
   flush_delayed_free_list();
 
@@ -1059,6 +1061,58 @@ void MetalDevice::global_free(device_memory &mem)
   }
 }
 
+void MetalDevice::create_sampler_table()
+{
+  if (sampler_bindings) {
+    return;
+  }
+
+  /* Must match ExtensionType order -> repeat, extend, clip, mirror. */
+  static const MTLSamplerAddressMode modes[4] = {MTLSamplerAddressModeRepeat,
+                                                 MTLSamplerAddressModeClampToEdge,
+                                                 MTLSamplerAddressModeClampToZero,
+                                                 MTLSamplerAddressModeMirrorRepeat};
+
+  for (int filter = 0; filter < 2; filter++) {
+    for (int ext = 0; ext < 4; ext++) {
+      MTLSamplerDescriptor *desc = [[MTLSamplerDescriptor alloc] init];
+      desc.supportArgumentBuffers = true;
+      desc.minFilter = desc.magFilter = filter ? MTLSamplerMinMagFilterLinear :
+                                                 MTLSamplerMinMagFilterNearest;
+      desc.sAddressMode = modes[ext];
+      desc.tAddressMode = modes[ext];
+      desc.rAddressMode = modes[ext];
+      /* Index = filter * 4 + extension */
+      sampler_states[filter * 4 + ext] = [mtlDevice newSamplerStateWithDescriptor:desc];
+      [desc release];
+    }
+  }
+
+  sampler_bindings = [mtlDevice newBufferWithLength:sizeof(uint64_t) * 8
+                                            options:MTLResourceStorageModeShared];
+  metal_mem_alloc(sampler_bindings);
+
+  uint64_t *table = (uint64_t *)sampler_bindings.contents;
+  /* 8 indices = 2 filters (nearest, linear) * 4 address modes */
+  for (int i = 0; i < 8; i++) {
+    MTLResourceID resource_id = sampler_states[i].gpuResourceID;
+    table[i] = (uint64_t &)resource_id;
+  }
+}
+
+void MetalDevice::free_sampler_table()
+{
+  if (sampler_bindings) {
+    metal_mem_free(sampler_bindings);
+
+    sampler_bindings = nil;
+  }
+  for (int i = 0; i < 8; i++) {
+    [sampler_states[i] release];
+    sampler_states[i] = nil;
+  }
+}
+
 void MetalDevice::image_alloc_as_buffer(device_image &mem)
 {
   MetalDevice::MetalMem *mmem = generic_alloc(mem);
@@ -1103,7 +1157,7 @@ void MetalDevice::image_alloc(device_image &mem)
     /* General variables for both architectures */
     size_t size = mem.memory_size();
 
-    /* sampler_index maps into the GPU's constant 'metal_samplers' array */
+    /* sampler_index maps into the GPU's 'sampler_states' array */
     uint64_t sampler_index = mem.info.extension;
     if (mem.info.interpolation != INTERPOLATION_CLOSEST) {
       sampler_index += 4;

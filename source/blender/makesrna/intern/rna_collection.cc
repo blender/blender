@@ -207,7 +207,9 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
     return false;
   }
 
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  if (bmain) {
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 
@@ -333,10 +335,11 @@ static bool rna_Collection_children_override_apply(Main *bmain,
   collchild_dst->collection = subcoll_src;
   id_us_plus(&collchild_dst->collection->id);
 
-  BKE_collection_object_cache_free(bmain, coll_dst, 0);
-  BKE_main_collection_sync(bmain);
-
-  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  BKE_collection_object_cache_free(bmain, coll_dst, bmain ? 0 : LIB_ID_CREATE_NO_DEG_TAG);
+  if (bmain) {
+    BKE_main_collection_sync(bmain);
+    RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  }
   return true;
 }
 

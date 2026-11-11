@@ -201,6 +201,44 @@ inline void EXPECT_NEAR_ARRAY_ND(
   }
 }
 
+template<typename T, typename U>
+inline void EXPECT_NEAR_ARRAY_ND_WITH_FAILURE_RATE(const T *expected,
+                                                   const T *actual,
+                                                   const size_t N,
+                                                   const size_t D,
+                                                   const U tolerance,
+                                                   const U failure_percentage)
+{
+  const size_t max_allowed_failure = failure_percentage * N * D * 0.01f;
+  size_t failure_count = 0;
+  std::stringstream failure_log;
+  for (size_t i = 0; i < N; ++i) {
+    for (size_t j = 0; j < D; ++j) {
+      const U diff = abs(expected[i][j] - actual[i][j]);
+      if (diff > tolerance) {
+        failure_count++;
+        failure_log << "\nThe difference between expected[" << i << "][" << j << "] and actual["
+                    << i << "][" << j << "] is " << diff << ", which exceeds tolerance "
+                    << tolerance << ", where\nexpected[" << i << "][" << j << "] evaluates to "
+                    << expected[i][j] << ",\nactual[" << i << "][" << j << "] evaluates to "
+                    << actual[i][j] << ".\n";
+      }
+    }
+  }
+
+  ::testing::AssertionResult test_result = ::testing::AssertionSuccess();
+
+  if (failure_count > max_allowed_failure) {
+    test_result = ::testing::AssertionFailure()
+                  << failure_count
+                  << " elements exceeded tolerance, (max allowed: " << max_allowed_failure
+                  << ").\n"
+                  << failure_log.str();
+  }
+
+  EXPECT_TRUE(test_result);
+}
+
 #ifdef _WIN32
 #  define ABORT_PREDICATE ::testing::ExitedWithCode(3)
 #else

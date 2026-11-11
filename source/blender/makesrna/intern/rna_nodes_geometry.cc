@@ -1031,7 +1031,7 @@ static void rna_def_geo_capture_attribute(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "RepeatItem");
+  RNA_def_property_struct_type(prop, "NodeGeometryCaptureAttributeItem");
   RNA_def_property_pointer_funcs(prop,
                                  "rna_Node_ItemArray_active_get<CaptureAttributeItemsAccessor>",
                                  "rna_Node_ItemArray_active_set<CaptureAttributeItemsAccessor>",
@@ -1113,7 +1113,7 @@ static void rna_def_geo_bake(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "RepeatItem");
+  RNA_def_property_struct_type(prop, "NodeGeometryBakeItem");
   RNA_def_property_pointer_funcs(prop,
                                  "rna_Node_ItemArray_active_get<BakeItemsAccessor>",
                                  "rna_Node_ItemArray_active_set<BakeItemsAccessor>",
@@ -1412,7 +1412,7 @@ static void def_geo_closure_to_list(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "RepeatItem");
+  RNA_def_property_struct_type(prop, "GeometryNodeClosureToListItem");
   RNA_def_property_pointer_funcs(prop,
                                  "rna_Node_ItemArray_active_get<ClosureToListItemsAccessor>",
                                  "rna_Node_ItemArray_active_set<ClosureToListItemsAccessor>",
@@ -1446,7 +1446,7 @@ static void def_geo_field_to_grid(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "RepeatItem");
+  RNA_def_property_struct_type(prop, "GeometryNodeFieldToGridItem");
   RNA_def_property_pointer_funcs(prop,
                                  "rna_Node_ItemArray_active_get<FieldToGridItemsAccessor>",
                                  "rna_Node_ItemArray_active_set<FieldToGridItemsAccessor>",
@@ -1583,7 +1583,7 @@ static void def_geo_input_material(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "id");
   RNA_def_property_struct_type(prop, "Material");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Material", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -1596,7 +1596,7 @@ static void def_geo_input_collection(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "id");
   RNA_def_property_struct_type(prop, "Collection");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Collection", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -1609,7 +1609,7 @@ static void def_geo_input_font(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "id");
   RNA_def_property_struct_type(prop, "VectorFont");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Font", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -1633,7 +1633,7 @@ static void def_geo_input_object(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "id");
   RNA_def_property_struct_type(prop, "Object");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Object", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -1758,7 +1758,6 @@ void RNA_def_nodes_geometry(BlenderRNA *brna)
   /* clang-format off */
 
   define("GeometryNode", "GeometryNodeAccumulateField");
-  define("GeometryNode", "GeometryNodeApplySimulatedData");
   define("GeometryNode", "GeometryNodeAttributeDomainSize");
   define("GeometryNode", "GeometryNodeAttributeStatistic");
   define("GeometryNode", "GeometryNodeBake", rna_def_geo_bake);

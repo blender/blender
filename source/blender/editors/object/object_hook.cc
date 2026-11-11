@@ -61,7 +61,7 @@ static int return_editmesh_indexar(Mesh &mesh,
                                    int **r_indexar,
                                    float r_cent[3])
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(&mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(&mesh);
   BMVert *eve;
   BMIter iter;
   int *index, nr, indexar_num = 0;
@@ -96,7 +96,7 @@ static int return_editmesh_indexar(Mesh &mesh,
 
 static bool return_editmesh_vgroup(Object *obedit, Mesh &mesh, char *r_name, float r_cent[3])
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(&mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(&mesh);
   const int active_index = BKE_object_defgroup_active_index_get(obedit);
   const int cd_dvert_offset = active_index ? CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT) :
                                              -1;
@@ -134,7 +134,7 @@ static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
   Mesh *mesh = id_cast<Mesh *>(ob->data);
   EditMesh *em = mesh->runtime->edit_mesh.get();
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
   BMVert *eve;
   BMIter iter;
   int index = 0, nr = 0;
@@ -343,7 +343,7 @@ static bool object_hook_index_array(Main *bmain,
 
       EditMesh *em = mesh->runtime->edit_mesh.get();
 
-      BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_get_for_write(mesh));
+      BKE_editmesh_looptris_and_normals_calc(em, BKE_editmesh_bmesh_ensure(mesh));
 
       /* check selected vertices first */
       if (return_editmesh_indexar(*mesh, r_indexar_num, r_indexar, r_cent) == 0) {

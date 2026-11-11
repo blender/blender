@@ -1881,7 +1881,7 @@ static void def_sh_raycast(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "active_item", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "RepeatItem");
+  RNA_def_property_struct_type(prop, "NodeRaycastSampleAttributeItem");
   RNA_def_property_pointer_funcs(
       prop,
       "rna_Node_ItemArray_active_get<RaycastSampleAttributeItemsAccessor>",

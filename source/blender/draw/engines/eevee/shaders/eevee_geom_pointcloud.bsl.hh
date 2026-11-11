@@ -105,7 +105,7 @@ struct GeomPointCloud {
 
   attrib_load(PointCloudPoint{ls_pt.P, ws_pt.point_id, lP_orco});
 
-  interp.P += nodetree_displacement(kg, sd);
+  interp.P += nodetree_displacement_vert(kg, sd);
 
   if (pipe.use_clip_plane) [[static_branch]] {
     clip_interp.clip_distance = dot(clip_srt.clip_plane.plane, float4(interp.P, 1.0f));

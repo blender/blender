@@ -45,7 +45,7 @@ static void edbm_extrude_edge_exclude_mirror(Object *obedit,
                                              BMOperator *op,
                                              BMOpSlot *slot_edges_exclude)
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
   /* If a mirror modifier with clipping is on, we need to adjust some
    * of the cases above to handle edges on the line of symmetry.
@@ -218,7 +218,7 @@ static bool edbm_extrude_ex(Object *obedit,
                             const bool use_mirror,
                             const bool use_select_history)
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
   BMOIter siter;
   BMOperator extop;
   BMElem *ele;
@@ -296,7 +296,7 @@ static wmOperatorStatus edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
   for (Object *obedit : objects) {
     float offset_local[3], tmat[3][3];
 
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
     copy_m3_m4(tmat, obedit->object_to_world().ptr());
     invert_m3(tmat);
@@ -357,7 +357,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 /** Implement generic externally called extrude function. */
 static bool edbm_extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op)
 {
-  BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+  BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
   const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
   const bool use_dissolve_ortho_edges = RNA_boolean_get(op->ptr, "use_dissolve_ortho_edges");
@@ -433,7 +433,7 @@ static wmOperatorStatus edbm_extrude_region_exec(bContext *C, wmOperator *op)
 
   for (Object *obedit : objects) {
     EditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totvertsel == 0) {
       continue;
     }
@@ -491,7 +491,7 @@ static wmOperatorStatus edbm_extrude_context_exec(bContext *C, wmOperator *op)
 
   for (Object *obedit : objects) {
     EditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totvertsel == 0) {
       continue;
     }
@@ -543,7 +543,7 @@ static wmOperatorStatus edbm_extrude_verts_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totvertsel == 0) {
       continue;
     }
@@ -594,7 +594,7 @@ static wmOperatorStatus edbm_extrude_edges_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totedgesel == 0) {
       continue;
     }
@@ -645,7 +645,7 @@ static wmOperatorStatus edbm_extrude_faces_exec(bContext *C, wmOperator *op)
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     if (bm->totfacesel == 0) {
       continue;
     }
@@ -713,7 +713,7 @@ static wmOperatorStatus edbm_dupli_extrude_cursor_invoke(bContext *C,
       *vc.bmain, vc.scene, vc.view_layer, vc.v3d);
   for (Object *obedit : objects) {
     ED_view3d_viewcontext_init_object(&vc, obedit);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     const int local_verts_len = bm->totvertsel;
 
     if (bm->totvertsel == 0) {
@@ -744,7 +744,7 @@ static wmOperatorStatus edbm_dupli_extrude_cursor_invoke(bContext *C,
   /* Then we process the meshes. */
   for (Object *obedit : objects) {
     ED_view3d_viewcontext_init_object(&vc, obedit);
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
 
     if (verts_len != 0) {
       if (bm->totvertsel == 0) {

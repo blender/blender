@@ -231,7 +231,7 @@ BLI_INLINE void mesh_mirror_topo_table_get_meshes(Object *ob,
     mesh_mirror = mesh_eval;
   }
   else if (mesh->runtime->edit_mesh) {
-    bm_mirror = BKE_editmesh_bmesh_get_for_write(ob);
+    bm_mirror = BKE_editmesh_bmesh_ensure(ob);
   }
   else {
     mesh_mirror = mesh;
@@ -847,7 +847,7 @@ MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
   if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH) {
     Mesh *mesh = id_cast<Mesh *>(ob->data);
     if (!mesh->vertex_group_names.is_empty()) {
-      BMesh *bm = BKE_editmesh_bmesh_get_for_write(mesh);
+      BMesh *bm = BKE_editmesh_bmesh_ensure(mesh);
       const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
 
       if (cd_dvert_offset != -1) {
@@ -915,9 +915,11 @@ void EDBM_mesh_stats_multi(const Span<Object *> objects, int totelem[3], int tot
       totelem[2] += bm->totface;
     }
     if (totelem_sel) {
-      totelem_sel[0] += bm->totvertsel;
-      totelem_sel[1] += bm->totedgesel;
-      totelem_sel[2] += bm->totfacesel;
+      int selected_num[3];
+      BKE_mesh_count_selected_items(id_cast<const Mesh *>(obedit->data), selected_num);
+      totelem_sel[0] += selected_num[0];
+      totelem_sel[1] += selected_num[1];
+      totelem_sel[2] += selected_num[2];
     }
   }
 }
@@ -926,7 +928,7 @@ void EDBM_mesh_elem_index_ensure_multi(const Span<Object *> objects, const char 
 {
   int elem_offset[4] = {0, 0, 0, 0};
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     BM_mesh_elem_index_ensure_ex(bm, htype, elem_offset);
   }
 }

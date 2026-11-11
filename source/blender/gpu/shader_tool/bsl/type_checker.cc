@@ -419,7 +419,7 @@ struct ExpressionTypeParser
             call.identifier().str() != "interface_get" &&
             call.identifier().str() != "sampler_get" && call.identifier().str() != "buffer_get")
         {
-          error(t, Diag::FunctionCallNotAllowedInReferenceDefinition);
+          error(right, Diag::FunctionCallNotAllowedInReferenceDefinition);
         }
         auto sym = l.lookup_function(table, call.identifier(), call.parameters(), scope);
         return *sym.unwrap(err).return_type;
@@ -691,7 +691,7 @@ struct ExpressionTypeParser
           return {type, [&]() {
                     if (contains_zero(rhs.value)) {
                       error(t, Diag::ConstexprDivisionByZero);
-                      return lhs.value * rhs.value;
+                      return decltype(lhs.value / rhs.value)(0);
                     }
                     if (contains_division_overflow(lhs.value, rhs.value)) {
                       error(t, Diag::ConstexprIntegerOverflow);
@@ -795,10 +795,13 @@ struct ExpressionTypeParser
     }
 
     if (left.flags & ExprFlag::IsConstexpr) {
-      return {*tval.type, left.value.comp_as<int>(0) ? tval.value : fval.value};
+      ExpressionResult val = left.value.comp_as<int>(0) ? tval : fval;
+      val.is_temporary = true;
+      return val;
     }
-    /* Operand types match. We can return either. */
-    return {*tval.type, ExprFlag(tval.flags & fval.flags)};
+    /* Operand types match. We can return either but the value depends is only known at runtime, so
+     * it can't be constexpr. */
+    return {*tval.type, ExprFlag(tval.flags & fval.flags & ExprFlag::IsConstant)};
   }
 
   ExpressionResult error(ErrorType err, lexit::TokenType type)

@@ -285,7 +285,7 @@ static wmOperatorStatus uv_copy_exec(bContext *C, wmOperator * /*op*/)
       *bmain, scene, view_layer, nullptr);
 
   for (Object *ob : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
 
     const bool use_seams = false;
     UvElementMap *element_map = BM_uv_element_map_create(bm, scene, true, false, use_seams, true);
@@ -318,7 +318,7 @@ static wmOperatorStatus uv_paste_exec(bContext *C, wmOperator *op)
   int complicated_search = 0;
   int total_search = 0;
   for (Object *ob : objects) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(ob);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
     const bool use_seams = false;
     const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
 

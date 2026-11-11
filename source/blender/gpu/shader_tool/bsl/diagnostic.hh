@@ -15,7 +15,7 @@
 
 namespace bsl {
 
-using Token = blender::gpu::shader::parser::Token;
+using blender::gpu::shader::parser::Token;
 
 using namespace blender::gpu::shader::parser;
 using namespace std;
@@ -154,6 +154,7 @@ enum class Diag {
 
   ExpectedArrayMemberInitializer,
   ExpectedColon,
+  ExpectedDesignatedInitializer,
   ExpectedEntryPointResourceAttribute,
   ExpectedImageFormat,
   ExpectedNParametersForAttribute,
@@ -237,6 +238,7 @@ enum class Diag {
   InliningRecursive,
 
   Redefinition,
+  RedefinitionFunction,
   RedefinitionOfEntryPointFunction,
   RedefinitionTemplate,
 
@@ -307,6 +309,7 @@ enum class Diag {
   UnsupportedSymbolInExpr,
   UnsupportedDefaultedBody,
   UnsupportedDeletedBody,
+  UnsupportedPureVirtualFunctionBody,
 
   UsingNamespaceNotSupported,
 };
@@ -396,6 +399,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Expected colon ':'";
     case Diag::ExpectedComputeShaderEntryPoint:
       return "Expected compute shader entry point function";
+    case Diag::ExpectedDesignatedInitializer:
+      return "Expected designated initializer for compilation constant";
     case Diag::ExpectedEntryPointResourceAttribute:
       return "Expected entry point resource attribute but got '{}'";
     case Diag::ExpectedFragmentShaderEntryPoint:
@@ -547,6 +552,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
              "resource declaration";
     case Diag::Redefinition:
       return "Redefinition of '{}'";
+    case Diag::RedefinitionFunction:
+      return "Redefinition of function '{}'";
     case Diag::RedefinitionOfEntryPointFunction:
       return "Redefinition of entry point function '{}'";
     case Diag::RedefinitionTemplate:
@@ -665,6 +672,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Defaulted body are not supported";
     case Diag::UnsupportedDeletedBody:
       return "Deleted functions are not supported";
+    case Diag::UnsupportedPureVirtualFunctionBody:
+      return "Pure virtual function with body are not supported";
     case Diag::UsingNamespaceNotSupported:
       return "Using namespace statements are not supported";
   }

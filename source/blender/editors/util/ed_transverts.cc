@@ -53,7 +53,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
   DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
 
   if (obedit->type == OB_MESH) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(obedit);
     BM_mesh_normals_update(bm);
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
@@ -354,7 +354,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     /* The evaluated mesh may not have an edit-mesh, use the original. */
     const Object *object_orig = DEG_get_original(obedit);
     Mesh &mesh = *id_cast<Mesh *>(object_orig->data);
-    BMesh *bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(&mesh));
+    BMesh *bm = BKE_editmesh_bmesh_ensure(&mesh);
     transverts_create_from_bmesh(*tvs, *obedit, *mesh.runtime->edit_mesh, *bm, mode);
   }
   else if (obedit->type == OB_ARMATURE) {

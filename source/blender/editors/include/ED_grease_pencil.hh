@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "BKE_attribute_filter.hh"
@@ -1008,25 +1009,31 @@ struct CurveBooleanOpParameters {
   bool separate_islands;
 };
 
+struct CurveBooleanResult {
+  bke::CurvesGeometry curves;
+  Array<bool> unchanged_curves;
+  Array<int> dst_to_src_curves;
+};
+
 /* Project the point from local space to the clipping 2d space. */
 using ProjectionFunc = FunctionRef<float2(const float3)>;
 
-bke::CurvesGeometry curve_boolean(const CurveBooleanOpParameters op_params,
-                                  const bke::CurvesGeometry &curves,
-                                  ProjectionFunc project_fn,
-                                  GroupedSpan<int> shapes,
-                                  const IndexMask &editable_shapes,
-                                  const IndexMask &clipping_shapes);
+CurveBooleanResult curve_boolean(const CurveBooleanOpParameters op_params,
+                                 const bke::CurvesGeometry &curves,
+                                 ProjectionFunc project_fn,
+                                 GroupedSpan<int> shapes,
+                                 const IndexMask &editable_shapes,
+                                 const IndexMask &clipping_shapes);
 
-bke::CurvesGeometry curve_boolean_with_planes(const CurveBooleanOpParameters op_params,
-                                              const bke::CurvesGeometry &curves,
-                                              ProjectionFunc project_fn,
-                                              GroupedSpan<int> shapes,
-                                              Span<float4> curve_planes,
-                                              const IndexMask &editable_shapes,
-                                              const IndexMask &clipping_shapes,
-                                              const float4x4 &layer_to_world,
-                                              const ARegion &region);
+CurveBooleanResult curve_boolean_with_planes(const CurveBooleanOpParameters op_params,
+                                             const bke::CurvesGeometry &curves,
+                                             ProjectionFunc project_fn,
+                                             GroupedSpan<int> shapes,
+                                             Span<float4> curve_planes,
+                                             const IndexMask &editable_shapes,
+                                             const IndexMask &clipping_shapes,
+                                             const float4x4 &layer_to_world,
+                                             const ARegion &region);
 
 }  // namespace boolean
 

@@ -117,6 +117,10 @@ static bool geometry_node_tree_validate_link(eNodeSocketDatatype type_a,
     /* Rotations implicitly convert to vectors. */
     return true;
   }
+  if (ELEM(SOCK_DYNAMIC, type_a, type_b)) {
+    /* Dynamic sockets can be connected to any type. */
+    return true;
+  }
   return type_a == type_b;
 }
 

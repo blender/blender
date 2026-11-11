@@ -113,7 +113,7 @@ namespace eevee {
                           curves.drw_curves.is_point_attribute,
                           lP_orco});
 
-  interp.P += nodetree_displacement(kg, sd);
+  interp.P += nodetree_displacement_vert(kg, sd);
 
   if (pipe.is_shadow_pipe) [[static_branch]] {
     /* Since curves always face the view, camera and shadow orientation don't match.

@@ -473,6 +473,11 @@ bool BKE_image_scale(Image *image, int width, int height, ImageUser *iuser);
 bool BKE_image_has_alpha(Image *image);
 
 /**
+ * Check if image float buffers are initialized.
+ */
+bool BKE_image_is_float(Image *image);
+
+/**
  * Get tile index for tiled images.
  * \return The string length.
  */

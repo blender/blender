@@ -736,7 +736,7 @@ void ShaderGraph::optimize_volume_output()
   if (!has_valid_volume) {
     /* We can remove the entire volume shader. */
     LOG_TRACE << "Disconnect meaningless volume output.";
-    disconnect(volume_in->link);
+    disconnect(volume_in);
   }
 }
 
@@ -1188,9 +1188,17 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
   }
 }
 
+bool ShaderGraph::has_volume_connected()
+{
+  return output()->input("Volume")->link;
+}
+
 int ShaderGraph::get_num_closures()
 {
+  assert(finalized);
+
   int num_closures = 0;
+  int num_volume_closures = 0;
   for (ShaderNode *node : nodes) {
     const ClosureType closure_type = node->get_closure_type();
     if (closure_type == CLOSURE_NONE_ID) {
@@ -1206,9 +1214,9 @@ int ShaderGraph::get_num_closures()
       num_closures += 12;
     }
     else if (CLOSURE_IS_VOLUME(closure_type)) {
-      /* TODO(sergey): Verify this is still needed, since we have special minimized volume
-       * storage for the volume steps. */
-      num_closures += MAX_VOLUME_STACK_SIZE;
+      /* Volume closures are allocated separate to surface closures, and the max size is affected
+       * by the max volume stack size within the current object. */
+      num_volume_closures += MAX_VOLUME_STACK_SIZE;
     }
     else if (closure_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ||
              closure_type == CLOSURE_BSDF_F82_CONDUCTOR ||
@@ -1223,10 +1231,15 @@ int ShaderGraph::get_num_closures()
       ++num_closures;
     }
   }
+
+  if (has_volume_connected()) {
+    num_closures = max(num_closures, min(num_volume_closures, MAX_CLOSURE));
+  }
+
   return num_closures;
 }
 
-void ShaderGraph::dump_graph(const char *filename)
+void ShaderGraph::dump_graph(const char *filename, const bool verbose)
 {
   FILE *fd = fopen(filename, "w");
 
@@ -1246,6 +1259,9 @@ void ShaderGraph::dump_graph(const char *filename)
     if (!node->inputs.empty()) {
       fprintf(fd, "{");
       for (ShaderInput *socket : node->inputs) {
+        if (!verbose && !socket->link) {
+          continue;
+        }
         if (socket != node->inputs[0]) {
           fprintf(fd, "|");
         }
@@ -1254,18 +1270,29 @@ void ShaderGraph::dump_graph(const char *filename)
       fprintf(fd, "}|");
     }
     fprintf(fd, "%s", node->name.c_str());
+    if (const auto *math = dynamic_cast<VectorMathNode *>(node)) {
+      const NodeEnum *node_enum = math->get_math_type_socket()->enum_values;
+      fprintf(fd, "\\n(%s)", (*node_enum)[math->get_math_type()].c_str());
+    }
+    else if (const auto *math = dynamic_cast<MathNode *>(node)) {
+      const NodeEnum *node_enum = math->get_math_type_socket()->enum_values;
+      fprintf(fd, "\\n(%s)", (*node_enum)[math->get_math_type()].c_str());
+    }
     if (node->bump == SHADER_BUMP_CENTER) {
-      fprintf(fd, " (bump:center)");
+      fprintf(fd, "\\n(bump:center)");
     }
     else if (node->bump == SHADER_BUMP_DX) {
-      fprintf(fd, " (bump:dx)");
+      fprintf(fd, "\\n(bump:dx)");
     }
     else if (node->bump == SHADER_BUMP_DY) {
-      fprintf(fd, " (bump:dy)");
+      fprintf(fd, "\\n(bump:dy)");
     }
     if (!node->outputs.empty()) {
       fprintf(fd, "|{");
       for (ShaderOutput *socket : node->outputs) {
+        if (!verbose && socket->links.empty()) {
+          continue;
+        }
         if (socket != node->outputs[0]) {
           fprintf(fd, "|");
         }

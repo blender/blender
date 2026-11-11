@@ -360,10 +360,11 @@ class ShaderGraph : public NodeOwner {
   void compute_displacement_hash();
   void simplify(Scene *scene);
   void finalize(Scene *scene, bool do_bump = false, bool bump_in_object_space = false);
+  bool has_volume_connected();
 
   int get_num_closures();
 
-  void dump_graph(const char *filename);
+  void dump_graph(const char *filename, const bool verbose = false);
 
   /* Create node from class and add it to the shader graph. */
   template<typename T, typename... Args> T *create_node(Args &&...args)

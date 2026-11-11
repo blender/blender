@@ -193,7 +193,7 @@ void SymbolFunction::add_argument(bool is_const, const SymbolClass &type, Expr d
   this->arg_defaults.emplace_back(default_value);
 }
 
-bool SymbolFunction::is_compatible(ResourceType res_type)
+bool SymbolFunction::is_compatible(ResourceType res_type) const
 {
   switch (res_type) {
     case ResourceType::BASE_INSTANCE:

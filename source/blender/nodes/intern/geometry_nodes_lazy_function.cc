@@ -3690,12 +3690,27 @@ struct GeometryNodesLazyFunctionBuilder {
     }
     const bNodeSocket *output_bsocket = bnode.output_sockets()[0];
 
+    /* The menu input is used when any of the outputs is used. The other value inputs are used only
+     * if the value output is used (regardless of whether the boolean outputs are used). */
+    Vector<lf::OutputSocket *> all_output_usages;
+    for (const bNodeSocket *output_socket : bnode.output_sockets()) {
+      if (lf::OutputSocket *lf_usage = graph_params.usage_by_bsocket.lookup_default(output_socket,
+                                                                                    nullptr))
+      {
+        all_output_usages.append_non_duplicates(lf_usage);
+      }
+    }
+    if (lf::OutputSocket *menu_is_used_socket = this->or_socket_usages(all_output_usages,
+                                                                       graph_params))
+    {
+      graph_params.usage_by_bsocket.add(switch_input_bsocket, menu_is_used_socket);
+    }
+
     lf::OutputSocket *output_is_used_socket = graph_params.usage_by_bsocket.lookup_default(
         output_bsocket, nullptr);
     if (output_is_used_socket == nullptr) {
       return;
     }
-    graph_params.usage_by_bsocket.add(switch_input_bsocket, output_is_used_socket);
     if (switch_input_bsocket->is_directly_linked()) {
       /* The condition input is dynamic, so the usage of the other inputs is as well. */
       std::unique_ptr<LazyFunction> lazy_function =

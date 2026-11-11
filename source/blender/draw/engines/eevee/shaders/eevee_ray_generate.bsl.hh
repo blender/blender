@@ -15,84 +15,26 @@
 namespace eevee {
 
 /* Returns view-space ray. */
-BsdfSample ray_generate_direction(float2 noise,
-                                  ClosureUndetermined cl,
-                                  float3 V,
-                                  Thickness thickness)
+BsdfSample ray_generate_direction(float2 noise, BsdfClosure cl, float3 V, Thickness thickness)
 {
   float3 random_point_on_cylinder = sample_cylinder(noise);
   /* Bias the rays so we never get really high energy rays almost parallel to the surface. */
   constexpr float rng_bias = 0.08f;
   /* When modeling object thickness as a sphere, the outgoing rays are distributed uniformly
    * over the sphere. We don't want the RAY_BIAS in this case. */
-  if (cl.type != CLOSURE_BSDF_TRANSLUCENT_ID || thickness.mode() == ThicknessMode::Slab) {
+  if (cl.type != CLOSURE_BSDF_TRANSLUCENT_ID || !thickness.is_sphere()) {
     random_point_on_cylinder.x = 1.0f - random_point_on_cylinder.x * (1.0f - rng_bias);
   }
 
-  switch (cl.type) {
-    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      bxdf_ggx_context_amend_transmission(cl, V, thickness);
-      break;
-    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-    case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
-    case CLOSURE_BSDF_TRANSLUCENT_ID:
-    case CLOSURE_BSSRDF_BURLEY_ID:
-    case CLOSURE_BSDF_DIFFUSE_ID:
-    case CLOSURE_BSDF_OREN_NAYAR_ID:
-      break;
-    case CLOSURE_NONE_ID:
-      assert(false);
-      break;
-  }
+  cl.context_amend(V, thickness);
 
   float3x3 tangent_to_world = from_up_axis(cl.N);
 
-  BsdfSample samp;
-  samp.pdf = 0.0f;
-  samp.direction = float3(0.0f);
-  switch (cl.type) {
-    case CLOSURE_BSDF_TRANSLUCENT_ID:
-      samp = bxdf_translucent_sample(random_point_on_cylinder, thickness);
-      break;
-    case CLOSURE_BSSRDF_BURLEY_ID:
-    case CLOSURE_BSDF_DIFFUSE_ID:
-      samp = bxdf_diffuse_sample(random_point_on_cylinder);
-      break;
-    case CLOSURE_BSDF_OREN_NAYAR_ID: {
-      const OrenNayar closure = OrenNayar::init(to_closure_oren_nayar(cl).roughness);
-      samp = closure.bsdf_sample(random_point_on_cylinder, V * tangent_to_world);
-      break;
-    }
-    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID: {
-      samp = bxdf_ggx_sample_reflection(random_point_on_cylinder,
-                                        V * tangent_to_world,
-                                        square(to_closure_reflection(cl).roughness),
-                                        true);
-      break;
-    }
-    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
-      samp = bxdf_ggx_sample_refraction(random_point_on_cylinder,
-                                        V * tangent_to_world,
-                                        square(to_closure_refraction(cl).roughness),
-                                        to_closure_refraction(cl).ior,
-                                        thickness,
-                                        true);
-      break;
-    }
-    case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID: {
-      samp = bxdf_ggx_sample_reflection(random_point_on_cylinder,
-                                        V * tangent_to_world,
-                                        square(to_closure_thin_refraction(cl).roughness),
-                                        true);
-      samp.direction.z = -samp.direction.z;
-      break;
-    }
-    case CLOSURE_NONE_ID:
-      assert(false);
-      break;
-  }
+  float3 Vt = V * tangent_to_world;
+  /* Sample in tangent space. */
+  BsdfSample samp = cl.sample(random_point_on_cylinder, Vt, thickness);
+  /* Transform back to world space space. */
   samp.direction = tangent_to_world * float3(samp.direction);
-
   return samp;
 }
 
@@ -129,7 +71,7 @@ void generate_rays([[resource_table]] RayGenerate &srt,
                        uni.raytrace_buf.trace_pixel_offset;
 
   gbuffer::Header gbuf_header = reader.read_header(texel_fullres);
-  ClosureUndetermined closure = reader.read_bin(texel_fullres, srt.closure_index);
+  BsdfClosure closure = reader.read_bin(texel_fullres, srt.closure_index);
 
   if (closure.type == CLOSURE_NONE_ID) {
     imageStore(srt.out_ray_data_img, texel, float4(0.0f));

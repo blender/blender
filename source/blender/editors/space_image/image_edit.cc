@@ -53,6 +53,7 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Image *ima, bool automati
     sima->pin = true;
   }
 
+  const bool image_changed = sima->image != ima;
   sima->image = ima;
 
   if (ima == nullptr || ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE) {
@@ -63,6 +64,11 @@ void ED_space_image_set(Main *bmain, SpaceImage *sima, Image *ima, bool automati
 
   if (sima->image) {
     BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+
+    /* The stored frame belongs to the previous image. */
+    if (image_changed) {
+      sima->iuser.flag |= IMA_NEED_FRAME_RECALC;
+    }
   }
 
   id_us_ensure_real(id_cast<ID *>(sima->image));
@@ -128,6 +134,7 @@ void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
     if (sima->image) {
       Main *bmain = CTX_data_main(C);
       BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+      sima->iuser.flag |= IMA_NEED_FRAME_RECALC;
       WM_main_add_notifier(NC_SPACE | ND_SPACE_IMAGE, sima);
     }
   }

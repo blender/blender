@@ -16,6 +16,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_vector.hh"
 
 #include "bmesh.hh"
 
@@ -26,6 +27,7 @@ struct BMPartialUpdate;
 struct BMesh;
 struct BMeshCalcTessellation_Params;
 struct Depsgraph;
+struct Main;
 struct Mesh;
 struct Object;
 struct Scene;
@@ -110,10 +112,53 @@ EditMesh *BKE_editmesh_copy(EditMesh *em);
  * - Null check the result if we want to respect the evaluated result, see: #154739.
  */
 EditMesh *BKE_editmesh_from_object(Object *ob);
+
+/**
+ * Get the edit-mode #BMesh if it holds the mesh's data, otherwise null. In some cases during and
+ * after evaluation, the mesh may carry a reference to the original mesh's #EditMesh, but that is
+ * only the source of truth for mesh data if the mesh is a #ME_WRAPPER_TYPE_BMESH wrapper.
+ *
+ * The #Object overload is only for original objects. After evaluation, the data of an evaluated
+ * object is its final mesh, so to ask whether the original is in edit mode, pass
+ * #DEG_get_original or #BKE_object_get_pre_modified_mesh instead.
+ */
 const BMesh *BKE_editmesh_bmesh_get(const Object *ob);
 const BMesh *BKE_editmesh_bmesh_get(const Mesh *mesh);
+
+/**
+ * Same as #BKE_editmesh_bmesh_get, but for callers that change the #BMesh, which is only allowed
+ * on original meshes.
+ */
 BMesh *BKE_editmesh_bmesh_get_for_write(Mesh *mesh);
 BMesh *BKE_editmesh_bmesh_get_for_write(Object *ob);
+
+/**
+ * Get the edit-mode #BMesh for code that needs it to exist and a #Mesh alternative is not
+ * implemented. Only valid for original meshes in edit mode.
+ *
+ * \note For now this is the same as #BKE_editmesh_bmesh_get_for_write. Once the #BMesh is created
+ * lazily from the #Mesh data, this will build it when necessary, see #163678.
+ */
+BMesh *BKE_editmesh_bmesh_ensure(Mesh *mesh);
+BMesh *BKE_editmesh_bmesh_ensure(Object *object);
+
+namespace bke {
+
+/** Find objects that refer to vertices of the mesh with hook modifiers or vertex parenting. */
+Vector<Object *> mesh_find_objects_with_vert_references(Main &bmain, const Mesh &mesh);
+
+/**
+ * Update the vertex indices of hook modifiers and vertex parents to match topology changes.
+ *
+ * \param objects: Objects found with #mesh_find_objects_with_vert_references.
+ * \param old_to_new_verts: The new index of every vertex before the change, or -1 when it was
+ * removed. Indices past its end are treated as removed too.
+ */
+void mesh_remap_object_vert_indices(Span<Object *> objects,
+                                    const Mesh &mesh,
+                                    Span<int> old_to_new_verts);
+
+}  // namespace bke
 
 /**
  * Return whether the evaluated mesh is a "descendant" of the original mesh: whether it is a

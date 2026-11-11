@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Beta (b'9a146ef5783c')\n"
+"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 10:58+0000\n"
+"POT-Creation-Date: 2026-11-09 09:34+0000\n"
 "PO-Revision-Date: 2026-02-24 05:12+0000\n"
 "Last-Translator: தமிழ்நேரம் <anishprabu.t@gmail.com>\n"
 "Language-Team: Tamil <https://translate.blender.org/projects/blender-ui/ui/ta/>\n"
@@ -34800,12 +34800,44 @@ msgid "Editor menu containing buttons"
 msgstr "பொத்தான்களைக் கொண்ட திருத்தி பட்டியல்"
 
 
-msgid "Show/Hide"
-msgstr "காட்டு/மறைக்க"
+msgid "Enable Bone Options"
+msgstr "எலும்பு விருப்பங்களை இயக்கவும்"
+
+
+msgid "Disable Bone Options"
+msgstr "எலும்பு விருப்பங்களை முடக்கு"
+
+
+msgid "Mesh Select Mode"
+msgstr "கண்ணி தேர்ந்தெடுக்கப்பட்ட பயன்முறையைத் தேர்ந்தெடுக்கவும்"
 
 
 msgid "Creative"
 msgstr "படைப்பாற்றல்"
+
+
+msgid "Face Data"
+msgstr "முகத்தை முகம்"
+
+
+msgid "Select by Face Strength"
+msgstr "முக வலிமையால் தேர்ந்தெடுக்கவும்"
+
+
+msgid "Set Face Strength"
+msgstr "முக வலிமையை அமைக்கவும்"
+
+
+msgid "Clean Up"
+msgstr "தூய்மை செய்"
+
+
+msgid "Merge"
+msgstr "ஒன்றிணைக்கவும்"
+
+
+msgid "Show/Hide"
+msgstr "காட்டு/மறைக்க"
 
 
 msgid "Special Characters"
@@ -34828,8 +34860,12 @@ msgid "Bone Roll"
 msgstr "எலும்பு ரோல்"
 
 
-msgid "Clean Up"
-msgstr "தூய்மை செய்"
+msgid "Math"
+msgstr "கணிதம்"
+
+
+msgid "Utilities"
+msgstr "பயன்பாடுகள்"
 
 
 msgid "Pivot Point"
@@ -34860,16 +34896,32 @@ msgid "Vertex Group Locks"
 msgstr "வெர்டெக்ச் குழு பூட்டுகள்"
 
 
-msgid "Math"
-msgstr "கணிதம்"
+msgid "Read"
+msgstr "படி"
 
 
-msgid "Utilities"
-msgstr "பயன்பாடுகள்"
+msgid "Sample"
+msgstr "மாதிரி"
+
+
+msgid "Write"
+msgstr "எழுதுங்கள்"
+
+
+msgid "Primitives"
+msgstr "ப்ரைமிடிவ்ச்"
+
+
+msgid "Gizmo"
+msgstr "கிச்மோ"
 
 
 msgid "Mirror"
 msgstr "கண்ணாடி"
+
+
+msgid "Instances"
+msgstr "நிகழ்வுகள்"
 
 
 msgid "UV Mapping"
@@ -34880,36 +34932,24 @@ msgid "Local View"
 msgstr "உள்ளக பார்வை"
 
 
-msgid "Read"
-msgstr "படி"
-
-
 msgid "Viewpoint"
 msgstr "பார்வை"
-
-
-msgid "Sample"
-msgstr "மாதிரி"
 
 
 msgid "Navigation"
 msgstr "வழிசெலுத்தல்"
 
 
-msgid "Write"
-msgstr "எழுதுங்கள்"
-
-
 msgid "Align View"
 msgstr "பார்வையை சீரமைக்கவும்"
 
 
+msgid "Import"
+msgstr "இறக்குமதி"
+
+
 msgid "Align View to Active"
 msgstr "செயலில் பார்வையை சீரமைக்கவும்"
-
-
-msgid "Primitives"
-msgstr "ப்ரைமிடிவ்ச்"
 
 
 msgid "View Regions"
@@ -34928,6 +34968,10 @@ msgid "Select All by Trait"
 msgstr "அனைத்தையும் பண்பின் மூலம் தேர்ந்தெடுக்கவும்"
 
 
+msgid "Deprecated"
+msgstr "மதிப்பிடப்பட்டது"
+
+
 msgid "Select Linked"
 msgstr "இணைக்கப்பட்டதைத் தேர்ந்தெடுக்கவும்"
 
@@ -34936,40 +34980,24 @@ msgid "Select Loops"
 msgstr "சுழல்களைத் தேர்ந்தெடுக்கவும்"
 
 
-msgid "Gizmo"
-msgstr "கிச்மோ"
+msgid "Render Preview"
+msgstr "வழங்குதல் முன்னோட்டம்"
 
 
-msgid "Instances"
-msgstr "நிகழ்வுகள்"
+msgid "UV"
+msgstr "புறஊதா"
 
 
 msgid "Assign Material"
 msgstr "மூலப்பொருள் ஒதுக்க"
 
 
-msgid "Import"
-msgstr "இறக்குமதி"
-
-
-msgid "Deprecated"
-msgstr "மதிப்பிடப்பட்டது"
-
-
 msgid "Light"
 msgstr "ஒளி"
 
 
-msgid "Render Preview"
-msgstr "வழங்குதல் முன்னோட்டம்"
-
-
 msgid "Light Probe"
 msgstr "ஒளி ஆய்வு"
-
-
-msgid "UV"
-msgstr "புறஊதா"
 
 
 msgid "Add Image"
@@ -35016,6 +35044,14 @@ msgid "Hooks"
 msgstr "கொக்கிகள்"
 
 
+msgid "Linked"
+msgstr "இணைக்கப்பட்ட"
+
+
+msgid "Layout"
+msgstr "தளவமைப்பு"
+
+
 msgid "Trim/Add"
 msgstr "டிரிம்/சேர்"
 
@@ -35036,6 +35072,10 @@ msgid "Clear Transform"
 msgstr "தெளிவான உருமாற்றம்"
 
 
+msgid "Adjust"
+msgstr "சரிசெய்யவும்"
+
+
 msgid "In-Betweens"
 msgstr "இன்-பெட்வீன்ச்"
 
@@ -35048,56 +35088,16 @@ msgid "Bone Collections"
 msgstr "எலும்பு வசூல்"
 
 
-msgid "Linked"
-msgstr "இணைக்கப்பட்ட"
-
-
-msgid "Layout"
-msgstr "தளவமைப்பு"
-
-
-msgid "Toggle Bone Options"
-msgstr "எலும்பு விருப்பங்களை மாற்றவும்"
-
-
-msgid "Enable Bone Options"
-msgstr "எலும்பு விருப்பங்களை இயக்கவும்"
-
-
-msgid "Disable Bone Options"
-msgstr "எலும்பு விருப்பங்களை முடக்கு"
-
-
-msgid "Mesh Select Mode"
-msgstr "கண்ணி தேர்ந்தெடுக்கப்பட்ட பயன்முறையைத் தேர்ந்தெடுக்கவும்"
-
-
-msgid "Face Data"
-msgstr "முகத்தை முகம்"
-
-
-msgid "Select by Face Strength"
-msgstr "முக வலிமையால் தேர்ந்தெடுக்கவும்"
-
-
-msgid "Set Face Strength"
-msgstr "முக வலிமையை அமைக்கவும்"
-
-
-msgid "Adjust"
-msgstr "சரிசெய்யவும்"
-
-
 msgid "Keying"
 msgstr "கீயிங்"
 
 
-msgid "Merge"
-msgstr "ஒன்றிணைக்கவும்"
-
-
 msgid "Tracking"
 msgstr "கண்காணிப்பு"
+
+
+msgid "Toggle Bone Options"
+msgstr "எலும்பு விருப்பங்களை மாற்றவும்"
 
 
 msgid "Keyframe Insert Pie"
@@ -77170,10 +77170,6 @@ msgid "New Collection"
 msgstr "புதிய தொகுப்பு"
 
 
-msgid "Add a new collection inside selected collection"
-msgstr "தேர்ந்தெடுக்கப்பட்ட சேகரிப்புக்குள் புதிய தொகுப்பைச் சேர்க்கவும்"
-
-
 msgid "Nested"
 msgstr "கூடு"
 
@@ -96892,10 +96888,6 @@ msgstr "செர்மன் - செர்மன்"
 
 msgid "Greek - Ελληνικά"
 msgstr "கிரேக்கம் - கிரேக்கம்"
-
-
-msgid "Locale code: el_GR. Translation progress: 1%"
-msgstr "மொழி குறியீடு: el_GR. மொழிபெயர்ப்பு முன்னேற்றம்: 1%"
 
 
 msgid "Hebrew - תירִבְעִ"
@@ -125642,6 +125634,11 @@ msgid "Disable in Render"
 msgstr "ரெண்டரில் முடக்கு"
 
 
+msgctxt "Collection"
+msgid "New"
+msgstr "புதிய"
+
+
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "காட்சிக்கு நிகழ்வு"
@@ -125676,11 +125673,6 @@ msgstr "ஒரு நிலையை மறை"
 msgctxt "Operator"
 msgid "Relocate"
 msgstr "இடமாற்றம்"
-
-
-msgctxt "Collection"
-msgid "New"
-msgstr "புதிய"
 
 
 msgctxt "Operator"

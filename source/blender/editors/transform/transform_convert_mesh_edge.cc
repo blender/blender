@@ -27,7 +27,7 @@ namespace blender::ed::transform {
 static void createTransEdge(bContext * /*C*/, TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    BMesh *bm = BKE_editmesh_bmesh_get_for_write(tc->obedit);
+    BMesh *bm = BKE_editmesh_bmesh_ensure(tc->obedit);
     TransData *td = nullptr;
     BMEdge *eed;
     BMIter iter;

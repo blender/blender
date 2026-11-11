@@ -1568,6 +1568,7 @@ static void collection_object_remove_no_gobject_hash(Main *bmain,
   BKE_collection_object_cache_free(bmain, collection, id_create_flag);
 
   if (free_us) {
+    BLI_assert(bmain);
     BKE_id_free_us(bmain, ob);
   }
   else {
@@ -1819,10 +1820,11 @@ bool BKE_collection_object_replace(Main *bmain,
     collection->runtime->gobject_hash->add(cob->ob, cob);
   }
   else {
-    collection_object_remove_no_gobject_hash(bmain, collection, cob, 0, false);
+    collection_object_remove_no_gobject_hash(
+        bmain, collection, cob, bmain ? 0 : LIB_ID_CREATE_NO_DEG_TAG, false);
   }
 
-  if (BKE_collection_is_in_scene(collection)) {
+  if (bmain && BKE_collection_is_in_scene(collection)) {
     BKE_main_collection_sync(bmain);
   }
 

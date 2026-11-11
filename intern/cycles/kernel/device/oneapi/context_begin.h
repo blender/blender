@@ -5,7 +5,7 @@
 #include "kernel/util/nanovdb.h"
 
 /* clang-format off */
-struct ONEAPIKernelContext : public KernelGlobalsGPU {
+struct ONEAPIKernelContext : public KernelParamsOneAPI {
   public:
 #ifndef WITH_CYCLES_ONEAPI_SOFTWARE_TEXTURING
 #    include "kernel/device/gpu/image.h"

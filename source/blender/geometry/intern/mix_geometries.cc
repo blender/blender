@@ -58,7 +58,8 @@ static void mix_with_indices(GMutableSpan a,
   });
 }
 
-template<typename T> static void mix(MutableSpan<T> a, const VArray<T> &b, const float factor)
+template<typename T>
+static void mix_multiple(MutableSpan<T> a, const VArray<T> &b, const float factor)
 {
   threading::parallel_for(a.index_range(), 1024, [&](const IndexRange range) {
     devirtualize_varray(b, [&](const auto b) {
@@ -69,11 +70,38 @@ template<typename T> static void mix(MutableSpan<T> a, const VArray<T> &b, const
   });
 }
 
-static void mix(GMutableSpan a, const GVArray &b, const float factor)
+static void mix_multiple(GMutableSpan a, const GVArray &b, const float factor)
 {
-  bke::attribute_math::to_static_type(a.type(), [&]<typename T>() {
+  const CPPType &type = a.type();
+  if (type.is<bke::GeometrySet>()) {
+    MutableSpan<bke::GeometrySet> a_geometries = a.typed<bke::GeometrySet>();
+    const VArraySpan<bke::GeometrySet> b_geometries = b.typed<bke::GeometrySet>();
+    for (const int64_t i : a_geometries.index_range()) {
+      mix_geometries(a_geometries[i], b_geometries[i], factor);
+    }
+    return;
+  }
+  if (type.is<nodes::BundlePtr>()) {
+    MutableSpan<nodes::BundlePtr> a_bundles = a.typed<nodes::BundlePtr>();
+    const VArraySpan<nodes::BundlePtr> b_bundles = b.typed<nodes::BundlePtr>();
+    for (const int64_t i : a_bundles.index_range()) {
+      if (a_bundles[i] && b_bundles[i]) {
+        mix_bundles(a_bundles[i].ensure_mutable_inplace(), *b_bundles[i], factor);
+      }
+    }
+    return;
+  }
+  if (type.is<bke::SocketValueVariant>()) {
+    MutableSpan<bke::SocketValueVariant> a_values = a.typed<bke::SocketValueVariant>();
+    const VArraySpan<bke::SocketValueVariant> b_values = b.typed<bke::SocketValueVariant>();
+    for (const int64_t i : a_values.index_range()) {
+      mix_socket_values(a_values[i], b_values[i], factor);
+    }
+    return;
+  }
+  bke::attribute_math::to_static_type(type, [&]<typename T>() {
     if constexpr (!std::is_same_v<T, std::string>) {
-      mix(a.typed<T>(), b.typed<T>(), factor);
+      mix_multiple(a.typed<T>(), b.typed<T>(), factor);
     }
   });
 }
@@ -117,7 +145,7 @@ static void mix_attributes(bke::MutableAttributeAccessor attributes_a,
       /* With no ID attribute to find matching elements, we can only support mixing when the domain
        * size (topology) is the same. Other options like mixing just the start of arrays might work
        * too, but give bad results too. */
-      mix(dst.span, attribute_b.varray, factor);
+      mix_multiple(dst.span, attribute_b.varray, factor);
       dst.finish();
     }
   }
@@ -174,22 +202,9 @@ static void mix_socket_values_same_type(bke::SocketValueVariant &a,
     if (!a_ptr || !b_ptr) {
       return;
     }
-    if (a_ptr.is_type<bke::GeometrySet>()) {
-      mix_geometries(*a_ptr.get<bke::GeometrySet>(), *b_ptr.get<bke::GeometrySet>(), factor);
-    }
-    else if (a_ptr.is_type<nodes::BundlePtr>()) {
-      nodes::BundlePtr &a_bundle_ptr = *a_ptr.get<nodes::BundlePtr>();
-      const nodes::BundlePtr &b_bundle_ptr = *b_ptr.get<nodes::BundlePtr>();
-      if (!a_bundle_ptr || !b_bundle_ptr) {
-        return;
-      }
-      mix_bundles(a_bundle_ptr.ensure_mutable_inplace(), *b_bundle_ptr, factor);
-    }
-    else {
-      mix(GMutableSpan(a_ptr.type(), a_ptr.get(), 1),
-          GVArray::from_single_ref(*b_ptr.type(), 1, b_ptr.get()),
-          factor);
-    }
+    mix_multiple(GMutableSpan(a_ptr.type(), a_ptr.get(), 1),
+                 GVArray::from_single_ref(*b_ptr.type(), 1, b_ptr.get()),
+                 factor);
   }
   else if (a.is_list() && b.is_list()) {
     const nodes::GListPtr &a_list_ref = *a.get_if<nodes::GListPtr>();
@@ -208,13 +223,13 @@ static void mix_socket_values_same_type(bke::SocketValueVariant &a,
     /* Like attributes without IDs, only mix lists with the same size. */
     if (a_list.size() == b_list->size()) {
       if (auto *a_span = std::get_if<GMutableSpan>(&a_values)) {
-        mix(*a_span, b_list->varray(), factor);
+        mix_multiple(*a_span, b_list->varray(), factor);
       }
       else if (auto *a_pointer = std::get_if<GMutablePointer>(&a_values)) {
         if (b_list->size() > 0) {
-          mix(GMutableSpan(*a_pointer->type(), a_pointer->get(), 1),
-              b_list->varray().slice(IndexRange(1)),
-              factor);
+          mix_multiple(GMutableSpan(*a_pointer->type(), a_pointer->get(), 1),
+                       b_list->varray().slice(IndexRange(1)),
+                       factor);
         }
       }
     }

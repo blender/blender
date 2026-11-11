@@ -912,6 +912,7 @@ void WM_event_add_notifier_ex(wmWindowManager *wm,
                               void *reference);
 void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference);
 void WM_main_add_notifier(unsigned int type, void *reference);
+void WM_main_add_notifier(Main *bmain, unsigned int type, void *reference);
 /**
  * Clear notifiers by reference, Used so listeners don't act on freed data.
  */

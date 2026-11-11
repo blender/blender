@@ -212,6 +212,7 @@ void ShaderCreateInfo::finalize(const bool recursive)
       mtl_max_threads_per_threadgroup_ = info.mtl_max_threads_per_threadgroup_;
     }
 #endif
+    with_fast_math_ &= info.with_fast_math_;
 
     if (info.early_fragment_test_) {
       early_fragment_test_ = true;
