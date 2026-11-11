@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_string_ref.hh"
+
 #include "BKE_gtest_base.hh"
 
 #include "RNA_path.hh"
@@ -72,6 +74,60 @@ TEST(parse_rna_path, multi)
   expect_member_item(path->items[2], "bar");
   expect_member_item(path->items[3], "bar2");
   expect_lookup_key_item(path->items[4], "b\"az");
+}
+
+TEST(parsed_rna_path, operator_eq_ne)
+{
+  /* To shorten the rest of the test code: */
+  using ParsedPath = const ParsedRNAPath<>;
+  const auto parse = [](const StringRefNull path) -> ParsedPath {
+    return *ParsedPath::from_string(path);
+  };
+
+  ParsedPath empty = {};
+  ParsedPath p_b_bone = parse("pose.bones[\"bone\"]");
+  ParsedPath p_b_bone_2 = parse("pose.bones[\"bone\"]");
+  ParsedPath p_b_bone_loc_0 = parse("pose.bones[\"bone\"].location[0]");
+  ParsedPath p_b_root_loc_0 = parse("pose.bones[\"root\"].location[0]");
+  ParsedPath p_b_root_loc_1 = parse("pose.bones[\"root\"].location[1]");
+  ParsedPath p_b_root_mod_0_inf = parse("pose.bones[\"root\"].modifiers[0].influence");
+  ParsedPath p_b_root_mod_1_inf = parse("pose.bones[\"root\"].modifiers[1].influence");
+
+  EXPECT_EQ(empty, ParsedPath{}) << "Empty instances should be equal";
+  EXPECT_EQ(p_b_bone, p_b_bone) << "Identical instances should be equal";
+  EXPECT_EQ(p_b_bone, p_b_bone_2) << "Different but equal instances should be equal";
+  EXPECT_NE(p_b_bone, p_b_bone_loc_0) << "Comparison of paths of different lengths should work";
+}
+
+TEST(parsed_rna_path, operator_lt)
+{
+  /* To shorten the rest of the test code: */
+  using ParsedPath = const ParsedRNAPath<>;
+  const auto parse = [](const StringRefNull path) -> ParsedPath {
+    return *ParsedPath::from_string(path);
+  };
+
+  ParsedPath empty = {};
+  ParsedPath location = parse("location");
+  ParsedPath rotation_euler = parse("rotation_euler");
+  ParsedPath p_b_bone = parse("pose.bones[\"bone\"]");
+  ParsedPath p_b_bone_2 = parse("pose.bones[\"bone\"]");
+  ParsedPath p_b_bone_loc_0 = parse("pose.bones[\"bone\"].location[0]");
+  ParsedPath p_b_root_loc_0 = parse("pose.bones[\"root\"].location[0]");
+  ParsedPath p_b_root_loc_1 = parse("pose.bones[\"root\"].location[1]");
+  ParsedPath p_b_root_mod_0_inf = parse("pose.bones[\"root\"].modifiers[0].influence");
+  ParsedPath p_b_root_mod_1_inf = parse("pose.bones[\"root\"].modifiers[1].influence");
+
+  EXPECT_FALSE(empty < empty) << "Identical instances should not be less than";
+  EXPECT_LT(empty, p_b_bone) << "Empty instances should be the smallest";
+  EXPECT_LT(empty, p_b_root_mod_1_inf) << "Empty instances should be the smallest";
+  EXPECT_LT(p_b_bone, p_b_bone_loc_0) << "Shorter should be less than longer";
+
+  EXPECT_LT(location, rotation_euler) << "Member should be compared correctly";
+  EXPECT_LT(p_b_bone_loc_0, p_b_root_loc_0) << "LookupKey should be compared correctly";
+  EXPECT_LT(p_b_root_loc_0, p_b_root_loc_1) << "Final LookupIndex should be compared correctly";
+  EXPECT_LT(p_b_root_mod_0_inf, p_b_root_mod_1_inf)
+      << "Middle LookupIndex should be compared correctly";
 }
 
 class RNAPathTest : public bke::BlenderGTestBase {};
