@@ -2820,8 +2820,7 @@ static wmOperatorStatus sequencer_select_by_type_exec(bContext *C, wmOperator *o
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   bool changed = false;
   if (!extend) {
-    deselect_all_strips(scene);
-    changed = true;
+    changed |= deselect_all_strips(scene);
   }
 
   VectorSet<Strip *> strips = strips_from_context(scene, is_preview);
@@ -2856,8 +2855,10 @@ static wmOperatorStatus sequencer_select_by_type_exec(bContext *C, wmOperator *o
   if (changed) {
     ED_outliner_select_sync_from_sequence_tag(C);
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
+    return OPERATOR_FINISHED;
   }
-  return OPERATOR_FINISHED;
+
+  return OPERATOR_CANCELLED;
 }
 
 void SEQUENCER_OT_select_by_type(wmOperatorType *ot)
