@@ -2294,6 +2294,10 @@ static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode
 
 static wmOperatorStatus animchannels_rearrange_exec(bContext *C, wmOperator *op)
 {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* Channel order cannot be controlled by the user anymore. */
+    return OPERATOR_CANCELLED;
+  }
   bAnimContext ac;
   eRearrangeAnimChan_Mode mode;
 
@@ -2534,6 +2538,11 @@ static wmOperatorStatus animchannels_group_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
   char name[MAX_NAME];
+
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* TODO */
+    return OPERATOR_CANCELLED;
+  }
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -3140,6 +3149,10 @@ static void setflag_anim_channels(bAnimContext *ac,
 
 static wmOperatorStatus animchannels_setflag_exec(bContext *C, wmOperator *op)
 {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    /* Handled by buttons themselves. */
+    return OPERATOR_CANCELLED;
+  }
   bAnimContext ac;
   eAnimChannel_Settings setting;
   eAnimChannels_SetFlag mode;
@@ -3946,7 +3959,6 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
   WM_operator_properties_border_to_rcti(op, &rect);
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    /* TODO In order for this to work correctly we need to tweak TreeView to only select on up. */
     using namespace ed::animfilter;
     std::optional<std::reference_wrapper<ChannelArena>> opt_arena = get_channels_from_space(*C);
     if (!opt_arena) {
@@ -5091,7 +5103,8 @@ static wmOperatorStatus animchannels_channel_select_keys_invoke(bContext *C,
 
   channel_index = animchannels_channel_get(&ac, event->mval);
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    /* TODO this is already handled for the dope sheet. Where is this used? */
+    /* TODO This is never reached because the tree view eats the double click event even for
+     * channels that cannot be renamed. */
   }
   else {
     /* handle click */
