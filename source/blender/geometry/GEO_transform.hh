@@ -32,13 +32,13 @@ struct TransformGeometryErrors {
 std::optional<TransformGeometryErrors> transform_geometry(bke::GeometrySet &geometry,
                                                           const float4x4 &transform);
 
+void translate_geometry(bke::GeometrySet &geometry, const float3 translation);
+
 /**
- * \param translate_grease_pencil_layers: If true, the layer transform in grease pencil geometries
- * is changed instead of the point positions.
+ * This is similar to #translate_geometry but only translates point and instance positions. It does
+ * not affect volumes, layer transforms etc.
  */
-void translate_geometry(bke::GeometrySet &geometry,
-                        const float3 translation,
-                        bool translate_grease_pencil_layers = true);
+void translate_points_and_instances(bke::GeometrySet &geometry, const float3 translation);
 
 }  // namespace geometry
 }  // namespace blender
