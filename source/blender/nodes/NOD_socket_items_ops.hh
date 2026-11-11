@@ -317,12 +317,12 @@ inline void add_item(wmOperatorType *ot,
         nullptr,
         nullptr,
         [](bContext *C, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
-          if (!C) {
+          SpaceNode *snode = C ? CTX_wm_space_node(C) : nullptr;
+          if (!snode || !snode->edittree) {
             *r_free = false;
             return rna_enum_node_socket_data_type_items;
           }
           *r_free = true;
-          SpaceNode *snode = CTX_wm_space_node(C);
           return enum_items_filter(rna_enum_node_socket_data_type_items,
                                    [&](const EnumPropertyItem &item) -> bool {
                                      return Accessor::supports_socket_type(
