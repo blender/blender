@@ -215,7 +215,8 @@ inline void EXPECT_NEAR_ARRAY_ND_WITH_FAILURE_RATE(const T *expected,
   for (size_t i = 0; i < N; ++i) {
     for (size_t j = 0; j < D; ++j) {
       const U diff = abs(expected[i][j] - actual[i][j]);
-      if (diff > tolerance) {
+      /* Negated comparison so NaN counts as failure, like `EXPECT_NEAR`. */
+      if (!(diff <= tolerance)) {
         failure_count++;
         failure_log << "\nThe difference between expected[" << i << "][" << j << "] and actual["
                     << i << "][" << j << "] is " << diff << ", which exceeds tolerance "
