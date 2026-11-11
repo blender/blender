@@ -139,6 +139,7 @@ PUSH_CONSTANT(float, mix_factor)
 PUSH_CONSTANT(float, taa_accumulated_weight)
 PUSH_CONSTANT(bool, do_anti_aliasing)
 PUSH_CONSTANT(bool, only_alpha)
+PUSH_CONSTANT(float4, clipping_rect)
 /* Reminder: Blending func is `fragRevealage * DST + frag_color`. */
 FRAGMENT_OUT_DUAL(0, float4, out_color, SRC_0)
 FRAGMENT_OUT_DUAL(0, float4, out_reveal, SRC_1)

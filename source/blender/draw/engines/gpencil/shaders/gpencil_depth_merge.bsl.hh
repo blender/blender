@@ -10,6 +10,7 @@ namespace gpencil::depth_merge {
 
 struct Resources {
   [[push_constant]] float4x4 gp_model_matrix;
+  [[push_constant]] float4 clipping_rect;
   [[push_constant]] bool stroke_order3d;
 
   [[sampler(0)]] sampler2DDepth depth_buf;
@@ -34,6 +35,13 @@ void frag_main([[resource_table]] const Resources &srt,
                [[frag_coord]] const float4 frag_co,
                [[frag_depth(any)]] float &out_depth)
 {
+  if (any(lessThan(frag_co.xy, srt.clipping_rect.xy)) ||
+      any(greaterThan(frag_co.xy, srt.clipping_rect.zw)))
+  {
+    gpu_discard_fragment();
+    return;
+  }
+
   float depth = textureLod(srt.depth_buf, frag_co.xy / float2(textureSize(srt.depth_buf, 0)), 0).r;
   if (srt.stroke_order3d) {
     out_depth = depth;

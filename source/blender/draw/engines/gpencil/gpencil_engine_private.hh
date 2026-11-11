@@ -324,6 +324,8 @@ struct Instance final : public DrawEngine {
   float vertex_paint_opacity;
   /* Force 3D depth rendering. */
   bool force_stroke_order_3d;
+  /* Clipping boundary for render border (xmin, ymin, xmax, ymax in pixel coords). */
+  float4 clipping_rect;
 
   ~Instance() final
   {
