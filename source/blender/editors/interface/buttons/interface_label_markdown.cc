@@ -1481,8 +1481,8 @@ void label_markdown_draw(const ButtonLabel *button, const uchar color[4], const 
   const MarkdownDrawColors colors = markdown_draw_colors_init(color);
 
   const bTheme *btheme = theme::theme_get();
-  const float corner_radius = btheme->tui.wcol_box.roundness * U.widget_unit *
-                              cache.key.pixels_per_point;
+  const float corner_radius = btheme->tui.wcol_box.roundness * U.widget_unit /
+                              button->block->aspect;
 
   for (const MarkdownItem &item : cache.md_layout.items) {
     const auto *code_box = std::get_if<MarkdownItemCodeBox>(&item);
