@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "draw_shader_shared.hh"
 #include "overlay_line_packing.bsl.hh"
 #include "overlay_shader_shared.hh"
 #include "select_lib.bsl.hh"
@@ -141,6 +142,14 @@ float3 non_linear_blend_color(float3 col1, float3 col2, float fac)
   col2 = pow(col2, float3(1.0f / 2.2f));
   float3 col = mix(col1, col2, fac);
   return pow(col, float3(2.2f));
+}
+
+float mul_project_m4_v3_zfac(ViewMatrices view, float pixel_fac, float3 co)
+{
+  float3 vP = view.point_world_to_view(co).xyz;
+  float4x4 winmat = view.winmat;
+  return pixel_fac *
+         (winmat[0][3] * vP.x + winmat[1][3] * vP.y + winmat[2][3] * vP.z + winmat[3][3]);
 }
 
 [[fragment]]

@@ -36,7 +36,6 @@ set(SRC_GLSL_VERT
   overlay_edit_gpencil_canvas_vert.glsl
   overlay_edit_pointcloud_vert.glsl
   overlay_edit_mesh_analysis_vert.glsl
-  overlay_edit_mesh_normal_vert.glsl
   overlay_edit_mesh_skin_root_vert.glsl
   overlay_edit_particle_point_vert.glsl
   overlay_edit_particle_strand_vert.glsl

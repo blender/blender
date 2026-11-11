@@ -477,9 +477,9 @@ class ShaderModule {
   StaticShader mesh_edit_facedot = shader_clippable("overlay_edit_mesh_facedot");
   StaticShader mesh_edit_vert = shader_clippable("overlay_edit_mesh_vert");
   StaticShader mesh_edit_skin_root = shader_clippable("overlay_edit_mesh_skin_root");
-  StaticShader mesh_face_normal = shader_clippable("overlay_mesh_face_normal");
-  StaticShader mesh_loop_normal = shader_clippable("overlay_mesh_loop_normal");
-  StaticShader mesh_vert_normal = shader_clippable("overlay_mesh_vert_normal");
+  StaticShader mesh_face_normal = shader_clippable("overlay_edit_mesh_normals_face");
+  StaticShader mesh_loop_normal = shader_clippable("overlay_edit_mesh_normals_loop");
+  StaticShader mesh_vert_normal = shader_clippable("overlay_edit_mesh_normals_vert");
   StaticShader motion_path_line = shader_clippable("overlay_motion_path_line");
   StaticShader motion_path_vert = shader_clippable("overlay_motion_path_point");
   StaticShader outline_detect = {"overlay_outline_detect"};
