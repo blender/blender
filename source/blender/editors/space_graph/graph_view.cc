@@ -116,13 +116,9 @@ static bool calculate_keyframe_bounds(const ListBaseT<bAnimListElem> &anim_data,
     fcu_bounds.xmax = ANIM_nla_tweakedit_remap(&ale, fcu_bounds.xmax, NLATIME_CONVERT_MAP);
 
     /* Apply unit corrections. */
-    float offset;
-    const float unitFac = ANIM_unit_mapping_get_factor(
-        ac.scene, ale.id, fcu, mapping_flag, &offset);
-    fcu_bounds.ymin += offset;
-    fcu_bounds.ymax += offset;
-    fcu_bounds.ymin *= unitFac;
-    fcu_bounds.ymax *= unitFac;
+    const UnitMapping unit_mapping = ANIM_unit_mapping_get(ac.scene, ale.id, fcu, mapping_flag);
+    fcu_bounds.ymin = unit_mapping.map(fcu_bounds.ymin);
+    fcu_bounds.ymax = unit_mapping.map(fcu_bounds.ymax);
     BLI_rctf_sanitize(&fcu_bounds);
     BLI_rctf_union(&r_bounds, &fcu_bounds);
   }
@@ -186,20 +182,18 @@ static void add_contextual_padding(bAnimContext &ac,
     if (!fcu->bezt || fcu->totvert == 0) {
       continue;
     }
-    float offset;
-    const float unit_factor = ANIM_unit_mapping_get_factor(
-        ac.scene, ale.id, fcu, mapping_flag, &offset);
+    const UnitMapping unit_mapping = ANIM_unit_mapping_get(ac.scene, ale.id, fcu, mapping_flag);
     for (int i : IndexRange(fcu->totvert)) {
       BezTriple *bezt = &fcu->bezt[i];
       if (!BEZT_ISSEL_ANY(bezt)) {
         continue;
       }
-      const float2 key(bezt->vec[1][0], (bezt->vec[1][1] + offset) * unit_factor);
+      const float2 key(bezt->vec[1][0], unit_mapping.map(bezt->vec[1][1]));
       /* Check the previous/next key if they exist and add half the distance to them as padding to
        * the bounds. */
       if (i - 1 >= 0) {
         const float2 prev_key(fcu->bezt[i - 1].vec[1][0],
-                              (fcu->bezt[i - 1].vec[1][1] + offset) * unit_factor);
+                              unit_mapping.map(fcu->bezt[i - 1].vec[1][1]));
         if (pad_x) {
           const float pad = (key.x - prev_key.x) / 2.0;
           BLI_rctf_union_x(&r_bounds, key.x - pad);
@@ -213,7 +207,7 @@ static void add_contextual_padding(bAnimContext &ac,
       }
       if (i + 1 < fcu->totvert) {
         const float2 next_key(fcu->bezt[i + 1].vec[1][0],
-                              (fcu->bezt[i + 1].vec[1][1] + offset) * unit_factor);
+                              unit_mapping.map(fcu->bezt[i + 1].vec[1][1]));
         if (pad_x) {
           const float pad = (next_key.x - key.x) / 2.0;
           BLI_rctf_union_x(&r_bounds, key.x + pad);
@@ -507,7 +501,6 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
     FCurve *gcu = BKE_fcurve_create();
     ChannelDriver *driver = fcu->driver;
     FPoint *fpt;
-    float unitFac, offset;
     int cfra;
     short mapping_flag = ANIM_get_normalization_flags(ac->sl);
 
@@ -515,7 +508,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
     fcu->driver = nullptr;
 
     /* Calculate unit-mapping factor. */
-    unitFac = ANIM_unit_mapping_get_factor(ac->scene, ale.id, fcu, mapping_flag, &offset);
+    const UnitMapping unit_mapping = ANIM_unit_mapping_get(ac->scene, ale.id, fcu, mapping_flag);
 
     /* Create samples, but store them in a new curve
      * - we cannot use fcurve_store_samples() as that will only overwrite the original curve.
@@ -528,7 +521,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
       const float cfrae = ANIM_nla_tweakedit_remap(&ale, cfra, NLATIME_CONVERT_UNMAP);
 
       fpt->vec[0] = cfrae;
-      fpt->vec[1] = (fcurve_samplingcb_evalcurve(fcu, nullptr, cfrae) + offset) * unitFac;
+      fpt->vec[1] = unit_mapping.map(fcurve_samplingcb_evalcurve(fcu, nullptr, cfrae));
     }
 
     /* Set color of ghost curve

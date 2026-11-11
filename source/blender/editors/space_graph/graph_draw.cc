@@ -41,7 +41,9 @@
 
 namespace blender {
 
-static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu);
+static void graph_draw_driver_debug(FCurve *fcu,
+                                    const View2D *v2d,
+                                    const UnitMapping &unit_mapping);
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Drawing Defines
@@ -589,8 +591,10 @@ static void draw_fcurve_samples(ARegion *region, const FCurve *fcu, const float 
 /** \name F-Curve Drawing
  * \{ */
 
-/* Helper func - just draw the F-Curve by sampling the visible region
- * (for drawing curves with modifiers). */
+/**
+ * Helper func - just draw the F-Curve by sampling the visible region
+ * (for drawing curves with modifiers).
+ */
 static void draw_fcurve_curve(bAnimContext *ac,
                               ID *id,
                               const FCurve *fcu_,
@@ -599,8 +603,6 @@ static void draw_fcurve_curve(bAnimContext *ac,
                               const bool use_nla_remap,
                               const bool draw_extrapolation)
 {
-  short mapping_flag = ANIM_get_normalization_flags(ac->sl);
-
   /* when opening a blend file on a different sized screen or while dragging the toolbar this can
    * happen best just bail out in this case. */
   if (ui::view2d_scale_get_x(v2d) <= 0.0f) {
@@ -612,9 +614,8 @@ static void draw_fcurve_curve(bAnimContext *ac,
   fcurve_for_draw.driver = nullptr;
 
   /* compute unit correction factor */
-  float offset;
-  float unitFac = ANIM_unit_mapping_get_factor(
-      ac->scene, id, &fcurve_for_draw, mapping_flag, &offset);
+  const UnitMapping unit_mapping = ANIM_unit_mapping_get(
+      ac->scene, id, &fcurve_for_draw, ANIM_get_normalization_flags(ac->sl));
 
   /* Note about sampling frequency:
    * Ideally, this is chosen such that we have 1-2 pixels = 1 segment
@@ -632,7 +633,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
   /* TODO: perhaps we should have 1.0 frames
    * as upper limit so that curves don't get too distorted? */
   float pixels_per_sample = 1.5f;
-  float samplefreq = pixels_per_sample / ui::view2d_scale_get_x(v2d);
+  float sample_frequency = pixels_per_sample / ui::view2d_scale_get_x(v2d);
 
   if (!(U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING)) {
     /* Low Precision = coarse lower-bound clamping
@@ -644,16 +645,16 @@ static void draw_fcurve_curve(bAnimContext *ac,
      * This one still amounts to 10 sample-frames for each 1-frame interval
      * which should be quite a decent approximation in many situations.
      */
-    samplefreq = std::max(samplefreq, 0.1f);
+    sample_frequency = std::max(sample_frequency, 0.1f);
   }
   else {
     /* "Higher Precision" but slower - especially on larger windows (e.g. #40372) */
-    samplefreq = std::max(samplefreq, 0.00001f);
+    sample_frequency = std::max(sample_frequency, 0.00001f);
   }
 
   /* the start/end times are simply the horizontal extents of the 'cur' rect */
-  float stime = v2d->cur.xmin;
-  float etime = v2d->cur.xmax;
+  float start_time = v2d->cur.xmin;
+  float end_time = v2d->cur.xmax;
 
   AnimData *adt = use_nla_remap ? BKE_animdata_from_id(id) : nullptr;
 
@@ -673,20 +674,21 @@ static void draw_fcurve_curve(bAnimContext *ac,
     }
 
     /* Clamp to graph editor rendering bounds. */
-    stime = max_ff(stime, fcu_start);
-    etime = min_ff(etime, fcu_end);
+    start_time = max_ff(start_time, fcu_start);
+    end_time = min_ff(end_time, fcu_end);
   }
 
-  const int total_samples = roundf((etime - stime) / samplefreq);
+  const int total_samples = roundf((end_time - start_time) / sample_frequency);
   if (total_samples <= 0) {
     return;
   }
 
   /* NLA remapping is linear so we don't have to remap per iteration. */
-  const float eval_start = BKE_nla_tweakedit_remap(adt, stime, NLATIME_CONVERT_UNMAP);
-  const float eval_freq = BKE_nla_tweakedit_remap(adt, stime + samplefreq, NLATIME_CONVERT_UNMAP) -
+  const float eval_start = BKE_nla_tweakedit_remap(adt, start_time, NLATIME_CONVERT_UNMAP);
+  const float eval_freq = BKE_nla_tweakedit_remap(
+                              adt, start_time + sample_frequency, NLATIME_CONVERT_UNMAP) -
                           eval_start;
-  const float eval_end = BKE_nla_tweakedit_remap(adt, etime, NLATIME_CONVERT_UNMAP);
+  const float eval_end = BKE_nla_tweakedit_remap(adt, end_time, NLATIME_CONVERT_UNMAP);
 
   immBegin(GPU_PRIM_LINE_STRIP, (total_samples + 1));
 
@@ -696,7 +698,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
    * correctly in the viewport.
    */
   for (int i = 0; i < total_samples; i++) {
-    const float ctime = stime + i * samplefreq;
+    const float scene_time = start_time + i * sample_frequency;
     float eval_time = eval_start + i * eval_freq;
 
     /* Prevent drawing past bounds, due to floating point problems.
@@ -708,7 +710,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
      */
     eval_time = std::min(eval_time, eval_end);
 
-    immVertex2f(pos, ctime, (evaluate_fcurve(&fcurve_for_draw, eval_time) + offset) * unitFac);
+    immVertex2f(pos, scene_time, unit_mapping.map(evaluate_fcurve(&fcurve_for_draw, eval_time)));
   }
 
   /* Ensure we include end boundary point.
@@ -718,7 +720,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
    * eval_start + total_samples * eval_freq < eval_end
    * due to floating point problems.
    */
-  immVertex2f(pos, etime, (evaluate_fcurve(&fcurve_for_draw, eval_end) + offset) * unitFac);
+  immVertex2f(pos, end_time, unit_mapping.map(evaluate_fcurve(&fcurve_for_draw, eval_end)));
 
   immEnd();
 }
@@ -739,8 +741,6 @@ static void draw_fcurve_curve_samples(bAnimContext *ac,
   FPoint *fpt = prevfpt + 1;
   float fac, v[2];
   int b = fcu->totvert;
-  float unit_scale, offset;
-  short mapping_flag = ANIM_get_normalization_flags(ac->sl);
   int count = fcu->totvert;
 
   const bool extrap_left = draw_extrapolation && prevfpt->vec[0] > v2d->cur.xmin;
@@ -755,9 +755,10 @@ static void draw_fcurve_curve_samples(bAnimContext *ac,
 
   /* apply unit mapping */
   GPU_matrix_push();
-  unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
-  GPU_matrix_scale_2f(1.0f, unit_scale);
-  GPU_matrix_translate_2f(0.0f, offset);
+  const UnitMapping unit_mapping = ANIM_unit_mapping_get(
+      ac->scene, id, fcu, ANIM_get_normalization_flags(ac->sl));
+  GPU_matrix_scale_2f(1.0f, unit_mapping.scale);
+  GPU_matrix_translate_2f(0.0f, unit_mapping.offset);
 
   immBegin(GPU_PRIM_LINE_STRIP, count);
 
@@ -1022,11 +1023,10 @@ static void draw_fcurve_curve_keys(
 
   /* Apply unit mapping. */
   GPU_matrix_push();
-  float offset;
-  short mapping_flag = ANIM_get_normalization_flags(ac->sl);
-  const float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
-  GPU_matrix_scale_2f(1.0f, unit_scale);
-  GPU_matrix_translate_2f(0.0f, offset);
+  const UnitMapping unit_mapping = ANIM_unit_mapping_get(
+      ac->scene, id, fcu, ANIM_get_normalization_flags(ac->sl));
+  GPU_matrix_scale_2f(1.0f, unit_mapping.scale);
+  GPU_matrix_translate_2f(0.0f, unit_mapping.offset);
 
   Vector<float2> curve_vertices;
 
@@ -1041,7 +1041,7 @@ static void draw_fcurve_curve_keys(
   curve_vertices.append(
       {fcu->bezt[index_range.first()].vec[1][0], fcu->bezt[index_range.first()].vec[1][1]});
 
-  const float2 pixels_per_unit = calculate_pixels_per_unit(v2d, unit_scale);
+  const float2 pixels_per_unit = calculate_pixels_per_unit(v2d, unit_mapping.scale);
   const int window_width = BLI_rcti_size_x(&v2d->mask);
   const float v2d_frame_range = BLI_rctf_size_x(&v2d->cur);
   const float pixel_width = v2d_frame_range / window_width;
@@ -1146,7 +1146,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
   FModifier *fcm = find_active_fmodifier(&fcu->modifiers);
 
   /* map keyframes for drawing if scaled F-Curve */
-  ANIM_nla_mapping_apply_if_needed_fcurve(ale, static_cast<FCurve *>(ale->key_data), false, false);
+  ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, false, false);
 
   /* draw curve:
    * - curve line may be result of one or more destructive modifiers or just the raw data,
@@ -1219,8 +1219,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
        * So we undo the keyframe remapping and instead remap the evaluation time when drawing
        * the curve itself. Afterward, we go back and redo the keyframe remapping so the controls
        * are drawn properly. */
-      ANIM_nla_mapping_apply_if_needed_fcurve(
-          ale, static_cast<FCurve *>(ale->key_data), true, false);
+      ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, true, false);
       draw_fcurve_curve(ac,
                         ale->id,
                         fcu,
@@ -1228,8 +1227,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
                         shdr_pos,
                         ANIM_nla_mapping_allowed(ale),
                         draw_extrapolation);
-      ANIM_nla_mapping_apply_if_needed_fcurve(
-          ale, static_cast<FCurve *>(ale->key_data), false, false);
+      ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, false, false);
     }
     else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
       /* just draw curve based on defined data (i.e. no modifiers) */
@@ -1269,15 +1267,13 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       }
     }
     else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
-      short mapping_flag = ANIM_get_normalization_flags(ac->sl);
-      float offset;
-      const float unit_scale = ANIM_unit_mapping_get_factor(
-          ac->scene, ale->id, fcu, mapping_flag, &offset);
+      const UnitMapping unit_mapping = ANIM_unit_mapping_get(
+          ac->scene, ale->id, fcu, ANIM_get_normalization_flags(ac->sl));
 
       /* apply unit-scaling to all values via OpenGL */
       GPU_matrix_push();
-      GPU_matrix_scale_2f(1.0f, unit_scale);
-      GPU_matrix_translate_2f(0.0f, offset);
+      GPU_matrix_scale_2f(1.0f, unit_mapping.scale);
+      GPU_matrix_translate_2f(0.0f, unit_mapping.offset);
 
       /* Set this once and for all -
        * all handles and handle-verts should use the same thickness. */
@@ -1295,7 +1291,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       }
       else {
         /* samples: only draw two indicators at either end as indicators */
-        draw_fcurve_samples(region, fcu, unit_scale);
+        draw_fcurve_samples(region, fcu, unit_mapping.scale);
       }
 
       GPU_matrix_pop();
@@ -1304,11 +1300,13 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
 
   /* 3) draw driver debugging stuff */
   if ((ac->datatype == ANIMCONT_DRIVERS) && (fcu->flag & FCURVE_ACTIVE)) {
-    graph_draw_driver_debug(ac, ale->id, fcu);
+    const UnitMapping unit_mapping = ANIM_unit_mapping_get(
+        ac->scene, ale->id, fcu, ANIM_get_normalization_flags(ac->sl));
+    graph_draw_driver_debug(fcu, &region->v2d, unit_mapping);
   }
 
   /* undo mapping of keyframes for drawing if scaled F-Curve */
-  ANIM_nla_mapping_apply_if_needed_fcurve(ale, static_cast<FCurve *>(ale->key_data), true, false);
+  ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, true, false);
 }
 
 /** \} */
@@ -1322,13 +1320,11 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
  * is handy for helping users better understand how to interpret
  * the graphs, and also facilitates debugging.
  */
-static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
+static void graph_draw_driver_debug(FCurve *fcu,
+                                    const View2D *v2d,
+                                    const UnitMapping &unit_mapping)
 {
   ChannelDriver *driver = fcu->driver;
-  View2D *v2d = &ac->region->v2d;
-  short mapping_flag = ANIM_get_normalization_flags(ac->sl);
-  float offset;
-  float unitfac = ANIM_unit_mapping_get_factor(ac->scene, id, fcu, mapping_flag, &offset);
 
   const uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
@@ -1359,10 +1355,10 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
     immBegin(GPU_PRIM_LINES, 2);
 
     t = v2d->cur.xmin;
-    immVertex2f(shdr_pos, t, (t + offset) * unitfac);
+    immVertex2f(shdr_pos, t, unit_mapping.map(t));
 
     t = v2d->cur.xmax;
-    immVertex2f(shdr_pos, t, (t + offset) * unitfac);
+    immVertex2f(shdr_pos, t, unit_mapping.map(t));
 
     immEnd();
   }
@@ -1370,8 +1366,8 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
   /* draw driver only if actually functional */
   if ((driver->flag & DRIVER_FLAG_INVALID) == 0) {
     /* grab "coordinates" for driver outputs */
-    float x = driver->curval;
-    float y = fcu->runtime->curval * unitfac;
+    const float x = driver->curval;
+    const float y = fcu->runtime->curval * unit_mapping.scale;
 
     /* Only draw indicators if the point is in range. */
     if (x >= v2d->cur.xmin) {

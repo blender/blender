@@ -2729,11 +2729,10 @@ static void rna_SpaceGraphEditor_normalize_update(bContext *C, PointerRNA * /*pt
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
   for (bAnimListElem &ale : anim_data) {
     FCurve *fcu = static_cast<FCurve *>(ale.key_data);
-    float offset;
     /* Calling this function updates the cached values in the `FCurve`. Doing so makes it so that
      * the normalization will be correct after enabling the normalization, even with auto normalize
      * disabled. */
-    ANIM_unit_mapping_get_factor(ac.scene, ale.id, fcu, ANIM_UNITCONV_NORMALIZE, &offset);
+    ANIM_unit_mapping_get(ac.scene, ale.id, fcu, ANIM_UNITCONV_NORMALIZE);
   }
   ANIM_animdata_freelist(&anim_data);
 

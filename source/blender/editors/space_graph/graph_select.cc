@@ -187,8 +187,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac,
 
   for (bAnimListElem &ale : anim_data) {
     FCurve *fcu = static_cast<FCurve *>(ale.key_data);
-    float offset;
-    float unit_scale = ANIM_unit_mapping_get_factor(ac->scene, ale.id, fcu, mapping_flag, &offset);
+    const UnitMapping unit_mapping = ANIM_unit_mapping_get(ac->scene, ale.id, fcu, mapping_flag);
 
     /* apply NLA mapping to all the keyframes */
     ANIM_nla_mapping_apply_if_needed_fcurve(
@@ -208,8 +207,8 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac,
                                   nullptr,
                                   NEAREST_HANDLE_KEY,
                                   mval,
-                                  unit_scale,
-                                  offset);
+                                  unit_mapping.scale,
+                                  unit_mapping.offset);
 
         /* Handles. */
         if (fcurve_handle_sel_check(sipo, bezt1)) {
@@ -225,8 +224,8 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac,
                                       nullptr,
                                       NEAREST_HANDLE_LEFT,
                                       mval,
-                                      unit_scale,
-                                      offset);
+                                      unit_mapping.scale,
+                                      unit_mapping.offset);
           }
 
           /* second handle only visible if this segment is bezier */
@@ -239,8 +238,8 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac,
                                       nullptr,
                                       NEAREST_HANDLE_RIGHT,
                                       mval,
-                                      unit_scale,
-                                      offset);
+                                      unit_mapping.scale,
+                                      unit_mapping.offset);
           }
         }
       }
@@ -622,9 +621,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
   /* First loop over data, doing box select. try selecting keys only. */
   for (bAnimListElem &ale : anim_data) {
     FCurve *fcu = static_cast<FCurve *>(ale.key_data);
-    float offset;
-    const float unit_scale = ANIM_unit_mapping_get_factor(
-        ac->scene, ale.id, fcu, mapping_flag, &offset);
+    const UnitMapping unit_mapping = ANIM_unit_mapping_get(ac->scene, ale.id, fcu, mapping_flag);
 
     /* Apply NLA mapping to all the keyframes, since it's easier than trying to
      * guess when a callback might use something different.
@@ -634,8 +631,8 @@ static bool box_select_graphkeys(bAnimContext *ac,
 
     scaled_rectf.xmin = rectf.xmin;
     scaled_rectf.xmax = rectf.xmax;
-    scaled_rectf.ymin = rectf.ymin / unit_scale - offset;
-    scaled_rectf.ymax = rectf.ymax / unit_scale - offset;
+    scaled_rectf.ymin = unit_mapping.unmap(rectf.ymin);
+    scaled_rectf.ymax = unit_mapping.unmap(rectf.ymax);
 
     /* Set horizontal range (if applicable).
      * NOTE: these values are only used for x-range and y-range but not region
@@ -779,9 +776,7 @@ static void box_select_graphcurves(bAnimContext *ac,
 
   for (bAnimListElem &ale : anim_data) {
     FCurve *fcu = static_cast<FCurve *>(ale.key_data);
-    float offset;
-    const float unit_scale = ANIM_unit_mapping_get_factor(
-        ac->scene, ale.id, fcu, mapping_flag, &offset);
+    const UnitMapping unit_mapping = ANIM_unit_mapping_get(ac->scene, ale.id, fcu, mapping_flag);
 
     const rctf rectf = initialize_box_select_coords(ac, rectf_view);
 
@@ -792,11 +787,11 @@ static void box_select_graphcurves(bAnimContext *ac,
      */
     scaled_rectf.xmin = rectf.xmin;
     scaled_rectf.xmax = rectf.xmax;
-    scaled_rectf.ymin = rectf.ymin / unit_scale - offset;
-    scaled_rectf.ymax = rectf.ymax / unit_scale - offset;
+    scaled_rectf.ymin = unit_mapping.unmap(rectf.ymin);
+    scaled_rectf.ymax = unit_mapping.unmap(rectf.ymax);
 
     const KeyframeEditFunc select_cb = ANIM_editkeyframes_select(selectmode);
-    if (rectf_curve_intersection(offset, unit_scale, &rectf, &ale, fcu)) {
+    if (rectf_curve_intersection(unit_mapping.offset, unit_mapping.scale, &rectf, &ale, fcu)) {
       if ((selectmode & SELECT_ADD) || (selectmode & SELECT_REPLACE)) {
         fcu->flag |= FCURVE_SELECTED;
         last_selected_curve = fcu;

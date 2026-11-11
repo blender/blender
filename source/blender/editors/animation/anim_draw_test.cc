@@ -67,21 +67,20 @@ TEST_F(AnimDrawTest, anim_unit_mapping_get_factor_not_normalizing)
     fcurve->rna_path_set("rotation_euler");
 
     EXPECT_FLOAT_EQ(RAD2DEGF(1.0f),
-                    ANIM_unit_mapping_get_factor(&scene, &this->object->id, fcurve, 0, nullptr));
-    EXPECT_FLOAT_EQ(1.0f / RAD2DEGF(1.0f),
-                    ANIM_unit_mapping_get_factor(
-                        &scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE, nullptr));
+                    ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, 0).scale);
+    EXPECT_FLOAT_EQ(
+        1.0f / RAD2DEGF(1.0f),
+        ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE).scale);
   }
 
   { /* Rotation: Radians. */
     scene.unit.system_rotation = USER_UNIT_ROT_RADIANS;
     fcurve->rna_path_set("rotation_euler");
 
-    EXPECT_FLOAT_EQ(1.0f,
-                    ANIM_unit_mapping_get_factor(&scene, &this->object->id, fcurve, 0, nullptr));
-    EXPECT_FLOAT_EQ(1.0f,
-                    ANIM_unit_mapping_get_factor(
-                        &scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE, nullptr));
+    EXPECT_FLOAT_EQ(1.0f, ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, 0).scale);
+    EXPECT_FLOAT_EQ(
+        1.0f,
+        ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE).scale);
   }
 
   { /* Length */
@@ -94,10 +93,10 @@ TEST_F(AnimDrawTest, anim_unit_mapping_get_factor_not_normalizing)
       scene.unit.length_unit = unit_idx;
 
       EXPECT_FLOAT_EQ(expected_scalar,
-                      ANIM_unit_mapping_get_factor(&scene, &this->object->id, fcurve, 0, nullptr));
-      EXPECT_FLOAT_EQ(expected_restore_scalar,
-                      ANIM_unit_mapping_get_factor(
-                          &scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE, nullptr));
+                      ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, 0).scale);
+      EXPECT_FLOAT_EQ(
+          expected_restore_scalar,
+          ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE).scale);
     };
 
     /* No unit system */
@@ -136,10 +135,10 @@ TEST_F(AnimDrawTest, anim_unit_mapping_get_factor_not_normalizing)
       scene.unit.mass_unit = unit_idx;
 
       EXPECT_FLOAT_EQ(expected_scalar,
-                      ANIM_unit_mapping_get_factor(&scene, &this->object->id, fcurve, 0, nullptr));
-      EXPECT_FLOAT_EQ(expected_restore_scalar,
-                      ANIM_unit_mapping_get_factor(
-                          &scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE, nullptr));
+                      ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, 0).scale);
+      EXPECT_FLOAT_EQ(
+          expected_restore_scalar,
+          ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE).scale);
     };
 
     /* Metric */
@@ -172,10 +171,10 @@ TEST_F(AnimDrawTest, anim_unit_mapping_get_factor_not_normalizing)
       scene.unit.time_unit = unit_idx;
 
       EXPECT_FLOAT_EQ(expected_scalar,
-                      ANIM_unit_mapping_get_factor(&scene, &this->object->id, fcurve, 0, nullptr));
-      EXPECT_FLOAT_EQ(expected_restore_scalar,
-                      ANIM_unit_mapping_get_factor(
-                          &scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE, nullptr));
+                      ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, 0).scale);
+      EXPECT_FLOAT_EQ(
+          expected_restore_scalar,
+          ANIM_unit_mapping_get(&scene, &this->object->id, fcurve, ANIM_UNITCONV_RESTORE).scale);
     };
 
     test_unit_scalar(0 /* d */, 1.0f / 86400.0f, 86400.0f);

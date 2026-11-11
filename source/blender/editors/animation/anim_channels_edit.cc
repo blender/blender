@@ -95,11 +95,10 @@ static bool get_normalized_fcurve_bounds(FCurve *fcu,
 
   const short mapping_flag = ANIM_get_normalization_flags(space_link);
 
-  float offset;
-  const float unit_fac = ANIM_unit_mapping_get_factor(scene, id, fcu, mapping_flag, &offset);
+  const UnitMapping unit_mapping = ANIM_unit_mapping_get(scene, id, fcu, mapping_flag);
 
-  r_bounds->ymin = (r_bounds->ymin + offset) * unit_fac;
-  r_bounds->ymax = (r_bounds->ymax + offset) * unit_fac;
+  r_bounds->ymin = unit_mapping.map(r_bounds->ymin);
+  r_bounds->ymax = unit_mapping.map(r_bounds->ymax);
 
   const float min_height = 0.01f;
   const float height = BLI_rctf_size_y(r_bounds);

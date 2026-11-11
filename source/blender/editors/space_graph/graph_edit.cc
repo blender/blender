@@ -162,9 +162,8 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
       FCurve *fcu = static_cast<FCurve *>(ale.key_data);
 
       short mapping_flag = ANIM_get_normalization_flags(ac->sl);
-      float offset;
-      float unit_scale = ANIM_unit_mapping_get_factor(
-          ac->scene, ale.id, static_cast<FCurve *>(ale.key_data), mapping_flag, &offset);
+      const UnitMapping unit_mapping = ANIM_unit_mapping_get(
+          ac->scene, ale.id, static_cast<FCurve *>(ale.key_data), mapping_flag);
 
       float x, y;
 
@@ -178,7 +177,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 
       /* Normalize units of cursor's value. */
       if (sipo) {
-        y = (sipo->cursorVal / unit_scale) - offset;
+        y = unit_mapping.unmap(sipo->cursorVal);
       }
       else {
         y = 0.0f;
@@ -345,11 +344,10 @@ static wmOperatorStatus graphkeys_click_insert_exec(bContext *C, wmOperator *op)
     /* Apply inverse unit-mapping to value to get correct value for F-Curves. */
     {
       const short mapping_flag = ANIM_get_normalization_flags(ac.sl);
-      float offset;
-      const float scale = ANIM_unit_mapping_get_factor(
-          ac.scene, ale->id, fcu, mapping_flag | ANIM_UNITCONV_RESTORE, &offset);
+      const UnitMapping unit_mapping = ANIM_unit_mapping_get(
+          ac.scene, ale->id, fcu, mapping_flag | ANIM_UNITCONV_RESTORE);
 
-      val = val * scale - offset;
+      val = val * unit_mapping.scale - unit_mapping.offset;
     }
 
     KeyframeSettings settings = get_keyframe_settings(true);
@@ -2149,12 +2147,10 @@ static KeyframeEditData sum_selected_keyframes(bAnimContext *ac)
   for (bAnimListElem &ale : anim_data) {
     short mapping_flag = ANIM_get_normalization_flags(ac->sl);
     KeyframeEditData current_ked;
-    float offset;
-    float unit_scale = ANIM_unit_mapping_get_factor(ac->scene,
-                                                    ale.id,
-                                                    static_cast<FCurve *>(ale.key_data),
-                                                    mapping_flag | ANIM_UNITCONV_ONLYKEYS,
-                                                    &offset);
+    const UnitMapping unit_mapping = ANIM_unit_mapping_get(ac->scene,
+                                                           ale.id,
+                                                           static_cast<FCurve *>(ale.key_data),
+                                                           mapping_flag | ANIM_UNITCONV_ONLYKEYS);
 
     memset(&current_ked, 0, sizeof(current_ked));
 
@@ -2170,7 +2166,7 @@ static KeyframeEditData sum_selected_keyframes(bAnimContext *ac)
 
     ked.f1 += current_ked.f1;
     ked.i1 += current_ked.i1;
-    ked.f2 += (current_ked.f2 + offset * current_ked.i1) * unit_scale;
+    ked.f2 += (current_ked.f2 + unit_mapping.offset * current_ked.i1) * unit_mapping.scale;
     ked.i2 += current_ked.i2;
   }
 
@@ -2399,11 +2395,10 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
     /* Normalize cursor value (for normalized F-Curves display). */
     if (mode == GRAPHKEYS_SNAP_VALUE) {
       short mapping_flag = ANIM_get_normalization_flags(ac->sl);
-      float offset;
-      float unit_scale = ANIM_unit_mapping_get_factor(
-          ac->scene, ale.id, static_cast<FCurve *>(ale.key_data), mapping_flag, &offset);
+      const UnitMapping unit_mapping = ANIM_unit_mapping_get(
+          ac->scene, ale.id, static_cast<FCurve *>(ale.key_data), mapping_flag);
 
-      ked.f1 = (cursor_value / unit_scale) - offset;
+      ked.f1 = unit_mapping.unmap(cursor_value);
     }
 
     /* Perform snapping. */
@@ -2705,14 +2700,13 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
     /* Apply unit corrections. */
     if (mode == GRAPHKEYS_MIRROR_VALUE) {
       short mapping_flag = ANIM_get_normalization_flags(ac->sl);
-      float offset;
-      float unit_scale = ANIM_unit_mapping_get_factor(ac->scene,
-                                                      ale.id,
-                                                      static_cast<FCurve *>(ale.key_data),
-                                                      mapping_flag | ANIM_UNITCONV_ONLYKEYS,
-                                                      &offset);
+      const UnitMapping unit_mapping = ANIM_unit_mapping_get(ac->scene,
+                                                             ale.id,
+                                                             static_cast<FCurve *>(ale.key_data),
+                                                             mapping_flag |
+                                                                 ANIM_UNITCONV_ONLYKEYS);
 
-      ked.f1 = (cursor_value - offset) / unit_scale;
+      ked.f1 = (cursor_value - unit_mapping.offset) / unit_mapping.scale;
     }
 
     /* Perform actual mirroring. */

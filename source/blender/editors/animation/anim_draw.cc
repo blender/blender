@@ -534,40 +534,36 @@ static void fcurve_scene_coord_range_get(Scene *scene,
   }
 }
 
-static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, float *r_offset)
+static UnitMapping normalization_factor_get(Scene *scene, FCurve *fcu, const short flag)
 {
-  float factor = 1.0f, offset = 0.0f;
+  UnitMapping unit_mapping;
 
   if (flag & ANIM_UNITCONV_RESTORE) {
-    if (r_offset) {
-      *r_offset = fcu->prev_offset;
-    }
-
-    return 1.0f / fcu->prev_norm_factor;
+    unit_mapping.offset = fcu->prev_offset;
+    unit_mapping.scale = 1.0f / fcu->prev_norm_factor;
+    return unit_mapping;
   }
 
   if (flag & ANIM_UNITCONV_NORMALIZE_FREEZE) {
-    if (r_offset) {
-      *r_offset = fcu->prev_offset;
-    }
+    unit_mapping.offset = fcu->prev_offset;
     if (fcu->prev_norm_factor == 0.0f) {
       /* Happens when Auto Normalize was disabled before
        * any curves were displayed.
        */
-      return 1.0f;
+      return unit_mapping;
     }
-    return fcu->prev_norm_factor;
+    unit_mapping.scale = fcu->prev_norm_factor;
+    return unit_mapping;
   }
 
   if (G.moving & G_TRANSFORM_FCURVES) {
-    if (r_offset) {
-      *r_offset = fcu->prev_offset;
-    }
+    unit_mapping.offset = fcu->prev_offset;
     if (fcu->prev_norm_factor == 0.0f) {
       /* Same as above. */
-      return 1.0f;
+      return unit_mapping;
     }
-    return fcu->prev_norm_factor;
+    unit_mapping.scale = fcu->prev_norm_factor;
+    return unit_mapping;
   }
 
   fcu->prev_norm_factor = 1.0f;
@@ -583,40 +579,33 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
   if (min_coord < max_coord && ulp_diff_ff(min_coord, max_coord) > 256) {
     /* Normalize. */
     const float range = max_coord - min_coord;
-    factor = 2.0f / range;
-    offset = -min_coord - range / 2.0f;
+    unit_mapping.scale = 2.0f / range;
+    unit_mapping.offset = -min_coord - range / 2.0f;
   }
   else {
     /* Skip normalization in 2 cases. Either the y difference of all keyframes is too small to
      * normalize or there are no keys at all in the range. In the first case, the curve should be
      * brought to the 0 line. In the second case we cannot do that since we have no information. */
-    factor = 1.0f;
+    unit_mapping.scale = 1.0f;
     if (min_coord == FLT_MAX) {
-      offset = 0.0f;
+      unit_mapping.offset = 0.0f;
     }
     else {
-      offset = -min_coord;
+      unit_mapping.offset = -min_coord;
     }
   }
 
-  BLI_assert(factor != 0.0f);
-  if (r_offset) {
-    *r_offset = offset;
-  }
+  BLI_assert(unit_mapping.scale != 0.0f);
 
-  fcu->prev_norm_factor = factor;
-  fcu->prev_offset = offset;
-  return factor;
+  fcu->prev_norm_factor = unit_mapping.scale;
+  fcu->prev_offset = unit_mapping.offset;
+  return unit_mapping;
 }
 
-float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag, float *r_offset)
+UnitMapping ANIM_unit_mapping_get(Scene *scene, ID *id, FCurve *fcu, short flag)
 {
   if (flag & ANIM_UNITCONV_NORMALIZE) {
-    return normalization_factor_get(scene, fcu, flag, r_offset);
-  }
-
-  if (r_offset) {
-    *r_offset = 0.0f;
+    return normalization_factor_get(scene, fcu, flag);
   }
 
   /* TODO: change the pointer parameters to references, as this function should not be called
@@ -624,12 +613,12 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
 
   if (!id || !fcu || !scene) {
     /* Not enough information to do the remapping, so just show the data as-is. */
-    return 1.0f;
+    return {};
   }
 
   const ParsedRNAPathRef rna_path = fcu->rna_path_parsed();
   if (rna_path.is_empty()) {
-    return 1.0f;
+    return {};
   }
 
   PointerRNA ptr;
@@ -637,7 +626,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
   PointerRNA id_ptr = RNA_id_pointer_create(id);
   if (!RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
     /* Without resolving the property, its type & subtype are unknown; remapping is impossible. */
-    return 1.0f;
+    return {};
   }
 
   const PropertyUnit prop_unit = PropertyUnit(RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)));
@@ -670,11 +659,15 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
   BLI_assert_msg(unit_conversion.bias == 0.0,
                  "Only linear units (without bias) are supported for now.");
   BLI_assert(unit_conversion.scalar != 0.0);
+  UnitMapping unit_mapping;
 
   if (flag & ANIM_UNITCONV_RESTORE) {
-    return float(unit_conversion.scalar);
+    unit_mapping.scale = float(unit_conversion.scalar);
+    return unit_mapping;
   }
-  return float(1.0 / unit_conversion.scalar);
+
+  unit_mapping.scale = float(1.0 / unit_conversion.scalar);
+  return unit_mapping;
 }
 
 static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra)

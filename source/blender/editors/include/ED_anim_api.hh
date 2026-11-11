@@ -1129,13 +1129,41 @@ enum eAnimUnitConv_Flags {
 };
 
 /**
- * Get flags used for normalization in ANIM_unit_mapping_get_factor.
+ * Get flags used for normalization in `ANIM_unit_mapping_get`.
  */
 short ANIM_get_normalization_flags(SpaceLink *space_link);
+
+/**
+ * Represents a linear polynomial function for the use in mapping data units to View2D units.
+ * For example, in case of angles, the data is always in radians, while the View2D may be showing
+ * the data in degrees.
+ */
+struct UnitMapping {
+  float offset = 0.0f;
+  float scale = 1.0f;
+
+  /**
+   * Convert the given data value to View2D space.
+   */
+  float map(const float v) const
+  {
+    return (v + offset) * scale;
+  }
+
+  /**
+   * Convert the given View2D value back to data space.
+   */
+  float unmap(const float v) const
+  {
+    BLI_assert(scale != 0.0f);
+    return v / scale - offset;
+  }
+};
+
 /**
  * Get unit conversion factor for given ID + F-Curve.
  */
-float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag, float *r_offset);
+UnitMapping ANIM_unit_mapping_get(Scene *scene, ID *id, FCurve *fcu, short flag);
 
 /** \} */
 

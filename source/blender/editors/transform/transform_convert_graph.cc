@@ -402,7 +402,6 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
   for (bAnimListElem *ale : unique_fcu_anim_list_elements) {
     FCurve *fcu = static_cast<FCurve *>(ale->key_data);
     bool intvals = (fcu->flag & FCURVE_INT_VALUES) != 0;
-    float unit_scale, offset;
 
     /* F-Curve may not have any keyframes. */
     if (fcu->bezt == nullptr || (is_prop_edit && ale->tag == 0)) {
@@ -413,8 +412,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
      * higher scaling ratios, but is faster than converting all points). */
     const float cfra = ANIM_nla_tweakedit_remap(ale, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
-    unit_scale = ANIM_unit_mapping_get_factor(
-        ac.scene, ale->id, static_cast<FCurve *>(ale->key_data), anim_map_flag, &offset);
+    const UnitMapping unit_mapping = ANIM_unit_mapping_get(
+        ac.scene, ale->id, static_cast<FCurve *>(ale->key_data), anim_map_flag);
 
     for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
       /* Ensure temp flag is cleared for all triples, we use it. */
@@ -445,8 +444,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
                             intvals,
                             mtx,
                             smtx,
-                            unit_scale,
-                            offset);
+                            unit_mapping.scale,
+                            unit_mapping.offset);
           initTransDataCurveHandles(td, bezt);
           bezt_to_transdata(td++,
                             td2d++,
@@ -459,8 +458,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
                             intvals,
                             mtx,
                             smtx,
-                            unit_scale,
-                            offset);
+                            unit_mapping.scale,
+                            unit_mapping.offset);
           initTransDataCurveHandles(td, bezt);
           bezt_to_transdata(td++,
                             td2d++,
@@ -473,8 +472,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
                             intvals,
                             mtx,
                             smtx,
-                            unit_scale,
-                            offset);
+                            unit_mapping.scale,
+                            unit_mapping.offset);
 
           if (is_sel) {
             bezt->f1 |= BEZT_FLAG_TEMP_TAG;
@@ -498,8 +497,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
                               intvals,
                               mtx,
                               smtx,
-                              unit_scale,
-                              offset);
+                              unit_mapping.scale,
+                              unit_mapping.offset);
             bezt->f1 |= BEZT_FLAG_TEMP_TAG;
           }
 
@@ -518,8 +517,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
                               intvals,
                               mtx,
                               smtx,
-                              unit_scale,
-                              offset);
+                              unit_mapping.scale,
+                              unit_mapping.offset);
             bezt->f3 |= BEZT_FLAG_TEMP_TAG;
           }
 
@@ -553,8 +552,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
                               intvals,
                               mtx,
                               smtx,
-                              unit_scale,
-                              offset);
+                              unit_mapping.scale,
+                              unit_mapping.offset);
             bezt->f2 |= BEZT_FLAG_TEMP_TAG;
           }
           /* Special hack (must be done after #initTransDataCurveHandles(),
