@@ -234,6 +234,9 @@ static bool point_less_than(const float frame, const ed::animfilter::KeyPoint &p
  * Returns the 2D bounds of the given channel. The y axis is only set for FCurves.
  */
 static std::optional<rctf> get_channel_bounds(ed::animfilter::AnimationChannel &channel,
+                                              SpaceLink *space_link,
+                                              Scene *scene,
+                                              ID *id,
                                               std::optional<float2> range = {})
 {
   rctf bounds;
@@ -260,7 +263,24 @@ static std::optional<rctf> get_channel_bounds(ed::animfilter::AnimationChannel &
   }
 
   if (channel.type() == AnimationChannelType::DATA) {
-    /* TODO FCurves have a y axis that needs to be calculated. */
+    DataChannel &data_channel = static_cast<DataChannel &>(channel);
+    if (data_channel.source_type() == DataChannelType::FCURVE) {
+      FCurve *fcurve = data_channel.get_source<FCurve>();
+      float *range_ptr = nullptr;
+      if (range.has_value()) {
+        range_ptr = range.value();
+      }
+      const bool found_bounds = get_normalized_fcurve_bounds(fcurve,
+                                                             space_link,
+                                                             scene,
+                                                             id,
+                                                             /* include_handles= */ false,
+                                                             range_ptr,
+                                                             &bounds);
+      if (!found_bounds) {
+        return std::nullopt;
+      }
+    }
   }
 
   return bounds;
@@ -5125,13 +5145,25 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
     if (!arena.root()) {
       return OPERATOR_CANCELLED;
     }
-    const bool show_summary = true;
+    bDopeSheet *dope_sheet = get_dopesheet_from_space(*C);
+    if (!dope_sheet) {
+      BLI_assert_unreachable();
+      return OPERATOR_CANCELLED;
+    }
+    bool show_summary = false;
+    if (CTX_wm_area(C)->spacetype == SPACE_ACTION) {
+      show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+    }
     foreach_expanded(
         *arena.root(), show_summary, [&](AnimationChannel &channel, int /* row_index */) {
           if (!channel.is_selected()) {
             return;
           }
-          std::optional<rctf> channel_bounds = get_channel_bounds(channel);
+          ScrArea *area = CTX_wm_area(C);
+          ChannelTag *id_tag = channel.tags().first_by_type(ChannelTagType::ID);
+          ID *id = id_tag ? id_tag->source_data().owner_id : nullptr;
+          std::optional<rctf> channel_bounds = get_channel_bounds(
+              channel, area->spacedata.first(), CTX_data_scene(C), id);
           if (channel_bounds) {
             BLI_rctf_union(&bounds, &channel_bounds.value());
             valid_bounds = true;
@@ -5276,13 +5308,20 @@ static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
       BLI_assert_unreachable();
       return OPERATOR_CANCELLED;
     }
-    const bool show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+    bool show_summary = false;
+    if (CTX_wm_area(C)->spacetype == SPACE_ACTION) {
+      show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+    }
     AnimationChannel *channel_under_cursor = find_channel_at_y(
         arena, *region, event->mval[1], show_summary);
     if (!channel_under_cursor) {
       return OPERATOR_CANCELLED;
     }
-    std::optional<rctf> channel_bounds = get_channel_bounds(*channel_under_cursor, range);
+    ScrArea *area = CTX_wm_area(C);
+    ChannelTag *id_tag = channel_under_cursor->tags().first_by_type(ChannelTagType::ID);
+    ID *id = id_tag ? id_tag->source_data().owner_id : nullptr;
+    std::optional<rctf> channel_bounds = get_channel_bounds(
+        *channel_under_cursor, area->spacedata.first(), CTX_data_scene(C), id, range);
     if (!channel_bounds) {
       return OPERATOR_CANCELLED;
     }
