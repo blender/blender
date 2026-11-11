@@ -28,6 +28,7 @@ namespace blender::gpu {
 GLStateManager::GLStateManager()
 {
   /* Set other states that never change. */
+  glEnable(GL_PROGRAM_POINT_SIZE);
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
   glEnable(GL_MULTISAMPLE);
 
@@ -131,17 +132,6 @@ void GLStateManager::set_state(const GPUState &state)
 void GLStateManager::set_mutable_state(const GPUStateMutable &state)
 {
   GPUStateMutable changed = state ^ current_mutable_;
-
-  /* TODO: remove, should be uniform. */
-  if (float_as_uint(changed.point_size) != 0) {
-    if (state.point_size > 0.0f) {
-      glEnable(GL_PROGRAM_POINT_SIZE);
-    }
-    else {
-      glDisable(GL_PROGRAM_POINT_SIZE);
-      glPointSize(fabsf(state.point_size));
-    }
-  }
 
   if (float_as_uint(changed.line_width) != 0) {
     /* TODO: remove, should use wide line shader. */

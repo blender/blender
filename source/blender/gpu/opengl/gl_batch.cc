@@ -240,6 +240,10 @@ void GLBatch::bind()
 {
   GLContext::get()->state_manager->apply_state();
 
+  const float point_size = GLContext::get()->state_manager->mutable_state.point_size;
+  if (this->prim_type == GPU_PRIM_POINTS && point_size < 0.0f) {
+    GPU_shader_uniform_1f(GLContext::get()->shader, "size", -point_size);
+  }
   if (flag & GPU_BATCH_DIRTY) {
     flag &= ~GPU_BATCH_DIRTY;
     vao_cache_.clear();
