@@ -230,8 +230,35 @@ static bool point_less_than(const float frame, const ed::animfilter::KeyPoint &p
   return frame < p.frame;
 }
 
+static std::optional<rctf> get_fcurve_channel_bounds(ed::animfilter::FCurveChannel &channel,
+                                                     SpaceLink *space_link,
+                                                     Scene *scene,
+                                                     ID *id,
+                                                     std::optional<float2> range = {})
+{
+  FCurve *fcurve = channel.get_source<FCurve>();
+  float *range_ptr = nullptr;
+  if (range.has_value()) {
+    range_ptr = range.value();
+  }
+  rctf fcurve_bounds;
+  const bool found_bounds = get_normalized_fcurve_bounds(fcurve,
+                                                         space_link,
+                                                         scene,
+                                                         id,
+                                                         /* include_handles= */ false,
+                                                         range_ptr,
+                                                         &fcurve_bounds);
+  if (found_bounds) {
+    return fcurve_bounds;
+  }
+  return std::nullopt;
+}
+
 /**
  * Returns the 2D bounds of the given channel. The y axis is only set for FCurves.
+ * If the given channel is a SummaryChannel, all children of the summary channel are visited
+ * looking for FCurves.
  */
 static std::optional<rctf> get_channel_bounds(ed::animfilter::AnimationChannel &channel,
                                               SpaceLink *space_link,
@@ -239,8 +266,17 @@ static std::optional<rctf> get_channel_bounds(ed::animfilter::AnimationChannel &
                                               ID *id,
                                               std::optional<float2> range = {})
 {
-  rctf bounds;
   using namespace ed::animfilter;
+
+  if (channel.type() == AnimationChannelType::DATA) {
+    DataChannel &data_channel = static_cast<DataChannel &>(channel);
+    if (data_channel.source_type() == DataChannelType::FCURVE) {
+      return get_fcurve_channel_bounds(
+          static_cast<FCurveChannel &>(data_channel), space_link, scene, id, range);
+    }
+  }
+
+  rctf bounds;
   Span<KeyPoint> datapoints = channel.datapoints();
   if (datapoints.size() == 0) {
     return std::nullopt;
@@ -262,25 +298,20 @@ static std::optional<rctf> get_channel_bounds(ed::animfilter::AnimationChannel &
     }
   }
 
-  if (channel.type() == AnimationChannelType::DATA) {
-    DataChannel &data_channel = static_cast<DataChannel &>(channel);
-    if (data_channel.source_type() == DataChannelType::FCURVE) {
-      FCurve *fcurve = data_channel.get_source<FCurve>();
-      float *range_ptr = nullptr;
-      if (range.has_value()) {
-        range_ptr = range.value();
+  if (channel.type() == AnimationChannelType::SUMMARY) {
+    SummaryChannel &summary_channel = static_cast<SummaryChannel &>(channel);
+    foreach_channel(summary_channel, [&](AnimationChannel &child, const int /* row_index */) {
+      if (child.type() == AnimationChannelType::DATA) {
+        DataChannel &data_channel = static_cast<DataChannel &>(child);
+        if (data_channel.source_type() == DataChannelType::FCURVE) {
+          std::optional<rctf> fcurve_bounds = get_fcurve_channel_bounds(
+              static_cast<FCurveChannel &>(data_channel), space_link, scene, id, range);
+          if (fcurve_bounds.has_value()) {
+            BLI_rctf_union(&bounds, &fcurve_bounds.value());
+          }
+        }
       }
-      const bool found_bounds = get_normalized_fcurve_bounds(fcurve,
-                                                             space_link,
-                                                             scene,
-                                                             id,
-                                                             /* include_handles= */ false,
-                                                             range_ptr,
-                                                             &bounds);
-      if (!found_bounds) {
-        return std::nullopt;
-      }
-    }
+    });
   }
 
   return bounds;
@@ -3941,7 +3972,10 @@ static wmOperatorStatus animchannels_box_select_exec(bContext *C, wmOperator *op
       BLI_assert_unreachable();
       return OPERATOR_CANCELLED;
     }
-    const bool show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+    bool show_summary = false;
+    if (CTX_wm_area(C)->spacetype == SPACE_ACTION) {
+      show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
+    }
     foreach_expanded(*arena.root(), show_summary, [&](AnimationChannel &channel, int row_index) {
       const float row_top = first_channel - row_index * channel_step;
       if (v2d_y_start < row_top && v2d_y_end > row_top - channel_step) {
@@ -5154,9 +5188,14 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
     if (CTX_wm_area(C)->spacetype == SPACE_ACTION) {
       show_summary = dope_sheet->filterflag & ADS_FILTER_SUMMARY;
     }
+    Set<AnimationChannel *> visited_channels;
     foreach_expanded(
         *arena.root(), show_summary, [&](AnimationChannel &channel, int /* row_index */) {
           if (!channel.is_selected()) {
+            return;
+          }
+          if (!visited_channels.add(&channel)) {
+            /* Channel already visited by `get_channel_bounds`. */
             return;
           }
           ScrArea *area = CTX_wm_area(C);
@@ -5167,6 +5206,15 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
           if (channel_bounds) {
             BLI_rctf_union(&bounds, &channel_bounds.value());
             valid_bounds = true;
+          }
+          if (channel.type() == AnimationChannelType::SUMMARY) {
+            /* `get_channel_bounds` visits all children of summaries and already returns their
+             * combined bounds. No need to visit them again. */
+            SummaryChannel &summary_channel = static_cast<SummaryChannel &>(channel);
+            foreach_channel(summary_channel,
+                            [&](AnimationChannel &child, const int /* row_index */) {
+                              visited_channels.add(&child);
+                            });
           }
         });
   }
