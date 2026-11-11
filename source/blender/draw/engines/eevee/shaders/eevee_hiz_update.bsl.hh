@@ -46,6 +46,7 @@ struct Update {
   [[image(6, write, SFLOAT_32)]] image2D out_mip_6;
 
   [[shared]] float local_depths[HIZ_GROUP_SIZE][HIZ_GROUP_SIZE];
+  [[shared]] bool local_elect;
 
   /* Load values from the previous LOD level. */
   float4 load_local_depths(int2 pixel)
@@ -61,12 +62,32 @@ struct Update {
   {
     local_depths[pixel.y][pixel.x] = depth;
   }
+
+  /* Returns true if the current workgroup is the last to reach this section. */
+  bool elect_tile(uint2 local_id, uint2 num_groups)
+  {
+    local_elect = false;
+    barrier();
+
+    const uint last_block_counter_value = num_groups.x * num_groups.y - 1;
+    const uint thread_id = local_id.y * HIZ_GROUP_SIZE + local_id.x;
+
+    if (thread_id == 0) {
+      const uint block_counter = atomicAdd(finished_tile_counter, 1u);
+      const bool block_elect = block_counter >= last_block_counter_value;
+      local_elect = block_elect;
+    }
+
+    barrier();
+    return local_elect;
+  }
 };
 
 [[compute, local_size(HIZ_GROUP_SIZE, HIZ_GROUP_SIZE)]]
 void update_main([[resource_table]] Update &srt,
                  [[local_invocation_id]] const uint3 local_id,
-                 [[work_group_id]] const uint3 group_id)
+                 [[work_group_id]] const uint3 group_id,
+                 [[num_work_groups]] const uint3 num_groups)
 {
   int2 local_px = int2(local_id.xy);
   /* Bottom left corner of the kernel. */
@@ -157,12 +178,8 @@ void update_main([[resource_table]] Update &srt,
     }
   }
 
-  /* Since we pad the destination texture, the mip size is equal to the dispatch size. */
-  uint2 mip5_size = uint2(imageSize(srt.out_mip_5).xy);
-  uint tile_count = mip5_size.x * mip5_size.y;
-  /* Let the last tile handle the remaining LOD. */
-  bool last_tile = atomicAdd(srt.finished_tile_counter, 1u) + 1u < tile_count;
-  if (last_tile == false) {
+  /* Elect a single tile to handle the remaining LOD. */
+  if (!srt.elect_tile(local_id.xy, num_groups.xy)) {
     return;
   }
   /* Reset for next dispatch. */
