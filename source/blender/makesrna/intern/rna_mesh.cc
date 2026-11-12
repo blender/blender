@@ -969,7 +969,7 @@ static void bool_layer_begin(CollectionPropertyIterator *iter,
                              StringRef (*layername_func)(const StringRef uv_name, char *buffer))
 {
   Mesh *mesh = rna_mesh(ptr);
-  if (mesh->runtime->edit_mesh) {
+  if (BKE_editmesh_bmesh_get(mesh)) {
     rna_iterator_array_begin(iter, ptr, nullptr, 0, 0, 0, nullptr);
     return;
   }
@@ -1005,7 +1005,7 @@ static PointerRNA bool_layer_ensure(PointerRNA *ptr,
 {
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
   Mesh *mesh = rna_mesh(ptr);
-  if (mesh->runtime->edit_mesh) {
+  if (BKE_editmesh_bmesh_get(mesh)) {
     return {};
   }
   PointerRNA mesh_ptr = RNA_id_pointer_create(&mesh->id);
