@@ -1259,6 +1259,9 @@ struct SpaceAction {
   char _pad2[4] = {};
 
   SpaceActionOverlays overlays;
+
+  /* These fields are obtained from #ed::animfilter::AnimfilterSpaceRuntime and only used for
+   * storage in blend files. Any other use should go through the runtime data. */
   ListBaseT<struct SpaceChannelDNAState> channel_ui_states = {nullptr, nullptr};
   SpaceChannelDNAIdentifier active_channel_identifier = {};
 

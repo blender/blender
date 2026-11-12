@@ -63,39 +63,90 @@ void channel_state_trim(ChannelUIStateMap &channel_states)
   }
 }
 
-std::optional<SpaceChannelDNAIdentifier> channel_identifier_to_dna(
-    const ChannelIdentifier identifier,
-    IDNameLib_Map &id_map,
-    Array<std::string> &storage_for_rna_paths,
-    const int storage_for_rna_paths_index)
+void write_channel_states(BlendWriter &writer,
+                          Array<SpaceChannelDNAState> &ui_state_array,
+                          Array<std::string> &rna_paths,
+                          const ChannelUIStateMap &channel_states,
+                          ListBaseT<SpaceChannelDNAState> &channel_ui_states)
 {
-  ID *owner_id = BKE_main_idmap_lookup_uid(&id_map, identifier.owner_session_uid);
-  ID *parent_id = BKE_main_idmap_lookup_uid(&id_map, identifier.parent_session_uid);
+  BLI_assert_msg(channel_ui_states.is_empty(),
+                 "Previous writes should have cleaned up after themselves");
+  IDNameLib_Map *id_map = writer.idmap();
+  BLI_assert_msg(id_map, "Write without bmain, writing UI state will not be possible");
+  /* Construct the SpaceAction::channel_ui_states listbase. */
+  int64_t array_index = 0;
+  for (const auto key_value : channel_states.items()) {
+    SpaceChannelDNAState *state = &ui_state_array[array_index];
 
-  if (!owner_id) {
-    /* Stale entry, cannot convert to DNA. */
-    return {};
+    /* Store the UI state map key. */
+    if (!write_channel_identifier_data(
+            writer, state->identifier, key_value.key, rna_paths[array_index]))
+    {
+      /* Session UID lookup failed, stale entry, skip it. */
+      continue;
+    }
+
+    /* Store the UI state map value. */
+    state->is_collapsed = key_value.value.is_collapsed;
+    state->last_used = key_value.value.last_used;
+
+    BLI_addtail(&channel_ui_states, state);
+    array_index++;
   }
 
-  /* Store the UI state map key. */
-  SpaceChannelDNAIdentifier dna_ident;
-  dna_ident.channel_owner_id = owner_id;
-  dna_ident.channel_parent_id = parent_id;
-  if (!identifier.source_rna_path.items.is_empty()) {
-    storage_for_rna_paths[storage_for_rna_paths_index] = identifier.source_rna_path.to_string();
-    dna_ident.source_rna_path = storage_for_rna_paths[storage_for_rna_paths_index].c_str();
+  /* Write the structs in the listbase. */
+  for (SpaceChannelDNAState &state : channel_ui_states) {
+    writer.write_struct(&state);
   }
-  else {
-    dna_ident.source_rna_path = nullptr;
-  }
-
-  return dna_ident;
 }
 
-ChannelIdentifier channel_identifier_from_dna(const SpaceChannelDNAIdentifier &dna_ident)
+bool write_channel_identifier_data(struct BlendWriter &writer,
+                                   SpaceChannelDNAIdentifier &dna_ident,
+                                   std::optional<ChannelIdentifier> chan_ident,
+                                   std::string &resource_scope_storage)
 {
-  ChannelIdentifier chan_ident;
+  /* Make sure the DNA data is clean by default. */
+  dna_ident.channel_owner_id = nullptr;
+  dna_ident.channel_parent_id = nullptr;
+  dna_ident.source_rna_path = nullptr;
 
+  if (!chan_ident) {
+    return true;
+  }
+
+  IDNameLib_Map *id_map = writer.idmap();
+  ID *owner_id = BKE_main_idmap_lookup_uid(id_map, chan_ident->owner_session_uid);
+  if (!owner_id && chan_ident->owner_session_uid) {
+    /* Stale identifier, don't write this. */
+    return false;
+  }
+
+  ID *parent_id = BKE_main_idmap_lookup_uid(id_map, chan_ident->parent_session_uid);
+  if (!parent_id && chan_ident->parent_session_uid) {
+    /* Stale identifier, don't write this. */
+    return false;
+  }
+
+  dna_ident.channel_owner_id = owner_id;
+  dna_ident.channel_parent_id = parent_id;
+
+  if (!chan_ident->source_rna_path.items.is_empty()) {
+    resource_scope_storage = chan_ident->source_rna_path.to_string();
+    dna_ident.source_rna_path = resource_scope_storage.c_str();
+  }
+
+  writer.write_string(dna_ident.source_rna_path);
+  return true;
+}
+
+void read_channel_identifier_data(BlendDataReader &reader, SpaceChannelDNAIdentifier &chan_ident)
+{
+  BLO_read_string(&reader, &chan_ident.source_rna_path);
+}
+
+void read_channel_identifier_data_after_liblink(SpaceChannelDNAIdentifier &dna_ident,
+                                                ChannelIdentifier &chan_ident)
+{
   if (dna_ident.channel_owner_id) {
     BLI_assert_msg(
         !(dna_ident.channel_owner_id->flag & ID_FLAG_EMBEDDED_DATA),
@@ -121,48 +172,10 @@ ChannelIdentifier channel_identifier_from_dna(const SpaceChannelDNAIdentifier &d
         ParsedSourcePath::from_string(dna_ident.source_rna_path).value_or(ParsedSourcePath());
   }
 
-  return chan_ident;
-}
-
-void write_channel_states(BlendWriter &writer,
-                          Array<SpaceChannelDNAState> &ui_state_array,
-                          Array<std::string> &rna_paths,
-                          const ChannelUIStateMap &channel_states,
-                          ListBaseT<SpaceChannelDNAState> &channel_ui_states)
-{
-  BLI_assert_msg(channel_ui_states.is_empty(),
-                 "Previous writes should have cleaned up after themselves");
-  IDNameLib_Map *id_map = writer.idmap();
-  BLI_assert_msg(id_map, "Write without bmain, writing UI state will not be possible");
-  /* Construct the SpaceAction::channel_ui_states listbase. */
-  int64_t array_index = 0;
-  for (const auto key_value : channel_states.items()) {
-    SpaceChannelDNAState *state = &ui_state_array[array_index];
-
-    std::optional<SpaceChannelDNAIdentifier> dna_identifier = channel_identifier_to_dna(
-        key_value.key, *id_map, rna_paths, array_index);
-
-    if (!dna_identifier) {
-      /* Stale entry, skip it. */
-      continue;
-    }
-
-    /* Store the UI state map key. */
-    state->identifier = *dna_identifier;
-
-    /* Store the UI state map value. */
-    state->is_collapsed = key_value.value.is_collapsed;
-    state->last_used = key_value.value.last_used;
-
-    BLI_addtail(&channel_ui_states, state);
-    array_index++;
-  }
-
-  /* Write the structs in the listbase. */
-  for (SpaceChannelDNAState &state : channel_ui_states) {
-    writer.write_struct(&state);
-    writer.write_string(state.identifier.source_rna_path);
-  }
+  /* Clean up the data so that there are no more dangling pointers.. */
+  dna_ident.channel_owner_id = nullptr;
+  dna_ident.channel_parent_id = nullptr;
+  MEM_SAFE_DELETE(dna_ident.source_rna_path);
 }
 
 void read_channel_states_data(BlendDataReader &reader,
@@ -172,7 +185,7 @@ void read_channel_states_data(BlendDataReader &reader,
    * #read_channel_states_after_liblink() below. */
   BLO_read_struct_list(&reader, SpaceChannelDNAState, &channel_dna_states);
   for (SpaceChannelDNAState &state : channel_dna_states) {
-    BLO_read_string(&reader, &state.identifier.source_rna_path);
+    read_channel_identifier_data(reader, state.identifier);
   }
 }
 
@@ -187,7 +200,9 @@ void read_channel_states_after_liblink(BlendLibReader &reader,
   if (G.fileflags & G_FILE_NO_UI) {
     /* The UI state should not be loaded, but still the UI state should be freed to avoid leaking
      * memory. */
-    /* TODO does this not have to call `MEM_SAFE_DELETE` on `state.source_rna_path`. */
+    for (SpaceChannelDNAState &state : channel_dna_states) {
+      MEM_SAFE_DELETE(state.identifier.source_rna_path);
+    }
     BLI_freelistN(&channel_dna_states);
     return;
   }
@@ -195,7 +210,8 @@ void read_channel_states_after_liblink(BlendLibReader &reader,
   bool has_shown_warning_header = false;
   for (SpaceChannelDNAState &state : channel_dna_states) {
     /* Create the UI state map key. */
-    ChannelIdentifier chan_ident = channel_identifier_from_dna(state.identifier);
+    ChannelIdentifier chan_ident;
+    read_channel_identifier_data_after_liblink(state.identifier, chan_ident);
 
     /* Create the UI state map value. */
     const AnimationChannelUIState ui_state{

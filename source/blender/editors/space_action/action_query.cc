@@ -146,7 +146,6 @@ static std::optional<ed::animfilter::ChannelArena> build_summary_tree(
   return arena;
 }
 
-/* Note: This cache is reset by #action_draw_pre in space_action.cc. */
 ed::animfilter::ChannelArena &get_summary_tree(const bContext &C)
 {
   using namespace ed::animfilter;
@@ -157,27 +156,32 @@ ed::animfilter::ChannelArena &get_summary_tree(const bContext &C)
 
   std::optional<ChannelArena> new_arena;
   if (runtime.channel_arena.has_value()) {
-    const ChannelArena *cached_arena = &runtime.channel_arena.value();
+    /* There is already a ChannelArena from a previous run. Reuse or replace it. */
+    ChannelArena *cached_arena = &runtime.channel_arena.value();
     new_arena = build_summary_tree(C, cached_arena);
+
+    if (new_arena) {
+      /* Replace. Migrate data from the old ChannelArena to the new ChannelArena. */
+      new_arena->active_channel_identifier_set(cached_arena->active_channel_identifier());
+    }
+    else {
+      /* Reuse. Cached channels are still valid, but that doesn't mean their data is fresh. */
+      cached_arena->mark_channels_dirty();
+    }
   }
   else {
+    /* Construct a brand new ChannelArena for this space. It should get the active channel
+     * identifier from the space data, as it this may be the first time one is created after
+     * loading this file. */
     new_arena = build_summary_tree(C, nullptr);
     BLI_assert_msg(new_arena.has_value(),
                    "when there is no cached ChannelArena, a new one should always be built.");
+    new_arena->active_channel_identifier_set(runtime.active_channel_ident);
   }
 
   if (new_arena) {
     BLI_assert(new_arena->datachannel_hash != UniqueHash{});
-    /* The old arena didn't exist or was outdated, and we got a new one. */
-    if (runtime.channel_arena) {
-      /* Migrate data from the old to the new ChannelArena. */
-      new_arena->active_channel_identifier_set(runtime.channel_arena->active_channel_identifier());
-    }
     runtime.channel_arena.emplace(std::move(*new_arena));
-  }
-  else {
-    /* The cached channels are still valid, but that doesn't mean the key data is fresh. */
-    runtime.channel_arena->mark_channels_dirty();
   }
 
   return *runtime.channel_arena;

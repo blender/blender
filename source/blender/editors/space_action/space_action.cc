@@ -1082,6 +1082,10 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
           data, state.identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
     }
   }
+  BKE_LIB_FOREACHID_PROCESS_ID(
+      data, sact->active_channel_identifier.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
+  BKE_LIB_FOREACHID_PROCESS_ID(
+      data, sact->active_channel_identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
 }
 
 static int action_space_subtype_get(ScrArea *area)
@@ -1138,6 +1142,7 @@ static void action_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   saction->runtime = MEM_new<SpaceAction_Runtime>(__func__);
 
   ed::animfilter::read_channel_states_data(*reader, saction->channel_ui_states);
+  ed::animfilter::read_channel_identifier_data(*reader, saction->active_channel_identifier);
 }
 
 static void action_space_blend_read_after_liblink(BlendLibReader *reader,
@@ -1146,13 +1151,23 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
 {
   using namespace ed::animfilter;
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
+  AnimfilterSpaceRuntime &animfilter_runtime = saction->runtime->animfilter_runtime;
 
-  ed::animfilter::read_channel_states_after_liblink(
-      *reader, saction->channel_ui_states, saction->runtime->animfilter_runtime.channel_states);
+  read_channel_states_after_liblink(
+      *reader, saction->channel_ui_states, animfilter_runtime.channel_states);
+
+  ChannelIdentifier active_channel_ident;
+  read_channel_identifier_data_after_liblink(saction->active_channel_identifier,
+                                             active_channel_ident);
+  if (active_channel_ident != ChannelIdentifier{}) {
+    animfilter_runtime.active_channel_ident = active_channel_ident;
+  }
 }
 
 static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  using namespace ed::animfilter;
+
   BlendWriter *writer = screen_writer.writer;
   if (writer->is_undo()) {
     /* Undo steps don't need the conversion of the runtime UI state to DNA. The screen/space data
@@ -1165,24 +1180,42 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   }
 
   const SpaceAction &space_action = *reinterpret_cast<SpaceAction *>(sl);
-  ed::animfilter::channel_state_trim(space_action.runtime->animfilter_runtime.channel_states);
+  AnimfilterSpaceRuntime &animfilter_runtime = space_action.runtime->animfilter_runtime;
+  channel_state_trim(animfilter_runtime.channel_states);
 
   /* Allocate memory for the UI state info in DNA. This is using a ResourceScope to prevent pointer
    * reuse (which would corrupt the blend file). */
-  const int64_t num_channel_states =
-      space_action.runtime->animfilter_runtime.channel_states.size();
+  const int64_t num_channel_states = animfilter_runtime.channel_states.size();
   ResourceScope &scope = screen_writer.scope;
   Array<SpaceChannelDNAState> &ui_state_array = scope.construct<Array<SpaceChannelDNAState>>(
       num_channel_states);
-  Array<std::string> &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
+  /* Store RNA paths for the channel states + the active channel identifier. */
+  Array<std::string> &rna_paths = scope.construct<Array<std::string>>(num_channel_states + 1);
 
   writer->write_struct_cast<SpaceAction>(sl, [&](BlendStructWriter<SpaceAction> &struct_writer) {
     SpaceAction &for_writing = struct_writer.shallow_data;
-    ed::animfilter::write_channel_states(*writer,
-                                         ui_state_array,
-                                         rna_paths,
-                                         space_action.runtime->animfilter_runtime.channel_states,
-                                         for_writing.channel_ui_states);
+
+    /* Convert the channel UI states to DNA. */
+    write_channel_states(*writer,
+                         ui_state_array,
+                         rna_paths,
+                         animfilter_runtime.channel_states,
+                         for_writing.channel_ui_states);
+
+    /* Store the active channel identifier to DNA. */
+    if (animfilter_runtime.channel_arena) {
+      write_channel_identifier_data(*writer,
+                                    for_writing.active_channel_identifier,
+                                    animfilter_runtime.channel_arena->active_channel_identifier(),
+                                    rna_paths[rna_paths.size() - 1]);
+    }
+    else {
+      write_channel_identifier_data(
+          *writer, for_writing.active_channel_identifier, {}, rna_paths[rna_paths.size() - 1]);
+    }
+    BLI_assert(for_writing.active_channel_identifier.source_rna_path == nullptr ||
+               for_writing.active_channel_identifier.source_rna_path ==
+                   rna_paths[rna_paths.size() - 1].data());
 
     /* Prevent writing runtime data to the blend file. */
     for_writing.runtime = {};

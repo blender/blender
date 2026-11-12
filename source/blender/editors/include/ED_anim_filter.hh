@@ -1226,6 +1226,7 @@ struct AnimfilterSpaceRuntime {
   int32_t last_used = 0;
   /* Runtime cache for channels in the channel box. */
   std::optional<ChannelArena> channel_arena;
+  std::optional<ChannelIdentifier> active_channel_ident = {};
   /**
    * Ensures there is an entry for this channel in the UI state map, returning that entry so it can
    * be updated. This also sets the entry's `last_used` field to #last_used.
@@ -1249,6 +1250,17 @@ void write_channel_states(struct BlendWriter &writer,
                           ListBaseT<SpaceChannelDNAState> &channel_ui_states);
 
 /**
+ * Convert the ChannelIdentifier to a SpaceChannelDNAIdentifier, and write to a blend file.
+ *
+ * \returns true when ok, false when any of the identifier's session_uids could not be resolved to
+ * an ID*.
+ */
+bool write_channel_identifier_data(struct BlendWriter &writer,
+                                   SpaceChannelDNAIdentifier &dna_ident,
+                                   std::optional<ChannelIdentifier> chan_ident,
+                                   std::string &resource_scope_storage);
+
+/**
  * Populate the given listbase from the reader.
  */
 void read_channel_states_data(struct BlendDataReader &reader,
@@ -1262,6 +1274,10 @@ void read_channel_states_data(struct BlendDataReader &reader,
 void read_channel_states_after_liblink(struct BlendLibReader &reader,
                                        ListBaseT<SpaceChannelDNAState> &channel_dna_states,
                                        ChannelUIStateMap &channel_states);
+
+void read_channel_identifier_data(BlendDataReader &reader, SpaceChannelDNAIdentifier &chan_ident);
+void read_channel_identifier_data_after_liblink(SpaceChannelDNAIdentifier &dna_ident,
+                                                ChannelIdentifier &chan_ident);
 
 /**
  * Iterate all channels in depth-first order. This is the same order as the channels are listed
