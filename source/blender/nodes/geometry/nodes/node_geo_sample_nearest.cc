@@ -46,6 +46,12 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom2 = int(AttrDomain::Point);
 }
 
+static int closest_index(const bke::bvh::Tree &tree, const float3 &position)
+{
+  const std::optional<bke::bvh::ClosestPointResult> nearest = tree.closest_point(position);
+  return nearest ? int(nearest->index) : -1;
+}
+
 static void get_closest_pointcloud_points(const PointCloud &pointcloud,
                                           const VArray<float3> &positions,
                                           const IndexMask &mask,
@@ -57,7 +63,7 @@ static void get_closest_pointcloud_points(const PointCloud &pointcloud,
     return;
   }
   const bke::bvh::Tree &tree = pointcloud.bvh_tree();
-  mask.foreach_index([&](const int i) { r_indices[i] = tree.closest_point(positions[i])->index; });
+  mask.foreach_index([&](const int i) { r_indices[i] = closest_index(tree, positions[i]); });
 }
 
 static void get_closest_mesh_points(const Mesh &mesh,
@@ -67,8 +73,7 @@ static void get_closest_mesh_points(const Mesh &mesh,
 {
   BLI_assert(mesh.verts_num > 0);
   const bke::bvh::Tree &tree = mesh.bvh_verts();
-  mask.foreach_index(
-      [&](const int i) { r_point_indices[i] = tree.closest_point(positions[i])->index; });
+  mask.foreach_index([&](const int i) { r_point_indices[i] = closest_index(tree, positions[i]); });
 }
 
 static void get_closest_mesh_edges(const Mesh &mesh,
@@ -78,8 +83,7 @@ static void get_closest_mesh_edges(const Mesh &mesh,
 {
   BLI_assert(mesh.edges_num > 0);
   const bke::bvh::Tree &tree = mesh.bvh_edges();
-  mask.foreach_index(
-      [&](const int i) { r_edge_indices[i] = tree.closest_point(positions[i])->index; });
+  mask.foreach_index([&](const int i) { r_edge_indices[i] = closest_index(tree, positions[i]); });
 }
 
 static void get_closest_mesh_tris(const Mesh &mesh,
@@ -89,8 +93,7 @@ static void get_closest_mesh_tris(const Mesh &mesh,
 {
   BLI_assert(mesh.faces_num > 0);
   const bke::bvh::Tree &tree = mesh.bvh_tris();
-  mask.foreach_index(
-      [&](const int i) { r_tri_indices[i] = tree.closest_point(positions[i])->index; });
+  mask.foreach_index([&](const int i) { r_tri_indices[i] = closest_index(tree, positions[i]); });
 }
 
 static void get_closest_mesh_faces(const Mesh &mesh,
@@ -108,7 +111,9 @@ static void get_closest_mesh_faces(const Mesh &mesh,
     Array<int> tri_indices(positions.size());
     get_closest_mesh_tris(mesh, positions, mask, tri_indices);
     const Span<int> tri_faces = mesh.corner_tri_faces();
-    mask.foreach_index([&](const int i) { r_face_indices[i] = tri_faces[tri_indices[i]]; });
+    mask.foreach_index([&](const int i) {
+      r_face_indices[i] = tri_indices[i] == -1 ? -1 : tri_faces[tri_indices[i]];
+    });
   }
 }
 
@@ -129,6 +134,10 @@ static void get_closest_mesh_corners(const Mesh &mesh,
   mask.foreach_index([&](const int i) {
     const float3 position = positions[i];
     const int face_index = face_indices[i];
+    if (face_index == -1) {
+      r_corner_indices[i] = -1;
+      return;
+    }
 
     /* Find the closest vertex in the face. */
     float min_distance_sq = FLT_MAX;
