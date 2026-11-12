@@ -1261,44 +1261,6 @@ static ushort2 scratch_tile_index_to_xy(const int scratch_tile_index, const int 
   return ushort2(scratch_tile_index % scratch_tile_width, scratch_tile_index / scratch_tile_width);
 }
 
-namespace {
-
-/**
- * Search for the closest point that is strictly closer than a starting distance. The smear brush
- * starts with the distance to the pixel's own position, which it falls back to.
- *
- * TODO: Remove this code once we can pass in a starting distance to the generic query functions
- */
-class NearestCloserQuery {
- private:
-  int index_ = -1;
-  float distance_sq_;
-
- public:
-  static constexpr bool inclusive = false;
-
-  explicit NearestCloserQuery(const float distance_sq) : distance_sq_(distance_sq) {}
-
-  int index() const
-  {
-    return index_;
-  }
-
-  bool add_point(const float distance_sq, const int index)
-  {
-    distance_sq_ = distance_sq;
-    index_ = index;
-    return true;
-  }
-
-  float max_distance_sq() const
-  {
-    return distance_sq_;
-  }
-};
-
-}  // namespace
-
 static float distance_sq_to_bounds(const float3 &position, const Bounds<float3> &bounds)
 {
   return math::distance_squared(position, math::clamp(position, bounds.min, bounds.max));
@@ -1388,20 +1350,24 @@ static void find_nearest_colors(ImageData &image_data,
               std::ranges::sort(candidates,
                                 [](const auto &a, const auto &b) { return a.first < b.first; });
 
-              NearestCloserQuery query(delta_sq);
               const SearchData *nearest_data = nullptr;
+              int nearest_index = -1;
+              float nearest_distance_sq = delta_sq;
               for (const auto &[bounds_distance_sq, search_data] : candidates) {
-                const float distance_sq = query.max_distance_sq();
-                if (bounds_distance_sq >= distance_sq) {
+                if (bounds_distance_sq >= nearest_distance_sq) {
                   break;
                 }
-                search_data->tree.search(query, sample_position);
-                if (query.max_distance_sq() < distance_sq) {
+                float point_distance_sq;
+                const int index = search_data->tree.find_nearest(
+                    sample_position, delta_sq, &point_distance_sq);
+                if (index != -1 && point_distance_sq < nearest_distance_sq) {
                   nearest_data = search_data;
+                  nearest_index = index;
+                  nearest_distance_sq = point_distance_sq;
                 }
               }
               if (nearest_data) {
-                const PixelSource &source = nearest_data->sources[query.index()];
+                const PixelSource &source = nearest_data->sources[nearest_index];
                 scratch_tile_colors[tile_pixel_i] = scene_linear_pixel_get(image_data.processors,
                                                                            image_data.data_buffers,
                                                                            source.tile_number,
