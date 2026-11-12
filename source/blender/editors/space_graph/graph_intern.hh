@@ -36,12 +36,12 @@ void graph_draw_channel_names(bContext *C,
  * This is called twice from `space_graph.cc`, #graph_main_region_draw()
  * Unselected then selected F-Curves are drawn so that they do not occlude each other.
  */
-void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, short sel);
+void graph_draw_curves(bAnimContext *ac, const SpaceGraph *sipo, const View2D &v2d, short sel);
 /**
  * Draw the 'ghost' F-Curves (i.e. snapshots of the curve)
  * \note unit mapping has already been applied to the values, so do not try and apply again.
  */
-void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region);
+void graph_draw_ghost_curves(bAnimContext *ac, const SpaceGraph *sipo, const View2D &v2d);
 
 /* ***************************************** */
 /* `graph_select.cc` */
