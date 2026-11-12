@@ -78,13 +78,13 @@ struct BsdfSheen : BsdfClosure::Interface {
   {
     BsdfSample result;
     /* Same as `sample_ltc(M, rand)` but unnormalized, so we can compute the Jacobian for pdf. */
-    result.direction = sheen.M() * sample_cos_hemisphere(rand);
+    result.direction = sheen.M() * sample_cos_hemisphere(rand, result.pdf);
     const float l = length(result.direction);
     result.direction /= l;
 
     /* Same as `pdf_ltc()`, but saves a few matrix multiplications. */
     const float Jacobian = pow3f(l) * sheen.det_M_inv();
-    result.pdf = M_1_PI * saturate(result.direction.z) * Jacobian;
+    result.pdf *= Jacobian;
 
     return result;
   }
