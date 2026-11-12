@@ -21,13 +21,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNodeTree *ntree = b.tree_or_null();
   const bool is_gpu_internal = ntree && (ntree->flag & NTREE_IS_GPU_SHADER_INTERNAL);
 
-  b.add_input<decl::Int>("LightIndex"_ustr).available(is_gpu_internal);
-
   b.add_input<decl::Vector>("Vector"_ustr)
       .default_value({0.5f, 0.5f, 0.5f})
       .min(-10000.0f)
       .max(10000.0f)
       .description("Vector, point, or normal which will be used for conversion between spaces");
+
+  b.add_input<decl::Int>("LightIndex"_ustr).available(is_gpu_internal);
+
   b.add_output<decl::Vector>("Vector"_ustr);
 }
 
@@ -113,17 +114,17 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
   const bool has_light_space = ELEM(
       SHD_VECT_TRANSFORM_SPACE_LIGHT, nodeprop->convert_from, nodeprop->convert_to);
 
-  if (has_light_space && !in[0].link) {
+  if (has_light_space && !in[1].link) {
     /* Error: not linked to a light accumulation zone. */
     BLI_assert_unreachable();
     return false;
   }
 
-  if (in[1].hasinput) {
-    inputlink = in[1].link;
+  if (in[0].hasinput) {
+    inputlink = in[0].link;
   }
   else {
-    inputlink = GPU_uniform(in[1]);
+    inputlink = GPU_uniform(in[0]);
   }
 
   const char *func_name = get_gpufn_name_from_to(
@@ -141,7 +142,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
     if (has_light_space) {
       GPU_link(mat,
                func_name,
-               in[0].link,
+               in[1].link,
                inputlink,
                GPU_kernel_globals(),
                GPU_shading_data(),

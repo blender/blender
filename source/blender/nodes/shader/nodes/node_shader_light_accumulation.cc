@@ -17,8 +17,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNodeTree *ntree = b.tree_or_null();
   const bool is_gpu_internal = ntree && (ntree->flag & NTREE_IS_GPU_SHADER_INTERNAL);
 
-  b.add_input<decl::Int>("LightIndex"_ustr).available(is_gpu_internal);
-
   /* WATCH: If you add more Color sockets, ensure `node_tree_update.cc`
    * `shader_tree_tag_by_ancestor` and `shader_tree_link_error` are updated accordingly.  */
   b.add_input<decl::Color>("Diffuse Light"_ustr)
@@ -39,7 +37,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Transmission Color"_ustr)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .hide_value();
+
   b.add_input<decl::Float>("Weight"_ustr).available(is_gpu_internal);
+  b.add_input<decl::Int>("LightIndex"_ustr).available(is_gpu_internal);
+
   b.add_output<decl::Shader>("Shader"_ustr);
 }
 
@@ -49,7 +50,7 @@ static int node_shader_gpu_light_accumulation(GPUMaterial *mat,
                                               GPUNodeStack *in,
                                               GPUNodeStack *out)
 {
-  if (!in[0].link) {
+  if (!in[7].link) {
     /* Error: not linked to a light accumulation zone. */
     BLI_assert_unreachable();
     return false;

@@ -1023,7 +1023,7 @@ static void ntree_shader_setup_custom_lighting_zone(bNodeTree *ntree)
                          *zone_input,
                          *ntree_shader_node_output_get(zone_input, 0),
                          node,
-                         *ntree_shader_node_input_get(&node, 0));
+                         *ntree_shader_node_find_input(&node, "LightIndex"));
 
       if (node.type_legacy == SH_NODE_LIGHT_ACCUMULATION) {
         /* Connect accumulation result to the zone output node.
