@@ -1637,6 +1637,53 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
 
 static void end_ffmpeg_impl(MovieWriter *context, bool is_autosplit);
 
+/**
+ * Write the audio of the written video frames as far as it only depends on animation up to
+ * \a frame_final. Earlier files of an autosplit movie are completed and closed first, since the
+ * audio is read in order. Returns whether all audio of the video frames is written.
+ */
+static bool ffmpeg_write_audio(MovieWriter *context, const int frame_final)
+{
+  if (MovieWriter *previous = context->autosplit_previous) {
+    if (!ffmpeg_write_audio(previous, frame_final)) {
+      return false;
+    }
+    context->audio_mixdown_sample = previous->audio_mixdown_sample;
+    context->audio_time_total = previous->audio_time_total;
+    end_ffmpeg_impl(previous, true);
+    MEM_delete(previous);
+    context->autosplit_previous = nullptr;
+  }
+  if (context->audio_stream) {
+    write_audio_frames(context, context->video_time_end, frame_final);
+  }
+  return frame_final == INT_MAX || context->audio_time_total >= context->video_time_end;
+}
+
+#  ifdef WITH_AUDASPACE
+/**
+ * Keep the file of an autosplit movie open until the audio of its last video frames is written,
+ * which depends on animation of frames that are not evaluated yet. The writer continues with a new
+ * file.
+ */
+static void ffmpeg_autosplit_keep_open(MovieWriter *context)
+{
+  MovieWriter *previous = MEM_new<MovieWriter>(__func__, *context);
+  previous->stamp_data = nullptr;
+  context->autosplit_previous = previous;
+  context->outfile = nullptr;
+  context->video_codec = nullptr;
+  context->audio_codec = nullptr;
+  context->video_stream = nullptr;
+  context->audio_stream = nullptr;
+  context->current_frame = nullptr;
+  context->img_convert_frame = nullptr;
+  context->sws_ctx = nullptr;
+  context->audio_input_buffer = nullptr;
+  context->audio_deinterleave_buffer = nullptr;
+}
+#  endif
+
 static bool ffmpeg_movie_append(MovieWriter *context,
                                 const Scene *scene,
                                 const bke::BlenderProject *project,
@@ -1658,15 +1705,26 @@ static bool ffmpeg_movie_append(MovieWriter *context,
     success = (avframe && write_video_frame(context, avframe, reports));
   }
 
-  if (context->audio_stream) {
+  if (success) {
     /* Add +1 frame because we want to encode audio up until the next video frame. */
-    write_audio_frames(
-        context, (frame - start_frame + 1) / (double(rd->frs_sec) / double(rd->frs_sec_base)));
+    context->video_time_end = (frame - start_frame + 1) /
+                              (double(rd->frs_sec) / double(rd->frs_sec_base));
   }
+
+  /* Only write audio whose animation is known, the rest is written when the movie ends. */
+  ffmpeg_write_audio(context, frame);
 
   if (context->ffmpeg_autosplit) {
     if (avio_tell(context->outfile->pb) > ffmpeg_autosplit_size) {
-      end_ffmpeg_impl(context, true);
+#  ifdef WITH_AUDASPACE
+      if (context->audio_stream) {
+        ffmpeg_autosplit_keep_open(context);
+      }
+      else
+#  endif
+      {
+        end_ffmpeg_impl(context, true);
+      }
       context->ffmpeg_autosplit_count++;
 
       success &= start_ffmpeg_impl(
@@ -1681,6 +1739,8 @@ static void end_ffmpeg_impl(MovieWriter *context, bool is_autosplit)
 {
   CLOG_STR_INFO(&LOG, "ffmpeg: closing");
 
+  /* Write the remaining audio of the written video frames. */
+  ffmpeg_write_audio(context, INT_MAX);
   movie_audio_close(context, is_autosplit);
 
   if (context->video_stream) {

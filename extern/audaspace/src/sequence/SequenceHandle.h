@@ -19,6 +19,7 @@
 #include "Audaspace.h"
 
 #include <memory>
+#include <vector>
 
 AUD_NAMESPACE_BEGIN
 
@@ -57,6 +58,9 @@ private:
 	/// The read device this handle is played on.
 	ReadDevice& m_device;
 
+	/// The IDs of the entries that play the sequence of the entry, see SequenceData::getReferenceAnimProperty().
+	std::vector<int> m_reference;
+
 	// delete copy constructor and operator=
 	SequenceHandle(const SequenceHandle&) = delete;
 	SequenceHandle& operator=(const SequenceHandle&) = delete;
@@ -78,8 +82,9 @@ public:
 	 * Creates a new sequenced handle.
 	 * \param entry The entry this handle plays.
 	 * \param device The read device to play on.
+	 * \param reference The IDs of the entries that play the sequence of the entry.
 	 */
-	SequenceHandle(std::shared_ptr<SequenceEntry> entry, ReadDevice& device);
+	SequenceHandle(std::shared_ptr<SequenceEntry> entry, ReadDevice& device, const std::vector<int>& reference);
 
 	/**
 	 * Destroys the handle.

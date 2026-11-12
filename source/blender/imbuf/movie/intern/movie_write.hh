@@ -46,6 +46,9 @@ namespace blender {
 struct Scene;
 struct ReportList;
 struct StampData;
+namespace bke {
+struct SoundRecording;
+}
 
 struct MovieWriter {
   int ffmpeg_type = 0;
@@ -83,11 +86,22 @@ struct MovieWriter {
   double audio_time_total = 0.0;
   bool audio_deinterleave = false;
   int audio_sample_size = 0;
+  /* Position of the audio mixdown, to find the frames that the next audio samples depend on. */
+  int64_t audio_mixdown_sample = 0;
+  int audio_mixdown_rate = 0;
+  double audio_mixdown_fps = 0.0;
+  int audio_start_frame = 0;
+  /* End of the last video frame that was written successfully, in seconds. */
+  double video_time_end = 0.0;
+  /* Earlier file of an autosplit movie that is still open to write the audio of its last video
+   * frames. */
+  MovieWriter *autosplit_previous = nullptr;
 
   StampData *stamp_data = nullptr;
 
 #  ifdef WITH_AUDASPACE
-  AUD_Device audio_mixdown_device;
+  /* Audio state of the rendered frames and their mixdown. */
+  std::shared_ptr<bke::SoundRecording> audio_recording;
 #  endif
 };
 
@@ -106,7 +120,11 @@ AVStream *alloc_audio_stream(MovieWriter *context,
                              AVFormatContext *of,
                              MutableCStr error,
                              ReportList *reports);
-void write_audio_frames(MovieWriter *context, double to_pts);
+/**
+ * Write audio up to the given time, but only as long as it doesn't depend on animation after
+ * \a frame_final, since the audio properties of later frames might not be known yet.
+ */
+void write_audio_frames(MovieWriter *context, double to_pts, int frame_final);
 
 }  // namespace blender
 

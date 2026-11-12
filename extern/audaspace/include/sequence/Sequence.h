@@ -28,6 +28,7 @@
 #include "sequence/AnimateableProperty.h"
 
 #include <list>
+#include <vector>
 
 AUD_NAMESPACE_BEGIN
 
@@ -158,6 +159,46 @@ public:
 	 * \param entry The entry to remove.
 	 */
 	void remove(std::shared_ptr<SequenceEntry> entry);
+
+	/**
+	 * Retrieves an animated property that a reference to the scene reads instead of a property of
+	 * the scene or of one of its entries, and adds it if the reference doesn't have it yet, see
+	 * SequenceData::getReferenceAnimProperty().
+	 * \param reference The IDs of the entries from the scene that a device plays down to the entry
+	 *        that plays this scene.
+	 * \param entry The ID of the entry of the property, or -1 for a property of the scene.
+	 * \param type Which animated property to retrieve.
+	 * \param value The value of an added property.
+	 * \return A pointer to the animated property. It becomes invalid when setReferenceAnimProperty()
+	 *         replaces the same property or clearReferenceAnimProperties() is called, see
+	 *         SequenceData::getReferenceAnimProperty() for its lifetime and locking requirements.
+	 */
+	AnimateableProperty* addReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type, float value);
+
+	/**
+	 * Replaces an animated property of a reference to the scene, see
+	 * SequenceData::setReferenceAnimProperty().
+	 * \param reference The IDs of the entries from the scene that a device plays down to the entry
+	 *        that plays this scene.
+	 * \param entry The ID of the entry of the property, or -1 for a property of the scene.
+	 * \param type Which animated property to replace.
+	 * \param property The new property.
+	 */
+	void setReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type, std::unique_ptr<AnimateableProperty> property);
+
+	/**
+	 * Removes the animated properties of all references to the scene.
+	 */
+	void clearReferenceAnimProperties();
+
+	/**
+	 * Creates a reader for a reference to the scene, which reads the animated properties of the
+	 * reference, see getReferenceAnimProperty().
+	 * \param reference The IDs of the entries from the scene that a device plays down to the entry
+	 *        that plays this scene.
+	 * \return The reader.
+	 */
+	std::shared_ptr<IReader> createReferenceReader(std::vector<int> reference);
 
 	/**
 	 * Creates a new reader with indicated resampling quality.

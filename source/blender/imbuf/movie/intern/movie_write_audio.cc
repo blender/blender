@@ -17,6 +17,9 @@
 
 #ifdef WITH_FFMPEG
 
+#  include <algorithm>
+#  include <climits>
+#  include <cmath>
 #  include <cstdio>
 #  include <cstring>
 
@@ -42,13 +45,16 @@ static bool request_float_audio_buffer(int codec_id)
 
 #  ifdef WITH_AUDASPACE
 
-static int write_audio_frame(MovieWriter *context)
+static int write_audio_frame(MovieWriter *context, const int state_frame)
 {
   AVFrame *frame = nullptr;
   AVCodecContext *c = context->audio_codec;
 
-  bke::sound_device_read(
-      context->audio_mixdown_device, context->audio_input_buffer, context->audio_input_samples);
+  BKE_sound_recording_mixdown_read(*context->audio_recording,
+                                   context->audio_mixdown_sample,
+                                   state_frame,
+                                   context->audio_input_buffer,
+                                   context->audio_input_samples);
 
   frame = av_frame_alloc();
   frame->pts = context->audio_time / av_q2d(c->time_base);
@@ -169,7 +175,19 @@ bool movie_audio_open(MovieWriter *context,
 
     specs.rate = mixrate;
     if (success) {
-      context->audio_mixdown_device = BKE_sound_mixdown(scene, specs, start_frame, volume);
+      context->audio_recording = BKE_sound_recording_ensure(scene);
+      context->audio_start_frame = start_frame;
+      /* The same sample that the mixdown seeks to. */
+      context->audio_mixdown_fps = scene->frames_per_second();
+      context->audio_mixdown_rate = mixrate;
+      context->audio_mixdown_sample = std::max(
+          int64_t(double(start_frame) / context->audio_mixdown_fps * mixrate), int64_t(0));
+      BKE_sound_recording_mixdown_open(*context->audio_recording,
+                                       scene,
+                                       specs,
+                                       start_frame,
+                                       volume,
+                                       context->audio_mixdown_sample);
     }
   }
 #  else
@@ -181,8 +199,9 @@ bool movie_audio_open(MovieWriter *context,
 void movie_audio_close(MovieWriter *context, bool is_autosplit)
 {
 #  ifdef WITH_AUDASPACE
-  if (!is_autosplit) {
-    context->audio_mixdown_device.reset();
+  if (!is_autosplit && context->audio_recording) {
+    BKE_sound_recording_mixdown_close(*context->audio_recording, context->audio_mixdown_sample);
+    context->audio_recording.reset();
   }
 #  else
   UNUSED_VARS(context, is_autosplit);
@@ -409,20 +428,59 @@ AVStream *alloc_audio_stream(MovieWriter *context,
   return st;
 }
 
-void write_audio_frames(MovieWriter *context, double to_pts)
+#  ifdef WITH_AUDASPACE
+/* Whether reading the next audio frame only depends on animation up to the given frame, and on
+ * recorded values of Scenes used by Scene strips. */
+static bool audio_frame_is_final(const MovieWriter *context, const int frame_final)
+{
+  if (frame_final == INT_MAX) {
+    return true;
+  }
+  const int64_t last_sample = context->audio_mixdown_sample + context->audio_input_samples - 1;
+  const double last_frame = double(last_sample) / context->audio_mixdown_rate *
+                            context->audio_mixdown_fps;
+  /* The audio is read in parts that are split at frame boundaries, each part reads animation at
+   * its start, which is not after the last sample. Rounding up covers the single precision frame
+   * computation of the audio reader. */
+  return std::ceil(last_frame) + SOUND_ANIMATION_FRAMES_AHEAD <= frame_final &&
+         BKE_sound_recording_references_recorded(
+             *context->audio_recording, double(last_sample + 1) / context->audio_mixdown_rate);
+}
+
+/* The frame after whose evaluation the next audio frame used to be written, before writing waited
+ * for later frames. Audio state that isn't animated is applied as it was at that frame. */
+static int audio_frame_state_frame(const MovieWriter *context)
+{
+  const double fps = context->audio_mixdown_fps;
+  int64_t frame = std::max(int64_t(context->audio_time_total * fps) - 1, int64_t(0));
+  while (context->audio_time_total >= (frame + 1) / fps) {
+    frame++;
+  }
+  return int(std::min(context->audio_start_frame + frame, int64_t(INT_MAX)));
+}
+#  endif
+
+void write_audio_frames(MovieWriter *context, double to_pts, int frame_final)
 {
 #  ifdef WITH_AUDASPACE
   AVCodecContext *c = context->audio_codec;
 
   while (context->audio_stream) {
-    if ((context->audio_time_total >= to_pts) || !write_audio_frame(context)) {
+    if (context->audio_time_total >= to_pts) {
       break;
     }
+    std::unique_lock lock = BKE_sound_recording_lock(*context->audio_recording);
+    if (!audio_frame_is_final(context, frame_final) ||
+        !write_audio_frame(context, audio_frame_state_frame(context)))
+    {
+      break;
+    }
+    context->audio_mixdown_sample += context->audio_input_samples;
     context->audio_time_total += double(context->audio_input_samples) / double(c->sample_rate);
     context->audio_time += double(context->audio_input_samples) / double(c->sample_rate);
   }
 #  else
-  UNUSED_VARS(context, to_pts);
+  UNUSED_VARS(context, to_pts, frame_final);
 #  endif
 }
 

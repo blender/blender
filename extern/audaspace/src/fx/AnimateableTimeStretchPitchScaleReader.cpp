@@ -60,13 +60,19 @@ void AnimateableTimeStretchPitchScaleReader::seek(int position)
 
 	double inputSamplePos = 0.0;
 
-	const sample_t* animationSamples = m_timeStretch->getBuffer().getBuffer();
+	std::lock_guard<ILockable> lock(*m_timeStretch);
 
-	const int bufferFrames = m_timeStretch->getBuffer().getSize() / (sizeof(sample_t) * m_timeStretch->getCount());
+	const int bufferFrames = m_timeStretch->getBufferPosition() + m_timeStretch->getBufferLength();
+
+	// the ratios are read in parts, frames before the buffer have the ratio of its first frame
+	sample_t animationSamples[256];
 
 	for(int frameIndex = 0; frameIndex < std::min(bufferFrames, totalFrames); frameIndex++)
 	{
-		ratio = std::max(animationSamples[frameIndex], 1.0f / 256.0f);
+		if(frameIndex % 256 == 0)
+			m_timeStretch->readFrames(frameIndex, std::min(std::min(bufferFrames, totalFrames) - frameIndex, 256), animationSamples);
+
+		ratio = std::max(animationSamples[frameIndex % 256], 1.0f / 256.0f);
 		inputSamplePos += samplesPerFrame / ratio;
 	}
 

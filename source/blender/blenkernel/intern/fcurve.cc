@@ -257,7 +257,7 @@ FCurve *id_data_find_fcurve(
   }
 
   /* Only use the current action ??? */
-  if (ELEM(nullptr, adt, adt->action)) {
+  if (adt == nullptr || (adt->action == nullptr && adt->drivers.is_empty())) {
     return nullptr;
   }
 

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "BLI_map.hh"
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 #include "RNA_path.hh"
@@ -123,11 +124,14 @@ class EvaluationResult {
  *
  * This does *not* apply the resulting values to the ID.  Instead, it returns
  * the resulting values in an `EvaluationResult`.
+ *
+ * \param rna_path_filter: when given, only F-Curves animating these RNA paths are evaluated.
  */
 EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
                                  Action &action,
                                  slot_handle_t slot_handle,
-                                 const AnimationEvalContext &anim_eval_context);
+                                 const AnimationEvalContext &anim_eval_context,
+                                 const Set<ParsedRNAPathRef> *rna_path_filter = nullptr);
 
 /**
  * Top level animation evaluation function.
@@ -136,11 +140,13 @@ EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
  *
  * \param flush_to_original: when true, look up the original data-block (assuming
  * the given one is an evaluated copy) and update that too.
+ * \param rna_path_filter: when given, only F-Curves animating these RNA paths are evaluated.
  */
 void evaluate_and_apply_action(PointerRNA &animated_id_ptr,
                                Action &action,
                                slot_handle_t slot_handle,
                                const AnimationEvalContext &anim_eval_context,
-                               bool flush_to_original);
+                               bool flush_to_original,
+                               const Set<ParsedRNAPathRef> *rna_path_filter = nullptr);
 
 }  // namespace blender::animrig

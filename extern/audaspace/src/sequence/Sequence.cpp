@@ -100,6 +100,26 @@ void Sequence::remove(std::shared_ptr<SequenceEntry> entry)
 	m_sequence->remove(entry);
 }
 
+AnimateableProperty* Sequence::addReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type, float value)
+{
+	return m_sequence->addReferenceAnimProperty(reference, entry, type, value);
+}
+
+void Sequence::setReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type, std::unique_ptr<AnimateableProperty> property)
+{
+	m_sequence->setReferenceAnimProperty(reference, entry, type, std::move(property));
+}
+
+void Sequence::clearReferenceAnimProperties()
+{
+	m_sequence->clearReferenceAnimProperties();
+}
+
+std::shared_ptr<IReader> Sequence::createReferenceReader(std::vector<int> reference)
+{
+	return std::shared_ptr<IReader>(new SequenceReader(m_sequence, ResampleQuality::FASTEST, std::move(reference)));
+}
+
 std::shared_ptr<IReader> Sequence::createQualityReader(ResampleQuality quality)
 {
 	return std::shared_ptr<IReader>(new SequenceReader(m_sequence, quality));

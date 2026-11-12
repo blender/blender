@@ -6,6 +6,7 @@
  * \ingroup RNA
  */
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "DNA_curve_types.h"
@@ -1044,6 +1045,7 @@ static void rna_Scene_framelen_update(Main * /*bmain*/, Scene * /*active_scene*/
 {
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
   scene->r.framelen = float(scene->r.framapto) / float(scene->r.images);
+  DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_VOLUME | ID_RECALC_SEQUENCER_STRIPS);
 }
 
 static void rna_Scene_frame_current_set(PointerRNA *ptr, int value)
@@ -2542,6 +2544,10 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, PointerRNA *m
     return;
   }
 
+  if (marker->camera != nullptr) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_LISTENER);
+  }
+
   BKE_free_time_marker(*marker, true);
   marker_ptr->invalidate();
 
@@ -2551,7 +2557,15 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, PointerRNA *m
 
 static void rna_TimeLine_clear(Scene *scene)
 {
+  const bool had_camera_marker = std::any_of(
+      scene->markers.begin(), scene->markers.end(), [](const TimeMarker &marker) {
+        return marker.camera != nullptr;
+      });
   BKE_free_time_markers(scene->markers, true);
+
+  if (had_camera_marker) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_LISTENER);
+  }
 
   WM_main_add_notifier(NC_SCENE | ND_MARKERS, nullptr);
   WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, nullptr);
@@ -9367,8 +9381,10 @@ void RNA_def_scene(BlenderRNA *brna)
                                     nullptr);
   rna_def_scene_objects(brna, prop);
 
-  /* Frame Range Stuff */
+  /* Frame-time callbacks tag ID_RECALC_FRAME_CHANGE themselves. Do not also tag a generic user
+   * edit, which would invalidate derived caches on a pure time change. */
   prop = RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_int_sdna(prop, nullptr, "r.cfra");
   RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
@@ -9381,6 +9397,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME, "rna_Scene_frame_update_context");
 
   prop = RNA_def_property(srna, "frame_subframe", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_float_sdna(prop, nullptr, "r.subframe");
   RNA_def_property_ui_text(prop, "Current Subframe", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -9389,6 +9406,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME, "rna_Scene_frame_update");
 
   prop = RNA_def_property(srna, "frame_float", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_ui_text(prop, "Current Subframe", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, MINAFRAME, MAXFRAME);

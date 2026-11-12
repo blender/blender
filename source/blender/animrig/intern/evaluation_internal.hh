@@ -28,7 +28,8 @@ EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
                                 Action &owning_action,
                                 Layer &layer,
                                 slot_handle_t slot_handle,
-                                const AnimationEvalContext &anim_eval_context);
+                                const AnimationEvalContext &anim_eval_context,
+                                const Set<ParsedRNAPathRef> *rna_path_filter = nullptr);
 
 }  // namespace animrig::internal
 }  // namespace blender

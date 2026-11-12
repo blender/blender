@@ -138,6 +138,7 @@ void AbstractBuilderPipeline::build_step_relations()
   build_relations(*relation_builder);
   relation_builder->build_copy_on_write_relations();
   relation_builder->build_driver_relations();
+  relation_builder->build_scene_audio_cache_invalidation_relations();
 
   if (need_sanity_checks()) {
     ids_build_by_relations_builder_ = relation_builder->get_built_ids();

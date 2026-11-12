@@ -1165,14 +1165,22 @@ static void strip_update_mix_sounds(Scene *scene, Strip *strip)
   }
 }
 
-static void strip_update_sound_properties(const Scene *scene, const Strip *strip)
+static void strip_update_sound_properties(const Depsgraph *depsgraph,
+                                          const Scene *scene,
+                                          const Strip *strip)
 {
   const Strip *meta = lookup_meta_by_strip(editing_get(scene), strip);
   float output_volume = strip->volume;
   if (meta != nullptr) {
     output_volume *= meta->volume;
   }
-  const int frame = BKE_scene_frame_get(scene);
+  int frame = BKE_sound_scene_audio_frame(depsgraph, scene);
+  const Bounds<int> sound_frames = sound_bounds_get(scene, strip);
+  if (frame < sound_frames.min - 2 || frame > sound_frames.max + 2) {
+    /* Audio of the strip reads values from two frames before its start to two frames after its
+     * end (interpolation). Other values are not used, don't store them. */
+    frame = -1;
+  }
   BKE_sound_set_scene_sound_volume_at_frame(strip->runtime->scene_sound,
                                             frame,
                                             output_volume,
@@ -1182,7 +1190,7 @@ static void strip_update_sound_properties(const Scene *scene, const Strip *strip
       strip->runtime->scene_sound, frame, strip->pan, (strip->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
 }
 
-static void strip_update_sound_modifiers(Strip *strip)
+static void strip_update_sound_modifiers(const Scene *scene, Strip *strip)
 {
   AUD_Sound sound_handle = BKE_sound_playback_handle_get(strip->sound);
   bool needs_update = false;
@@ -1203,7 +1211,7 @@ static void strip_update_sound_modifiers(Strip *strip)
 
   if (needs_update) {
     /* Assign modified sound back to `strip`. */
-    BKE_sound_update_sequence_handle(strip->runtime->scene_sound, sound_handle);
+    BKE_sound_update_sequence_handle(scene, strip->runtime->scene_sound, sound_handle);
   }
 }
 
@@ -1226,12 +1234,12 @@ static void seq_update_sound_strips(Scene *scene, Strip *strip)
      * Changing between original file sound and the pitch correction sound produces garbage
      * audio in renders. */
     if (strip->runtime->sound_time_stretch == nullptr) {
-      BKE_sound_update_scene_sound(strip->runtime->scene_sound, strip->sound);
+      BKE_sound_update_scene_sound(scene, strip->runtime->scene_sound, strip->sound);
     }
   }
   else {
     /* Use Playback handle from sound ID as input for modifier stack. */
-    strip_update_sound_modifiers(strip);
+    strip_update_sound_modifiers(scene, strip);
   }
 }
 
@@ -1250,7 +1258,9 @@ static bool scene_sequencer_is_used(const Scene *scene, ListBaseT<Strip> *seqbas
   return sequencer_is_used;
 }
 
-static void seq_update_scene_strip_sound(const Scene *scene, Strip *strip)
+static void seq_update_scene_strip_sound(const Depsgraph *depsgraph,
+                                         const Scene *scene,
+                                         Strip *strip)
 {
   if (strip->type != STRIP_TYPE_SCENE || strip->scene == nullptr) {
     return;
@@ -1263,7 +1273,9 @@ static void seq_update_scene_strip_sound(const Scene *scene, Strip *strip)
    *
    * Ideally, the entire `BKE_scene_update_sound()` will happen from a dependency graph, so
    * then it is no longer needed to do such manual forced updates. */
-  BKE_sound_set_scene_volume(strip->scene, strip->scene->audio.volume);
+  BKE_sound_set_scene_volume_at_frame(strip->scene,
+                                      BKE_sound_scene_audio_frame(depsgraph, strip->scene),
+                                      strip->scene->audio.volume);
 
   /* Mute sound when all scene strips using particular scene are not rendering sequencer strips. */
   bool sequencer_is_used = scene_sequencer_is_used(strip->scene, &scene->ed->seqbase);
@@ -1275,9 +1287,15 @@ static void seq_update_scene_strip_sound(const Scene *scene, Strip *strip)
   }
 }
 
+struct StripSoundUpdateData {
+  const Depsgraph *depsgraph;
+  Scene *scene;
+};
+
 static bool strip_sound_update_cb(Strip *strip, void *user_data)
 {
-  Scene *scene = static_cast<Scene *>(user_data);
+  const StripSoundUpdateData *data = static_cast<const StripSoundUpdateData *>(user_data);
+  Scene *scene = data->scene;
 
   strip_update_mix_sounds(scene, strip);
 
@@ -1286,8 +1304,8 @@ static bool strip_sound_update_cb(Strip *strip, void *user_data)
   }
 
   seq_update_sound_strips(scene, strip);
-  seq_update_scene_strip_sound(scene, strip);
-  strip_update_sound_properties(scene, strip);
+  seq_update_scene_strip_sound(data->depsgraph, scene, strip);
+  strip_update_sound_properties(data->depsgraph, scene, strip);
   return true;
 }
 
@@ -1300,9 +1318,10 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBaseT<Strip> *seqbase)
 
   BKE_sound_ensure_scene(scene);
 
-  foreach_strip(seqbase, strip_sound_update_cb, scene);
+  StripSoundUpdateData data = {depsgraph, scene};
+  foreach_strip(seqbase, strip_sound_update_cb, &data);
 
-  edit_update_muting(scene->ed);
+  edit_update_muting(scene);
   sound_update_bounds_all(scene);
 }
 

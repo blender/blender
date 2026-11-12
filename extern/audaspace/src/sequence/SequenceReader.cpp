@@ -25,8 +25,8 @@
 
 AUD_NAMESPACE_BEGIN
 
-SequenceReader::SequenceReader(std::shared_ptr<SequenceData> sequence, ResampleQuality quality) :
-	m_position(0), m_device(sequence->m_specs), m_sequence(sequence), m_status(0), m_entry_status(0)
+SequenceReader::SequenceReader(std::shared_ptr<SequenceData> sequence, ResampleQuality quality, std::vector<int> reference) :
+	m_position(0), m_device(sequence->m_specs), m_sequence(sequence), m_status(0), m_entry_status(0), m_reference(std::move(reference))
 {
 	m_device.setQuality(quality);
 }
@@ -103,7 +103,7 @@ void SequenceReader::read(int& length, bool& eos, sample_t* buffer)
 			{
 				try
 				{
-					handle = std::shared_ptr<SequenceHandle>(new SequenceHandle(entry, m_device));
+					handle = std::shared_ptr<SequenceHandle>(new SequenceHandle(entry, m_device, m_reference));
 					handles.push_back(handle);
 				}
 				catch(Exception&)
@@ -134,7 +134,7 @@ void SequenceReader::read(int& length, bool& eos, sample_t* buffer)
 		{
 			try
 			{
-				handle = std::shared_ptr<SequenceHandle>(new SequenceHandle(*eit, m_device));
+				handle = std::shared_ptr<SequenceHandle>(new SequenceHandle(*eit, m_device, m_reference));
 				handles.push_back(handle);
 			}
 			catch(Exception&)
@@ -146,6 +146,14 @@ void SequenceReader::read(int& length, bool& eos, sample_t* buffer)
 		m_handles = handles;
 
 		m_entry_status = m_sequence->m_entry_status;
+	}
+
+	AnimateableProperty* volume_property = &m_sequence->m_volume;
+
+	if(!m_reference.empty())
+	{
+		if(AnimateableProperty* reference_volume = m_sequence->getReferenceAnimProperty(m_reference, -1, AP_VOLUME))
+			volume_property = reference_volume;
 	}
 
 	Specs specs = m_sequence->m_specs;
@@ -170,7 +178,7 @@ void SequenceReader::read(int& length, bool& eos, sample_t* buffer)
 			handle->update(time, frame, m_sequence->m_fps);
 		}
 
-		m_sequence->m_volume.read(frame, &volume);
+		volume_property->read(frame, &volume);
 		if(m_sequence->m_muted)
 			volume = 0.0f;
 		m_device.setVolume(volume);

@@ -2461,6 +2461,8 @@ void RE_RenderAnim(Render *re,
   const bool do_write_file = (!(re_type->flag & RE_USE_NO_IMAGE_SAVE) ||
                               (re_type->flag & RE_USE_POSTPROCESS)) &&
                              write_anim;
+  const bool write_audio = is_movie && do_write_file &&
+                           rd.ffcodecdata.audio_codec_id_get() != FFMPEG_CODEC_ID_NONE;
 
   render_init_depsgraph(re);
 
@@ -2536,6 +2538,9 @@ void RE_RenderAnim(Render *re,
     }
 
     render_update_depsgraph(re);
+    if (write_audio) {
+      BKE_sound_record_scene_audio_animation(re->pipeline_depsgraph);
+    }
 
     /* Only border now, TODO(ton): camera lens. */
     render_init_from_main(re, &rd, bmain, scene, single_layer, camera_override, true, false);

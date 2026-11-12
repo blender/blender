@@ -10,6 +10,11 @@
  * functions into (called via blenders generic BLI_cb API)
  */
 
+#include <cstdint>
+#include <optional>
+
+#include "BLI_hash.hh"
+#include "BLI_span.hh"
 #include "BLI_utildefines.hh"
 #include <Python.h>
 
@@ -371,6 +376,26 @@ PyObject *BPY_app_handlers_struct()
   }
 
   return ret;
+}
+
+std::optional<uint64_t> BPY_app_handlers_frame_change_identity()
+{
+  if (!Py_IsInitialized()) {
+    return std::nullopt;
+  }
+  const PyGILState_STATE gilstate = PyGILState_Ensure();
+  const auto handlers = [](const int event) {
+    PyObject *list = py_cb_array[event];
+    return list != nullptr ? Span<PyObject *>(PySequence_Fast_ITEMS(list), PyList_GET_SIZE(list)) :
+                             Span<PyObject *>();
+  };
+  const Span<PyObject *> pre = handlers(BKE_CB_EVT_FRAME_CHANGE_PRE);
+  const Span<PyObject *> post = handlers(BKE_CB_EVT_FRAME_CHANGE_POST);
+  const bool has_frame_change = !pre.is_empty() || !post.is_empty();
+  const uint64_t hash = get_default_hash(pre.size(), pre.hash(), post.size(), post.hash());
+
+  PyGILState_Release(gilstate);
+  return has_frame_change ? std::optional<uint64_t>(hash) : std::nullopt;
 }
 
 void BPY_app_handlers_reset(const bool do_all)

@@ -301,6 +301,11 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     }
     return node_identifier;
   }
+  else if (ptr->type == RNA_Scene && STREQ(prop_identifier, "audio_volume")) {
+    node_identifier.type = NodeType::AUDIO;
+    node_identifier.operation_code = OperationCode::AUDIO_VOLUME;
+    return node_identifier;
+  }
   else if (ptr->type == RNA_Object) {
     /* Transforms props? */
     if (prop != nullptr) {
@@ -355,7 +360,11 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
   }
   else if (RNA_struct_is_a(ptr->type, RNA_Strip) ||
            RNA_struct_is_a(ptr->type, RNA_StripModifier) ||
-           ELEM(ptr->type, RNA_StripTransform, RNA_StripCrop, RNA_StripColorBalanceData))
+           ELEM(ptr->type,
+                RNA_StripTransform,
+                RNA_StripCrop,
+                RNA_StripColorBalanceData,
+                RNA_SequenceTimelineChannel))
   {
     /* Sequencer strip or related nested data. */
     node_identifier.type = NodeType::SEQUENCER;

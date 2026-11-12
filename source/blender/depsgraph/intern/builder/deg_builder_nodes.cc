@@ -1240,6 +1240,12 @@ void DepsgraphNodeBuilder::build_object_shading(Object *object)
 
 void DepsgraphNodeBuilder::build_animdata(ID *id)
 {
+  /* A Scene's animation can be reached through multiple Scene strips or view layers. */
+  if (id->id_type() == ID_SCE && built_map_.check_is_built_and_tag(id, BuilderMap::TAG_ANIMATION))
+  {
+    return;
+  }
+
   /* Special handling for animated images/sequences. */
   build_animation_images(id);
   /* Regular animation. */
@@ -2392,7 +2398,8 @@ static bool strip_node_build_cb(Strip *strip, void *user_data)
   }
   if (strip->type == STRIP_TYPE_SCENE && strip->scene != nullptr) {
     BLI_assert(strip->scene_view_layer_name != nullptr);
-    if (strip->flag & SEQ_SCENE_STRIPS) {
+    if ((strip->flag & SEQ_SCENE_STRIPS) && strip->scene->ed != nullptr) {
+      nb->build_animdata(&strip->scene->id);
       nb->build_scene_sequencer(strip->scene);
     }
     ViewLayer *strip_view_layer = BKE_view_layer_find(strip->scene, strip->scene_view_layer_name);
@@ -2446,6 +2453,7 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
 
 void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
 {
+  build_scene_audio_cache(scene);
   if (built_map_.check_is_built_and_tag(scene, BuilderMap::TAG_SCENE_AUDIO)) {
     return;
   }
@@ -2454,7 +2462,9 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
       &scene->id, NodeType::AUDIO, OperationCode::AUDIO_ENTRY);
   audio_entry_node->set_as_entry();
 
-  add_operation_node(&scene->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
+  OperationNode *sound_eval_node = add_operation_node(
+      &scene->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
+  sound_eval_node->set_as_exit();
 
   Scene *scene_cow = get_cow_datablock(scene);
   add_operation_node(&scene->id,
@@ -2463,6 +2473,24 @@ void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)
                      [scene_cow](blender::Depsgraph *depsgraph) {
                        BKE_scene_update_tag_audio_volume(depsgraph, scene_cow);
                      });
+}
+
+void DepsgraphNodeBuilder::build_scene_audio_cache(Scene *scene)
+{
+  if (built_map_.check_is_built_and_tag(scene, BuilderMap::TAG_SCENE_AUDIO_CACHE)) {
+    return;
+  }
+
+  Scene *scene_cow = get_cow_datablock(scene);
+  OperationNode *operation = add_operation_node(&scene->id,
+                                                NodeType::CACHE,
+                                                OperationCode::AUDIO_CACHE_INVALIDATE,
+                                                [scene_cow](blender::Depsgraph * /*depsgraph*/) {
+                                                  BKE_sound_invalidate_scene_audio_animation_cache(
+                                                      scene_cow);
+                                                });
+  /* A relation rebuild can change the cache dependency closure. */
+  operation->tag_update(graph_, DEG_UPDATE_SOURCE_RELATIONS);
 }
 
 void DepsgraphNodeBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_layer)

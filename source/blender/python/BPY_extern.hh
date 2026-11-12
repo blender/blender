@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <string>
 
@@ -73,6 +74,8 @@ void BPY_text_free_code(Text *text);
 void BPY_modules_update();
 void BPY_modules_load_user(bContext *C);
 
+/** Return an identity hash for the current frame-change handler lists, or an empty value. */
+[[nodiscard]] std::optional<uint64_t> BPY_app_handlers_frame_change_identity();
 void BPY_app_handlers_reset(bool do_all);
 
 /**
