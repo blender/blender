@@ -63,9 +63,6 @@ set(SRC_GLSL_VERT
   overlay_paint_texture_vert.glsl
   overlay_paint_weight_vert.glsl
   overlay_paint_wire_vert.glsl
-  overlay_particle_hair_vert.glsl
-  overlay_particle_shape_vert.glsl
-  overlay_particle_vert.glsl
   overlay_sculpt_curves_cage_vert.glsl
   overlay_sculpt_curves_selection_vert.glsl
   overlay_sculpt_mask_vert.glsl
@@ -91,8 +88,6 @@ set(SRC_GLSL_FRAG
   overlay_outline_detect_frag.glsl
   overlay_paint_texture_frag.glsl
   overlay_paint_weight_frag.glsl
-  overlay_particle_frag.glsl
-  overlay_particle_shape_frag.glsl
   overlay_point_varying_color_frag.glsl
   overlay_point_varying_color_varying_outline_aa_frag.glsl
   overlay_sculpt_curves_selection_frag.glsl

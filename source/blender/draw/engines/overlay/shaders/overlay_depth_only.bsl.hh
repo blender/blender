@@ -267,14 +267,12 @@ void vert_main([[resource_table]] const Resources &srt,
                [[resource_table, condition(selectable)]] draw::ResourceCustomID &resources_with_id,
                [[resource_table, condition(selectable)]] const draw::Select &sel,
                [[resource_table]] const draw::Model &models,
-               [[resource_table]] const draw::Infos &infos,
                [[resource_table]] const draw::View &views,
                [[resource_table]] const Clipping &clip,
                [[out, condition(selectable)]] draw::SelectOut &sel_out,
                [[vertex_id]] const int vert_id,
                [[instance_index]] const int inst_index,
                [[clip_distance, condition(use_clipping)]] float (&clip_distances)[6],
-               [[out]] overlay::VertOut &v_out,
                [[position]] float4 &out_pos)
 {
   uint resource_id;

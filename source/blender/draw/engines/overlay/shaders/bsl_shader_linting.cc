@@ -15,6 +15,7 @@
 #include "overlay_edit_mesh_normal.bsl.hh" /* IWYU pragma: export */
 #include "overlay_gsplat.bsl.hh"           /* IWYU pragma: export */
 #include "overlay_outline_prepass.bsl.hh"  /* IWYU pragma: export */
+#include "overlay_particle.bsl.hh"         /* IWYU pragma: export */
 #include "overlay_volume.bsl.hh"           /* IWYU pragma: export */
 #include "overlay_wireframe.bsl.hh"        /* IWYU pragma: export */
 #include "overlay_xray_fade.bsl.hh"        /* IWYU pragma: export */

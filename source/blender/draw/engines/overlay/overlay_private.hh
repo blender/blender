@@ -542,9 +542,9 @@ class ShaderModule {
   StaticShader extra_ground_line = shader_selectable("overlay_extra_groundline");
   StaticShader image_plane = shader_selectable("overlay_image");
   StaticShader image_plane_depth_bias = shader_selectable("overlay_image_depth_bias");
-  StaticShader particle_dot = shader_selectable("overlay_particle_dot");
+  StaticShader particle_dot = shader_selectable("overlay_particle_point_dot");
   StaticShader particle_shape = shader_selectable("overlay_particle_shape");
-  StaticShader particle_hair = shader_selectable("overlay_particle_hair");
+  StaticShader particle_hair = shader_selectable("overlay_particle_strand");
   StaticShader wireframe_mesh = shader_selectable("overlay_wireframe_mesh");
   /* Draw objects without edges for the wireframe overlay. */
   StaticShader wireframe_points = shader_selectable("overlay_wireframe_points");

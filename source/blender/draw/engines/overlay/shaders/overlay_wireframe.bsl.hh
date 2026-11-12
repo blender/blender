@@ -15,14 +15,6 @@
 
 namespace overlay::wireframe {
 
-float3 hsv_to_rgb(float3 hsv)
-{
-  float3 nrgb = abs(hsv.x * 6.0f - float3(3.0f, 2.0f, 4.0f)) * float3(1, -1, -1) +
-                float3(-1, 2, 2);
-  nrgb = saturate(nrgb);
-  return ((nrgb - 1.0f) * hsv.y + 1.0f) * hsv.z;
-}
-
 struct VertOutPoint {
   [[flat]] float4 final_color;
   [[flat]] float4 final_color_inner;
@@ -42,10 +34,6 @@ enum GeomType : int {
   MESH,
   CURVES,
   POINTS,
-};
-
-struct WireColor {
-  float3 rim, wire;
 };
 
 struct Resources {
@@ -75,63 +63,12 @@ struct Resources {
     return true;
   }
 
-  WireColor wire_color_get(eObjectInfoFlag ob_flag) const
+  WireColor color_get(ObjectInfos info) const
   {
-    bool is_selected = flag_test(ob_flag, OBJECT_SELECTED);
-    bool is_from_set = flag_test(ob_flag, OBJECT_FROM_SET);
-    bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
-    const UniformData &theme = uni.uniform_buf;
-
-    WireColor col;
-    if (is_from_set) {
-      col.rim = theme.colors.wire.rgb;
-      col.wire = theme.colors.wire.rgb;
+    if (color_type == V3D_SHADING_OBJECT_COLOR || color_type == V3D_SHADING_RANDOM_COLOR) {
+      return uni.wire_object_color_get(info, eV3DShadingColorType(color_type), use_coloring);
     }
-    else if (is_selected && use_coloring) {
-      if (is_transform) {
-        col.rim = theme.colors.transform.rgb;
-      }
-      else if (is_active) {
-        col.rim = theme.colors.active_object.rgb;
-      }
-      else {
-        col.rim = theme.colors.object_select.rgb;
-      }
-      col.wire = theme.colors.wire.rgb;
-    }
-    else {
-      col.rim = theme.colors.wire.rgb;
-      col.wire = theme.colors.background.rgb;
-    }
-    return col;
-  }
-
-  WireColor wire_object_color_get(ObjectInfos info) const
-  {
-    const bool is_selected = flag_test(info.flag, OBJECT_SELECTED);
-
-    WireColor col;
-    if (color_type == V3D_SHADING_OBJECT_COLOR) {
-      col.rim = col.wire = info.ob_color.rgb * 0.5f;
-    }
-    else {
-      float hue = info.random;
-      float3 hsv = float3(hue, 0.75f, 0.8f);
-      col.rim = col.wire = hsv_to_rgb(hsv);
-    }
-
-    if (is_selected && use_coloring) {
-      /* "Normalize" color. */
-      col.wire += 1e-4f; /* Avoid division by 0. */
-      float brightness = max(col.wire.x, max(col.wire.y, col.wire.z));
-      col.wire *= 0.5f / brightness;
-      col.rim += 0.75f;
-    }
-    else {
-      col.wire += 0.5f;
-      col.rim *= 0.5f;
-    }
-    return col;
+    return uni.wire_color_get(info.flag, use_coloring, is_transform);
   }
 };
 
@@ -233,13 +170,7 @@ struct Resources {
     out_pos.z -= srt.ndc_offset_factor * 0.5f;
   }
 
-  WireColor col;
-  if (srt.color_type == V3D_SHADING_OBJECT_COLOR || srt.color_type == V3D_SHADING_RANDOM_COLOR) {
-    col = srt.wire_object_color_get(info);
-  }
-  else {
-    col = srt.wire_color_get(info.flag);
-  }
+  WireColor col = srt.color_get(info);
 
   if (srt.pass_type == POINTS) [[static_branch]] {
     v_out_point.final_color = float4(col.wire * srt.wire_opacity, srt.wire_opacity);
