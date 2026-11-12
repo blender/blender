@@ -359,8 +359,14 @@ void BKE_curveprofile_selected_handle_set(CurveProfile *profile, int type_1, int
       point->h2 = type_2;
 
       if (type_1 == HD_ALIGN && type_2 == HD_ALIGN) {
-        /* Align the handles. */
-        BKE_curveprofile_move_handle(point, true, false, nullptr);
+        /* Keep the active (or only selected) handle in place and align the other one to it,
+         * otherwise keep `h2`.
+         * Note: points run bottom-right to top-left, so `h2` is usually the left-hand handle. */
+        const bool keep_h1 = (point->flag & PROF_H1_ACTIVE) ||
+                             ((point->flag & PROF_H1_SELECT) &&
+                              !(point->flag & (PROF_H2_SELECT | PROF_H2_ACTIVE)));
+
+        BKE_curveprofile_move_handle(point, keep_h1, false, nullptr);
       }
 
       if (ELEM(type_1, HD_AUTO, HD_VECT)) {
