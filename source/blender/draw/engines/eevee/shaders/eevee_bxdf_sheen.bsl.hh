@@ -92,7 +92,7 @@ struct BsdfSheen : BsdfClosure::Interface {
   BsdfEval eval(const float3 V, const float3 L, Thickness /*thickness*/) const final
   {
     const float pdf = sheen.pdf(L, N, V);
-    return {.throughput = pdf * sheen.R, .pdf = pdf, .weight = sheen.R};
+    return {.throughput = pdf, .pdf = pdf, .weight = 1.0f};
   }
 
   LightProbeRay lightprobe_ray(const float3 V, Thickness /*thickness*/) const final
