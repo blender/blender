@@ -2360,42 +2360,44 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
     const int in_channels = ibuf->channels;
     const bool use_unpremultiply = IMB_alpha_affects_rgb(ibuf) && !store_premultiplied;
 
-    for (int y = 0; y < height; y++) {
-      const size_t in_offset = (offset_y + y) * ibuf->x + offset_x;
-      const size_t out_offset = y * width;
-      const float *in = in_buffer + in_offset * in_channels;
-      float *out = out_buffer + out_offset * 4;
+    threading::parallel_for(IndexRange(height), 128, [&](IndexRange y_range) {
+      for (const int y : y_range) {
+        const size_t in_offset = (offset_y + y) * ibuf->x + offset_x;
+        const size_t out_offset = y * width;
+        const float *in = in_buffer + in_offset * in_channels;
+        float *out = out_buffer + out_offset * 4;
 
-      if (in_channels == 1) {
-        /* Copy single channel. */
-        for (int x = 0; x < width; x++, in += 1, out += 4) {
-          out[0] = in[0];
-          out[1] = in[0];
-          out[2] = in[0];
-          out[3] = in[0];
-        }
-      }
-      else if (in_channels == 3) {
-        /* Copy RGB. */
-        for (int x = 0; x < width; x++, in += 3, out += 4) {
-          out[0] = in[0];
-          out[1] = in[1];
-          out[2] = in[2];
-          out[3] = 1.0f;
-        }
-      }
-      else if (in_channels == 4) {
-        /* Copy or convert RGBA. */
-        if (use_unpremultiply) {
-          for (int x = 0; x < width; x++, in += 4, out += 4) {
-            premul_to_straight_v4_v4(out, in);
+        if (in_channels == 1) {
+          /* Copy single channel. */
+          for (int x = 0; x < width; x++, in += 1, out += 4) {
+            out[0] = in[0];
+            out[1] = in[0];
+            out[2] = in[0];
+            out[3] = in[0];
           }
         }
-        else {
-          memcpy(out, in, sizeof(float[4]) * width);
+        else if (in_channels == 3) {
+          /* Copy RGB. */
+          for (int x = 0; x < width; x++, in += 3, out += 4) {
+            out[0] = in[0];
+            out[1] = in[1];
+            out[2] = in[2];
+            out[3] = 1.0f;
+          }
+        }
+        else if (in_channels == 4) {
+          /* Copy or convert RGBA. */
+          if (use_unpremultiply) {
+            for (int x = 0; x < width; x++, in += 4, out += 4) {
+              premul_to_straight_v4_v4(out, in);
+            }
+          }
+          else {
+            memcpy(out, in, sizeof(float[4]) * width);
+          }
         }
       }
-    }
+    });
   }
   else {
     /* Byte source buffer. */
