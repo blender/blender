@@ -350,6 +350,12 @@ class TestPropByteString(unittest.TestCase):
     # TODO: Add expected failure cases (e.g. handling of too long values, etc.).
 
 
+class TestPropPointerInvalid(unittest.TestCase):
+    def test_pointer_invalid_type(self):
+        with self.assertRaises(ValueError):
+            id_type.test_pointer_invalid = PointerProperty(type=int)
+
+
 class TestPropEnum(unittest.TestCase):
     # FIXME: Auto-generated enum values do not play well with partially specifying some values.
     # This won't work, generating (1, 1, 2, 16):
