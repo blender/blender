@@ -390,8 +390,9 @@ void VKShaderInterface::descriptor_set_location_update(
     vk_access_flags |= VK_ACCESS_UNIFORM_READ_BIT;
   }
   else if (bind_type == VKBindType::INPUT_ATTACHMENT) {
-    vk_access_flags |= supports_local_read ? VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
-                                                 VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT :
+    /* With local read it is a real input attachment, otherwise it is emulated by sampling the
+     * attachment after ending the rendering scope. */
+    vk_access_flags |= supports_local_read ? VK_ACCESS_INPUT_ATTACHMENT_READ_BIT :
                                              VK_ACCESS_SHADER_READ_BIT;
   }
 
@@ -475,19 +476,18 @@ void VKShaderInterface::init_descriptor_set_layout_info(
     descriptor_set_layout_info_.vk_shader_stage_flags = VK_SHADER_STAGE_COMPUTE_BIT;
   }
   else if (supports_local_read && !info.subpass_inputs_.is_empty()) {
+    /* Input attachments can only be used in the fragment shader stage. */
     descriptor_set_layout_info_.vk_shader_stage_flags = VK_SHADER_STAGE_FRAGMENT_BIT;
   }
   else {
     descriptor_set_layout_info_.vk_shader_stage_flags = VK_SHADER_STAGE_ALL_GRAPHICS;
   }
-  for (int index : IndexRange(info.subpass_inputs_.size())) {
-    UNUSED_VARS(index);
-    // TODO: clean up remove negation.
-    descriptor_set_layout_info_.bindings.append_n_times(
-        !extensions.dynamic_rendering_local_read ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER :
-                                                   VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-        info.subpass_inputs_.size());
-  }
+  /* Subpass inputs are the first bindings of the descriptor set layout. The binding index is
+   * therefore the position within #info.subpass_inputs_. */
+  descriptor_set_layout_info_.bindings.append_n_times(
+      supports_local_read ? VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
+                            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      info.subpass_inputs_.size());
   for (const shader::ShaderCreateInfo::Resource &res : all_resources) {
     descriptor_set_layout_info_.bindings.append(to_vk_descriptor_type(res));
   }

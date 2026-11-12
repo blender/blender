@@ -514,10 +514,6 @@ void VKShader::init(const shader::ShaderCreateInfo &info, bool /*is_codegen_only
   interface = vk_interface;
   is_static_shader_ = info.do_static_compilation_;
   is_compute_shader_ = !info.compute_source_.is_empty() || !info.compute_source_generated.empty();
-  max_input_attachment_index_ = 0;
-  for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
-    max_input_attachment_index_ = max_uu(max_input_attachment_index_, uint32_t(input.index));
-  }
   use_ray_query_ = bool(info.builtins_combined() & BuiltinBits::RAY_QUERY);
 }
 
@@ -923,6 +919,7 @@ std::string VKShader::vertex_interface_declare(const shader::ShaderCreateInfo &i
   return ss.str();
 }
 
+/* Returns the component type of a type. e.g. int2 -> int. */
 static Type to_component_type(const Type &type)
 {
   switch (type) {
@@ -1024,6 +1021,8 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   const bool use_local_read = extensions.dynamic_rendering_local_read;
 
   if (use_local_read) {
+    /* Bindings are allocated first in the descriptor set layout, so the binding index is the
+     * position within #info.subpass_inputs_. */
     uint32_t subpass_input_binding_index = 0;
     for (const ShaderCreateInfo::SubpassIn &input : info.subpass_inputs_) {
       std::string input_attachment_name = "gpu_input_attachment_";
@@ -1045,6 +1044,14 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
           typePrefix = ' ';
           break;
       }
+      /* Note: a non arrayed subpassInput is used, even when the source declares a 2D array
+       * input; the spec requires this (VUID-StandaloneSpirv-OpTypeImage-06214) and the layer is
+       * implicit (the fragment's position). Some drivers ignore the layer and always read layer 0,
+       * see #framebuffer_subpass_input_layered.
+       *
+       * #input_attachment_index is the color attachment index, as
+       * #VkRenderingInputAttachmentIndexInfo is not set. The binding is the position within
+       * #info.subpass_inputs_. */
       ss << "layout(input_attachment_index = " << (input.index)
          << ", binding = " << (subpass_input_binding_index++) << ") uniform " << typePrefix
          << "subpassInput " << input_attachment_name << "; \n";
@@ -1396,7 +1403,6 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
     graphics_info.shaders.has_depth = pipeline_state.depth_format_ != TextureTargetFormat::Invalid;
     graphics_info.shaders.has_stencil = pipeline_state.stencil_format_ !=
                                         TextureTargetFormat::Invalid;
-    graphics_info.shaders.max_input_attachment_index = max_input_attachment_index_;
 
     /* Disable pipeline features that are dynamic to increase cache hits. */
     if (extensions.extended_dynamic_state) {
@@ -1411,8 +1417,6 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
       graphics_info.fragment_out.color_attachment_formats.append(to_vk_format(color_format));
     }
     graphics_info.fragment_out.state = pipeline_state.state_;
-    graphics_info.shaders.color_attachment_count = uint32_t(
-        graphics_info.fragment_out.color_attachment_formats.size());
 
     bool pipeline_created = false;
     VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
@@ -1474,7 +1478,6 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
   graphics_info.shaders.specialization_constants.extend(constants_state.values);
   graphics_info.shaders.has_depth = depth_attachment_format != VK_FORMAT_UNDEFINED;
   graphics_info.shaders.has_stencil = stencil_attachment_format != VK_FORMAT_UNDEFINED;
-  graphics_info.shaders.max_input_attachment_index = max_input_attachment_index_;
   /* Cleanup state to increase cache hits. */
   if (!graphics_info.shaders.has_stencil || state_manager.state.stencil_test == GPU_STENCIL_NONE) {
     graphics_info.shaders.state.stencil_test = GPU_STENCIL_NONE;
@@ -1489,8 +1492,6 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
   graphics_info.fragment_out.color_attachment_formats.extend(
       framebuffer.color_attachment_formats_get());
   graphics_info.fragment_out.state = graphics_info.shaders.state;
-  graphics_info.shaders.color_attachment_count = uint32_t(
-      graphics_info.fragment_out.color_attachment_formats.size());
 
   /* Pipelines with baked in viewports and scissors are unlikely to be reused, don't store them
    * in the static pipeline cache that is written to disk. */

@@ -49,14 +49,6 @@ struct VKGraphicsPipelineCreateInfoBuilder {
   Vector<VkVertexInputAttributeDescription> vk_vertex_input_attribute_descriptions;
 
   /**
-   * When VK_EXT_dynamic_rendering_local_read is used and the shader declares input attachments,
-   * the shaders library pipeline must declare enough color attachments and provide
-   * VkRenderingInputAttachmentIndexInfo to satisfy the input attachment index constraint.
-   */
-  VkRenderingInputAttachmentIndexInfo vk_rendering_input_attachment_index_info_;
-  Vector<VkFormat, GPU_FB_MAX_COLOR_ATTACHMENT> dummy_color_attachment_formats_;
-
-  /**
    * Initialize graphics pipeline create info and related structs for a full pipeline build.
    */
   void build_full(VKDevice &device,
@@ -130,7 +122,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     build_viewport_state(shaders_info, workarounds);
     build_rasterization_state(shaders_info, extensions);
     build_depth_stencil_state(shaders_info);
-    build_dynamic_rendering_shaders_lib(extensions, shaders_info);
+    build_dynamic_rendering_shaders_lib();
   }
 
   /**
@@ -592,28 +584,10 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         fragment_output_info.stencil_attachment_format};
   }
 
-  /* Shaders lib only requires the view-mask to be set. When dynamic rendering local read is
-   * used and the shader declares input attachments, the render pass color attachment count
-   * must be declared and VkRenderingInputAttachmentIndexInfo provided. The count must equal
-   * the fragment output library's VkPipelineRenderingCreateInfo::colorAttachmentCount
-   * (VUID-VkGraphicsPipelineCreateInfo-renderPass-09531). */
-  void build_dynamic_rendering_shaders_lib(const VKExtensions &extensions,
-                                           const VKGraphicsInfo::Shaders &shaders_info)
+  /* Shaders lib only requires the view-mask to be set. */
+  void build_dynamic_rendering_shaders_lib()
   {
     vk_pipeline_rendering_create_info = {VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
-    if (extensions.dynamic_rendering_local_read && shaders_info.max_input_attachment_index > 0) {
-      const uint32_t color_attachment_count = shaders_info.color_attachment_count;
-      vk_pipeline_rendering_create_info.colorAttachmentCount = color_attachment_count;
-      dummy_color_attachment_formats_.resize(color_attachment_count, VK_FORMAT_UNDEFINED);
-      vk_pipeline_rendering_create_info.pColorAttachmentFormats =
-          dummy_color_attachment_formats_.data();
-
-      vk_rendering_input_attachment_index_info_ = {};
-      vk_rendering_input_attachment_index_info_.sType =
-          VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO;
-      vk_rendering_input_attachment_index_info_.colorAttachmentCount = color_attachment_count;
-      vk_pipeline_rendering_create_info.pNext = &vk_rendering_input_attachment_index_info_;
-    }
   }
 
   void build_color_blend_attachment_states(const VKGraphicsInfo::FragmentOut &fragment_output_info)

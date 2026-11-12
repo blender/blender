@@ -29,11 +29,7 @@ class CommandBufferLog : public VKCommandBufferInterface {
   bool is_recording_ = false;
 
  public:
-  CommandBufferLog(Vector<std::string> &log, bool use_dynamic_rendering_local_read_ = true)
-      : log_(log)
-  {
-    use_dynamic_rendering_local_read = use_dynamic_rendering_local_read_;
-  }
+  CommandBufferLog(Vector<std::string> &log) : log_(log) {}
   virtual ~CommandBufferLog() {}
 
   void begin_recording() override
@@ -521,25 +517,7 @@ class VKRenderGraphTest : public ::testing::Test {
   {
     resources.use_dynamic_rendering_local_read = use_dynamic_rendering_local_read;
     render_graph = std::make_unique<VKRenderGraph>(resources);
-    command_buffer = std::make_unique<CommandBufferLog>(log, use_dynamic_rendering_local_read);
-  }
-
- protected:
-  Vector<std::string> log;
-  VKResourceStateTracker resources;
-  std::unique_ptr<VKRenderGraph> render_graph;
-  std::unique_ptr<CommandBufferLog> command_buffer;
-  bool use_dynamic_rendering_local_read = true;
-};
-
-class VKRenderGraphTest_P : public ::testing::TestWithParam<std::tuple<bool>> {
- public:
-  VKRenderGraphTest_P()
-  {
-    use_dynamic_rendering_local_read = std::get<0>(GetParam());
-    resources.use_dynamic_rendering_local_read = use_dynamic_rendering_local_read;
-    render_graph = std::make_unique<VKRenderGraph>(resources);
-    command_buffer = std::make_unique<CommandBufferLog>(log, use_dynamic_rendering_local_read);
+    command_buffer = std::make_unique<CommandBufferLog>(log);
   }
 
  protected:
@@ -558,7 +536,27 @@ class VKRenderGraphTest_P : public ::testing::TestWithParam<std::tuple<bool>> {
   VKResourceStateTracker resources;
   std::unique_ptr<VKRenderGraph> render_graph;
   std::unique_ptr<CommandBufferLog> command_buffer;
+  /**
+   * Build the render graph as if the device supports local read: attachments stay in
+   * #RENDERING_LOCAL_READ and are read back instead of restarting the scope.
+   */
   bool use_dynamic_rendering_local_read = true;
+};
+
+/**
+ * Runs the same test with and without #VK_KHR_dynamic_rendering_local_read.
+ *
+ * Tests that check attachment layouts should use #color_attachment_layout(), so both
+ * configurations can share the test.
+ */
+class VKRenderGraphTest_P : public VKRenderGraphTest,
+                            public ::testing::WithParamInterface<std::tuple<bool>> {
+ public:
+  VKRenderGraphTest_P()
+  {
+    use_dynamic_rendering_local_read = std::get<0>(GetParam());
+    resources.use_dynamic_rendering_local_read = use_dynamic_rendering_local_read;
+  }
 };
 
 /**
@@ -620,7 +618,7 @@ static inline void submit(std::unique_ptr<VKRenderGraph> &render_graph,
   VKScheduler scheduler;
   VKCommandBuilder command_builder;
   Span<render_graph::NodeHandle> node_handles = scheduler.select_nodes(*render_graph);
-  command_builder.build_nodes(*render_graph, *command_buffer, node_handles);
+  command_builder.build_nodes(*render_graph, node_handles);
 
   command_buffer->begin_recording();
   command_builder.record_commands(*render_graph, *command_buffer, node_handles);

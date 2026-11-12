@@ -606,6 +606,14 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.vertex_input_dynamic_state = false;
   }
 
+  /* AMD official driver always reads layer 0 for all layers in subpassLoad. The Vulkan spec
+   * (VUID-StandaloneSpirv-OpTypeImage-06214) requires the layer to be implicit from the fragment
+   * position.
+   */
+  if (GPU_type_matches_ex(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL, GPU_BACKEND_VULKAN)) {
+    extensions.dynamic_rendering_local_read = false;
+  }
+
   /* Disable vertex input dynamic state for Qualcomm devices (#153414).
    *
    * TODO: We should re-validate vertex input dynamic state as there are multiple vendors with
@@ -614,22 +622,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
    */
   if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
     extensions.vertex_input_dynamic_state = false;
-  }
-
-  /* Only enable by default dynamic rendering local read on Qualcomm devices. NVIDIA, AMD and Intel
-   * performance is better when disabled (20%). On Qualcomm devices the improvement can be
-   * substantial (16% on shader_balls.blend).
-   *
-   * `--debug-gpu-vulkan-local-read` can be used to use dynamic rendering local read on any
-   * supported platform.
-   *
-   * TODO: Check if bottleneck is during command building. If so we could fine-tune this after the
-   * device command building landed (T132682).
-   */
-  if ((G.debug & G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ) == 0 &&
-      !GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY))
-  {
-    extensions.dynamic_rendering_local_read = false;
   }
 
   /* When using host image copy on certain NVIDIA platforms the allocation of textures that only
@@ -935,6 +927,9 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.extension_get = vk_extension_get;
 
   detect_workarounds(device);
+
+  device.resources.use_dynamic_rendering_local_read =
+      device.extensions_get().dynamic_rendering_local_read;
 }
 
 }  // namespace gpu

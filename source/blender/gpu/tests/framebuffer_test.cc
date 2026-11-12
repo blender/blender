@@ -408,6 +408,94 @@ static void test_framebuffer_subpass_input()
 }
 GPU_TEST(framebuffer_subpass_input)
 
+/**
+ * Test reading a sub-pass input that is not color attachment 0.
+ *
+ * Mirrors EEVEE's `StencilClassify`, which reads color attachment 1 while writing another
+ * attachment.
+ */
+static void test_framebuffer_subpass_input_attachment_index()
+{
+  using namespace gpu::shader;
+
+  GPU_render_begin();
+
+  const int2 size(1, 1);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  gpu::Texture *texture_a = GPU_texture_create_2d(
+      __func__, UNPACK2(size), 1, TextureFormat::SINT_32, usage, nullptr);
+  gpu::Texture *texture_b = GPU_texture_create_2d(
+      __func__, UNPACK2(size), 1, TextureFormat::SINT_32, usage, nullptr);
+
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  GPU_framebuffer_ensure_config(
+      &framebuffer,
+      {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture_a), GPU_ATTACHMENT_TEXTURE(texture_b)});
+  GPU_framebuffer_bind(framebuffer);
+
+  GPU_framebuffer_clear_color(framebuffer, {0.0, 0.0, 0.0, 0.0});
+
+  /* Writes color attachment 1. */
+  ShaderCreateInfo create_info_write("gpu_framebuffer_subpass_input_test");
+  create_info_write.define("WRITE");
+  create_info_write.builtins(BuiltinBits::VERTEX_ID);
+  create_info_write.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write.fragment_out(1, Type::int_t, "out_value", DualBlend::NONE, 0);
+
+  gpu::Shader *shader_write = GPU_shader_create_from_info(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info_write));
+
+  /* Reads color attachment 1 (input attachment index 1), writes color attachment 0. */
+  ShaderCreateInfo create_info_read("gpu_framebuffer_subpass_input_test");
+  create_info_read.define("READ");
+  create_info_read.builtins(BuiltinBits::VERTEX_ID);
+  create_info_read.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_read.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_read.subpass_in(1, Type::int_t, ImageType::Int2D, "in_value", 0);
+  create_info_read.fragment_out(0, Type::int_t, "out_value");
+
+  gpu::Shader *shader_read = GPU_shader_create_from_info(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info_read));
+
+  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_TRIS, 3);
+
+  GPU_framebuffer_subpass_transition(
+      framebuffer, {GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_WRITE});
+
+  GPU_batch_set_shader(batch, shader_write);
+  GPU_batch_draw(batch);
+
+  GPU_framebuffer_subpass_transition(
+      framebuffer, {GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_WRITE, GPU_ATTACHMENT_READ});
+
+  GPU_batch_set_shader(batch, shader_read);
+  GPU_batch_draw(batch);
+
+  GPU_batch_discard(batch);
+
+  GPU_finish();
+
+  int *read_data_a = static_cast<int *>(GPU_texture_read(texture_a, GPU_DATA_INT, 0));
+  EXPECT_EQ(*read_data_a, 0xDEADC0DE);
+  MEM_delete(read_data_a);
+
+  int *read_data_b = static_cast<int *>(GPU_texture_read(texture_b, GPU_DATA_INT, 0));
+  EXPECT_EQ(*read_data_b, 0xDEADBEEF);
+  MEM_delete(read_data_b);
+
+  GPU_shader_unbind();
+
+  GPU_framebuffer_free(framebuffer);
+  GPU_texture_free(texture_a);
+  GPU_texture_free(texture_b);
+  GPU_shader_free(shader_write);
+  GPU_shader_free(shader_read);
+
+  GPU_render_end();
+}
+GPU_TEST(framebuffer_subpass_input_attachment_index)
+
 static void test_framebuffer_subpass_input_clearops()
 {
   using namespace gpu::shader;
@@ -482,5 +570,197 @@ static void test_framebuffer_subpass_input_clearops()
   GPU_render_end();
 }
 GPU_TEST(framebuffer_subpass_input_clearops)
+
+/**
+ * Test reading a layered texture as a sub-pass input.
+ *
+ * EEVEE reads the layered G-buffer header as a sub-pass input while rendering into another
+ * attachment. Covers both reading it as an input attachment (#subpassLoad) and the emulation by
+ * sampling the attachment.
+ *
+ * Note: a sub-pass input is read at the fragment's (x, y, layer). The first sub-pass writes a
+ * value that depends on the layer, so a driver that always reads layer 0 (documented on Adreno on
+ * Windows) fails the per-layer #read_data_a assertion for layers other than 0.
+ */
+static void test_framebuffer_subpass_input_layered()
+{
+  using namespace gpu::shader;
+
+  GPU_render_begin();
+
+  const int2 size(1, 1);
+  const int layers = 4;
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  gpu::Texture *texture_a = GPU_texture_create_2d_array(
+      __func__, UNPACK2(size), layers, 1, TextureFormat::SINT_32, usage, nullptr);
+  gpu::Texture *texture_b = GPU_texture_create_2d_array(
+      __func__, UNPACK2(size), layers, 1, TextureFormat::SINT_32, usage, nullptr);
+
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  GPU_framebuffer_ensure_config(
+      &framebuffer,
+      {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture_a), GPU_ATTACHMENT_TEXTURE(texture_b)});
+  GPU_framebuffer_bind(framebuffer);
+
+  GPU_framebuffer_clear_color(framebuffer, {0.0, 0.0, 0.0, 0.0});
+
+  /* Writes color attachment 1. */
+  ShaderCreateInfo create_info_write("gpu_framebuffer_subpass_input_test");
+  create_info_write.define("WRITE_LAYERED");
+  create_info_write.define("LAYERED");
+  create_info_write.builtins(BuiltinBits::VERTEX_ID | BuiltinBits::LAYER);
+  create_info_write.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write.fragment_out(1, Type::int_t, "out_value", DualBlend::NONE, 0);
+
+  gpu::Shader *shader_write = GPU_shader_create_from_info(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info_write));
+
+  /* Reads color attachment 1 (input attachment index 1) as a layered texture, writes color
+   * attachment 0. */
+  ShaderCreateInfo create_info_read("gpu_framebuffer_subpass_input_test");
+  create_info_read.define("READ_LAYERED");
+  create_info_read.define("LAYERED");
+  create_info_read.builtins(BuiltinBits::VERTEX_ID | BuiltinBits::LAYER);
+  create_info_read.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_read.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_read.subpass_in(1, Type::int_t, ImageType::Int2DArray, "in_value", 0);
+  create_info_read.fragment_out(0, Type::int_t, "out_value");
+
+  gpu::Shader *shader_read = GPU_shader_create_from_info(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info_read));
+
+  /* A full-screen triangle for every layer of the layered attachments. */
+  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_TRIS, layers * 3);
+
+  GPU_framebuffer_subpass_transition(
+      framebuffer, {GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_WRITE});
+
+  GPU_batch_set_shader(batch, shader_write);
+  GPU_batch_draw(batch);
+
+  GPU_framebuffer_subpass_transition(
+      framebuffer, {GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_WRITE, GPU_ATTACHMENT_READ});
+
+  GPU_batch_set_shader(batch, shader_read);
+  GPU_batch_draw(batch);
+
+  GPU_batch_discard(batch);
+
+  GPU_finish();
+
+  int *read_data_a = static_cast<int *>(GPU_texture_read(texture_a, GPU_DATA_INT, 0));
+  int *read_data_b = static_cast<int *>(GPU_texture_read(texture_b, GPU_DATA_INT, 0));
+  for (int layer : IndexRange(layers)) {
+    /* #read_data_b is the direct write (no sub-pass input): one value per layer. */
+    EXPECT_EQ(read_data_b[layer], 0x12345678 + layer * 0x1000000);
+    /* #read_data_a went through the sub-pass input: the per-layer term must survive a correct
+     * read; a read-layer-0 driver drops it and fails this assertion for layers other than 0. */
+    EXPECT_EQ(read_data_a[layer], 0x12345678 + 495 + layer * 1000 + layer * 0x1000000);
+  }
+  MEM_delete(read_data_a);
+  MEM_delete(read_data_b);
+
+  GPU_shader_unbind();
+
+  GPU_framebuffer_free(framebuffer);
+  GPU_texture_free(texture_a);
+  GPU_texture_free(texture_b);
+  GPU_shader_free(shader_write);
+  GPU_shader_free(shader_read);
+
+  GPU_render_end();
+}
+GPU_TEST(framebuffer_subpass_input_layered)
+
+/**
+ * Test writing an attachment in a sub-pass that didn't exist in the sub-pass that opened the
+ * rendering scope.
+ *
+ * Mirrors EEVEE's forward prepass, which writes the object ID and motion attachments in later
+ * sub-passes without a clear opening the scope with all attachments.
+ */
+static void test_framebuffer_subpass_input_new_write_attachment()
+{
+  using namespace gpu::shader;
+
+  GPU_render_begin();
+
+  const int2 size(1, 1);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
+  gpu::Texture *texture_a = GPU_texture_create_2d(
+      __func__, UNPACK2(size), 1, TextureFormat::SINT_32, usage, nullptr);
+  gpu::Texture *texture_b = GPU_texture_create_2d(
+      __func__, UNPACK2(size), 1, TextureFormat::SINT_32, usage, nullptr);
+
+  gpu::FrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
+  GPU_framebuffer_ensure_config(
+      &framebuffer,
+      {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(texture_a), GPU_ATTACHMENT_TEXTURE(texture_b)});
+  GPU_framebuffer_bind(framebuffer);
+
+  /* Note: no clear after bind: the first draw must open the rendering scope with the states of
+   * the first sub-pass only, which doesn't attach color attachment 1. A clear here would open
+   * the scope with the all-WRITE bind-time states and mask the bug. */
+
+  /* Writes color attachment 0. */
+  ShaderCreateInfo create_info_write_a("gpu_framebuffer_subpass_input_test");
+  create_info_write_a.define("WRITE");
+  create_info_write_a.builtins(BuiltinBits::VERTEX_ID);
+  create_info_write_a.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write_a.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write_a.fragment_out(0, Type::int_t, "out_value", DualBlend::NONE, 0);
+
+  gpu::Shader *shader_write_a = GPU_shader_create_from_info(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info_write_a));
+
+  /* Writes color attachment 1. */
+  ShaderCreateInfo create_info_write_b("gpu_framebuffer_subpass_input_test");
+  create_info_write_b.define("WRITE");
+  create_info_write_b.builtins(BuiltinBits::VERTEX_ID);
+  create_info_write_b.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write_b.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
+  create_info_write_b.fragment_out(1, Type::int_t, "out_value", DualBlend::NONE, 0);
+
+  gpu::Shader *shader_write_b = GPU_shader_create_from_info(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info_write_b));
+
+  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_TRIS, 3);
+
+  GPU_framebuffer_subpass_transition(
+      framebuffer, {GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_WRITE, GPU_ATTACHMENT_IGNORE});
+
+  GPU_batch_set_shader(batch, shader_write_a);
+  GPU_batch_draw(batch);
+
+  GPU_framebuffer_subpass_transition(
+      framebuffer, {GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_IGNORE, GPU_ATTACHMENT_WRITE});
+
+  GPU_batch_set_shader(batch, shader_write_b);
+  GPU_batch_draw(batch);
+
+  GPU_batch_discard(batch);
+
+  GPU_finish();
+
+  int *read_data_a = static_cast<int *>(GPU_texture_read(texture_a, GPU_DATA_INT, 0));
+  EXPECT_EQ(*read_data_a, 0xDEADBEEF);
+  MEM_delete(read_data_a);
+
+  int *read_data_b = static_cast<int *>(GPU_texture_read(texture_b, GPU_DATA_INT, 0));
+  EXPECT_EQ(*read_data_b, 0xDEADBEEF);
+  MEM_delete(read_data_b);
+
+  GPU_shader_unbind();
+
+  GPU_framebuffer_free(framebuffer);
+  GPU_texture_free(texture_a);
+  GPU_texture_free(texture_b);
+  GPU_shader_free(shader_write_a);
+  GPU_shader_free(shader_write_b);
+
+  GPU_render_end();
+}
+GPU_TEST(framebuffer_subpass_input_new_write_attachment)
 
 }  // namespace blender::gpu::tests

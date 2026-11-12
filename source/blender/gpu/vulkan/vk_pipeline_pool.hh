@@ -94,14 +94,6 @@ struct VKGraphicsInfo {
     Vector<shader::SpecializationConstant::Value> specialization_constants;
     bool has_depth;
     bool has_stencil;
-    uint32_t max_input_attachment_index = 0;
-    /* Color attachment count of the render pass this shaders library is linked with.
-     *
-     * When VK_KHR_dynamic_rendering_local_read is used and the shader declares input attachments,
-     * VkPipelineRenderingCreateInfo::colorAttachmentCount and
-     * VkRenderingInputAttachmentIndexInfo::colorAttachmentCount must match the count declared
-     * by the fragment output library (VUID-VkGraphicsPipelineCreateInfo-renderPass-09531). */
-    uint32_t color_attachment_count = 0;
 
     bool operator==(const Shaders &other) const
     {
@@ -112,8 +104,6 @@ struct VKGraphicsInfo {
              viewport_count == other.viewport_count && state == other.state &&
              specialization_constants == other.specialization_constants &&
              has_depth == other.has_depth && has_stencil == other.has_stencil &&
-             max_input_attachment_index == other.max_input_attachment_index &&
-             color_attachment_count == other.color_attachment_count &&
              viewports.size() == other.viewports.size() &&
              scissors.size() == other.scissors.size() &&
              memcmp(viewports.data(),
@@ -136,8 +126,6 @@ struct VKGraphicsInfo {
       hash = hash * 33 ^ state.data;
       hash = hash * 33 ^ specialization_constants.hash();
       hash = hash * 33 ^ (uint64_t(has_depth) << 1 | uint64_t(has_stencil));
-      hash = hash * 33 ^ uint64_t(max_input_attachment_index);
-      hash = hash * 33 ^ uint64_t(color_attachment_count);
       return hash;
     }
 
