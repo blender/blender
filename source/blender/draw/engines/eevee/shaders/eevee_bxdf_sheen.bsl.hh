@@ -38,7 +38,7 @@ struct Sheen {
   float3x3 M() const
   {
     const float inv_A = 1.0f / A;
-    return float3x3(inv_A, 0.0f, 0.0f, 0.0f, inv_A, 0.0f, B * inv_A, 0.0f, 1.0f);
+    return float3x3(inv_A, 0.0f, 0.0f, 0.0f, inv_A, 0.0f, -B * inv_A, 0.0f, 1.0f);
   }
 
   /* Determinant of M^{-1}. */
