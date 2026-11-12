@@ -271,7 +271,8 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   /* draw data */
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
-    graph_draw_ghost_curves(*scene, sipo, region);
+    /* TODO reimplement. */
+    graph_draw_ghost_curves(*scene, sipo, region->v2d);
     ChannelArena &channels = ed::graph::get_summary_tree(*C);
     graph_draw_fcurves(channels.data_channels, *scene, region->v2d, *sipo);
   }
@@ -279,11 +280,11 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
     bAnimContext ac;
     if (ANIM_animdata_get_context(C, &ac)) {
       /* draw ghost curves */
-      graph_draw_ghost_curves(*scene, sipo, region);
+      graph_draw_ghost_curves(*ac.scene, sipo, region->v2d);
 
-    /* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
-    graph_draw_curves(&ac, sipo, region->v2d, 0);
-    graph_draw_curves(&ac, sipo, region->v2d, 1);
+      /* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
+      graph_draw_curves(&ac, sipo, region->v2d, 0);
+      graph_draw_curves(&ac, sipo, region->v2d, 1);
 
       /* XXX(ton): the slow way to set tot rect... but for nice sliders needed. */
       /* Excluding handles from the calculation to save performance. This cuts the time it takes
