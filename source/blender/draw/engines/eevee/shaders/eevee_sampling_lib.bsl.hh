@@ -336,6 +336,13 @@ float3 sample_cos_hemisphere(const float3 rand_cylinder)
   return float3(rand_cylinder.yz * sin_from_cos(cos_theta), cos_theta);
 }
 
+float3 sample_cos_hemisphere(const float3 rand_cylinder, float &pdf)
+{
+  const float3 dir = sample_cos_hemisphere(rand_cylinder);
+  pdf = dir.z * M_1_PI;
+  return dir;
+}
+
 /**
  * Generate a sample following linearly transformed cosine hemispherical distribution (LTC).
  */

@@ -38,8 +38,7 @@ struct BsdfDiffuse : BsdfClosure::Interface {
                     Thickness /*thickness*/) const final
   {
     BsdfSample samp;
-    samp.direction = sample_cos_hemisphere(rand_cylinder);
-    samp.pdf = samp.direction.z * M_1_PI;
+    samp.direction = sample_cos_hemisphere(rand_cylinder, samp.pdf);
     return samp;
   }
 
@@ -113,8 +112,7 @@ struct BsdfTranslucent : BsdfClosure::Interface {
 
     /* Inverted cosine distribution. */
     BsdfSample samp;
-    samp.direction = -sample_cos_hemisphere(rand_cylinder);
-    samp.pdf = -samp.direction.z * M_1_PI;
+    samp.direction = -sample_cos_hemisphere(rand_cylinder, samp.pdf);
     return samp;
   }
 
@@ -231,8 +229,7 @@ struct OrenNayar {
   BsdfSample bsdf_sample(float3 rand, float3 /*V*/) const
   {
     BsdfSample samp;
-    samp.direction = sample_cos_hemisphere(rand);
-    samp.pdf = samp.direction.z * M_1_PI;
+    samp.direction = sample_cos_hemisphere(rand, samp.pdf);
     return samp;
   }
 
