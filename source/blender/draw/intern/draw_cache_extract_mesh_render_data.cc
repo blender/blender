@@ -423,62 +423,70 @@ MeshRenderData mesh_render_data_create(Object &object,
   if (EditMesh *edit_mesh = orig_mesh ? orig_mesh->runtime->edit_mesh.get() : nullptr) {
     const Mesh *eval_cage = DRW_object_get_editmesh_cage_for_drawing(object);
 
-    mr.bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(orig_mesh));
     mr.edit_mesh = edit_mesh;
     mr.mesh = (do_final) ? &mesh : eval_cage;
+    /* Only look up edit mode state in the #BMesh when the extracted mesh corresponds to it.
+     * Otherwise it is extracted like a mesh outside of edit mode. */
+    if (BKE_editmesh_eval_orig_map_available(*mr.mesh, orig_mesh)) {
+      mr.bm = const_cast<BMesh *>(BKE_editmesh_bmesh_get(orig_mesh));
+    }
     mr.bmesh_wrapper_data = is_editmode ? mr.mesh->runtime->bmesh_wrapper_data.get() : nullptr;
 
     /* If there is no distinct cage, hide unmapped edges that can't be selected. */
     mr.hide_unmapped_edges = !do_final || &mesh == eval_cage;
 
-    mr.bm_free_normal_offset_vert = CustomData_get_offset_named(
-        &mr.bm->vdata, CD_PROP_FLOAT3, "custom_normal");
-    mr.bm_free_normal_offset_face = CustomData_get_offset_named(
-        &mr.bm->pdata, CD_PROP_FLOAT3, "custom_normal");
-    mr.bm_free_normal_offset_corner = CustomData_get_offset_named(
-        &mr.bm->ldata, CD_PROP_FLOAT3, "custom_normal");
+    if (mr.bm) {
+      mr.bm_free_normal_offset_vert = CustomData_get_offset_named(
+          &mr.bm->vdata, CD_PROP_FLOAT3, "custom_normal");
+      mr.bm_free_normal_offset_face = CustomData_get_offset_named(
+          &mr.bm->pdata, CD_PROP_FLOAT3, "custom_normal");
+      mr.bm_free_normal_offset_corner = CustomData_get_offset_named(
+          &mr.bm->ldata, CD_PROP_FLOAT3, "custom_normal");
 
-    if (bke::MeshWrapperCacheData *emd = mr.bmesh_wrapper_data) {
-      if (!emd->vert_positions.is_empty()) {
-        mr.bm_vert_coords = mr.bmesh_wrapper_data->vert_positions;
-        if (mr.bm_free_normal_offset_vert == -1) {
-          mr.bm_vert_normals = BKE_editmesh_cache_ensure_vert_normals(*mr.bm, *emd);
-        }
-        if (mr.bm_free_normal_offset_face == -1) {
-          mr.bm_face_normals = BKE_editmesh_cache_ensure_face_normals(*mr.bm, *emd);
+      if (bke::MeshWrapperCacheData *emd = mr.bmesh_wrapper_data) {
+        if (!emd->vert_positions.is_empty()) {
+          mr.bm_vert_coords = mr.bmesh_wrapper_data->vert_positions;
+          if (mr.bm_free_normal_offset_vert == -1) {
+            mr.bm_vert_normals = BKE_editmesh_cache_ensure_vert_normals(*mr.bm, *emd);
+          }
+          if (mr.bm_free_normal_offset_face == -1) {
+            mr.bm_face_normals = BKE_editmesh_cache_ensure_face_normals(*mr.bm, *emd);
+          }
         }
       }
-    }
 
-    int bm_ensure_types = BM_VERT | BM_EDGE | BM_LOOP | BM_FACE;
+      int bm_ensure_types = BM_VERT | BM_EDGE | BM_LOOP | BM_FACE;
 
-    BM_mesh_elem_index_ensure(mr.bm, bm_ensure_types);
-    BM_mesh_elem_table_ensure(mr.bm, bm_ensure_types & ~BM_LOOP);
+      BM_mesh_elem_index_ensure(mr.bm, bm_ensure_types);
+      BM_mesh_elem_table_ensure(mr.bm, bm_ensure_types & ~BM_LOOP);
 
-    mr.efa_act_uv = CustomData_has_layer(&mr.bm->ldata, CD_PROP_FLOAT2) ?
-                        BM_mesh_active_face_get(mr.bm, false, false) :
-                        nullptr;
-    mr.efa_act = BM_mesh_active_face_get(mr.bm, false, true);
-    mr.eed_act = BM_mesh_active_edge_get(mr.bm);
-    mr.eve_act = BM_mesh_active_vert_get(mr.bm);
+      mr.efa_act_uv = CustomData_has_layer(&mr.bm->ldata, CD_PROP_FLOAT2) ?
+                          BM_mesh_active_face_get(mr.bm, false, false) :
+                          nullptr;
+      mr.efa_act = BM_mesh_active_face_get(mr.bm, false, true);
+      mr.eed_act = BM_mesh_active_edge_get(mr.bm);
+      mr.eve_act = BM_mesh_active_vert_get(mr.bm);
 
-    mr.vert_crease_ofs = CustomData_get_offset_named(&mr.bm->vdata, CD_PROP_FLOAT, "crease_vert");
-    mr.edge_crease_ofs = CustomData_get_offset_named(&mr.bm->edata, CD_PROP_FLOAT, "crease_edge");
-    mr.bweight_ofs = CustomData_get_offset_named(
-        &mr.bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+      mr.vert_crease_ofs = CustomData_get_offset_named(
+          &mr.bm->vdata, CD_PROP_FLOAT, "crease_vert");
+      mr.edge_crease_ofs = CustomData_get_offset_named(
+          &mr.bm->edata, CD_PROP_FLOAT, "crease_edge");
+      mr.bweight_ofs = CustomData_get_offset_named(
+          &mr.bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
 #ifdef WITH_FREESTYLE
-    mr.freestyle_edge_ofs = CustomData_get_offset_named(
-        &mr.bm->edata, CD_PROP_BOOL, "freestyle_edge");
-    mr.freestyle_face_ofs = CustomData_get_offset_named(
-        &mr.bm->pdata, CD_PROP_BOOL, "freestyle_face");
+      mr.freestyle_edge_ofs = CustomData_get_offset_named(
+          &mr.bm->edata, CD_PROP_BOOL, "freestyle_edge");
+      mr.freestyle_face_ofs = CustomData_get_offset_named(
+          &mr.bm->pdata, CD_PROP_BOOL, "freestyle_face");
 #endif
+    }
 
     /* Use bmesh directly when the object is unchanged by any modifiers. For non-final UVs, always
      * use original bmesh since the UV editor does not support using the cage mesh with deformed
      * coordinates. */
-    if ((mr.mesh->runtime->is_original_bmesh &&
-         mr.mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) ||
-        (do_uvedit && !do_final))
+    if (mr.bm && ((mr.mesh->runtime->is_original_bmesh &&
+                   mr.mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) ||
+                  (do_uvedit && !do_final)))
     {
       mr.extract_type = MeshExtractType::BMesh;
     }
