@@ -547,8 +547,12 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
   MEM_SAFE_DELETE(tangent_spaces);
 }
 
-static void correctivesmooth_modifier_do(
-    ModifierData *md, Depsgraph *depsgraph, Object *ob, Mesh *mesh, MutableSpan<float3> vertexCos)
+static void correctivesmooth_modifier_do(ModifierData *md,
+                                         Depsgraph *depsgraph,
+                                         Object *ob,
+                                         Mesh *mesh,
+                                         MutableSpan<float3> vertexCos,
+                                         EditMesh *em)
 {
   CorrectiveSmoothModifierData *csmd = reinterpret_cast<CorrectiveSmoothModifierData *>(md);
 
@@ -655,13 +659,14 @@ static void correctivesmooth_modifier_do(
       rest_coords = {reinterpret_cast<const float3 *>(csmd->bind_coords), csmd->bind_coords_num};
     }
     else {
-      const Mesh *orig_mesh = id_cast<const Mesh *>(ob->data);
-      if (const BMesh *bm = BKE_editmesh_bmesh_get(orig_mesh)) {
+      if (em) {
+        const BMesh *bm = BKE_editmesh_bmesh_get(mesh);
         rest_coords_alloc = BKE_editmesh_vert_coords_alloc_orco(bm);
         rest_coords = rest_coords_alloc;
       }
       else {
-        rest_coords = orig_mesh->vert_positions();
+        const Mesh *object_mesh = id_cast<const Mesh *>(ob->data);
+        rest_coords = object_mesh->vert_positions();
       }
     }
 
@@ -738,7 +743,7 @@ static void deform_verts(ModifierData *md,
                          Mesh *mesh,
                          MutableSpan<float3> positions)
 {
-  correctivesmooth_modifier_do(md, ctx->depsgraph, ctx->object, mesh, positions);
+  correctivesmooth_modifier_do(md, ctx->depsgraph, ctx->object, mesh, positions, nullptr);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
