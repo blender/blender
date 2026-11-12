@@ -7,6 +7,7 @@
  */
 
 #include <cstdio>
+#include <optional>
 
 #include "CLG_log.h"
 
@@ -18,6 +19,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_rect.hh"
+#include "BLI_set.hh"
 #include "BLI_string.hh"
 #include "BLI_sys_types.hh"
 #include "BLI_task_c.hh"
@@ -993,6 +995,7 @@ static void foreach_obref_in_scene(
 {
   DupliList duplilist;
   Map<InstancesKey, VectorList<DupliObject *>> dupli_map;
+  Set<InstancesKey> dupli_set_2d;
 
   Object tmp_object;
   bke::ObjectRuntime tmp_runtime;
@@ -1059,6 +1062,7 @@ static void foreach_obref_in_scene(
     }
 
     dupli_map.clear();
+    dupli_set_2d.clear();
     for (DupliObject &dupli : duplilist) {
 
       if (!DEG_iterator_dupli_is_visible(&dupli, eval_mode)) {
@@ -1074,46 +1078,49 @@ static void foreach_obref_in_scene(
       }
 #endif
 
-      if (!is_2d_view && !supports_handle_ranges(&dupli, ob, draw_ctx)) {
-        /* Sync the dupli as a single object. */
-        /* NOTE: We don't draw instances as single objects for 2d views since we don't want to draw
-         * them more than once. */
-        if (!evil::DEG_iterator_temp_object_from_dupli(
-                ob, &dupli, eval_mode, false, &tmp_object, &tmp_runtime) ||
-            !ELEM(should_draw_object_cb(tmp_object, &dupli),
-                  DrawFilter::Draw,
-                  DrawFilter::DrawNonRecursive))
-        {
-          evil::DEG_iterator_temp_object_free_properties(&dupli, &tmp_object);
-          continue;
+      const bool is_negative_scale = is_negative_m4(dupli.mat);
+      std::optional<InstancesKey> key;
+      auto get_key = [&]() -> const InstancesKey & {
+        if (!key) {
+          key.emplace(dupli.ob,
+                      dupli.ob_data,
+                      is_negative_scale ? InstancesFlags::IsNegativeScale : InstancesFlags(0),
+                      dupli.preview_base_geometry,
+                      dupli.preview_instance_index);
         }
+        return *key;
+      };
 
-        tmp_object.light_linking = dupli.ob->light_linking;
-        SET_FLAG_FROM_TEST(tmp_object.transflag, is_negative_m4(dupli.mat), OB_NEG_SCALE);
-        tmp_object.runtime->object_to_world = float4x4(dupli.mat);
-        tmp_object.runtime->world_to_object = invert(tmp_object.runtime->object_to_world);
+      if (is_2d_view && !dupli_set_2d.add(get_key())) {
+        /* For 2d views (UVs), draw each instanced object only once. */
+        continue;
+      }
 
-        draw::ObjectRef ob_ref(&tmp_object, ob, &dupli);
-        draw_object_cb(ob_ref);
+      if (supports_handle_ranges(&dupli, ob, draw_ctx)) {
+        dupli_map.lookup_or_add_default(get_key()).append(&dupli);
+        continue;
+      }
 
+      /* Otherwise, sync the dupli as a single object. */
+      if (!evil::DEG_iterator_temp_object_from_dupli(
+              ob, &dupli, eval_mode, false, &tmp_object, &tmp_runtime) ||
+          !ELEM(should_draw_object_cb(tmp_object, &dupli),
+                DrawFilter::Draw,
+                DrawFilter::DrawNonRecursive))
+      {
         evil::DEG_iterator_temp_object_free_properties(&dupli, &tmp_object);
         continue;
       }
 
-      InstancesFlags flags = InstancesFlags(0);
-      {
-        SET_FLAG_FROM_TEST(flags, is_negative_m4(dupli.mat), InstancesFlags::IsNegativeScale);
-      }
-      InstancesKey key(dupli.ob,
-                       dupli.ob_data,
-                       flags,
-                       dupli.preview_base_geometry,
-                       dupli.preview_instance_index);
+      tmp_object.light_linking = dupli.ob->light_linking;
+      SET_FLAG_FROM_TEST(tmp_object.transflag, is_negative_scale, OB_NEG_SCALE);
+      tmp_object.runtime->object_to_world = float4x4(dupli.mat);
+      tmp_object.runtime->world_to_object = invert(tmp_object.runtime->object_to_world);
 
-      if (!is_2d_view || !dupli_map.contains(key)) {
-        /* For 2d views (UVs), draw each instance only once. */
-        dupli_map.lookup_or_add_default(key).append(&dupli);
-      }
+      draw::ObjectRef ob_ref(&tmp_object, ob, &dupli);
+      draw_object_cb(ob_ref);
+
+      evil::DEG_iterator_temp_object_free_properties(&dupli, &tmp_object);
     }
 
     for (const auto &[key, instances] : dupli_map.items()) {
