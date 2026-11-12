@@ -9,7 +9,9 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_bounds.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_kdtree_new.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_rect.hh"
@@ -78,6 +80,31 @@ struct UDIMTilePixels {
   }
 };
 
+/** A pixel in an image tile, which brushes that sample nearby pixels read from. */
+struct PixelSource {
+  image::TileNumber tile_number;
+  int img_index;
+};
+
+/**
+ * A node's pixels covered by the original UV map, without the ones only covered by border
+ * extension, with a tree to find the ones closest to a position.
+ */
+struct SearchData : NonCopyable, NonMovable {
+  Array<float3, 0> positions;
+  Array<PixelSource, 0> sources;
+  Bounds<float3> bounds;
+  KDTree<float3> tree;
+
+  SearchData(Array<float3, 0> positions_in, Array<PixelSource, 0> sources_in)
+      : positions(std::move(positions_in)),
+        sources(std::move(sources_in)),
+        bounds(bounds::min_max(positions.as_span()).value_or(Bounds<float3>(float3(0.0f)))),
+        tree(positions)
+  {
+  }
+};
+
 /**
  * Contains triangle/pixel data used during texture painting.
  */
@@ -101,7 +128,16 @@ struct PixelNode {
      * P = pixel_to_position * (pixel_x, pixel_y, 1)
      */
     Array<float3x3, 0> pixel_to_position;
+
+    /**
+     * Mask indicating whether a triangle is originally part of the mesh or created by border
+     * extension.
+     */
+    BitVector<> original_tris;
   } uv_primitives;
+
+  /** Built on first use by brushes that sample nearby pixels. */
+  std::unique_ptr<SearchData> search_data;
 
   PixelNode()
   {
@@ -148,6 +184,8 @@ struct PixelNode {
     tiles.clear();
     uv_primitives.tri_indices.reinitialize(0);
     uv_primitives.pixel_to_position.reinitialize(0);
+    uv_primitives.original_tris.clear();
+    search_data.reset();
   }
 };
 

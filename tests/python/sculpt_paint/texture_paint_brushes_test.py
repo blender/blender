@@ -93,6 +93,17 @@ class ExperimentalBrushTests(unittest.TestCase):
                 self._check_paint_stroke()
 
     @unittest.skipIf(bpy.app.version_cycle != 'alpha', "Experimental features are only testable in alpha")
+    def test_smear_brush_creates_valid_data(self):
+        for data_type in DataType:
+            with self.subTest(data_type):
+                self._initialize(data_type)
+                self._activate_brush("Paint Hard")
+                self._check_paint_stroke()
+
+                self._activate_brush("Smear")
+                self._check_paint_stroke()
+
+    @unittest.skipIf(bpy.app.version_cycle != 'alpha', "Experimental features are only testable in alpha")
     def test_mask_brush_creates_valid_data(self):
         for data_type in DataType:
             with self.subTest(data_type):

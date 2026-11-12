@@ -244,10 +244,10 @@ inline void foreach_uv_triangle(const uv_islands::MeshData &mesh_data,
   const float2 uvs[3] = {mesh_data.uv_map[corner_tri[0]],
                          mesh_data.uv_map[corner_tri[1]],
                          mesh_data.uv_map[corner_tri[2]]};
-  fn(uvs, int(mesh_data.uv_island_ids[tri]));
+  fn(uvs, int(mesh_data.uv_island_ids[tri]), true);
 
   for (const BorderTriangle &border_tri : border_tris[tri]) {
-    fn(border_tri.uvs, border_tri.uv_island_index);
+    fn(border_tri.uvs, border_tri.uv_island_index, false);
   }
 }
 
@@ -266,10 +266,12 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
 
   Vector<int> tri_indices;
   Vector<float3x3> pixel_to_position;
+  BitVector<> original_tris;
 
   /* Assuming a quad mesh, we'll have at least 2 * faces entries. */
   tri_indices.reserve(node.faces().size() * 2);
   pixel_to_position.reserve(node.faces().size() * 2);
+  original_tris.reserve(node.faces().size() * 2);
 
   /* For multiple UDIM tiles, compute which ones this node overlaps with. */
   const bool multi_tile = BLI_listbase_count(&image.tiles) > 1;
@@ -284,7 +286,10 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     for (const int face : node.faces()) {
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
         foreach_uv_triangle(
-            mesh_data, border_tris, tri, [&](const float2 uvs[3], const int /*island_index*/) {
+            mesh_data,
+            border_tris,
+            tri,
+            [&](const float2 uvs[3], const int /*island_index*/, const bool /*is_original*/) {
               float2 uv_min(FLT_MAX);
               float2 uv_max(-FLT_MAX);
               for (int i = 0; i < 3; i++) {
@@ -337,7 +342,10 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     for (const int face : node.faces()) {
       for (const int tri : bke::mesh::face_triangles_range(mesh_data.faces, face)) {
         foreach_uv_triangle(
-            mesh_data, border_tris, tri, [&](const float2 tri_uvs[3], const int island_index) {
+            mesh_data,
+            border_tris,
+            tri,
+            [&](const float2 tri_uvs[3], const int island_index, const bool is_original) {
               float2 uvs[3] = {
                   tri_uvs[0] - tile_offset,
                   tri_uvs[1] - tile_offset,
@@ -355,6 +363,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
               tri_indices.append(tri);
               pixel_to_position.append(
                   calc_pixel_to_position_map(mesh_data, tri, uvs, inv_w, inv_h));
+              original_tris.append(is_original);
             });
       }
     }
@@ -367,6 +376,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
     build_pixel_row_runs(build_rows, tile_data);
 
     BLI_assert(pixel_to_position.size() == tri_indices.size());
+    BLI_assert(original_tris.size() == tri_indices.size());
 
     pixel_node.tiles.append(tile_data);
   }
@@ -374,6 +384,7 @@ static void do_encode_pixels(const uv_islands::MeshData &mesh_data,
   /* Assign to Array, to avoid wasting reserved space. */
   pixel_node.uv_primitives.tri_indices = tri_indices.as_span();
   pixel_node.uv_primitives.pixel_to_position = pixel_to_position.as_span();
+  pixel_node.uv_primitives.original_tris = original_tris;
 }
 
 /**
