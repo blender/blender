@@ -12,6 +12,7 @@
 #include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_fills.hh"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
@@ -490,6 +491,83 @@ static void GREASE_PENCIL_OT_select_linked(wmOperatorType *ot)
   PropertyRNA *prop = RNA_def_boolean(
       ot->srna, "deselect", false, "Deselect linked", "Deselect linked strokes");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+static bool select_linked_pick(bContext &C, const int2 &mval, const SelectPick_Params &params)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
+  const ViewContext vc = ED_view3d_viewcontext_init(&C, depsgraph);
+  Object *object = CTX_data_active_object(&C);
+
+  ClosestGreasePencilDrawing closest = find_closest_editable_greasepencil_drawing_screen_space(
+      vc, object, mval, std::nullopt, bke::AttrDomain::Curve);
+
+  if (closest.drawing == nullptr) {
+    return false;
+  }
+
+  bke::CurvesGeometry &closest_curves = closest.drawing->strokes_for_write();
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      vc.scene->toolsettings, object);
+
+  if (selection_domain == bke::AttrDomain::Point) {
+    const OffsetIndices points_by_curve = closest_curves.points_by_curve();
+    blender::ed::curves::foreach_selection_attribute_writer(
+        closest_curves, bke::AttrDomain::Point, [&](bke::GSpanAttributeWriter &selection) {
+          for (const int point : points_by_curve[closest.stroke_index]) {
+            blender::ed::curves::apply_selection_operation_at_index(
+                selection.span, point, params.sel_op);
+          }
+        });
+  }
+  else if (selection_domain == bke::AttrDomain::Curve) {
+    bke::GSpanAttributeWriter selection = blender::ed::curves::ensure_selection_attribute(
+        closest_curves, bke::AttrDomain::Curve, bke::AttrType::Bool);
+    blender::ed::curves::apply_selection_operation_at_index(
+        selection.span, closest.stroke_index, params.sel_op);
+    selection.finish();
+  }
+
+  /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
+   * generic attribute for now. */
+  DEG_id_tag_update(object->data, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(&C, NC_GEOM | ND_DATA, object->data);
+
+  return true;
+}
+
+static wmOperatorStatus select_linked_pick_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
+{
+  SelectPick_Params params{};
+  params.sel_op = RNA_boolean_get(op->ptr, "deselect") ? SEL_OP_SUB : SEL_OP_ADD;
+  params.deselect_all = false;
+  params.select_passthrough = false;
+
+  if (!select_linked_pick(*C, event->mval, params)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_select_linked_pick(wmOperatorType *ot)
+{
+  ot->name = "Select Linked Pick";
+  ot->idname = "GREASE_PENCIL_OT_select_linked_pick";
+  ot->description = "Select all points in the stroke under the cursor";
+
+  ot->invoke = select_linked_pick_invoke;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "deselect",
+                  false,
+                  "Deselect",
+                  "Deselect stroke points rather than selecting them");
 }
 
 static wmOperatorStatus select_random_exec(bContext *C, wmOperator *op)
@@ -1416,6 +1494,7 @@ void ED_operatortypes_grease_pencil_select()
   WM_operatortype_append(GREASE_PENCIL_OT_select_more);
   WM_operatortype_append(GREASE_PENCIL_OT_select_less);
   WM_operatortype_append(GREASE_PENCIL_OT_select_linked);
+  WM_operatortype_append(GREASE_PENCIL_OT_select_linked_pick);
   WM_operatortype_append(GREASE_PENCIL_OT_select_random);
   WM_operatortype_append(GREASE_PENCIL_OT_select_alternate);
   WM_operatortype_append(GREASE_PENCIL_OT_select_similar);

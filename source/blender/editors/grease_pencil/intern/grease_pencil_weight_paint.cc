@@ -440,12 +440,6 @@ void add_armature_automatic_weights(Scene &scene, Object &object, const Object &
   });
 }
 
-struct ClosestGreasePencilDrawing {
-  const bke::greasepencil::Drawing *drawing = nullptr;
-  int active_defgroup_index = -1;
-  ed::curves::FindClosestData elem;
-};
-
 static wmOperatorStatus weight_sample_invoke(bContext *C,
                                              wmOperator * /*op*/,
                                              const wmEvent *event)
@@ -461,65 +455,9 @@ static wmOperatorStatus weight_sample_invoke(bContext *C,
   const bDeformGroup *object_defgroup = static_cast<const bDeformGroup *>(
       BLI_findlink(BKE_object_defgroup_list(vc.obact), object_defgroup_nr));
 
-  /* Collect visible drawings. */
-  const Object *ob_eval = DEG_get_evaluated(vc.depsgraph, vc.obact);
-  GreasePencil &grease_pencil = *id_cast<GreasePencil *>(vc.obact->data);
-  const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*vc.scene, grease_pencil, false);
-
   /* Find stroke points closest to mouse cursor position. */
-  const ClosestGreasePencilDrawing closest = threading::parallel_reduce(
-      drawings.index_range(),
-      1L,
-      ClosestGreasePencilDrawing(),
-      [&](const IndexRange range, const ClosestGreasePencilDrawing &init) {
-        ClosestGreasePencilDrawing new_closest = init;
-        for (const int i : range) {
-          DrawingInfo info = drawings[i];
-          const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
-
-          /* Skip drawing when it doesn't use the active vertex group. */
-          const int drawing_defgroup_nr = BKE_defgroup_name_index(
-              &info.drawing.strokes().vertex_group_names, object_defgroup->name);
-          if (drawing_defgroup_nr == -1) {
-            continue;
-          }
-
-          /* Get deformation by modifiers. */
-          bke::crazyspace::GeometryDeformation deformation =
-              bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                  ob_eval, *vc.obact, info.drawing);
-
-          IndexMaskMemory memory;
-          const IndexMask points = retrieve_visible_points(*vc.obact, info.drawing, memory);
-          if (points.is_empty()) {
-            continue;
-          }
-          const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
-          const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc.rv3d,
-                                                                              layer_to_world);
-          const bke::CurvesGeometry &curves = info.drawing.strokes();
-          std::optional<ed::curves::FindClosestData> new_closest_elem =
-              ed::curves::closest_elem_find_screen_space(vc,
-                                                         curves.points_by_curve(),
-                                                         deformation.positions,
-                                                         curves.cyclic(),
-                                                         projection,
-                                                         points,
-                                                         bke::AttrDomain::Point,
-                                                         event->mval,
-                                                         new_closest.elem);
-          if (new_closest_elem) {
-            new_closest.elem = *new_closest_elem;
-            new_closest.drawing = &info.drawing;
-            new_closest.active_defgroup_index = drawing_defgroup_nr;
-          }
-        }
-        return new_closest;
-      },
-      [](const ClosestGreasePencilDrawing &a, const ClosestGreasePencilDrawing &b) {
-        return (a.elem.distance_sq < b.elem.distance_sq) ? a : b;
-      });
-
+  const ClosestGreasePencilDrawing closest = find_closest_greasepencil_drawing_screen_space(
+      vc, vc.obact, event->mval, object_defgroup->name, bke::AttrDomain::Point);
   if (!closest.drawing) {
     return OPERATOR_CANCELLED;
   }
@@ -527,7 +465,7 @@ static wmOperatorStatus weight_sample_invoke(bContext *C,
   /* From the closest point found, get the vertex weight in the active vertex group. */
   const VArray<float> point_weights = bke::varray_for_deform_verts(
       closest.drawing->strokes().deform_verts(), closest.active_defgroup_index);
-  const float new_weight = math::clamp(point_weights[closest.elem.index], 0.0f, 1.0f);
+  const float new_weight = math::clamp(point_weights[closest.stroke_index], 0.0f, 1.0f);
 
   /* Set the new brush weight. */
   const ToolSettings *ts = vc.scene->toolsettings;

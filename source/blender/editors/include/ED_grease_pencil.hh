@@ -21,6 +21,7 @@
 #include "ED_select_utils.hh"
 
 #include "WM_api.hh"
+#include <cfloat> /* For FLT_MAX */
 
 namespace blender {
 
@@ -210,6 +211,27 @@ class DrawingPlacement {
   /** Return depth buffer projection if possible or "View" placement fallback. */
   float3 try_project_depth(float2 co) const;
 };
+
+struct ClosestGreasePencilDrawing {
+  bke::greasepencil::Drawing *drawing = nullptr;
+  int active_defgroup_index = -1;
+  int stroke_index = -1;
+  float distance_sq = FLT_MAX;
+};
+
+const ClosestGreasePencilDrawing find_closest_greasepencil_drawing_screen_space(
+    const ViewContext &vc,
+    Object *obj,
+    int2 screen_pos,
+    const std::optional<StringRefNull> vertex_group_name,
+    bke::AttrDomain domain);
+
+ClosestGreasePencilDrawing find_closest_editable_greasepencil_drawing_screen_space(
+    const ViewContext &vc,
+    Object *obj,
+    int2 screen_pos,
+    const std::optional<StringRefNull> vertex_group_name,
+    bke::AttrDomain domain);
 
 void set_selected_frames_type(bke::greasepencil::Layer &layer,
                               const eBezTriple_KeyframeType key_type);
