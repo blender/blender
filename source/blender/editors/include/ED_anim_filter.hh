@@ -973,6 +973,8 @@ bool do_sync_channel_selection_to_secondary(const CollectionFilters &filters);
 /**
  * Arena Allocator for animation channels.
  *
+ * WARNING: when adding fields to this struct, make sure the move constructor and assignment
+ * operator also take it into account, or their values will be lost.
  */
 class ChannelArena {
  private:
@@ -998,6 +1000,15 @@ class ChannelArena {
    * cached ChannelArena.
    */
   UniqueHash datachannel_hash = {};
+
+  /**
+   * Channel identifier for the active channel.
+   *
+   * This is set by the channel tree view items (see #ChannelItem::on_activate()). When the
+   * ChannelArena is rebuilt, it is copied from the old to the new one (see
+   * #ed::action::get_summary_tree()).
+   */
+  std::optional<ChannelIdentifier> active_channel_ident = {};
 
   ChannelArena() = default;
   ChannelArena(const ChannelArena &) = delete;

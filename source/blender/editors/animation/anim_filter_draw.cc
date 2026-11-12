@@ -171,6 +171,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   void set_selected(const bContext &C, bool select) override;
   void on_activate(bContext &C) override;
+  std::optional<bool> should_be_active() const override;
 
  protected:
   bool matches(const AbstractViewItem &other) const override
@@ -208,6 +209,7 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 };
 
 class ChannelTreeView : public ui::AbstractTreeView {
+  ChannelArena &arena_;
   SummaryChannel &root_;
   const ChannelTreeSettings tree_settings_;
 
@@ -240,8 +242,8 @@ class ChannelTreeView : public ui::AbstractTreeView {
   }
 
  public:
-  ChannelTreeView(SummaryChannel &root, const ChannelTreeSettings &tree_settings)
-      : root_(root), tree_settings_(tree_settings)
+  ChannelTreeView(ChannelArena &arena, const ChannelTreeSettings &tree_settings)
+      : arena_(arena), root_(*arena.root()), tree_settings_(tree_settings)
   {
   }
 
@@ -273,6 +275,15 @@ class ChannelTreeView : public ui::AbstractTreeView {
   {
     return tree_settings_.show_channel_group_color_rect;
   }
+
+  std::optional<ChannelIdentifier> active_channel_ident_get() const
+  {
+    return arena_.active_channel_ident;
+  }
+  void active_channel_ident_set(std::optional<ChannelIdentifier> channel_identifier)
+  {
+    arena_.active_channel_ident = channel_identifier;
+  }
 };
 
 /* A few functions need to be defined after the ChannelTreeView class. */
@@ -293,11 +304,20 @@ void ChannelItem::set_selected(const bContext &C, const bool select)
 
 void ChannelItem::on_activate(bContext &C)
 {
-  AbstractTreeViewItem::on_activate(C);
-  /* This flushes the selection state to the data, which is then read in the constructor. */
-
-  const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
+  ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
+  tree_view.active_channel_ident_set(this->chan_ident_);
   this->channel_api_->set_active(C, tree_view.do_selection_syncing());
+}
+
+std::optional<bool> ChannelItem::should_be_active() const
+{
+  const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
+  const std::optional<ChannelIdentifier> active_channel_ident =
+      tree_view.active_channel_ident_get();
+  if (!active_channel_ident) {
+    return {};
+  }
+  return *active_channel_ident == this->chan_ident_;
 }
 
 /* Returns the correct color given the FCurve::color_mode. */
@@ -544,7 +564,7 @@ void ChannelItem::build_row(ui::Layout &layout)
 std::unique_ptr<ui::AbstractTreeView> build_channel_tree_view(
     ChannelArena &arena, const ChannelTreeSettings &tree_settings)
 {
-  return std::make_unique<ChannelTreeView>(*arena.root(), tree_settings);
+  return std::make_unique<ChannelTreeView>(arena, tree_settings);
 }
 
 void draw_channel_tree(const bContext &C, std::unique_ptr<ui::AbstractTreeView> channel_tree_view)

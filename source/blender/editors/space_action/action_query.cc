@@ -169,6 +169,10 @@ ed::animfilter::ChannelArena &get_summary_tree(const bContext &C)
   if (new_arena) {
     BLI_assert(new_arena->datachannel_hash != UniqueHash{});
     /* The old arena didn't exist or was outdated, and we got a new one. */
+    if (runtime.channel_arena) {
+      /* Migrate data from the old to the new ChannelArena. */
+      new_arena->active_channel_ident = runtime.channel_arena->active_channel_ident;
+    }
     runtime.channel_arena.emplace(std::move(*new_arena));
   }
   else {
