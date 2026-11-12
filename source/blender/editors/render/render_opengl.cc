@@ -44,6 +44,7 @@
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
+#include "BKE_sound.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -147,6 +148,8 @@ struct OGLRender : public RenderJobBase {
   TaskPool *task_pool = nullptr;
   bool pool_ok = true;
   bool is_animation = false;
+  /* Recording of the evaluated audio of each frame for the movie's audio. */
+  std::shared_ptr<bke::SoundRecording> audio_recording;
 
   eImageFormatDepth color_depth = R_IMF_CHAN_DEPTH_32;
   uint num_scheduled_frames = 0;
@@ -929,6 +932,11 @@ static void screen_opengl_render_end(OGLRender *oglrender)
 
   oglrender->scene->customdata_mask_modal = CustomData_MeshMasks{};
 
+  if (oglrender->audio_recording) {
+    BKE_sound_end_scene_audio_recording(oglrender->depsgraph);
+    oglrender->audio_recording.reset();
+  }
+
   if (oglrender->wm_job) { /* exec will not have a job */
     Depsgraph *depsgraph = oglrender->depsgraph;
     oglrender->scene->r.cfra = oglrender->cfrao;
@@ -975,6 +983,11 @@ static bool screen_opengl_render_anim_init(wmOperator *op)
   oglrender->reports = op->reports;
 
   if (BKE_imtype_is_movie(image_format.imtype)) {
+    if (scene->r.ffcodecdata.audio_codec_id_get() != FFMPEG_CODEC_ID_NONE) {
+      oglrender->audio_recording = BKE_sound_recording_ensure(
+          DEG_get_evaluated_scene(oglrender->depsgraph));
+    }
+
     size_t width, height;
     int i;
 
@@ -1157,6 +1170,19 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
   return true;
 }
 
+static void screen_opengl_render_update_for_frame(OGLRender *oglrender, Depsgraph *depsgraph)
+{
+  if (!oglrender->audio_recording) {
+    BKE_scene_graph_update_for_newframe(depsgraph);
+    return;
+  }
+  /* The movie writer applies recorded audio state and reads audio on another thread. Evaluating
+   * and recording the frame writes framed audio values that it reads. */
+  std::unique_lock lock = BKE_sound_recording_lock(*oglrender->audio_recording);
+  BKE_scene_graph_update_for_newframe(depsgraph);
+  BKE_sound_record_scene_audio_animation(depsgraph);
+}
+
 static bool screen_opengl_render_anim_step(const bke::BlenderProject *project,
                                            OGLRender *oglrender)
 {
@@ -1173,7 +1199,7 @@ static bool screen_opengl_render_anim_step(const bke::BlenderProject *project,
     scene->r.cfra++;
   }
   while (scene->r.cfra < oglrender->nfra) {
-    BKE_scene_graph_update_for_newframe(depsgraph);
+    screen_opengl_render_update_for_frame(oglrender, depsgraph);
     scene->r.cfra++;
   }
 
@@ -1217,7 +1243,7 @@ static bool screen_opengl_render_anim_step(const bke::BlenderProject *project,
     WM_cursor_time(oglrender->win, scene->r.cfra);
   }
 
-  BKE_scene_graph_update_for_newframe(depsgraph);
+  screen_opengl_render_update_for_frame(oglrender, depsgraph);
 
   if (view_context) {
     if (oglrender->rv3d->persp == RV3D_CAMOB && oglrender->v3d->camera &&

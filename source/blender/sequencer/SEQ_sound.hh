@@ -6,6 +6,8 @@
 
 #include "BKE_sound_types.hh"
 
+#include "BLI_bounds_types.hh"
+
 #include "DNA_listBase.h"
 
 namespace blender {
@@ -42,6 +44,12 @@ struct SoundModifierWorkerInfo {
 
 void sound_update_bounds_all(Scene *scene);
 void sound_update_bounds(Scene *scene, Strip *strip);
+/**
+ * Frames during which the audio of a sound or Scene strip plays, as set by
+ * #sound_update_bounds_all. Audio of strips inside Meta strips ends with their content, which
+ * ignores retiming, so it can play after their right handle.
+ */
+Bounds<int> sound_bounds_get(const Scene *scene, const Strip *strip);
 void sound_update(Scene *scene, bSound *sound);
 void sound_update_length(Main *bmain, Scene *scene);
 float sound_pitch_get(const Scene *scene, const Strip *strip);

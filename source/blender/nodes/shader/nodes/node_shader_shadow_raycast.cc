@@ -17,14 +17,15 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNodeTree *ntree = b.tree_or_null();
   const bool is_gpu_internal = ntree && (ntree->flag & NTREE_IS_GPU_SHADER_INTERNAL);
 
-  b.add_input<decl::Int>("LightIndex"_ustr).available(is_gpu_internal);
-
   b.add_input<decl::Vector>("Position"_ustr).hide_value();
   b.add_input<decl::Float>("Softness"_ustr)
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
+
+  b.add_input<decl::Int>("LightIndex"_ustr).available(is_gpu_internal);
+
   b.add_output<decl::Color>("Color"_ustr);
 }
 
@@ -34,14 +35,14 @@ static int node_shader_gpu_shadow_raycast(GPUMaterial *mat,
                                           GPUNodeStack *in,
                                           GPUNodeStack *out)
 {
-  if (!in[0].link) {
+  if (!in[2].link) {
     /* Error: not linked to a light accumulation zone. */
     BLI_assert_unreachable();
     return false;
   }
 
-  if (!in[1].link) {
-    GPU_link(mat, "world_position_get", GPU_shading_data(), &in[1].link);
+  if (!in[0].link) {
+    GPU_link(mat, "world_position_get", GPU_shading_data(), &in[0].link);
   }
   else {
     GPU_material_flag_set(mat, GPU_MATFLAG_SHADOW_OFFSET);

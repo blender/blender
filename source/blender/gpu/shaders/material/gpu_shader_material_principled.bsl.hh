@@ -160,12 +160,13 @@ void node_bsdf_principled(float4 base_color,
   const bool multiggx = thin_wall || (do_multiscatter != 0.0f);
 
   float3 weight = float3(float_weight);
-  ClosureDiffuse diffuse_data;
+  ClosureDiffuse diffuse_data = {.color = float3(0.0f), .N = N};
   ClosureReflection reflection_data;
-  ClosureOrenNayar oren_nayar_data = {float3(0.0f), N, saturate(diffuse_roughness)};
+  ClosureOrenNayar oren_nayar_data = {
+      .color = float3(0.0f), .N = N, .roughness = saturate(diffuse_roughness)};
 
   weight = openpbr_eval_transparency(kg, sd, weight, alpha);
-  weight = openpbr_eval_fuzz(kg, sd, weight, coat, fuzz, N, V, diffuse_data);
+  weight = openpbr_eval_fuzz(kg, sd, weight, coat, fuzz, N, V);
   weight = openpbr_eval_coat(kg, sd, weight, coat, V);
   weight = openpbr_eval_emission(kg, sd, weight, emission.rgb, emission_strength);
   weight = openpbr_eval_metal(
@@ -175,7 +176,7 @@ void node_bsdf_principled(float4 base_color,
   weight = principled_eval_gloss(kg, sd, weight, specular, N, NV, multiggx, reflection_data);
   weight = openpbr_eval_subsurface(
       kg, sd, weight, subsurface, thin_wall, N, NV, diffuse_data, oren_nayar_data);
-  openpbr_eval_diffuse(kg, sd, weight, base_color.rgb, N, NV, diffuse_data, oren_nayar_data);
+  openpbr_eval_diffuse(kg, sd, weight, base_color.rgb, NV, diffuse_data, oren_nayar_data);
 
   /* TODO(fclem): EEVEE implementation leaking. */
   result = CLOSURE_DEFAULT;

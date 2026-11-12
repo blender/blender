@@ -19,8 +19,10 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_listbase.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
@@ -1100,6 +1102,22 @@ void DepsgraphRelationBuilder::build_object_data_speaker(Object *object)
   ComponentKey speaker_key(&speaker->id, NodeType::AUDIO);
   ComponentKey object_key(&object->id, NodeType::AUDIO);
   add_relation(speaker_key, object_key, "Speaker Update");
+
+  /* Speaker handles, including those from nested Scenes, belong to the graph's root Scene.
+   * Explicit caches include their evaluated properties and transforms. Only user edits invalidate
+   * that cache; Automatic preparation continues to evaluate Speakers at the current frame. */
+  OperationKey scene_cache_key(
+      &graph_->scene->id, NodeType::CACHE, OperationCode::AUDIO_CACHE_INVALIDATE);
+  const int flags = RELATION_FLAG_FLUSH_USER_EDIT_ONLY | RELATION_CHECK_BEFORE_ADD;
+  add_relation(ComponentKey(&object->id, NodeType::TRANSFORM),
+               scene_cache_key,
+               "Speaker Transform -> Audio Cache",
+               flags);
+  /* Speaker data animation targets Parameters, not the Audio placeholder. */
+  add_relation(ComponentKey(&speaker->id, NodeType::PARAMETERS),
+               scene_cache_key,
+               "Speaker Parameters -> Audio Cache",
+               flags);
 }
 
 void DepsgraphRelationBuilder::build_object_parent(Object *object)
@@ -1611,6 +1629,12 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 
 void DepsgraphRelationBuilder::build_animdata(ID *id)
 {
+  /* A Scene's animation can be reached through multiple Scene strips or view layers. */
+  if (id->id_type() == ID_SCE && built_map_.check_is_built_and_tag(id, BuilderMap::TAG_ANIMATION))
+  {
+    return;
+  }
+
   /* Images. */
   build_animation_images(id);
   /* Animation curves, NLA, and Animation datablock. */
@@ -3493,6 +3517,7 @@ void DepsgraphRelationBuilder::build_sound(bSound *sound)
 
 struct Seq_build_prop_cb_data {
   DepsgraphRelationBuilder *builder;
+  Scene *scene;
   ComponentKey sequencer_key;
   bool has_audio_strips;
 };
@@ -3516,7 +3541,10 @@ static bool strip_build_prop_cb(Strip *strip, void *user_data)
   }
   if (strip->type == STRIP_TYPE_SCENE && strip->scene != nullptr) {
     BLI_assert(strip->scene_view_layer_name != nullptr);
-    if (strip->flag & SEQ_SCENE_STRIPS) {
+    const bool use_child_sequencer = (strip->flag & SEQ_SCENE_STRIPS) &&
+                                     strip->scene->ed != nullptr;
+    if (use_child_sequencer) {
+      cd->builder->build_animdata(&strip->scene->id);
       cd->builder->build_scene_sequencer(strip->scene);
       ComponentKey sequence_scene_audio_key(&strip->scene->id, NodeType::AUDIO);
       cd->builder->add_relation(
@@ -3524,6 +3552,14 @@ static bool strip_build_prop_cb(Strip *strip, void *user_data)
       ComponentKey sequence_scene_key(&strip->scene->id, NodeType::SEQUENCER);
       cd->builder->add_relation(
           sequence_scene_key, cd->sequencer_key, "Sequence Scene -> Sequencer");
+      OperationKey scene_cache_key(
+          &cd->scene->id, NodeType::CACHE, OperationCode::AUDIO_CACHE_INVALIDATE);
+      OperationKey strip_scene_cache_key(
+          &strip->scene->id, NodeType::CACHE, OperationCode::AUDIO_CACHE_INVALIDATE);
+      cd->builder->add_relation(strip_scene_cache_key,
+                                scene_cache_key,
+                                "Sequence Scene Audio Cache",
+                                RELATION_FLAG_FLUSH_USER_EDIT_ONLY | RELATION_CHECK_BEFORE_ADD);
     }
     ViewLayer *strip_view_layer = BKE_view_layer_find(strip->scene, strip->scene_view_layer_name);
     if (strip_view_layer == nullptr) {
@@ -3575,12 +3611,17 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
   /* Make sure dependencies from sequences data goes to the sequencer evaluation. */
   ComponentKey sequencer_key(&scene->id, NodeType::SEQUENCER);
 
-  Seq_build_prop_cb_data cb_data = {this, sequencer_key, false};
+  Seq_build_prop_cb_data cb_data = {this, scene, sequencer_key, false};
 
   seq::foreach_strip(&scene->ed->seqbase, strip_build_prop_cb, &cb_data);
   if (cb_data.has_audio_strips) {
     add_relation(sequencer_key, scene_audio_key, "Sequencer -> Audio");
   }
+  OperationKey scene_cache_key(&scene->id, NodeType::CACHE, OperationCode::AUDIO_CACHE_INVALIDATE);
+  add_relation(sequencer_key,
+               scene_cache_key,
+               "Sequencer -> Audio Cache",
+               RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
 }
 
 void DepsgraphRelationBuilder::build_scene_audio(Scene *scene)
@@ -3590,11 +3631,11 @@ void DepsgraphRelationBuilder::build_scene_audio(Scene *scene)
   OperationKey scene_sound_eval_key(&scene->id, NodeType::AUDIO, OperationCode::SOUND_EVAL);
   add_relation(scene_audio_entry_key, scene_audio_volume_key, "Audio Entry -> Volume");
   add_relation(scene_audio_volume_key, scene_sound_eval_key, "Audio Volume -> Sound");
-
-  if (scene->audio.flag & AUDIO_VOLUME_ANIMATED) {
-    ComponentKey scene_anim_key(&scene->id, NodeType::ANIMATION);
-    add_relation(scene_anim_key, scene_audio_volume_key, "Animation -> Audio Volume");
-  }
+  OperationKey scene_cache_key(&scene->id, NodeType::CACHE, OperationCode::AUDIO_CACHE_INVALIDATE);
+  add_relation(scene_audio_volume_key,
+               scene_cache_key,
+               "Audio Volume -> Audio Cache",
+               RELATION_FLAG_FLUSH_USER_EDIT_ONLY | RELATION_CHECK_BEFORE_ADD);
 }
 
 void DepsgraphRelationBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_layer)
@@ -3606,6 +3647,70 @@ void DepsgraphRelationBuilder::build_scene_speakers(Scene *scene, ViewLayer *vie
       continue;
     }
     build_object(base.object);
+  }
+}
+
+void DepsgraphRelationBuilder::build_scene_audio_cache_invalidation_relations()
+{
+  Vector<OperationNode *> cache_operations;
+  for (OperationNode *operation : graph_->operations) {
+    if (operation->opcode == OperationCode::AUDIO_CACHE_INVALIDATE) {
+      cache_operations.append(operation);
+    }
+  }
+
+  for (OperationNode *cache_operation : cache_operations) {
+    Set<OperationNode *> visited_operations;
+    Set<OperationNode *> invalidation_sources;
+    Vector<OperationNode *> operations_to_visit = {cache_operation};
+    visited_operations.add_new(cache_operation);
+
+    while (!operations_to_visit.is_empty()) {
+      OperationNode *operation = operations_to_visit.pop_last();
+      for (Relation *relation : operation->inlinks) {
+        if (relation->from->type != NodeType::OPERATION) {
+          continue;
+        }
+        OperationNode *dependency = static_cast<OperationNode *>(relation->from);
+        if (dependency->opcode == OperationCode::AUDIO_CACHE_INVALIDATE) {
+          /* Nested #Scene cache invalidation propagates through the explicit cache relation. */
+          continue;
+        }
+        if (dependency->opcode == OperationCode::DRIVER) {
+          /* Driver dependencies are evaluated live and are not part of the automatic cache. */
+          continue;
+        }
+        if (dependency->opcode == OperationCode::COPY_ON_EVAL &&
+            dependency->owner->owner->id_orig->id_type() == ID_SCE)
+        {
+          /* A #Scene contains many settings unrelated to audio. Relevant #Scene changes reach the
+           * cache through its Audio or Sequencer components. */
+          continue;
+        }
+        if ((relation->flag & RELATION_FLAG_NO_FLUSH) &&
+            dependency->opcode == OperationCode::COPY_ON_EVAL)
+        {
+          invalidation_sources.add(dependency);
+        }
+        if (visited_operations.add(dependency)) {
+          operations_to_visit.append(dependency);
+        }
+      }
+    }
+    /* Copy-on-eval relations intentionally do not normally propagate updates to dependent
+     * evaluation. The audio cache is derived state, however, and must be invalidated by a user
+     * edit to any input in its dependency closure. Add direct invalidation-only relations from
+     * upstream copy-on-eval operations discovered in the completed graph, without duplicating
+     * audio dependency knowledge or causing the dependent evaluation operations to run. Scene
+     * copy-on-eval is deliberately a traversal boundary because a #Scene contains unrelated data;
+     * relevant #Scene changes reach the cache through its Audio or Sequencer components instead.
+     */
+    for (OperationNode *invalidation_source : invalidation_sources) {
+      graph_->add_new_relation(invalidation_source,
+                               cache_operation,
+                               "Audio Cache Invalidation",
+                               RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
+    }
   }
 }
 

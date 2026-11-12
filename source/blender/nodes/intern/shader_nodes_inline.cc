@@ -872,7 +872,8 @@ class ShaderNodesInliner {
     const std::optional<PrimitiveSocketValue> iterations_value_opt =
         iterations_socket_value->to_primitive(*iterations_input->typeinfo);
     if (!iterations_value_opt) {
-      this->add_dynamic_repeat_zone_iterations_error(repeat_input_node);
+      this->report_required_constant_input_or_backtrack(
+          repeat_input_node, TIP_("Iterations input has to be a constant value"));
     }
     const int iterations = iterations_value_opt.has_value() ?
                                std::get<int>(iterations_value_opt->value) :
@@ -953,13 +954,6 @@ class ShaderNodesInliner {
     PreservedZone &preserved_zone = copied_zone_by_zone_output_node_.lookup_or_add_default(
         repeat_output_node);
     preserved_zone.input_node = &copied_node;
-  }
-
-  void add_dynamic_repeat_zone_iterations_error(const NodeInContext &repeat_input_node)
-  {
-    this->report_error(repeat_input_node,
-                       TIP_("Iterations input has to be a constant value"),
-                       NodeWarningType::Error);
   }
 
   void handle_output_socket__repeat_input(const SocketInContext &socket)
@@ -2296,7 +2290,9 @@ class ShaderNodesInliner {
       const bool is_iterations_input = dst_node.inputs.first_ == &dst_socket &&
                                        dst_node.is_type("GeometryNodeRepeatInput"_ustr);
       if (is_iterations_input) {
-        this->add_dynamic_repeat_zone_iterations_error(original_node);
+        this->report_error(original_node,
+                           TIP_("Iterations input has to be a constant value"),
+                           NodeWarningType::Error);
         this->set_primitive_value_on_socket(dst_socket, PrimitiveSocketValue{0});
         return;
       }

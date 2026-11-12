@@ -147,7 +147,7 @@ static void strip_update_sound_recursive(Scene *scene, ListBaseT<Strip> *seqbase
     }
     else if (strip.type == STRIP_TYPE_SOUND) {
       if (strip.runtime->scene_sound && sound == strip.sound) {
-        BKE_sound_update_scene_sound(strip.runtime->scene_sound, sound);
+        BKE_sound_update_scene_sound(scene, strip.runtime->scene_sound, sound);
       }
     }
   }

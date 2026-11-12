@@ -10,10 +10,12 @@
 
 #include "BLI_bitmap.hh"
 #include "BLI_ghash.hh"
+#include "BLI_set.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_listBase.h"
 
+#include "RNA_path_fwd.hh"
 #include "RNA_types.hh"
 
 namespace blender {
@@ -152,6 +154,9 @@ struct NlaEvalData {
 
   /* Evaluation result snapshot. */
   NlaEvalSnapshot eval_snapshot;
+
+  /* When set, channels are only created for these RNA paths. */
+  const Set<ParsedRNAPathRef> *rna_path_filter;
 };
 
 /** Information about the currently edited strip and ones below it for keyframing. */

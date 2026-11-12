@@ -857,22 +857,6 @@ bool RE_bake_engine(Render *re,
 
 /* Render */
 
-static bool possibly_using_gpu_compositor(const Render *re)
-{
-  if (re->r.compositor_device != SCE_COMPOSITOR_DEVICE_GPU) {
-    return false;
-  }
-
-  /* Note a secondary Render instance from a Render Layers node has a null pipeline scene,
-   * but no compositing is performed for it so we can return false. */
-  const Scene *scene = re->pipeline_scene_eval;
-  if (!scene) {
-    return false;
-  }
-
-  return bke::compositor::is_enabled(*scene, bke::compositor::ExecutionMode::Render);
-}
-
 static void engine_render_view_layer(Render *re,
                                      RenderEngine *engine,
                                      ViewLayer *view_layer_iter,
@@ -897,30 +881,6 @@ static void engine_render_view_layer(Render *re,
     if (use_gpu_context) {
       DRW_render_context_enable(engine->re);
     }
-    else if (G.background && ((engine->has_grease_pencil && use_grease_pencil) ||
-                              possibly_using_gpu_compositor(re)))
-    {
-      /* Workaround for specific NVidia drivers which crash on Linux when OptiX context is
-       * initialized prior to OpenGL context. This affects driver versions 545.29.06, 550.54.14,
-       * and 550.67 running on kernel 6.8.
-       *
-       * The idea here is to initialize GPU context before giving control to the render engine in
-       * cases when we know that the GPU context will definitely be needed later on.
-       *
-       * Only do it for background renders to avoid possible extra global locking during the
-       * context initialization. For the non-background renders the GPU context is already
-       * initialized for the Blender interface and no workaround is needed.
-       *
-       * Technically it is enough to only call WM_init_gpu_offscreen() here, but it expects
-       * to only be called once, and from here it is not possible to know whether GPU
-       * sub-system is initialized or not. So instead temporarily enable the render context,
-       * which will take care of the GPU context initialization.
-       *
-       * For demo file and tracking progress of possible fixes on driver side refer to #120007. */
-      DRW_render_context_enable(engine->re);
-      DRW_render_context_disable(engine->re);
-    }
-
     if (engine->type->update) {
       engine->type->update(engine, re->main, engine->depsgraph);
     }

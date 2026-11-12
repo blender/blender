@@ -181,6 +181,12 @@ template<typename T> bool DEG_is_evaluated(const T *id)
 bool DEG_is_fully_evaluated(const Depsgraph *depsgraph);
 
 /**
+ * Check whether relations need to be rebuilt, in which case the depsgraph may still reference
+ * freed IDs.
+ */
+bool DEG_relations_need_update(const Depsgraph *depsgraph);
+
+/**
  * Check every component of the data-block is evaluated. For example, an object disabled in the
  * viewport is not fully evaluated, even though the copy-on-eval data-block is created.
  */

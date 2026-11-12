@@ -51,6 +51,14 @@ static inline int2 shadow_cascade_grid_offset(int2 base_offset, int level_relati
   return (base_offset * level_relative) / (1 << 16);
 }
 
+/* Return coverage of the whole tile-map in world unit for a directional light of the given level.
+ * Uses `exp2()` rather than `1 << level` so the same code runs on CPU and GPU and stays valid for
+ * negative levels (currently clamped away, see `eevee_shadow.cc`). */
+static inline float shadow_directional_coverage_get(int level)
+{
+  return exp2(float(level));
+}
+
 /**
  * Small descriptor used for the tile update phase. Updated by CPU & uploaded to GPU each redraw.
  */

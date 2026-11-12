@@ -199,7 +199,7 @@ void VKDevice::submission_runner(VKDevice *device)
     Span<render_graph::NodeHandle> node_handles = scheduler.select_nodes(render_graph);
     {
       std::scoped_lock lock_resources(device->resources.mutex);
-      command_builder.build_nodes(render_graph, *command_buffer, node_handles);
+      command_builder.build_nodes(render_graph, node_handles);
     }
     command_builder.record_commands(render_graph, *command_buffer, node_handles);
     num_nodes += node_handles.size();

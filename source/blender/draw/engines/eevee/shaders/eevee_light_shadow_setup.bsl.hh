@@ -15,11 +15,6 @@
 
 namespace eevee::light {
 
-int shadow_directional_coverage_get(int level)
-{
-  return 1 << level;
-}
-
 struct Resources {
   [[storage(0, read)]] const LightCullingData &light_cull_buf;
   [[storage(1, read_write)]] LightData (&light_buf)[];
@@ -162,7 +157,7 @@ struct Resources {
       int level = level_min + lod;
       /* Compute full offset from world origin to the smallest clipmap tile centered around the
        * camera position. The offset is computed in smallest tile unit. */
-      float tile_size = float(1 << level) / float(SHADOW_TILEMAP_RES);
+      float tile_size = shadow_directional_coverage_get(level) / float(SHADOW_TILEMAP_RES);
       int2 level_offset = int2(round(ls_camera_position.xy / tile_size));
 
       orthographic_sync(light.tilemap_index + lod,

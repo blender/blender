@@ -45,7 +45,10 @@ struct VKExtensions {
   bool wide_lines = false;
 
   /**
-   * Does the device support VK_KHR_dynamic_rendering_local_read enabled.
+   * Does the device support VK_KHR_dynamic_rendering_local_read.
+   *
+   * When available, sub-pass inputs are read as input attachments (#subpassLoad) within a single
+   * rendering scope instead of being emulated by sampling the attachment outside of it.
    */
   bool dynamic_rendering_local_read = false;
 

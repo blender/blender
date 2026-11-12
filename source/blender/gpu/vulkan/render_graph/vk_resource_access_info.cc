@@ -20,15 +20,15 @@ VkImageLayout VKImageAccess::to_vk_image_layout(bool supports_local_read) const
     return VK_IMAGE_LAYOUT_GENERAL;
   }
 
-  if (supports_local_read && vk_access_flags & (VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
-                                                VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                                                VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
-  {
-    return VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR;
-  }
   if (vk_access_flags &
-      (VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
+      (VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+       VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT))
   {
+    /* Local read keeps attachments in this layout for the whole scope, so they can be read back
+     * as an input attachment. */
+    if (supports_local_read) {
+      return VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR;
+    }
     return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
   }
 

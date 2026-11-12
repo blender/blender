@@ -815,6 +815,16 @@ class UtilityTexture : public Texture {
       memcpy(layer.data, lut::ltc_mat_oren_nayar, sizeof(layer));
     }
     {
+      Layer &layer = data[UTIL_LTC_SHEEN_LAYER];
+      for (auto x : IndexRange(UTIL_SHEEN_TEX_SIZE)) {
+        for (auto y : IndexRange(UTIL_SHEEN_TEX_SIZE)) {
+          layer.data[y][x][0] = lut::ltc_sheen[y][x][0];
+          layer.data[y][x][1] = lut::ltc_sheen[y][x][1];
+          layer.data[y][x][2] = lut::ltc_sheen[y][x][2];
+        }
+      }
+    }
+    {
       Layer &layer = data[UTIL_BRDF_LAYER];
       for (auto x : IndexRange(lut_size)) {
         for (auto y : IndexRange(lut_size)) {

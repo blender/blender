@@ -7,14 +7,14 @@
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]
-void node_light_accumulation(const float light_index,
-                             float4 diffuse_light,
+void node_light_accumulation(float4 diffuse_light,
                              float4 diffuse_color,
                              float4 glossy_light,
                              float4 glossy_color,
                              float4 transmission_light,
                              float4 transmission_color,
                              float weight,
+                             const float light_index,
                              KernelGlobals &kg,
                              ShadingData &sd,
                              Closure &result)

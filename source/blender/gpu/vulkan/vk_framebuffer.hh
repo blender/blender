@@ -21,6 +21,7 @@
 
 namespace blender::gpu {
 class VKContext;
+class VKTexture;
 
 class VKFrameBuffer : public FrameBuffer {
  private:
@@ -35,6 +36,9 @@ class VKFrameBuffer : public FrameBuffer {
 
   Array<GPULoadStore, GPU_FB_MAX_ATTACHMENT> load_stores;
   Array<GPUAttachmentState, GPU_FB_MAX_ATTACHMENT> attachment_states_;
+
+  /** Color attachments that are part of the open rendering scope. */
+  uint32_t rendering_attachments_ = 0;
 
  public:
   /**

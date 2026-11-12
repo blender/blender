@@ -46,120 +46,74 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom2 = int(AttrDomain::Point);
 }
 
+static int closest_index(const bke::bvh::Tree &tree, const float3 &position)
+{
+  const std::optional<bke::bvh::ClosestPointResult> nearest = tree.closest_point(position);
+  return nearest ? int(nearest->index) : -1;
+}
+
 static void get_closest_pointcloud_points(const PointCloud &pointcloud,
                                           const VArray<float3> &positions,
                                           const IndexMask &mask,
-                                          MutableSpan<int> r_indices,
-                                          MutableSpan<float> r_distances_sq)
+                                          MutableSpan<int> r_indices)
 {
   BLI_assert(positions.size() >= r_indices.size());
   if (pointcloud.totpoint == 0) {
     r_indices.fill(0);
-    r_distances_sq.fill(0.0f);
     return;
   }
   const bke::bvh::Tree &tree = pointcloud.bvh_tree();
-
-  mask.foreach_index([&](const int i) {
-    const float3 position = positions[i];
-    const bke::bvh::ClosestPointResult nearest = *tree.closest_point(position);
-    r_indices[i] = nearest.index;
-    if (!r_distances_sq.is_empty()) {
-      r_distances_sq[i] = math::distance_squared(position, nearest.position);
-    }
-  });
+  mask.foreach_index([&](const int i) { r_indices[i] = closest_index(tree, positions[i]); });
 }
 
 static void get_closest_mesh_points(const Mesh &mesh,
                                     const VArray<float3> &positions,
                                     const IndexMask &mask,
-                                    const MutableSpan<int> r_point_indices,
-                                    const MutableSpan<float> r_distances_sq,
-                                    const MutableSpan<float3> r_positions)
+                                    const MutableSpan<int> r_point_indices)
 {
   BLI_assert(mesh.verts_num > 0);
   const bke::bvh::Tree &tree = mesh.bvh_verts();
-  mask.foreach_index([&](const int i) {
-    const float3 position = positions[i];
-    const bke::bvh::ClosestPointResult nearest = *tree.closest_point(position);
-    if (!r_point_indices.is_empty()) {
-      r_point_indices[i] = nearest.index;
-    }
-    if (!r_distances_sq.is_empty()) {
-      r_distances_sq[i] = math::distance_squared(position, nearest.position);
-    }
-    if (!r_positions.is_empty()) {
-      r_positions[i] = nearest.position;
-    }
-  });
+  mask.foreach_index([&](const int i) { r_point_indices[i] = closest_index(tree, positions[i]); });
 }
 
 static void get_closest_mesh_edges(const Mesh &mesh,
                                    const VArray<float3> &positions,
                                    const IndexMask &mask,
-                                   const MutableSpan<int> r_edge_indices,
-                                   const MutableSpan<float> r_distances_sq,
-                                   const MutableSpan<float3> r_positions)
+                                   const MutableSpan<int> r_edge_indices)
 {
   BLI_assert(mesh.edges_num > 0);
   const bke::bvh::Tree &tree = mesh.bvh_edges();
-  mask.foreach_index([&](const int i) {
-    const float3 position = positions[i];
-    const bke::bvh::ClosestPointResult nearest = *tree.closest_point(position);
-    if (!r_edge_indices.is_empty()) {
-      r_edge_indices[i] = nearest.index;
-    }
-    if (!r_distances_sq.is_empty()) {
-      r_distances_sq[i] = math::distance_squared(position, nearest.position);
-    }
-    if (!r_positions.is_empty()) {
-      r_positions[i] = nearest.position;
-    }
-  });
+  mask.foreach_index([&](const int i) { r_edge_indices[i] = closest_index(tree, positions[i]); });
 }
 
 static void get_closest_mesh_tris(const Mesh &mesh,
                                   const VArray<float3> &positions,
                                   const IndexMask &mask,
-                                  const MutableSpan<int> r_tri_indices,
-                                  const MutableSpan<float> r_distances_sq,
-                                  const MutableSpan<float3> r_positions)
+                                  const MutableSpan<int> r_tri_indices)
 {
   BLI_assert(mesh.faces_num > 0);
   const bke::bvh::Tree &tree = mesh.bvh_tris();
-  mask.foreach_index([&](const int i) {
-    const float3 position = positions[i];
-    const bke::bvh::ClosestPointResult nearest = *tree.closest_point(position);
-    if (!r_tri_indices.is_empty()) {
-      r_tri_indices[i] = nearest.index;
-    }
-    if (!r_distances_sq.is_empty()) {
-      r_distances_sq[i] = math::distance_squared(position, nearest.position);
-    }
-    if (!r_positions.is_empty()) {
-      r_positions[i] = nearest.position;
-    }
-  });
+  mask.foreach_index([&](const int i) { r_tri_indices[i] = closest_index(tree, positions[i]); });
 }
 
 static void get_closest_mesh_faces(const Mesh &mesh,
                                    const VArray<float3> &positions,
                                    const IndexMask &mask,
-                                   const MutableSpan<int> r_face_indices,
-                                   const MutableSpan<float> r_distances_sq,
-                                   const MutableSpan<float3> r_positions)
+                                   const MutableSpan<int> r_face_indices)
 {
   BLI_assert(mesh.faces_num > 0);
 
   const bool mesh_is_triangles = mesh.corners_num == mesh.faces_num * 3;
   if (mesh_is_triangles) {
-    get_closest_mesh_tris(mesh, positions, mask, r_face_indices, r_distances_sq, r_positions);
+    get_closest_mesh_tris(mesh, positions, mask, r_face_indices);
   }
   else {
     Array<int> tri_indices(positions.size());
-    get_closest_mesh_tris(mesh, positions, mask, tri_indices, r_distances_sq, r_positions);
+    get_closest_mesh_tris(mesh, positions, mask, tri_indices);
     const Span<int> tri_faces = mesh.corner_tri_faces();
-    mask.foreach_index([&](const int i) { r_face_indices[i] = tri_faces[tri_indices[i]]; });
+    mask.foreach_index([&](const int i) {
+      r_face_indices[i] = tri_indices[i] == -1 ? -1 : tri_faces[tri_indices[i]];
+    });
   }
 }
 
@@ -167,9 +121,7 @@ static void get_closest_mesh_faces(const Mesh &mesh,
 static void get_closest_mesh_corners(const Mesh &mesh,
                                      const VArray<float3> &positions,
                                      const IndexMask &mask,
-                                     const MutableSpan<int> r_corner_indices,
-                                     const MutableSpan<float> r_distances_sq,
-                                     const MutableSpan<float3> r_positions)
+                                     const MutableSpan<int> r_corner_indices)
 {
   const Span<float3> vert_positions = mesh.vert_positions();
   const OffsetIndices faces = mesh.faces();
@@ -177,15 +129,18 @@ static void get_closest_mesh_corners(const Mesh &mesh,
 
   BLI_assert(mesh.corners_num > 0);
   Array<int> face_indices(positions.size());
-  get_closest_mesh_faces(mesh, positions, mask, face_indices, {}, {});
+  get_closest_mesh_faces(mesh, positions, mask, face_indices);
 
   mask.foreach_index([&](const int i) {
     const float3 position = positions[i];
     const int face_index = face_indices[i];
+    if (face_index == -1) {
+      r_corner_indices[i] = -1;
+      return;
+    }
 
     /* Find the closest vertex in the face. */
     float min_distance_sq = FLT_MAX;
-    int closest_vert = 0;
     int closest_corner = 0;
     for (const int corner : faces[face_index]) {
       const int vert = corner_verts[corner];
@@ -193,18 +148,9 @@ static void get_closest_mesh_corners(const Mesh &mesh,
       if (distance_sq < min_distance_sq) {
         min_distance_sq = distance_sq;
         closest_corner = corner;
-        closest_vert = vert;
       }
     }
-    if (!r_corner_indices.is_empty()) {
-      r_corner_indices[i] = closest_corner;
-    }
-    if (!r_positions.is_empty()) {
-      r_positions[i] = vert_positions[closest_vert];
-    }
-    if (!r_distances_sq.is_empty()) {
-      r_distances_sq[i] = min_distance_sq;
-    }
+    r_corner_indices[i] = closest_corner;
   });
 }
 
@@ -271,16 +217,16 @@ class SampleNearestFunction : public mf::MultiFunction {
         const Mesh &mesh = *component.get();
         switch (domain_) {
           case AttrDomain::Point:
-            get_closest_mesh_points(mesh, positions, mask, indices, {}, {});
+            get_closest_mesh_points(mesh, positions, mask, indices);
             break;
           case AttrDomain::Edge:
-            get_closest_mesh_edges(mesh, positions, mask, indices, {}, {});
+            get_closest_mesh_edges(mesh, positions, mask, indices);
             break;
           case AttrDomain::Face:
-            get_closest_mesh_faces(mesh, positions, mask, indices, {}, {});
+            get_closest_mesh_faces(mesh, positions, mask, indices);
             break;
           case AttrDomain::Corner:
-            get_closest_mesh_corners(mesh, positions, mask, indices, {}, {});
+            get_closest_mesh_corners(mesh, positions, mask, indices);
             break;
           default:
             break;
@@ -290,7 +236,7 @@ class SampleNearestFunction : public mf::MultiFunction {
       case GeometryComponent::Type::PointCloud: {
         const auto &component = *static_cast<const bke::PointCloudComponent *>(src_component_);
         const PointCloud &pointcloud = *component.get();
-        get_closest_pointcloud_points(pointcloud, positions, mask, indices, {});
+        get_closest_pointcloud_points(pointcloud, positions, mask, indices);
         break;
       }
       default:

@@ -69,6 +69,7 @@ void VKFrameBuffer::bind(bool enabled_srgb)
   Shader::set_framebuffer_srgb_target(enabled_srgb && srgb_);
   load_stores.fill(default_load_store());
   attachment_states_.fill(GPU_ATTACHMENT_WRITE);
+  rendering_attachments_ = 0;
 }
 
 uint32_t VKFrameBuffer::viewport_size() const
@@ -325,30 +326,16 @@ static void set_load_store(VkRenderingAttachmentInfo &r_rendering_attachment,
 void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
                                             Span<GPUAttachmentState> color_attachment_states)
 {
-  const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
-
   attachment_states_[GPU_FB_DEPTH_ATTACHMENT] = depth_attachment_state;
   attachment_states_.as_mutable_span()
       .slice(GPU_FB_COLOR_ATTACHMENT0, color_attachment_states.size())
       .copy_from(color_attachment_states);
 
-  if (supports_local_read) {
-    VKContext &context = *VKContext::get();
-    rendering_ensure(context);
+  VKContext &context = *VKContext::get();
+  const VKExtensions &extensions = VKBackend::get().device.extensions_get();
 
-    for (int index : IndexRange(color_attachment_states.size())) {
-      if (color_attachment_states[index] == GPU_ATTACHMENT_READ) {
-        VKTexture *texture = unwrap(unwrap(color_tex(index)));
-        if (texture) {
-          context.state_manager_get().image_bind(texture, index);
-        }
-      }
-    }
-    is_rendering_ = false;
-  }
-  else {
-    VKContext &context = *VKContext::get();
+  if (!extensions.dynamic_rendering_local_read) {
+    /* End the rendering scope and bind the attachments that are read as textures. */
     rendering_end(context);
 
     for (int index : IndexRange(color_attachment_states.size())) {
@@ -360,6 +347,37 @@ void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
         }
       }
     }
+    return;
+  }
+
+  /* A newly written attachment that isn't in the open scope would get a null image view and its
+   * writes discarded, so split the scope and let the next draw re-create it with the updated
+   * states. */
+  for (int index : IndexRange(color_attachment_states.size())) {
+    if (color_attachment_states[index] == GPU_ATTACHMENT_WRITE && is_rendering_ &&
+        !(rendering_attachments_ & (1u << index)))
+    {
+      rendering_end(context);
+    }
+  }
+
+  /* Keep the rendering scope open: #GPU_ATTACHMENT_READ means the attachment is read as an input
+   * attachment, so it has to stay attached and is bound with #image_bind. */
+  for (int index : IndexRange(color_attachment_states.size())) {
+    if (color_attachment_states[index] != GPU_ATTACHMENT_READ) {
+      continue;
+    }
+    VKTexture *texture = unwrap(unwrap(color_tex(index)));
+    if (texture == nullptr) {
+      continue;
+    }
+
+    if (is_rendering_ && !(rendering_attachments_ & (1u << index))) {
+      /* The attachment is not attached to the open scope, so it cannot be read as an input
+       * attachment. Start a scope that includes it. */
+      rendering_end(context);
+    }
+    context.state_manager_get().image_bind(texture, index);
   }
 }
 
@@ -580,16 +598,15 @@ int VKFrameBuffer::color_attachments_resource_size() const
 void VKFrameBuffer::rendering_reset()
 {
   is_rendering_ = false;
+  rendering_attachments_ = 0;
 }
 
 void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
                                                        const VKExtensions &extensions)
 {
-  const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
-
   depth_attachment_format_ = VK_FORMAT_UNDEFINED;
   stencil_attachment_format_ = VK_FORMAT_UNDEFINED;
+  rendering_attachments_ = 0;
 
   render_graph::VKResourceAccessInfo access_info;
   render_graph::VKBeginRenderingNode::CreateInfo begin_rendering(access_info);
@@ -651,7 +668,10 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
         vk_format = VK_FORMAT_R8G8B8_UNORM;
       }
     }
-    if (attachment_state == GPU_ATTACHMENT_WRITE) {
+    bool is_rendering_attachment = attachment_state == GPU_ATTACHMENT_WRITE ||
+                                   (extensions.dynamic_rendering_local_read &&
+                                    attachment_state == GPU_ATTACHMENT_READ);
+    if (is_rendering_attachment) {
       VKImageViewInfo image_view_info = {
           eImageViewUsage::Attachment,
           IndexRange(layer_base,
@@ -663,10 +683,14 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
           VK_IMAGE_ASPECT_COLOR_BIT};
       const VKImageView &image_view = color_texture.image_view_get(image_view_info);
       vk_image_view = image_view.vk_handle();
+      rendering_attachments_ |= (1u << (color_attachment_index - GPU_FB_COLOR_ATTACHMENT0));
     }
     attachment_info.imageView = vk_image_view;
-    attachment_info.imageLayout = supports_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
-                                                        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    /* Local read keeps the attachments in this layout for the whole scope, so they can be read
+     * back as an input attachment. */
+    attachment_info.imageLayout = extensions.dynamic_rendering_local_read ?
+                                      VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
+                                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     eGPUDataFormat data_format = to_texture_data_format(color_texture.format_get());
 
@@ -812,6 +836,7 @@ void VKFrameBuffer::rendering_end(VKContext &context)
     render_graph::VKEndRenderingNode::CreateInfo end_rendering = {};
     context.render_graph().add_node(end_rendering);
     is_rendering_ = false;
+    rendering_attachments_ = 0;
   }
 }
 

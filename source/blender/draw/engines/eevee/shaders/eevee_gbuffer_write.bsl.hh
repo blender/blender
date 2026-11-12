@@ -112,6 +112,9 @@ ClosurePacking pack_closure(const PackParameters &srt, ClosureUndetermined cl)
     case GBUF_OREN_NAYAR:
       gbuffer::OrenNayar::pack_additional(cl_packed, BsdfClosure::make(cl));
       break;
+    case GBUF_SHEEN:
+      gbuffer::Sheen::pack_additional(cl_packed, BsdfClosure::make(cl));
+      break;
     case GBUF_DIFFUSE:
     case GBUF_UNLIT:
     case GBUF_TRANSLUCENT:

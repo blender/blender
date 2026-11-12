@@ -373,36 +373,34 @@ enum : uint64_t {
   G_DEBUG_IO = (1ull << 17),
   /** Force GPU workarounds bypassing detection. */
   G_DEBUG_GPU_FORCE_WORKAROUNDS = (1ull << 18),
-  /** Force GPU dynamic rendering local read. */
-  G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ = (1ull << 19),
   /** Compile all statically defined shaders. . */
-  G_DEBUG_GPU_COMPILE_SHADERS = (1ull << 20),
+  G_DEBUG_GPU_COMPILE_SHADERS = (1ull << 19),
   /** Enable RenderDoc integration. */
-  G_DEBUG_GPU_RENDERDOC = (1ull << 21),
+  G_DEBUG_GPU_RENDERDOC = (1ull << 20),
   /** Enable the generation of shader debug info. */
-  G_DEBUG_GPU_SHADER_DEBUG_INFO = (1ull << 22),
+  G_DEBUG_GPU_SHADER_DEBUG_INFO = (1ull << 21),
   /** Disable memory aliasing in the texture pool. */
-  G_DEBUG_GPU_NO_TEXTURE_POOL = (1ull << 23),
+  G_DEBUG_GPU_NO_TEXTURE_POOL = (1ull << 22),
   /** XR/OpenXR messages */
-  G_DEBUG_XR = (1ull << 24),
+  G_DEBUG_XR = (1ull << 23),
   /** XR/OpenXR timing messages */
-  G_DEBUG_XR_TIME = (1ull << 25),
+  G_DEBUG_XR_TIME = (1ull << 24),
 
   /** Debug GHOST module. */
-  G_DEBUG_GHOST = (1ull << 26),
+  G_DEBUG_GHOST = (1ull << 25),
   /** Debug WINTAB. */
-  G_DEBUG_WINTAB = (1ull << 27),
+  G_DEBUG_WINTAB = (1ull << 26),
 
   /** Disable the preprocessor (implies NO_DCE). */
-  G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1ull << 28),
+  G_DEBUG_GPU_SHADER_NO_PREPROCESSOR = (1ull << 27),
   /** Disable Dead Code Elimination. */
-  G_DEBUG_GPU_SHADER_NO_DCE = (1ull << 29),
+  G_DEBUG_GPU_SHADER_NO_DCE = (1ull << 28),
   /** Fail when the requested GPU device is invalid. */
-  G_DEBUG_GPU_DEVICE_NO_FALLBACK = (1ull << 30),
+  G_DEBUG_GPU_DEVICE_NO_FALLBACK = (1ull << 29),
   /** Skip GPU backend support check and fail if the selected backend is not supported. */
-  G_DEBUG_GPU_BACKEND_NO_FALLBACK = (1ull << 31),
+  G_DEBUG_GPU_BACKEND_NO_FALLBACK = (1ull << 30),
   /** Disable hardware raytracing support at the GHOST level (Vulkan only). */
-  G_DEBUG_GPU_NO_HW_RAYTRACING = (1ull << 32),
+  G_DEBUG_GPU_NO_HW_RAYTRACING = (1ull << 31),
 };
 
 #define G_DEBUG_ALL \

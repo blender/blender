@@ -182,7 +182,6 @@ void VKDevice::init(GHOST_IContext *ghost_context)
   debug::object_label(vk_handle(), "LogicalDevice");
   debug::object_label(vk_queue_, "GenericQueue");
 
-  resources.use_dynamic_rendering_local_read = extensions_.dynamic_rendering_local_read;
   orphaned_data.timeline_ = 0;
 
   init_submission_thread();

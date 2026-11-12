@@ -1446,6 +1446,11 @@ static void calc_bevfac_mapping(const Curve *cu,
     *r_steps = bl->nr - *r_start;
     *r_lastblend = 1.0f;
   }
+  else if (*r_lastblend == 0.0f && *r_steps > 2) {
+    /* Remove a step if exactly on a segment boundary (would create double vertices). */
+    *r_steps -= 1;
+    *r_lastblend = 1.0f;
+  }
 }
 
 static bke::GeometrySet evaluate_curve_type_object(Depsgraph *depsgraph,

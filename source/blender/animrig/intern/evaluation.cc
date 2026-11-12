@@ -14,6 +14,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
 #include "BLI_task.hh"
+#include "BLI_vector.hh"
 
 #include "CLG_log.h"
 
@@ -48,7 +49,8 @@ void apply_evaluation_result(const EvaluationResult &evaluation_result,
 EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
                                  Action &action,
                                  const slot_handle_t slot_handle,
-                                 const AnimationEvalContext &anim_eval_context)
+                                 const AnimationEvalContext &anim_eval_context,
+                                 const Set<ParsedRNAPathRef> *rna_path_filter)
 {
   EvaluationResult result;
 
@@ -60,7 +62,7 @@ EvaluationResult evaluate_action(PointerRNA &animated_id_ptr,
     }
 
     EvaluationResult layer_result = evaluate_layer(
-        animated_id_ptr, action, *layer, slot_handle, anim_eval_context);
+        animated_id_ptr, action, *layer, slot_handle, anim_eval_context, rna_path_filter);
     if (!layer_result) {
       continue;
     }
@@ -84,10 +86,11 @@ void evaluate_and_apply_action(PointerRNA &animated_id_ptr,
                                Action &action,
                                const slot_handle_t slot_handle,
                                const AnimationEvalContext &anim_eval_context,
-                               const bool flush_to_original)
+                               const bool flush_to_original,
+                               const Set<ParsedRNAPathRef> *rna_path_filter)
 {
   EvaluationResult evaluation_result = evaluate_action(
-      animated_id_ptr, action, slot_handle, anim_eval_context);
+      animated_id_ptr, action, slot_handle, anim_eval_context, rna_path_filter);
   if (!evaluation_result) {
     return;
   }
@@ -148,17 +151,42 @@ static void animsys_write_orig_anim_rna(PointerRNA *ptr,
   }
 }
 
+/**
+ * The F-Curves to evaluate: all of \a fcurves without \a rna_path_filter, otherwise the ones
+ * animating the filtered RNA paths, stored in \a r_filtered_fcurves.
+ */
+static Span<FCurve *> fcurves_to_evaluate(const Span<FCurve *> fcurves,
+                                          const Set<ParsedRNAPathRef> *rna_path_filter,
+                                          Vector<FCurve *> &r_filtered_fcurves)
+{
+  if (!rna_path_filter) {
+    return fcurves;
+  }
+  for (FCurve *fcu : fcurves) {
+    if (rna_path_filter->contains(fcu->rna_path_parsed())) {
+      r_filtered_fcurves.append(fcu);
+    }
+  }
+  return r_filtered_fcurves;
+}
+
 static EvaluationResult evaluate_keyframe_data(PointerRNA &animated_id_ptr,
                                                StripKeyframeData &strip_data,
                                                const slot_handle_t slot_handle,
-                                               const AnimationEvalContext &offset_eval_context)
+                                               const AnimationEvalContext &offset_eval_context,
+                                               const Set<ParsedRNAPathRef> *rna_path_filter)
 {
   Channelbag *channelbag_for_slot = strip_data.channelbag_for_slot(slot_handle);
   if (!channelbag_for_slot) {
     return {};
   }
 
-  Span<FCurve *> fcurves = channelbag_for_slot->fcurves();
+  /* Select filtered F-Curves up front, so that threads are only used for the evaluated ones.
+   * Skipping F-Curves doesn't affect the other properties as long as Actions are limited to a
+   * single layer and strip. */
+  Vector<FCurve *> filtered_fcurves;
+  const Span<FCurve *> fcurves = fcurves_to_evaluate(
+      channelbag_for_slot->fcurves(), rna_path_filter, filtered_fcurves);
   /* Stores true for FCurves with successfully resolved RNA paths. */
   Array<bool> valid(fcurves.size(), false);
   Array<float> results(fcurves.size());
@@ -235,7 +263,8 @@ static EvaluationResult evaluate_strip(PointerRNA &animated_id_ptr,
                                        Action &owning_action,
                                        Strip &strip,
                                        const slot_handle_t slot_handle,
-                                       const AnimationEvalContext &anim_eval_context)
+                                       const AnimationEvalContext &anim_eval_context,
+                                       const Set<ParsedRNAPathRef> *rna_path_filter)
 {
   AnimationEvalContext offset_eval_context = anim_eval_context;
   /* Positive offset means the entire strip is pushed "to the right", so
@@ -245,7 +274,8 @@ static EvaluationResult evaluate_strip(PointerRNA &animated_id_ptr,
   switch (strip.type()) {
     case Strip::Type::Keyframe: {
       StripKeyframeData &strip_data = strip.data<StripKeyframeData>(owning_action);
-      return evaluate_keyframe_data(animated_id_ptr, strip_data, slot_handle, offset_eval_context);
+      return evaluate_keyframe_data(
+          animated_id_ptr, strip_data, slot_handle, offset_eval_context, rna_path_filter);
     }
   }
 
@@ -302,7 +332,8 @@ EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
                                 Action &owning_action,
                                 Layer &layer,
                                 const slot_handle_t slot_handle,
-                                const AnimationEvalContext &anim_eval_context)
+                                const AnimationEvalContext &anim_eval_context,
+                                const Set<ParsedRNAPathRef> *rna_path_filter)
 {
   /* TODO: implement cross-blending between overlapping strips. For now, this is not supported.
    * Instead, the first strong result is taken (see below), and if that is not available, the last
@@ -319,7 +350,7 @@ EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
 
     /* Cannot use const here because the std::move would not work otherwise. */
     EvaluationResult strip_result = evaluate_strip(
-        animated_id_ptr, owning_action, *strip, slot_handle, anim_eval_context);
+        animated_id_ptr, owning_action, *strip, slot_handle, anim_eval_context, rna_path_filter);
     if (!strip_result) {
       continue;
     }

@@ -1308,16 +1308,24 @@ static NlaEvalChannel *nlaevalchan_verify_key(NlaEvalData *nlaeval,
   });
 }
 
-/* Verify that an appropriate NlaEvalChannel for this path exists. */
-static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval, const char *path)
+/* Verify that an appropriate NlaEvalChannel for this path exists. \a parsed_path is the parsed
+ * \a path, used to resolve the property without parsing \a path again. */
+static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr,
+                                          NlaEvalData *nlaeval,
+                                          const StringRefNull path,
+                                          const ParsedRNAPathRef parsed_path)
 {
-  if (path == nullptr) {
+  if (path.is_empty()) {
+    return nullptr;
+  }
+  if (nlaeval->rna_path_filter && !nlaeval->rna_path_filter->contains(parsed_path)) {
     return nullptr;
   }
 
   /* Lookup the path in the path based hash. */
   NlaEvalChannel **p_path_nec;
-  bool found_path = BLI_ghash_ensure_p(nlaeval->path_hash, (void *)path, (void ***)&p_path_nec);
+  bool found_path = BLI_ghash_ensure_p(
+      nlaeval->path_hash, (void *)path.c_str(), (void ***)&p_path_nec);
 
   if (found_path) {
     return *p_path_nec;
@@ -1329,13 +1337,13 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval,
   /* Resolve the property and look it up in the key hash. */
   NlaEvalChannelKey key{};
 
-  if (!RNA_path_resolve_property(ptr, path, &key.ptr, &key.prop)) {
+  if (!RNA_path_resolve_property(ptr, parsed_path, &key.ptr, &key.prop)) {
     /* Report failure to resolve the path. */
     if (G.debug & G_DEBUG) {
       CLOG_WARN(&LOG_ANIM_NLA,
                 "Invalid path. ID = '%s',  '%s'",
                 (ptr->owner_id) ? (ptr->owner_id->name + 2) : "<No ID>",
-                path);
+                path.c_str());
     }
 
     return nullptr;
@@ -1346,10 +1354,10 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval,
     return nullptr;
   }
 
-  NlaEvalChannel *nec = nlaevalchan_verify_key(nlaeval, path, &key);
+  NlaEvalChannel *nec = nlaevalchan_verify_key(nlaeval, path.c_str(), &key);
 
   if (nec->rna_path == nullptr) {
-    nec->rna_path = path;
+    nec->rna_path = path.c_str();
   }
 
   return *p_path_nec = nec;
@@ -2420,7 +2428,8 @@ static void nlasnapshot_from_action(PointerRNA *ptr,
       continue;
     }
 
-    NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path().c_str());
+    NlaEvalChannel *nec = nlaevalchan_verify(
+        ptr, channels, fcu->rna_path(), fcu->rna_path_parsed());
 
     /* Invalid path or property cannot be animated. */
     if (nec == nullptr) {
@@ -2916,7 +2925,8 @@ static void nla_eval_domain_action(PointerRNA *ptr,
       continue;
     }
 
-    NlaEvalChannel *nec = nlaevalchan_verify(ptr, channels, fcu->rna_path().c_str());
+    NlaEvalChannel *nec = nlaevalchan_verify(
+        ptr, channels, fcu->rna_path(), fcu->rna_path_parsed());
 
     if (nec != nullptr) {
       /* For quaternion properties, enable all sub-channels. */
@@ -3348,11 +3358,13 @@ static void animsys_evaluate_nla_for_keyframing(PointerRNA *ptr,
 static bool animsys_calculate_nla(PointerRNA *ptr,
                                   AnimData *adt,
                                   const AnimationEvalContext *anim_eval_context,
-                                  const bool flush_to_original)
+                                  const bool flush_to_original,
+                                  const Set<ParsedRNAPathRef> *rna_path_filter)
 {
   NlaEvalData echannels;
 
   nlaeval_init(&echannels);
+  echannels.rna_path_filter = rna_path_filter;
 
   /* evaluate the NLA stack, obtaining a set of values to flush */
   const bool did_evaluate_something = animsys_evaluate_nla_for_flush(
@@ -3713,6 +3725,31 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
  *   However, the code for this is relatively harmless, so is left in the code for now.
  */
 
+void BKE_animsys_evaluate_action_nla(const OwnedAnimData owned_adt,
+                                     const AnimationEvalContext &anim_eval_context,
+                                     const bool flush_to_original,
+                                     const Set<ParsedRNAPathRef> *rna_path_filter)
+{
+  AnimData &adt = owned_adt.adt;
+  PointerRNA id_ptr = RNA_id_pointer_create(&owned_adt.owner_id);
+
+  /* evaluate NLA data */
+  bool did_nla_evaluate_anything = false;
+  if ((adt.nla_tracks.first()) && !(adt.flag & ADT_NLA_EVAL_OFF)) {
+    /* evaluate NLA-stack
+     * - active action is evaluated as part of the NLA stack as the last item
+     */
+    did_nla_evaluate_anything = animsys_calculate_nla(
+        &id_ptr, &adt, &anim_eval_context, flush_to_original, rna_path_filter);
+  }
+
+  if (!did_nla_evaluate_anything && adt.action) {
+    animrig::Action &action = adt.action->wrap();
+    animrig::evaluate_and_apply_action(
+        id_ptr, action, adt.slot_handle, anim_eval_context, flush_to_original, rna_path_filter);
+  }
+}
+
 void BKE_animsys_evaluate_animdata(ID *id,
                                    AnimData *adt,
                                    const AnimationEvalContext *anim_eval_context,
@@ -3734,21 +3771,7 @@ void BKE_animsys_evaluate_animdata(ID *id,
    */
   /* TODO: need to double check that this all works correctly */
   if (recalc & ADT_RECALC_ANIM) {
-    /* evaluate NLA data */
-    bool did_nla_evaluate_anything = false;
-    if ((adt->nla_tracks.first()) && !(adt->flag & ADT_NLA_EVAL_OFF)) {
-      /* evaluate NLA-stack
-       * - active action is evaluated as part of the NLA stack as the last item
-       */
-      did_nla_evaluate_anything = animsys_calculate_nla(
-          &id_ptr, adt, anim_eval_context, flush_to_original);
-    }
-
-    if (!did_nla_evaluate_anything && adt->action) {
-      animrig::Action &action = adt->action->wrap();
-      animrig::evaluate_and_apply_action(
-          id_ptr, action, adt->slot_handle, *anim_eval_context, flush_to_original);
-    }
+    BKE_animsys_evaluate_action_nla({*id, *adt}, *anim_eval_context, flush_to_original);
   }
 
   /* recalculate drivers

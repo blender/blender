@@ -10,9 +10,13 @@
 
 #include "eevee_bxdf_diffuse.bsl.hh"     // IWYU pragma: export
 #include "eevee_bxdf_microfacet.bsl.hh"  // IWYU pragma: export
+#include "eevee_bxdf_sheen.bsl.hh"       // IWYU pragma: export
 #include "eevee_bxdf_types.bsl.hh"       // IWYU pragma: export
 
-BsdfSample BsdfClosure::sample(float3 rand, float3 Vt, Thickness thickness) const
+BsdfSample BsdfClosure::sample(const UtilityTexture &util_tx,
+                               float3 rand,
+                               float3 Vt,
+                               Thickness thickness) const
 {
   switch (this->type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
@@ -29,6 +33,8 @@ BsdfSample BsdfClosure::sample(float3 rand, float3 Vt, Thickness thickness) cons
       return BsdfMicrofacetRefract::unpack(*this).sample(rand, Vt, thickness);
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return BsdfThinGlassTransmission::unpack(*this).sample(rand, Vt, thickness);
+    case CLOSURE_BSDF_SHEEN_ID:
+      return BsdfSheen::unpack(util_tx, Vt, *this).sample(rand, Vt, thickness);
     case CLOSURE_NONE_ID:
       assert(false);
       return {};
@@ -36,7 +42,10 @@ BsdfSample BsdfClosure::sample(float3 rand, float3 Vt, Thickness thickness) cons
   return {};
 }
 
-BsdfEval BsdfClosure::eval(float3 V, float3 L, Thickness thickness) const
+BsdfEval BsdfClosure::eval(const UtilityTexture &util_tx,
+                           float3 V,
+                           float3 L,
+                           Thickness thickness) const
 {
   switch (this->type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
@@ -53,6 +62,8 @@ BsdfEval BsdfClosure::eval(float3 V, float3 L, Thickness thickness) const
       return BsdfMicrofacetRefract::unpack(*this).eval(V, L, thickness);
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return BsdfThinGlassTransmission::unpack(*this).eval(V, L, thickness);
+    case CLOSURE_BSDF_SHEEN_ID:
+      return BsdfSheen::unpack(util_tx, V, *this).eval(V, L, thickness);
     case CLOSURE_NONE_ID:
       assert(false);
       return {};
@@ -60,7 +71,9 @@ BsdfEval BsdfClosure::eval(float3 V, float3 L, Thickness thickness) const
   return {};
 }
 
-LightProbeRay BsdfClosure::lightprobe_ray(float3 V, Thickness thickness) const
+LightProbeRay BsdfClosure::lightprobe_ray(const UtilityTexture &util_tx,
+                                          float3 V,
+                                          Thickness thickness) const
 {
   switch (this->type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
@@ -77,6 +90,8 @@ LightProbeRay BsdfClosure::lightprobe_ray(float3 V, Thickness thickness) const
       return BsdfMicrofacetRefract::unpack(*this).lightprobe_ray(V, thickness);
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return BsdfThinGlassTransmission::unpack(*this).lightprobe_ray(V, thickness);
+    case CLOSURE_BSDF_SHEEN_ID:
+      return BsdfSheen::unpack(util_tx, V, *this).lightprobe_ray(V, thickness);
     case CLOSURE_NONE_ID:
       assert(false);
       return {};
@@ -103,6 +118,8 @@ LightEvalContext BsdfClosure::light_eval_context(const UtilityTexture &util_tx,
       return BsdfMicrofacetRefract::unpack(*this).light_eval_context(util_tx, V, thickness);
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return BsdfThinGlassTransmission::unpack(*this).light_eval_context(util_tx, V, thickness);
+    case CLOSURE_BSDF_SHEEN_ID:
+      return BsdfSheen::unpack(util_tx, V, *this).light_eval_context(util_tx, V, thickness);
     case CLOSURE_NONE_ID:
       assert(false);
       return {};
@@ -127,6 +144,8 @@ float BsdfClosure::perceived_roughness() const
       return BsdfMicrofacetRefract::unpack(*this).perceived_roughness();
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return BsdfThinGlassTransmission::unpack(*this).perceived_roughness();
+    case CLOSURE_BSDF_SHEEN_ID:
+      return BsdfSheen::unpack(*this).perceived_roughness();
     case CLOSURE_NONE_ID:
       assert(false);
       return 0.0f;
@@ -143,6 +162,7 @@ void BsdfClosure::context_amend(float3 &V, Thickness thickness)
     case CLOSURE_BSDF_OREN_NAYAR_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
+    case CLOSURE_BSDF_SHEEN_ID:
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
       auto bsdf = BsdfMicrofacetRefract::unpack(*this);
@@ -168,6 +188,7 @@ Ray BsdfClosure::ray_amend(float3 V, Ray ray, Thickness thickness) const
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
+    case CLOSURE_BSDF_SHEEN_ID:
       break;
     case CLOSURE_NONE_ID:
       assert(false);

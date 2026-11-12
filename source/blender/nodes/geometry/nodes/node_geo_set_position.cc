@@ -153,7 +153,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   if (selection_is_all && position_is_default && offset_is_constant) {
     const float3 offset = fn::evaluate_constant_field(offset_field);
-    geometry::translate_geometry(geometry, offset, false);
+    geometry::translate_points_and_instances(geometry, offset);
     params.set_output("Geometry"_ustr, std::move(geometry));
     return;
   }

@@ -7,9 +7,9 @@
 #include "gpu_shader_material_interface.bsl.hh"
 
 [[node]]
-void node_shadow_raycast(const float light_index,
-                         float3 position,
+void node_shadow_raycast(float3 position,
                          float softness,
+                         const float light_index,
                          KernelGlobals &kg,
                          const ShadingData &sd,
                          float4 &color)

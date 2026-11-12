@@ -17,7 +17,6 @@ VKCommandBufferWrapper::VKCommandBufferWrapper(VkCommandBuffer vk_command_buffer
                                                const VKWorkarounds &workarounds)
     : vk_command_buffer_(vk_command_buffer), functions(&functions)
 {
-  use_dynamic_rendering_local_read = extensions.dynamic_rendering_local_read;
   use_multi_draw_indirect = extensions.multi_draw_indirect;
   use_dynamic_state_viewport_scissor = !workarounds.static_viewport_scissor;
 }

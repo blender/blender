@@ -464,9 +464,8 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   /* Return coverage of the whole tile-map in world unit. */
   static float coverage_get(int lvl)
   {
-    /* This function should be kept in sync with shadow_directional_level(). */
     /* \note If we would to introduce a global scaling option it would be here. */
-    return exp2(lvl);
+    return shadow_directional_coverage_get(lvl);
   }
 
   /* Return coverage of a single tile for a tile-map of this LOD in world unit. */

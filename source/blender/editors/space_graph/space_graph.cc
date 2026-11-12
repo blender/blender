@@ -281,9 +281,9 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
       /* draw ghost curves */
       graph_draw_ghost_curves(*scene, sipo, region);
 
-      /* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
-      graph_draw_curves(&ac, sipo, region, 0);
-      graph_draw_curves(&ac, sipo, region, 1);
+    /* draw curves twice - unselected, then selected, so that the are fewer occlusion problems */
+    graph_draw_curves(&ac, sipo, region->v2d, 0);
+    graph_draw_curves(&ac, sipo, region->v2d, 1);
 
       /* XXX(ton): the slow way to set tot rect... but for nice sliders needed. */
       /* Excluding handles from the calculation to save performance. This cuts the time it takes

@@ -9,6 +9,7 @@
  */
 
 #include <algorithm>
+#include <climits>
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -30,6 +31,7 @@
 #include "SEQ_render.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
+#include "SEQ_sound.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
@@ -83,14 +85,37 @@ float give_frame_index(const Scene *scene, const Strip *strip, float timeline_fr
   return frame_index;
 }
 
-static int metastrip_start_get(Strip *strip_meta)
+static int metastrip_start_get(const Strip *strip_meta)
 {
   return strip_meta->start + strip_meta->startofs;
 }
 
-static int metastrip_end_get(Strip *strip_meta)
+static int metastrip_end_get(const Strip *strip_meta)
 {
   return strip_meta->start + strip_meta->content_length() - strip_meta->end_offset();
+}
+
+/**
+ * Frames of the audio of a sound or Scene strip inside Meta strips, which limit it to \a start
+ * to \a end. \a r_startofs is set to the frames of its content that are skipped before it.
+ */
+static Bounds<int> strip_sound_bounds_in_meta(const Strip &strip,
+                                              const int start,
+                                              const int end,
+                                              int &r_startofs)
+{
+  int startofs = strip.startofs;
+  int endofs = strip.end_offset();
+  if (strip.startofs + strip.start < start) {
+    startofs = start - strip.start;
+  }
+
+  if (strip.start + strip.content_length() - strip.end_offset() > end) {
+    endofs = strip.start + strip.content_length() - end;
+  }
+
+  r_startofs = startofs;
+  return {int(strip.start + startofs), int(strip.start + strip.content_length() - endofs)};
 }
 
 static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
@@ -109,15 +134,8 @@ static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
     }
     else if (ELEM(strip.type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
       if (strip.runtime->scene_sound) {
-        int startofs = strip.startofs;
-        int endofs = strip.end_offset();
-        if (strip.startofs + strip.start < start) {
-          startofs = start - strip.start;
-        }
-
-        if (strip.start + strip.content_length() - strip.end_offset() > end) {
-          endofs = strip.start + strip.content_length() - end;
-        }
+        int startofs;
+        const Bounds<int> frames = strip_sound_bounds_in_meta(strip, start, end, startofs);
 
         double offset_time = 0.0f;
         if (strip.sound != nullptr) {
@@ -126,8 +144,8 @@ static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
 
         BKE_sound_move_scene_sound(scene,
                                    strip.runtime->scene_sound,
-                                   strip.start + startofs,
-                                   strip.start + strip.content_length() - endofs,
+                                   frames.min,
+                                   frames.max,
                                    startofs + strip.anim_startofs,
                                    offset_time);
       }
@@ -139,6 +157,23 @@ void strip_update_sound_bounds_recursive(const Scene *scene, Strip *strip_meta)
 {
   strip_update_sound_bounds_recursive_impl(
       scene, strip_meta, metastrip_start_get(strip_meta), metastrip_end_get(strip_meta));
+}
+
+Bounds<int> sound_bounds_get(const Scene *scene, const Strip *strip)
+{
+  const Strip *meta = lookup_meta_by_strip(scene->ed, strip);
+  if (meta == nullptr) {
+    return {strip->left_handle(), strip->right_handle(scene)};
+  }
+  /* Like #strip_update_sound_bounds_recursive_impl, which limits it to all its Meta strips. */
+  int start = INT_MIN;
+  int end = INT_MAX;
+  for (; meta != nullptr; meta = lookup_meta_by_strip(scene->ed, meta)) {
+    start = max_ii(start, metastrip_start_get(meta));
+    end = min_ii(end, metastrip_end_get(meta));
+  }
+  int startofs;
+  return strip_sound_bounds_in_meta(*strip, start, end, startofs);
 }
 
 void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)

@@ -163,6 +163,25 @@ void Instance::init()
   else {
     this->camera = nullptr;
   }
+
+  /* Calculate render border clipping rectangle (xmin, ymin, xmax, ymax). */
+  this->clipping_rect = float4(0.0f, 0.0f, this->draw_ctx->size.x, this->draw_ctx->size.y);
+
+  const bool use_shading_border = this->is_viewport &&
+                                  (this->v3d && this->v3d->shading.type >= OB_MATERIAL);
+
+  rctf border;
+  if (use_shading_border && BKE_camera_view_render_border(this->scene,
+                                                          this->draw_ctx->depsgraph,
+                                                          this->v3d,
+                                                          this->draw_ctx->rv3d,
+                                                          int(this->draw_ctx->size.x),
+                                                          int(this->draw_ctx->size.y),
+                                                          &border,
+                                                          nullptr))
+  {
+    this->clipping_rect = float4(border.xmin, border.ymin, border.xmax, border.ymax);
+  }
 }
 
 void Instance::begin_sync()
@@ -243,6 +262,7 @@ void Instance::begin_sync()
     pass.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
     pass.shader_set(ShaderCache::get().depth_merge.get());
     pass.bind_texture("depth_buf", &this->depth_tx);
+    pass.push_constant("clipping_rect", this->clipping_rect);
     pass.push_constant("stroke_order3d", &this->is_stroke_order_3d);
     pass.push_constant("gp_model_matrix", &this->object_bound_mat);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);

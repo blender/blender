@@ -263,6 +263,10 @@ gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr, MeshBufferCache &c
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
       "attribute_value", gpu::VertAttrType::SFLOAT_32_32_32_32);
+  if (mr.corners_num == 0) {
+    /* Domain interpolation can fail with empty domains. */
+    return vbo_create(format, 0);
+  }
   const StringRefNull attr_name = ".viewer";
   const bke::AttributeAccessor attributes = mr.mesh->attributes();
   bke::GAttributeReader attr = attributes.lookup(

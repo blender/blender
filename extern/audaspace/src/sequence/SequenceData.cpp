@@ -169,4 +169,44 @@ void SequenceData::remove(std::shared_ptr<SequenceEntry> entry)
 	m_entry_status++;
 }
 
+AnimateableProperty* SequenceData::getReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type)
+{
+	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
+	auto properties = m_reference_properties.find(reference);
+
+	if(properties == m_reference_properties.end())
+		return nullptr;
+
+	auto property = properties->second.find(std::make_pair(entry, type));
+
+	return property == properties->second.end() ? nullptr : property->second.get();
+}
+
+AnimateableProperty* SequenceData::addReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type, float value)
+{
+	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
+	std::unique_ptr<AnimateableProperty>& property = m_reference_properties[reference][std::make_pair(entry, type)];
+
+	if(!property)
+		property = std::unique_ptr<AnimateableProperty>(new AnimateableProperty(1, value));
+
+	return property.get();
+}
+
+void SequenceData::setReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type, std::unique_ptr<AnimateableProperty> property)
+{
+	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
+	m_reference_properties[reference][std::make_pair(entry, type)] = std::move(property);
+}
+
+void SequenceData::clearReferenceAnimProperties()
+{
+	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
+	m_reference_properties.clear();
+}
+
 AUD_NAMESPACE_END

@@ -40,8 +40,10 @@ struct CurveProfile *BKE_curveprofile_copy(const struct CurveProfile *profile);
 /**
  * Move a point's handle, accounting for the alignment of handles with the #HD_ALIGN type.
  *
- * \param handle_1: Whether to move the 1st or 2nd control point.
- * \param delta: The *relative* change in the handle's position.
+ * \param handle_1: Whether to move the `h1` (true) or `h2` (false) handle. If both handles are
+ * #HD_ALIGN, the other handle is then mirrored through the point to stay aligned with it.
+ * \param delta: The *relative* change in the handle's position. Pass null (with \a snap false) to
+ * keep the chosen handle in place and only align the other handle to it.
  * \note Requires #BKE_curveprofile_update call after.
  * \return Whether the handle moved from its start position.
  */

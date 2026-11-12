@@ -18,10 +18,10 @@ void node_light_evaluation_common(const float light_index,
 }
 
 [[node]]
-void node_light_evaluation_diffuse(const float light_index,
-                                   float3 position,
+void node_light_evaluation_diffuse(float3 position,
                                    float3 normal,
                                    float roughness,
+                                   const float light_index,
                                    KernelGlobals &kg,
                                    const ShadingData &sd,
                                    float &factor,
@@ -34,10 +34,10 @@ void node_light_evaluation_diffuse(const float light_index,
 }
 
 [[node]]
-void node_light_evaluation_glossy(const float light_index,
-                                  float3 position,
+void node_light_evaluation_glossy(float3 position,
                                   float3 normal,
                                   float roughness,
+                                  const float light_index,
                                   KernelGlobals &kg,
                                   const ShadingData &sd,
                                   float &factor,

@@ -28,8 +28,10 @@
 #include "util/ILockable.h"
 
 #include <list>
+#include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 AUD_NAMESPACE_BEGIN
 
@@ -81,6 +83,12 @@ private:
 
 	/// The animated listener orientation.
 	AnimateableProperty m_orientation;
+
+	/// The animated properties of a reference to the scene by entry ID, -1 for the scene, and type.
+	typedef std::map<std::pair<int, AnimateablePropertyType>, std::unique_ptr<AnimateableProperty> > ReferenceProperties;
+
+	/// The animated properties of references to the scene by reference, see getReferenceAnimProperty().
+	std::map<std::vector<int>, ReferenceProperties> m_reference_properties;
 
 	/// The mutex for locking.
 	std::recursive_mutex m_mutex;
@@ -211,6 +219,56 @@ public:
 	 * \param entry The entry to remove.
 	 */
 	void remove(std::shared_ptr<SequenceEntry> entry);
+
+	/**
+	 * Retrieves an animated property that a reference to the scene reads instead of a property of
+	 * the scene or of one of its entries. References are the entries of other scenes that play the
+	 * scene. With these properties, references can have different animation. Readers use the
+	 * volume of the scene and the volume and panning of its entries.
+	 * \param reference The IDs of the entries from the scene that a device plays down to the entry
+	 *        that plays this scene, see SequenceEntry::getID().
+	 * \param entry The ID of the entry of the property, or -1 for a property of the scene.
+	 * \param type Which animated property to retrieve.
+	 * \return A pointer to the animated property, or nullptr if the reference doesn't have it. The
+	 *         sequence owns the property: the pointer becomes invalid when
+	 *         setReferenceAnimProperty() replaces the same property, when
+	 *         clearReferenceAnimProperties() is called or when the sequence is destroyed. The
+	 *         lookup locks the sequence only while it runs, so a caller that uses the pointer while
+	 *         another thread can replace or clear the property must hold lock() for as long as it
+	 *         uses the pointer, as readers do for a whole read.
+	 */
+	AnimateableProperty* getReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type);
+
+	/**
+	 * Retrieves an animated property of a reference to the scene like getReferenceAnimProperty(),
+	 * and adds it if the reference doesn't have it yet.
+	 * \param reference The IDs of the entries from the scene that a device plays down to the entry
+	 *        that plays this scene.
+	 * \param entry The ID of the entry of the property, or -1 for a property of the scene.
+	 * \param type Which animated property to retrieve.
+	 * \param value The value of an added property.
+	 * \return A pointer to the animated property, with the same lifetime and locking requirements
+	 *         as the one of getReferenceAnimProperty().
+	 */
+	AnimateableProperty* addReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type, float value);
+
+	/**
+	 * Replaces an animated property of a reference to the scene, see getReferenceAnimProperty().
+	 * Readers read either the replaced or the new property during a read. The replaced property is
+	 * destroyed, pointers to it become invalid.
+	 * \param reference The IDs of the entries from the scene that a device plays down to the entry
+	 *        that plays this scene.
+	 * \param entry The ID of the entry of the property, or -1 for a property of the scene.
+	 * \param type Which animated property to replace.
+	 * \param property The new property.
+	 */
+	void setReferenceAnimProperty(const std::vector<int>& reference, int entry, AnimateablePropertyType type, std::unique_ptr<AnimateableProperty> property);
+
+	/**
+	 * Removes the animated properties of all references to the scene, which read the properties of
+	 * the scene and its entries again.
+	 */
+	void clearReferenceAnimProperties();
 };
 
 AUD_NAMESPACE_END

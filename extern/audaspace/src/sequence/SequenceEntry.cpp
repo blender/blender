@@ -17,6 +17,8 @@
 #include "sequence/SequenceEntry.h"
 #include "sequence/SequenceReader.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <limits>
 #include <mutex>
 
@@ -96,6 +98,60 @@ void SequenceEntry::move(double begin, double end, double skip)
 		m_end = end;
 		m_pos_status++;
 	}
+}
+
+double SequenceEntry::getSoundPosition(double position)
+{
+	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+	std::lock_guard<ILockable> pitch_lock(m_pitch);
+
+	const double fps = m_sequence_data->getFPS();
+	const double seek_frame = std::max(0.0, (position - m_begin) * fps) + m_skip * fps;
+	if(seek_frame <= 0)
+		return 0;
+
+	// each pitch value applies to a whole frame, starting at the truncated entry origin
+	const int64_t whole_frames = seek_frame;
+	const double fraction = seek_frame - whole_frames;
+
+	if(!m_pitch.isAnimated())
+	{
+		const float pitch = m_pitch.readSingle(0);
+		return (pitch * double(whole_frames) + pitch * fraction) / fps;
+	}
+
+	const int64_t frame_start = int((m_begin - m_skip) * fps);
+	const int64_t buffer_start = m_pitch.getBufferPosition();
+	const int64_t last = buffer_start + m_pitch.getBufferLength() - 1;
+
+	// the values before and after the stored frames are constant, don't walk them frame by frame
+	const int64_t leading_end = std::min(whole_frames, std::max(int64_t(0), buffer_start - frame_start));
+	const int64_t stored_end = std::max(leading_end, std::min(whole_frames, last - frame_start));
+
+	double target_frame = m_pitch.readSingle(0) * double(leading_end);
+	for(int64_t i = leading_end; i < stored_end; i++)
+		target_frame += m_pitch.readSingle(frame_start + i);
+	target_frame += m_pitch.readSingle(last) * double(whole_frames - stored_end);
+	target_frame += m_pitch.readSingle(frame_start + whole_frames) * fraction;
+
+	return target_frame / fps;
+}
+
+bool SequenceEntry::getSoundRange(double begin, double end, double& sound_begin, double& sound_end)
+{
+	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+	std::lock_guard<ILockable> pitch_lock(m_pitch);
+
+	begin = std::max(begin, m_begin);
+	if(m_end >= 0)
+		end = std::min(end, m_end);
+	if(begin >= end)
+		return false;
+
+	// pitch is never negative, so the sound position doesn't decrease
+	sound_begin = getSoundPosition(begin);
+	sound_end = getSoundPosition(end);
+	return true;
 }
 
 bool SequenceEntry::isMuted()

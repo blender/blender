@@ -386,6 +386,7 @@ void RayTraceModule::sync()
     pass.bind_texture("fast_gi_radiance_2_tx", &fast_gi_radiance_denoised_tx_[2]);
     pass.bind_texture("fast_gi_radiance_3_tx", &fast_gi_radiance_denoised_tx_[3]);
     pass.bind_texture("screen_normal_tx", &downsampled_in_normal_tx_);
+    pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     pass.bind_image("closure0_img", &fast_gi_scan_output_tx_[0]);
     pass.bind_image("closure1_img", &fast_gi_scan_output_tx_[1]);
     pass.bind_image("closure2_img", &fast_gi_scan_output_tx_[2]);

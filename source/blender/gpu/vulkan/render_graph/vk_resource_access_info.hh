@@ -39,7 +39,12 @@ struct VKImageAccess {
    */
   VKSubImageRange subimage;
 
-  /** Determine the image layout for the vk_access_flags. */
+  /**
+   * Determine the image layout for the vk_access_flags.
+   *
+   * #supports_local_read comes from the resource tracker, see
+   * #VKResourceStateTracker::use_dynamic_rendering_local_read.
+   */
   VkImageLayout to_vk_image_layout(bool supports_local_read) const;
 };
 

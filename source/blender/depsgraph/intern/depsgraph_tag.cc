@@ -392,12 +392,17 @@ void graph_id_tag_update_single_flag(Main *bmain,
   DepsNodeFactory *factory = type_get_factory(component_type);
   BLI_assert(factory != nullptr);
   id_node->id_cow->recalc |= factory->id_recalc_tag();
+  /* A frame change is a time update, even when the legacy tag API reports it as a user edit. */
+  const eUpdateSource operation_update_source = tag == ID_RECALC_FRAME_CHANGE ?
+                                                    DEG_UPDATE_SOURCE_TIME :
+                                                    update_source;
   /* Tag corresponding dependency graph operation for update. */
   if (component_type == NodeType::ID_REF) {
-    id_node->tag_update(graph, update_source);
+    id_node->tag_update(graph, operation_update_source);
   }
   else {
-    depsgraph_tag_component(graph, id_node, component_type, operation_code, update_source);
+    depsgraph_tag_component(
+        graph, id_node, component_type, operation_code, operation_update_source);
   }
   /* TODO(sergey): Get rid of this once all areas are using proper data ID
    * for tagging. */

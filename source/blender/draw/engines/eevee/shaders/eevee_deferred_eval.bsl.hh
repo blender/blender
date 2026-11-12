@@ -225,7 +225,7 @@ void light_eval_frag([[resource_table]] LightEval &srt,
     for (uint i = 0u; i < 3; i++) [[unroll]] {
       if (lrt.constants.light_closure_eval_count_reflect > i) [[static_branch]] {
         if (i < closure_count) {
-          float3 indirect_light = lightprobes.eval(samp, gbuf.layer[i], P, V, thickness);
+          float3 indirect_light = lightprobes.eval(util_tx, samp, gbuf.layer[i], P, V, thickness);
           float3 direct_light = ctx.stack.cl[i].light_shadowed;
           if (srt.use_split_indirect) {
             srt.write_radiance_indirect(bin_indices[i], texel, indirect_light);
@@ -300,6 +300,7 @@ void sphere_eval_frag([[resource_table]] LightEvalIterator &lights,
         case CLOSURE_BSDF_DIFFUSE_ID:
         case CLOSURE_BSDF_OREN_NAYAR_ID:
         case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+        case CLOSURE_BSDF_SHEEN_ID:
           albedo_front += cl.color;
           break;
         case CLOSURE_BSDF_TRANSLUCENT_ID:
@@ -435,6 +436,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
         case CLOSURE_BSSRDF_BURLEY_ID:
         case CLOSURE_BSDF_DIFFUSE_ID:
         case CLOSURE_BSDF_OREN_NAYAR_ID:
+        case CLOSURE_BSDF_SHEEN_ID:
           albedo_front += cl.color;
           break;
         case CLOSURE_BSDF_TRANSLUCENT_ID:
@@ -546,8 +548,8 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
 
   radiance_front += sh.evaluate_lambert(Ng).rgb;
   radiance_back += sh.evaluate_lambert(-Ng).rgb;
-  radiance_reflect += lightprobes.eval(samp, cl_reflect, P, V, thickness);
-  radiance_refract += lightprobes.eval(samp, cl_refract, P, V, thickness);
+  radiance_reflect += lightprobes.eval(util_tx, samp, cl_reflect, P, V, thickness);
+  radiance_refract += lightprobes.eval(util_tx, samp, cl_refract, P, V, thickness);
 
   /* Note: planar probes use transmittance and not alpha for transparency. */
   frag_out.radiance = float4(0.0f);

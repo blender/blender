@@ -312,11 +312,13 @@ template<typename ParamTag, typename T> inline auto to_eval_pointer_args(T &&v)
  * obvious loop instead of being embedded into a much larger parent function.
  */
 template<int UnrollAmount, typename ElementFn, typename... ParamTags, typename... Args>
-[[gnu::flatten, gnu::noinline]] inline void evaluate_element_wise_flattened(
-    const ElementFn &element_fn,
-    TypeSequence<ParamTags...> param_tags,
-    const int64_t size,
-    Args *__restrict... args)
+#ifndef _MSC_VER
+[[gnu::flatten, gnu::noinline]]
+#endif
+inline void evaluate_element_wise_flattened(const ElementFn &element_fn,
+                                            TypeSequence<ParamTags...> param_tags,
+                                            const int64_t size,
+                                            Args *__restrict... args)
 {
   evaluate_element_wise_impl<UnrollAmount>(
       element_fn, param_tags, std::index_sequence_for<ParamTags...>(), size, args...);

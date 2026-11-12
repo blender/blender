@@ -241,13 +241,9 @@ static void translate_gizmos_edit_hints(bke::GizmoEditHints &edit_hints, const f
   }
 }
 
-void translate_geometry(bke::GeometrySet &geometry,
-                        const float3 translation,
-                        const bool translate_grease_pencil_layers)
+static void translate_mesh_curves_pointcloud_instances(bke::GeometrySet &geometry,
+                                                       const float3 translation)
 {
-  if (math::is_zero(translation)) {
-    return;
-  }
   if (Curves *curves = geometry.get_curves_for_write()) {
     curves->geometry.wrap().translate(translation);
   }
@@ -257,19 +253,33 @@ void translate_geometry(bke::GeometrySet &geometry,
   if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
     translate_pointcloud(*pointcloud, translation);
   }
+  if (bke::Instances *instances = geometry.get_instances_for_write()) {
+    translate_instances(*instances, translation);
+  }
+}
+
+void translate_points_and_instances(bke::GeometrySet &geometry, const float3 translation)
+{
+  if (math::is_zero(translation)) {
+    return;
+  }
+  translate_mesh_curves_pointcloud_instances(geometry, translation);
   if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
-    if (translate_grease_pencil_layers) {
-      translate_greasepencil_layers(*grease_pencil, translation);
-    }
-    else {
-      translate_greasepencil_points(*grease_pencil, translation);
-    }
+    translate_greasepencil_points(*grease_pencil, translation);
+  }
+}
+
+void translate_geometry(bke::GeometrySet &geometry, const float3 translation)
+{
+  if (math::is_zero(translation)) {
+    return;
+  }
+  translate_mesh_curves_pointcloud_instances(geometry, translation);
+  if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
+    translate_greasepencil_layers(*grease_pencil, translation);
   }
   if (Volume *volume = geometry.get_volume_for_write()) {
     translate_volume(*volume, translation);
-  }
-  if (bke::Instances *instances = geometry.get_instances_for_write()) {
-    translate_instances(*instances, translation);
   }
   if (bke::CurvesEditHints *curve_edit_hints = geometry.get_curve_edit_hints_for_write()) {
     translate_curve_edit_hints(*curve_edit_hints, translation);

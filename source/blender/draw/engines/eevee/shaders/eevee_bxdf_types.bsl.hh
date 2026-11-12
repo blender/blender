@@ -74,11 +74,14 @@ struct BsdfClosure {
   /* High level functions. Will call the correct override for each class. */
 
   /* Return the result of the BSDF sample function. */
-  BsdfSample sample(float3 rand, float3 Vt, Thickness thickness) const;
+  BsdfSample sample(const UtilityTexture &util_tx,
+                    float3 rand,
+                    float3 Vt,
+                    Thickness thickness) const;
   /* Return the result of the BSDF eval function. */
-  BsdfEval eval(float3 V, float3 L, Thickness thickness) const;
+  BsdfEval eval(const UtilityTexture &util_tx, float3 V, float3 L, Thickness thickness) const;
   /* Create a lightprobe ray that best represents the BSDF. */
-  LightProbeRay lightprobe_ray(float3 V, Thickness thickness) const;
+  LightProbeRay lightprobe_ray(const UtilityTexture &util_tx, float3 V, Thickness thickness) const;
   /* Create a context for light evaluation. */
   LightEvalContext light_eval_context(const UtilityTexture &util_tx,
                                       float3 V,
@@ -99,8 +102,6 @@ struct BsdfClosure {
     /* NOTE: Static functions cannot be virtual. Needs to be implemented nonetheless */
     /* Convert from untyped BsdfClosure. */
     // static virtual BsdfT unpack(BsdfClosure cl) = 0;
-    /* Convert to untyped BsdfClosure. */
-    virtual BsdfClosure pack() const = 0;
 
     virtual BsdfSample sample(float3 rand, float3 Vt, Thickness thickness) const = 0;
     virtual BsdfEval eval(float3 V, float3 L, Thickness thickness) const = 0;
@@ -109,13 +110,6 @@ struct BsdfClosure {
                                                 float3 V,
                                                 Thickness thickness) const = 0;
     virtual float perceived_roughness() const = 0;
-
-    /* Optional. */
-    virtual void context_amend(float3 & /*V*/, Thickness /*thickness*/) {}
-    virtual Ray ray_amend(float3 /*V*/, Ray ray, Thickness /*thickness*/) const
-    {
-      return ray;
-    }
   };
 };
 

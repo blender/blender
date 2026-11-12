@@ -267,8 +267,7 @@ bool OneapiDevice::load_kernels(const uint64_t requested_features)
     use_hardware_raytracing = false;
   }
 
-  is_finished_ok = oneapi_load_kernels(
-      device_queue_, (const unsigned int)requested_features, use_hardware_raytracing);
+  is_finished_ok = oneapi_load_kernels(device_queue_, requested_features, use_hardware_raytracing);
   if (is_finished_ok == false) {
     set_error("oneAPI kernels loading: got a runtime exception \"" + oneapi_error_string_ + "\"");
   }

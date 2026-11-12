@@ -100,6 +100,7 @@ void Instance::antialiasing_init()
     pass.bind_texture("blend_tx", &this->smaa_weight_tx);
     pass.bind_texture("color_tx", &this->color_tx);
     pass.bind_texture("reveal_tx", &this->reveal_tx);
+    pass.push_constant("clipping_rect", clipping_rect);
     pass.push_constant("do_anti_aliasing", true);
     pass.push_constant("only_alpha", this->draw_wireframe);
     pass.push_constant("viewport_metrics", metrics);

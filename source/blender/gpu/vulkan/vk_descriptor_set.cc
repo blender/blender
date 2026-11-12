@@ -221,6 +221,7 @@ void VKDescriptorSetTracker::update_resource_access_info_binding_input_attachmen
   const VKDevice &device = VKBackend::get().device;
   VKTexture *texture = nullptr;
   if (device.extensions_get().dynamic_rendering_local_read) {
+    /* Bound by #VKFrameBuffer::subpass_transition_impl, so it is in #images_. */
     texture = state_manager.images_.get(resource_binding.binding);
   }
   else {
@@ -390,6 +391,7 @@ void VKDescriptorSetUpdator::bind_input_attachment_resource(
 {
   const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
   if (supports_local_read) {
+    /* Bound by #VKFrameBuffer::subpass_transition_impl. */
     VKTexture *texture = state_manager.images_.get(resource_binding.binding);
     BLI_assert(texture);
     bind_image(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,

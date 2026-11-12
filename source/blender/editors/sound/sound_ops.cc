@@ -293,26 +293,24 @@ static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 
 /* ******************************************************* */
 
-static wmOperatorStatus sound_bake_animation_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus sound_bake_animation_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   /* NOTE: We will be forcefully evaluating dependency graph at every frame, so no need to ensure
    * current scene state is evaluated as it will be lost anyway. */
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  int oldfra = scene->r.cfra;
-  int cfra;
+
+  /* A Mixdown of the Scene reads the animation that is replaced, stop it first. */
+  WM_jobs_kill_type(CTX_wm_manager(C), scene, WM_JOB_TYPE_SOUND_MIXDOWN);
 
   sound_update_animation_flags_exec(C, nullptr);
-
-  for (cfra = (scene->r.sfra > 0) ? (scene->r.sfra - 1) : 0; cfra <= scene->r.efra + 1; cfra++) {
-    scene->r.cfra = cfra;
-    /* Make sure the camera is updated, since it will affect stereo/surround output. */
-    BKE_scene_camera_switch_update(scene);
-    BKE_scene_graph_update_for_newframe(depsgraph);
+  if (!BKE_sound_bake_animation(bmain, scene, depsgraph, scene->r.sfra, scene->r.efra)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot update the audio animation cache while it is used for rendering");
+    return OPERATOR_CANCELLED;
   }
-
-  scene->r.cfra = oldfra;
-  BKE_scene_graph_update_for_newframe(depsgraph);
 
   return OPERATOR_FINISHED;
 }
@@ -354,6 +352,8 @@ struct SoundMixdownJobData {
   int bitrate = 0;
   int accuracy = 0;
   bool split = false;
+  /* The job reads the audio animation of the Scene, changes only mark it as outdated. */
+  std::shared_ptr<bke::SoundAnimationUse> animation_use;
 
   bool succeeded = false;
   std::string error_message;
@@ -392,6 +392,8 @@ static void sound_mixdown_startjob(void *customdata, wmJobWorkerStatus *worker_s
                                    worker_status);
 
   BKE_sound_reset_scene_specs(scene_eval);
+  /* Also in background mode, where the job doesn't end. */
+  mixdown_job_data->animation_use.reset();
 
   mixdown_job_data->succeeded = result;
   mixdown_job_data->error_message = error_message;
@@ -437,7 +439,9 @@ static wmOperatorStatus sound_mixdown_exec(bContext *C, wmOperator *op)
   int bitrate, accuracy;
   aud::DeviceSpecs specs;
 
-  sound_bake_animation_exec(C, op);
+  if (sound_bake_animation_exec(C, op) == OPERATOR_CANCELLED) {
+    return OPERATOR_CANCELLED;
+  }
 
   RNA_string_get(op->ptr, "filepath", filepath);
   bitrate = RNA_int_get(op->ptr, "bitrate") * 1000;
@@ -461,6 +465,7 @@ static wmOperatorStatus sound_mixdown_exec(bContext *C, wmOperator *op)
   mixdown_job_data->bitrate = bitrate;
   mixdown_job_data->accuracy = accuracy;
   mixdown_job_data->split = split;
+  mixdown_job_data->animation_use = BKE_sound_audio_animation_use(scene_eval);
 
   if (scene_eval->r.use_lock_interface) {
     WM_locked_interface_set(mixdown_job_data->wm, true);

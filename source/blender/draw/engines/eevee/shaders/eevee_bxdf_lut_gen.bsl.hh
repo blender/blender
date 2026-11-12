@@ -457,22 +457,15 @@ struct LTCFitter {
 
   BsdfEval eval(const float3 &L) const
   {
-    const float3 Loriginal = normalize(invM * L);
-    const float3 L_ = M * Loriginal;
+    constexpr float3 N = float3(0.0f, 0.0f, 1.0f);
+    const float pdf = pdf_ltc(L, N, M, invM, 1.0f);
 
-    const float l = length(L_);
-    const float Jacobian = l * l * l;
-
-    const float D = M_1_PI * max(0.0f, Loriginal.z);
-
-    const float throughput = D * Jacobian;
-
-    return {.throughput = throughput, .pdf = throughput, .weight = 1.0f};
+    return {.throughput = pdf, .pdf = pdf, .weight = 1.0f};
   }
 
-  float3 sample_light(const float2 rand) const
+  float3 sample(const float2 rand) const
   {
-    return normalize(M * sample_cos_hemisphere(rand));
+    return sample_ltc(M, rand);
   }
 };
 
@@ -547,7 +540,7 @@ float compute_error(LTCFitter &fitter, const float4 params, const BSDF &bsdf)
   /* Importance sample LTC. */
   for (float i = 0.5f; i < sample_count; i++) {
     const float2 rand = random::hammersley_2d(i, sample_count);
-    const float3 L = fitter.sample_light(rand);
+    const float3 L = fitter.sample(rand);
     sum.add(error_(fitter, bsdf, L));
   }
 

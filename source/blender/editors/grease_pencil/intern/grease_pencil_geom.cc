@@ -192,9 +192,11 @@ int curve_merge_by_distance(const IndexRange points,
   });
   const KDTree<float> tree(selected_distances);
 
+  /* Visit points in curve order, so clusters start at their first point and span at most the merge
+   * distance, independent of the tree layout. */
   Array<int> selection_merge_indices(selection.size(), -1);
   const int duplicate_count = kdtree::calc_duplicates(
-      tree, merge_distance, selection_merge_indices);
+      tree, merge_distance, IndexMask(selection.size()), selection_merge_indices);
 
   array_utils::fill_index_range<int>(r_merge_indices);
 

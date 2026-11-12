@@ -10,20 +10,20 @@
 [[node]]
 void node_bsdf_sheen(float4 color,
                      float roughness,
-                     float3 N,
-                     float weight,
+                     const float3 N,
+                     const float weight,
                      KernelGlobals &kg,
                      ShadingData &sd,
                      Closure &result)
 {
+  const float3 V = coordinate_impl(kg, sd, sd.P, sd.N).incoming;
   color = max(color, float4(0.0f));
-  roughness = saturate(roughness);
-  N = safe_normalize(N);
 
-  /* Fall back to diffuse. */
-  ClosureDiffuse diffuse_data;
-  diffuse_data.color = color.rgb * weight;
-  diffuse_data.N = N;
+  ClosureSheen sheen_data;
+  sheen_data.N = safe_normalize(N);
+  sheen_data.roughness = saturate(roughness);
+  sheen_data.color = weight * color.rgb *
+                     sheen_albedo(kg, dot(sheen_data.N, V), sheen_data.roughness);
 
-  result = closure_eval(kg, sd, diffuse_data);
+  result = closure_eval(kg, sd, sheen_data);
 }

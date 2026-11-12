@@ -395,6 +395,7 @@ set(SHADER_SRC_EEVEE
   engines/eevee/shaders/eevee_bxdf_lut_gen.bsl.hh
   engines/eevee/shaders/eevee_bxdf_lut_lib.bsl.hh
   engines/eevee/shaders/eevee_bxdf_microfacet.bsl.hh
+  engines/eevee/shaders/eevee_bxdf_sheen.bsl.hh
   engines/eevee/shaders/eevee_bxdf_types.bsl.hh
   engines/eevee/shaders/eevee_camera_lib.bsl.hh
   engines/eevee/shaders/eevee_closure.bsl.hh
@@ -572,7 +573,7 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_edit_mesh.bsl.hh
   engines/overlay/shaders/overlay_edit_mesh_analysis_frag.glsl
   engines/overlay/shaders/overlay_edit_mesh_analysis_vert.glsl
-  engines/overlay/shaders/overlay_edit_mesh_normal_vert.glsl
+  engines/overlay/shaders/overlay_edit_mesh_normal.bsl.hh
   engines/overlay/shaders/overlay_edit_mesh_skin_root_vert.glsl
   engines/overlay/shaders/overlay_edit_particle_point_vert.glsl
   engines/overlay/shaders/overlay_edit_particle_strand_vert.glsl
@@ -618,11 +619,7 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_paint_weight_frag.glsl
   engines/overlay/shaders/overlay_paint_weight_vert.glsl
   engines/overlay/shaders/overlay_paint_wire_vert.glsl
-  engines/overlay/shaders/overlay_particle_frag.glsl
-  engines/overlay/shaders/overlay_particle_vert.glsl
-  engines/overlay/shaders/overlay_particle_hair_vert.glsl
-  engines/overlay/shaders/overlay_particle_shape_vert.glsl
-  engines/overlay/shaders/overlay_particle_shape_frag.glsl
+  engines/overlay/shaders/overlay_particle.bsl.hh
   engines/overlay/shaders/overlay_point_varying_color_frag.glsl
   engines/overlay/shaders/overlay_point_varying_color_varying_outline_aa_frag.glsl
   engines/overlay/shaders/overlay_sculpt_curves_cage_vert.glsl

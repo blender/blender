@@ -137,11 +137,12 @@ inline const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh
 
 /**
  * Index of the original element an evaluated one came from, or -1 without an original.
- * Without an original index layer the evaluated mesh's topology matches the original.
+ * Without an original index layer there is no mapping: modifiers like Ocean and Remesh create
+ * new topology without original indices, but keep the edit mesh pointer.
  */
 inline int orig_index_get(const int *orig_index, const int index)
 {
-  return orig_index ? orig_index[index] : index;
+  return orig_index ? orig_index[index] : ORIGINDEX_NONE;
 }
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData &mr, int idx)

@@ -20,7 +20,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNodeTree *ntree = b.tree_or_null();
   const bool is_gpu_internal = ntree && (ntree->flag & NTREE_IS_GPU_SHADER_INTERNAL);
 
-  b.add_input<decl::Int>("LightIndex"_ustr).available(is_gpu_internal);
   b.add_input<decl::Vector>("Position"_ustr)
       .hide_value()
       .description("Evaluation position. Surface position by default");
@@ -34,6 +33,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description("Evaluation roughness. Used for reflection factor")
       .make_available([](bNode &node) { node.custom1 = SHD_LIGHT_EVAL_GLOSSY; });
+
+  b.add_input<decl::Int>("LightIndex"_ustr).available(is_gpu_internal);
 
   b.add_output<decl::Float>("Factor"_ustr).description("Shading reflection factor, scaled by PI");
   b.add_output<decl::Float>("Mask"_ustr)
@@ -75,17 +76,17 @@ static int node_shader_gpu_light_evaluation(GPUMaterial *mat,
 {
   const int mode = node->custom1;
 
-  if (!in[0].link) {
+  if (!in[3].link) {
     /* Error: not linked to a light accumulation zone. */
     BLI_assert_unreachable();
     return false;
   }
 
-  if (!in[1].link) {
-    GPU_link(mat, "world_position_get", GPU_shading_data(), &in[1].link);
+  if (!in[0].link) {
+    GPU_link(mat, "world_position_get", GPU_shading_data(), &in[0].link);
   }
-  if (!in[2].link) {
-    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[2].link);
+  if (!in[1].link) {
+    GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[1].link);
   }
 
   if (out[0].hasoutput) {
@@ -112,8 +113,8 @@ static int node_shader_gpu_light_evaluation(GPUMaterial *mat,
     /* Simple path that doesn't compute LTC. */
     GPU_link(mat,
              "node_light_evaluation_common",
+             in[3].link,
              in[0].link,
-             in[1].link,
              GPU_kernel_globals(),
              &out[1].link,
              &out[2].link,

@@ -26,11 +26,6 @@ struct BsdfDiffuse : BsdfClosure::Interface {
     return bsdf;
   }
 
-  BsdfClosure pack() const final
-  {
-    return {.color = color, .N = N, .type = CLOSURE_BSDF_DIFFUSE_ID};
-  }
-
   /**
    * Returns a tangent space diffuse direction following the Lambertian distribution.
    *
@@ -94,11 +89,6 @@ struct BsdfTranslucent : BsdfClosure::Interface {
     bsdf.color = cl.color;
     bsdf.N = cl.N;
     return bsdf;
-  }
-
-  BsdfClosure pack() const final
-  {
-    return {.color = color, .N = N, .type = CLOSURE_BSDF_TRANSLUCENT_ID};
   }
 
   /**
@@ -176,7 +166,7 @@ struct BsdfTranslucent : BsdfClosure::Interface {
     return 1.0f;
   }
 
-  Ray ray_amend(float3 /*V*/, Ray ray, const Thickness thickness) const final
+  Ray ray_amend(float3 /*V*/, Ray ray, const Thickness thickness) const
   {
     if (thickness.is_sphere()) {
       /* Ray direction is distributed on the whole sphere.
@@ -277,16 +267,6 @@ struct BsdfOrenNayar : BsdfClosure::Interface {
     bsdf.N = cl.N;
     bsdf.roughness = cl.data.x;
     return bsdf;
-  }
-
-  BsdfClosure pack() const final
-  {
-    return {
-        .color = color,
-        .N = N,
-        .type = CLOSURE_BSDF_OREN_NAYAR_ID,
-        .data = float4(roughness),
-    };
   }
 
   BsdfSample sample(const float3 rand, const float3 Vt, Thickness /*thickness*/) const final

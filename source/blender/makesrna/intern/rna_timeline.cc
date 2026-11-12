@@ -25,6 +25,7 @@
 
 #  include "WM_api.hh"
 
+#  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
 namespace blender {
@@ -39,6 +40,15 @@ static void rna_TimelineMarker_update(Main * /*bmain*/, Scene * /*scene*/, Point
 {
   WM_main_add_notifier(NC_SCENE | ND_MARKERS, nullptr);
   WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, nullptr);
+}
+
+static void rna_TimelineMarker_frame_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  rna_TimelineMarker_update(bmain, scene, ptr);
+  TimeMarker *marker = static_cast<TimeMarker *>(ptr->data);
+  if (marker->camera != nullptr) {
+    DEG_id_tag_update(ptr->owner_id, ID_RECALC_AUDIO_LISTENER);
+  }
 }
 
 static void rna_TimelineMarker_camera_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
@@ -79,7 +89,7 @@ static void rna_def_timeline_marker(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "frame", PROP_INT, PROP_TIME);
   RNA_def_property_ui_text(prop, "Frame", "The frame on which the timeline marker appears");
-  RNA_def_property_update(prop, 0, "rna_TimelineMarker_update");
+  RNA_def_property_update(prop, 0, "rna_TimelineMarker_frame_update");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", 1 /*SELECT*/);

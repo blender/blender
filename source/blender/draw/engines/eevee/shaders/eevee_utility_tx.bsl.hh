@@ -27,6 +27,16 @@ struct UtilityTexture {
   {
     /* Scale and bias coordinates, for correct filtered lookup. */
     uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
+
+    return textureLod(utility_tx, float3(uv, layer), 0.0f);
+  }
+
+  /* Sample at uv position in a texture with size `tex_size`. */
+  float4 sample_lut(float2 uv, const float layer, const float tex_size) const
+  {
+    assert(tex_size < float(UTIL_TEX_SIZE));
+    uv = (saturate(uv) * (tex_size - 1.0f) + 0.5f) / float(UTIL_TEX_SIZE);
+
     return textureLod(utility_tx, float3(uv, layer), 0.0f);
   }
 

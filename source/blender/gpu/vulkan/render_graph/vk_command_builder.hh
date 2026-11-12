@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_map.hh"
 #include "BLI_set.hh"
 
 #include "vk_common.hh"
@@ -22,6 +23,21 @@ struct LayeredImageBinding {
   VkImageLayout vk_image_layout;
   uint32_t layer;
   uint32_t layer_count;
+};
+
+/**
+ * Determines which image links are processed when extracting barriers for a node.
+ *
+ * With dynamic rendering local read the synchronization between two sub-passes has to be recorded
+ * from within the rendering scope, see #VKCommandBuilder::within_rendering_barrier_list_.
+ */
+enum class ImageLinkFilter {
+  /** Process all image links. Used when no rendering scope is active. */
+  ALL,
+  /** Process image links that are synchronized from outside the rendering scope. */
+  OUTSIDE_RENDERING,
+  /** Process image links that are color attachments of the active rendering scope. */
+  WITHIN_RENDERING,
 };
 
 /**
@@ -73,13 +89,19 @@ class VKCommandBuilder {
     ImageTracker(VKCommandBuilder &command_builder) : command_builder(command_builder) {}
 
     /**
-     * All layered attachments of the last rendering scope (VKNodeType::BEGIN_RENDERING).
-     *
-     * When binding layer from these images we expect that they aren't used as attachment and can
-     * be transitioned into a different image layout. These image layouts are stored in
-     * `layered_bindings`.
+     * The attachments of the rendering scope that is currently being tracked.
      */
-    Set<VkImage> tracked_attachments;
+    struct TrackedAttachment {
+      VkImage vk_image;
+      /** Layout of the attachment while the scope is open. */
+      VkImageLayout vk_image_layout;
+      VkImageAspectFlags vk_image_aspect;
+      VKSubImageRange subimage;
+    };
+    Vector<TrackedAttachment> tracked_attachments;
+
+    /** Layout of the tracked images before the rendering scope started. */
+    Map<VkImage, VkImageLayout> base_layouts;
 
     /**
      * Keep track of the changes to images since the start of the rendering scope. This allows
@@ -94,10 +116,19 @@ class VKCommandBuilder {
     Vector<SubImageChange> changes;
 
     /**
-     * Update the layered attachments list when beginning a new render scope.
+     * Record the layouts of the images that the rendering scope is about to attach.
      *
-     * node_handle should be a handle that points to a VKNodeType::BEGIN_RENDERING.
-     * Any attachments that are layered will be added to the `tracked_attachments` list.
+     * Needs to be called before the barriers of the VKNodeType::BEGIN_RENDERING node are
+     * extracted, as those change the layout of the attachments.
+     *
+     * #node_handle must be a VKNodeType::BEGIN_RENDERING node.
+     */
+    void prepare(const VKRenderGraph &render_graph, NodeHandle node_handle);
+
+    /**
+     * Start tracking the layout changes of the rendering scope.
+     *
+     * #node_handle must be a VKNodeType::BEGIN_RENDERING node.
      */
     void begin(const VKRenderGraph &render_graph, NodeHandle node_handle);
 
@@ -106,59 +137,50 @@ class VKCommandBuilder {
      */
     inline bool contains(VkImage vk_image) const
     {
-      return tracked_attachments.contains(vk_image);
+      for (const TrackedAttachment &attachment : tracked_attachments) {
+        if (attachment.vk_image == vk_image) {
+          return true;
+        }
+      }
+      return false;
     }
 
     /**
-     * Ensure the layout of a layer.
-     *
-     * - `old_layout` should be the expected layout of the full image.
+     * Layout of the subresources of an image, taking the tracked changes into account.
+     */
+    VkImageLayout current_layout(VkImage vk_image, const VKSubImageRange &subimage) const;
+
+    /**
+     * Ensure the layout of a sub-resource.
      */
     void update(VkImage vk_image,
                 const VKSubImageRange &subimage,
-                VkImageLayout old_layout,
                 VkImageLayout new_layout,
                 VkImageAspectFlags aspect,
                 Barrier &r_barrier);
     /**
-     * Ensure the layout of a mipmap level.
+     * End tracking.
      *
-     * - `old_layout` should be the expected layout of the full image.
-     */
-    void update(VkImage vk_image,
-                uint32_t mipmap_level,
-                VkImageLayout old_layout,
-                VkImageLayout new_layout,
-                VkImageAspectFlags aspect,
-                Barrier &r_barrier);
-
-    /**
-     * End layer tracking.
-     *
-     * All modified layers (layer_tracking_update) will be changed back to the image layout of
-     * the texture (most likely a `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`).
+     * All modified sub-resources are transitioned back to the default layout of the image.
      *
      * Render suspension/resuming will not work after calling this method.
      */
-    void end(Barrier &r_barrier, bool use_local_read);
+    void end(Barrier &r_barrier);
 
     /**
-     * Suspend layer tracking
+     * Suspend tracking.
      *
-     * Temporarily suspend layer tracking. This transits all modified layers back to its original
-     * layout.
-     * NOTE: Only call this method when you the rendering will be resumed, otherwise use
-     * `layer_tracking_end`.
+     * Temporarily transition all modified sub-resources back to the default layout of the image.
+     * Note: only call this method when rendering will be resumed, otherwise use #end.
      */
-    void suspend(Barrier &r_barrier, bool use_local_read);
+    void suspend(Barrier &r_barrier);
 
     /**
-     * Resume suspended layer tracking.
+     * Resume suspended tracking.
      *
-     * Resume suspended layer tracking. This transits all registered layers back to its modified
-     * state.
+     * Transition the modified sub-resources back to their tracked layout.
      */
-    void resume(Barrier &r_barrier, bool use_local_read);
+    void resume(Barrier &r_barrier);
   };
 
   /**
@@ -181,23 +203,31 @@ class VKCommandBuilder {
   Vector<Barriers> group_pre_barriers_;
   /** Barriers that will be recorded after a group is recorded. */
   Vector<Barriers> group_post_barriers_;
-  /**
-   * Barriers that will be recorded just before the commands of a specific node are recorded. The
-   * barriers are stored per NodeHandle and in the same order as `Span<NodeHandle> nodes`.
-   */
-  Vector<Barriers> node_pre_barriers_;
 
   /** List of all generated barriers. */
   Vector<Barrier> barrier_list_;
+
+  /**
+   * Barriers that are recorded inside the rendering scope, just before the commands of the node
+   * they belong to. A barrier recorded before #vkCmdBeginRendering cannot order against writes
+   * that happen inside the scope, so sub-pass synchronization has to be recorded here.
+   */
+  Vector<Barrier> within_rendering_barrier_list_;
+  /**
+   * Per node (indexed by its index into the #node_handles passed to #build_nodes) the range of
+   * #within_rendering_barrier_list_ that is recorded just before its commands.
+   */
+  Vector<Barriers> node_pre_barriers_;
+
+  /** Copy of #VKResourceStateTracker::use_dynamic_rendering_local_read. */
+  bool use_dynamic_rendering_local_read_ = false;
 
  public:
   /**
    * Build execution groups and barriers.
    * This method should be performed when the resources are locked.
    */
-  void build_nodes(VKRenderGraph &render_graph,
-                   VKCommandBufferInterface &command_buffer,
-                   Span<NodeHandle> node_handles);
+  void build_nodes(VKRenderGraph &render_graph, Span<NodeHandle> node_handles);
 
   /**
    * Record commands of the nodes provided by the `node_handles` parameter. The commands are
@@ -225,9 +255,7 @@ class VKCommandBuilder {
    * This process is single threaded as resource states change during the extraction process. The
    * result of this function would allow the sub builders to be built in parallel.
    */
-  void groups_extract_barriers(VKRenderGraph &render_graph,
-                               Span<NodeHandle> node_handles,
-                               bool use_local_read);
+  void groups_extract_barriers(VKRenderGraph &render_graph, Span<NodeHandle> node_handles);
 
   /**
    * Record all the commands for all the groups to the command buffer.
@@ -239,17 +267,19 @@ class VKCommandBuilder {
   /**
    * Build the pipeline barriers that should be recorded before any other commands of the node
    * group the given node is part of is being recorded.
+   *
+   * When #rendering_active, the node is recorded inside a rendering scope and the barriers that
+   * have to be recorded from within that scope end up in #r_within_rendering_barrier.
    */
   void build_pipeline_barriers(VKRenderGraph &render_graph,
                                NodeHandle node_handle,
                                VkPipelineStageFlags pipeline_stage,
                                ImageTracker &image_tracker,
+                               bool rendering_active,
                                Barrier &r_barrier,
-                               bool within_rendering = false);
+                               Barrier &r_within_rendering_barrier);
   void reset_barriers(Barrier &r_barrier);
-  void send_pipeline_barriers(VKCommandBufferInterface &command_buffer,
-                              const Barrier &barrier,
-                              bool within_rendering);
+  void send_pipeline_barriers(VKCommandBufferInterface &command_buffer, const Barrier &barrier);
 
   void add_buffer_barriers(VKRenderGraph &render_graph,
                            NodeHandle node_handle,
@@ -272,8 +302,9 @@ class VKCommandBuilder {
                           NodeHandle node_handle,
                           VkPipelineStageFlags node_stages,
                           ImageTracker &image_tracker,
+                          bool rendering_active,
                           Barrier &r_barrier,
-                          bool within_rendering);
+                          Barrier &r_within_rendering_barrier);
   void add_image_barrier(VkImage vk_image,
                          Barrier &r_barrier,
                          VkAccessFlags src_access_mask,
@@ -286,14 +317,14 @@ class VKCommandBuilder {
                                NodeHandle node_handle,
                                VkPipelineStageFlags node_stages,
                                ImageTracker &image_tracker,
-                               Barrier &r_barrier,
-                               bool within_rendering);
+                               ImageLinkFilter link_filter,
+                               Barrier &r_barrier);
   void add_image_write_barriers(VKRenderGraph &render_graph,
                                 NodeHandle node_handle,
                                 VkPipelineStageFlags node_stages,
                                 ImageTracker &image_tracker,
-                                Barrier &r_barrier,
-                                bool within_rendering);
+                                ImageLinkFilter link_filter,
+                                Barrier &r_barrier);
 
   struct DebugGroups {
     /**
@@ -367,8 +398,6 @@ class VKCommandBuilder {
    * state.
    */
   void layer_tracking_resume(VKCommandBufferInterface &command_buffer);
-
-  bool node_has_input_attachments(const VKRenderGraph &render_graph, NodeHandle node);
 
   std::string to_string_barrier(const Barrier &barrier);
 };

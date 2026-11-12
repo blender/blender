@@ -25,6 +25,8 @@
 #include "IReader.h"
 #include "devices/ReadDevice.h"
 
+#include <vector>
+
 AUD_NAMESPACE_BEGIN
 
 class SequenceHandle;
@@ -66,6 +68,12 @@ private:
 	 */
 	int m_entry_status;
 
+	/**
+	 * The IDs of the entries that play the sequence, empty if a device plays it, see
+	 * SequenceData::getReferenceAnimProperty().
+	 */
+	std::vector<int> m_reference;
+
 	// delete copy constructor and operator=
 	SequenceReader(const SequenceReader&) = delete;
 	SequenceReader& operator=(const SequenceReader&) = delete;
@@ -75,8 +83,10 @@ public:
 	 * Creates a resampling reader.
 	 * \param sequence The sequence data.
 	 * \param quality Resampling quality vs performance option.
+	 * \param reference The IDs of the entries that play the sequence, whose animated properties
+	 *        are read, see SequenceData::getReferenceAnimProperty().
 	 */
-	SequenceReader(std::shared_ptr<SequenceData> sequence, ResampleQuality quality = ResampleQuality::FASTEST);
+	SequenceReader(std::shared_ptr<SequenceData> sequence, ResampleQuality quality = ResampleQuality::FASTEST, std::vector<int> reference = std::vector<int>());
 
 	/**
 	 * Destroys the reader.

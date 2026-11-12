@@ -119,6 +119,13 @@ private:
 	SequenceEntry(const SequenceEntry&) = delete;
 	SequenceEntry& operator=(const SequenceEntry&) = delete;
 
+	/**
+	 * Retrieves the position in the sound that seeking to a sequence position results in.
+	 * \param position The position in the sequence in seconds.
+	 * \return The position in the sound in seconds.
+	 */
+	double AUD_LOCAL getSoundPosition(double position);
+
 public:
 	/**
 	 * Creates a new sequenced entry.
@@ -161,6 +168,16 @@ public:
 	 * \param skip How many seconds to skip at the beginning.
 	 */
 	void move(double begin, double end, double skip);
+
+	/**
+	 * Retrieves the part of the sound that is played during a part of the sequence.
+	 * \param begin The start of the part of the sequence in seconds.
+	 * \param end The end of the part of the sequence in seconds.
+	 * \param[out] sound_begin The start position in the sound in seconds.
+	 * \param[out] sound_end The end position in the sound in seconds.
+	 * \return Whether the entry is played during the part of the sequence.
+	 */
+	bool getSoundRange(double begin, double end, double& sound_begin, double& sound_end);
 
 	/**
 	 * Retrieves the muting state of the entry.

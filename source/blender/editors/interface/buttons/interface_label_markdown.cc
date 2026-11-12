@@ -1481,8 +1481,8 @@ void label_markdown_draw(const ButtonLabel *button, const uchar color[4], const 
   const MarkdownDrawColors colors = markdown_draw_colors_init(color);
 
   const bTheme *btheme = theme::theme_get();
-  const float corner_radius = btheme->tui.wcol_box.roundness * U.widget_unit *
-                              cache.key.pixels_per_point;
+  const float corner_radius = btheme->tui.wcol_box.roundness * U.widget_unit /
+                              button->block->aspect;
 
   for (const MarkdownItem &item : cache.md_layout.items) {
     const auto *code_box = std::get_if<MarkdownItemCodeBox>(&item);
@@ -1548,17 +1548,14 @@ void label_markdown_draw(const ButtonLabel *button, const uchar color[4], const 
     }
     else if (const auto *rule_item = std::get_if<MarkdownItemHorizontalRule>(&item)) {
       const float y = rect->ymax + rule_item->y;
+      const float half_width = 0.5f * std::max(1.0f, std::round(cache.key.pixels_per_point));
 
       const uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       GPU_blend(GPU_BLEND_ALPHA);
       immUniformColor4ubv(colors.horizontal_rule);
-      GPU_line_width(1.0f);
-      immBegin(GPU_PRIM_LINES, 2);
-      immVertex2f(pos, rect->xmin, y);
-      immVertex2f(pos, rect->xmax, y);
-      immEnd();
+      immRectf(pos, rect->xmin, y - half_width, rect->xmax, y + half_width);
       GPU_blend(GPU_BLEND_NONE);
       immUnbindProgram();
     }
@@ -1566,17 +1563,14 @@ void label_markdown_draw(const ButtonLabel *button, const uchar color[4], const 
       const float x = rect->xmin + quote_line->x;
       const float y_top = rect->ymax + quote_line->y;
       const float y_bottom = y_top - quote_line->height;
+      const float half_width = std::max(1.0f, std::round(cache.key.pixels_per_point));
 
       const uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       GPU_blend(GPU_BLEND_ALPHA);
       immUniformColor4ubv(colors.quote_line);
-      GPU_line_width(2.0f);
-      immBegin(GPU_PRIM_LINES, 2);
-      immVertex2f(pos, x, y_top);
-      immVertex2f(pos, x, y_bottom);
-      immEnd();
+      immRectf(pos, x - half_width, y_bottom, x + half_width, y_top);
       GPU_blend(GPU_BLEND_NONE);
       immUnbindProgram();
     }

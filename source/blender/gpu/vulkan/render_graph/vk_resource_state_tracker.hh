@@ -185,6 +185,14 @@ class VKResourceStateTracker {
   Mutex mutex;
 
   /**
+   * Does the device support #VK_KHR_dynamic_rendering_local_read?
+   *
+   * The tracked image layout depends on it, so it is stored here instead of on the device. That
+   * keeps the render graph usable without an initialized device (unit tests).
+   */
+  bool use_dynamic_rendering_local_read = false;
+
+  /**
    * Register a buffer resource.
    *
    * When a buffer is created in VKBuffer, it needs to be registered in the device resources so the
@@ -359,8 +367,6 @@ class VKResourceStateTracker {
     ResourceHandle handle = image_resources_.lookup(vk_image);
     return {.handle = handle, .stamp = resources_[handle].stamp};
   }
-
-  bool use_dynamic_rendering_local_read = true;
 
   void debug_print() const;
 

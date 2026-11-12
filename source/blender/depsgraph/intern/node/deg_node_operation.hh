@@ -56,6 +56,7 @@ enum class OperationCode {
 
   /* Scene related. ------------------------------------------------------- */
   SCENE_EVAL,
+  AUDIO_CACHE_INVALIDATE,
   AUDIO_ENTRY,
   AUDIO_VOLUME,
 

@@ -447,13 +447,14 @@ static void refresh_node_sockets_animation_inout(Main &bmain,
                                                  const Span<bNodeSocket *> old_sockets,
                                                  const Span<bNodeSocket *> new_sockets)
 {
-  std::optional<std::pair<animrig::Action *, animrig::Slot *>> action_and_slot =
-      animrig::get_action_slot_pair(ntree.id);
-  if (!action_and_slot) {
+  if (!ntree.adt) {
     return;
   }
-  animrig::Action &action = *action_and_slot->first;
-  animrig::Slot &slot = *action_and_slot->second;
+  const std::optional<std::pair<animrig::Action *, animrig::Slot *>> action_and_slot =
+      animrig::get_action_slot_pair(ntree.id);
+  if (!action_and_slot && ntree.adt->drivers.is_empty()) {
+    return;
+  }
 
   Map<UString, int> new_index_by_identifier;
   for (const int new_i : new_sockets.index_range()) {
@@ -521,11 +522,14 @@ static void refresh_node_sockets_animation_inout(Main &bmain,
     /* All index changes have to be applied in a single pass over the fcurves. Otherwise, when
      * sockets swap their position, the same fcurve may be modified twice and ends up with its
      * original rna path. */
-    animrig::foreach_fcurve_in_action_slot(action, slot.handle, [&](FCurve &fcurve) {
-      if (char *new_path = construct_new_rna_path(fcurve.rna_path())) {
-        fcurve.rna_path_set_move(new_path);
-      }
-    });
+    if (action_and_slot) {
+      animrig::foreach_fcurve_in_action_slot(
+          *action_and_slot->first, action_and_slot->second->handle, [&](FCurve &fcurve) {
+            if (char *new_path = construct_new_rna_path(fcurve.rna_path())) {
+              fcurve.rna_path_set_move(new_path);
+            }
+          });
+    }
     for (FCurve &driver_fcurve : ntree.adt->drivers) {
       if (char *new_path = construct_new_rna_path(driver_fcurve.rna_path())) {
         driver_fcurve.rna_path_set_move(new_path);
@@ -535,7 +539,9 @@ static void refresh_node_sockets_animation_inout(Main &bmain,
 
   if (animation_changed) {
     DEG_id_tag_update(&ntree.id, ID_RECALC_ANIMATION);
-    DEG_id_tag_update(&action.id, ID_RECALC_SYNC_TO_EVAL);
+    if (action_and_slot) {
+      DEG_id_tag_update(&action_and_slot->first->id, ID_RECALC_SYNC_TO_EVAL);
+    }
     DEG_relations_tag_update(&bmain);
   }
 }

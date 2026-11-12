@@ -581,17 +581,20 @@ const EnumPropertyItem rna_enum_file_path_foreach_flag_items[] = {
      0,
      "Expand Tokens",
      "Expand template tokens in virtual file paths and invoke the callback once for each "
-     "concrete file. Currently only used for UDIM tiles"},
+     "concrete file. File paths are made absolute when passed to the callback. Currently only "
+     "used for UDIM tiles"},
     {BKE_BPATH_FOREACH_PATH_EXPAND_SEQUENCES,
      "EXPAND_SEQUENCES",
      0,
      "Expand Sequences",
-     "Expand image and volume sequences, invoking the callback once per file on disk"},
+     "Expand image and volume sequences, invoking the callback once per file on disk. File paths "
+     "are made absolute when passed to the callback"},
     {BKE_BPATH_FOREACH_PATH_EXPAND_CACHES,
      "EXPAND_CACHES",
      0,
      "Expand Caches",
-     "Visit cache files, like texture cache files associated with images"},
+     "Visit cache files, like texture cache files associated with images. File paths are made "
+     "absolute when passed to the callback"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

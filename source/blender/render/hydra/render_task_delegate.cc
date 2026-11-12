@@ -330,6 +330,10 @@ void GPURenderTaskDelegate::unbind()
     glDeleteVertexArrays(1, &VAO_);
     VAO_ = 0;
   }
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    /* Restore state that Blender expects to be always enabled, hdSt disables it. */
+    glEnable(GL_PROGRAM_POINT_SIZE);
+  }
 #endif
   if (framebuffer_) {
     GPU_framebuffer_free(framebuffer_);

@@ -51,7 +51,7 @@ static int node_shader_gpu_bsdf_sheen(GPUMaterial *mat,
     GPU_link(mat, "world_normals_get", GPU_shading_data(), &in[2].link);
   }
 
-  GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
+  GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_DIFFUSE_ROUGHNESS);
 
   return GPU_stack_link(
       mat, node, "node_bsdf_sheen", in, out, GPU_kernel_globals(), GPU_shading_data());

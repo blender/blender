@@ -48,6 +48,8 @@ const char *operationCodeAsString(OperationCode opcode)
     /* Scene related. */
     case OperationCode::SCENE_EVAL:
       return "SCENE_EVAL";
+    case OperationCode::AUDIO_CACHE_INVALIDATE:
+      return "AUDIO_CACHE_INVALIDATE";
     case OperationCode::AUDIO_ENTRY:
       return "AUDIO_ENTRY";
     case OperationCode::AUDIO_VOLUME:

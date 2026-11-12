@@ -88,7 +88,7 @@ struct DenoiseSpatial {
     int2 sample_texel_fullres = sample_texel * uni.raytrace_buf.trace_pixel_scale +
                                 uni.raytrace_buf.trace_pixel_offset;
 
-    float sample_depth = texelFetch(depth_tx, sample_texel_fullres, 0).r;
+    float sample_depth = reverse_z::read(texelFetch(depth_tx, sample_texel_fullres, 0).r);
 
     float2 sample_uv = float2(sample_texel_fullres) * uni.raytrace_buf.full_resolution_inv;
     float3 sample_N = reader.read_bin(sample_texel_fullres, closure_index).N;
@@ -149,7 +149,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
     }
 
     /* Simple bilateral upsampling without any denoising. */
-    float center_depth = texelFetch(srt.depth_tx, texel_fullres, 0).r;
+    float center_depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
     float2 center_uv = float2(texel_fullres) * uni.raytrace_buf.full_resolution_inv;
     float3 center_N = reader.read_bin(texel_fullres, srt.closure_index).N;
     float3 center_P = view.point_screen_to_world(float3(center_uv, center_depth));
@@ -332,7 +332,7 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
     /* Slide 54. */
     /* The reference is wrong.
      * The ratio estimator is `pdf_local / pdf_ray` instead of `bsdf_local / pdf_ray`. */
-    float pdf = closure.eval(V, ray_direction, thickness).pdf;
+    float pdf = closure.eval(util_tx, V, ray_direction, thickness).pdf;
     /* Avoid the weight exploding and summing to infinity. */
     float weight = min(1e30f, pdf * ray_pdf_inv);
 

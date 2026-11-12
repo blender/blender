@@ -47,6 +47,13 @@ void main()
   /* Add the alpha. */
   out_color.a = 1.0f - out_reveal.a;
 
+  if (gl_FragCoord.x < clipping_rect.x || gl_FragCoord.x > clipping_rect.z ||
+      gl_FragCoord.y < clipping_rect.y || gl_FragCoord.y > clipping_rect.w)
+  {
+    out_color = float4(0.0f);
+    out_reveal = float4(1.0f);
+  }
+
   if (only_alpha) {
     /* Special case in wire-frame X-ray mode. */
     out_color = float4(0.0f);

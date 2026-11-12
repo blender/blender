@@ -182,6 +182,11 @@ void GLImmediate::end()
     /* Update matrices. */
     GPU_shader_bind(shader);
 
+    const float point_size = GLContext::get()->state_manager->mutable_state.point_size;
+    if (this->prim_type == GPU_PRIM_POINTS && point_size < 0.0f) {
+      GPU_shader_uniform_1f(reinterpret_cast<Shader *>(shader), "size", -point_size);
+    }
+
     glDrawArrays(to_gl(prim_type), 0, vertex_len);
 
     /* These lines are causing crash on startup on some old GPU + drivers.

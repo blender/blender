@@ -414,9 +414,8 @@ void GPU_matrix_ortho_set_z(float near, float far)
 
 void GPU_matrix_ortho_2d_set(float left, float right, float bottom, float top)
 {
-  Mat4 m;
-  mat4_ortho_set(m, left, right, bottom, top, -1.0f, 1.0f);
-  CHECKMAT(m);
+  mat4_ortho_set(Projection, left, right, bottom, top, -1.0f, 1.0f);
+  CHECKMAT(Projection);
   gpu_matrix_state_active_set_dirty(true);
 }
 
