@@ -370,6 +370,13 @@ const ID *find_animated_id_from_tags(const ChannelTagSet &tags);
  * Data is copied into the identifier, because these identifiers are designed to out-live the
  * channels they identify. This copying should be fast, as it just consists of some numbers and a
  * bunch of UString instances.
+ *
+ * Note that these are not perfect identifiers, in that they cannot always distinguish between
+ * repeats of the same data. The owner_id of the parent channel is included in the identifier, as a
+ * discriminator for these kind of duplications. This helps to distinguish between the same Action
+ * nested under each data-block it animates. However, if those data-block share the same action
+ * slot, and thus show the same F-Curves, these will all get the same identifier. This is a
+ * limitation that would be great to solve one day.
  */
 class ChannelIdentifier {
  public:
@@ -980,6 +987,23 @@ class ChannelArena {
  private:
   LinearAllocator<> allocator_;
 
+  /**
+   * Channel identifier for the active channel.
+   *
+   * This is set by the channel tree view items (see #ChannelItem::on_activate()). When the
+   * ChannelArena is rebuilt, it is copied from the old to the new one (see
+   * #ed::action::get_summary_tree()).
+   */
+  std::optional<ChannelIdentifier> active_channel_ident_ = {};
+
+  /**
+   * Cached pointer to the active channel.
+   *
+   * Stored as std::optional so that the distinction between "uninitialized" (no value) and "does
+   * not exist" (nullptr as value) can be made.
+   */
+  std::optional<AnimationChannel *> active_channel_ = {};
+
  public:
   /* Data channels allocated by our linear allocator. */
   Vector<DataChannel *> data_channels;
@@ -1000,15 +1024,6 @@ class ChannelArena {
    * cached ChannelArena.
    */
   UniqueHash datachannel_hash = {};
-
-  /**
-   * Channel identifier for the active channel.
-   *
-   * This is set by the channel tree view items (see #ChannelItem::on_activate()). When the
-   * ChannelArena is rebuilt, it is copied from the old to the new one (see
-   * #ed::action::get_summary_tree()).
-   */
-  std::optional<ChannelIdentifier> active_channel_ident = {};
 
   ChannelArena() = default;
   ChannelArena(const ChannelArena &) = delete;
@@ -1099,6 +1114,23 @@ class ChannelArena {
    * #filters, and #tag_order.
    */
   bool is_same_as(const ChannelArena &other) const;
+
+  std::optional<ChannelIdentifier> active_channel_identifier() const;
+  void active_channel_identifier_set(std::optional<ChannelIdentifier> channel_identifier);
+
+  /**
+   * Return the first AnimationChannel that matches the given identifier.
+   * \returns nullptr if none can be found.
+   */
+  AnimationChannel *channel_for_identifier(const ChannelIdentifier &identifier);
+
+  /**
+   * Return the first AnimationChannel that matches the active channel identifier.
+   * \returns nullptr if none can be found.
+   *
+   * \see #active_channel_identifier()
+   */
+  AnimationChannel *active_channel();
 };
 
 /**

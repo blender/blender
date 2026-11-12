@@ -4157,13 +4157,14 @@ ChannelArena::~ChannelArena()
 }
 
 ChannelArena::ChannelArena(ChannelArena &&other)
-    : data_channels(std::move(other.data_channels)),
+    : active_channel_ident_(std::move(other.active_channel_ident_)),
+      data_channels(std::move(other.data_channels)),
       summary_channels(std::move(other.summary_channels)),
       filters(std::move(other.filters)),
       grouping_params(std::move(other.grouping_params)),
-      datachannel_hash(std::move(other.datachannel_hash)),
-      active_channel_ident(std::move(other.active_channel_ident))
+      datachannel_hash(std::move(other.datachannel_hash))
 {
+  /* active_channel_ is intentionally kept at its default value here. */
   allocator_.transfer_ownership_from(other.allocator_);
 }
 
@@ -4176,12 +4177,17 @@ ChannelArena &ChannelArena::operator=(ChannelArena &&other)
   for (SummaryChannel *channel : this->summary_channels) {
     channel->~SummaryChannel();
   }
+
+  /* active_channel_ is a derived value, and points to the active channel. Since channels are moved
+   * here, I (Sybren) don't think we should retain this pointer. Or maybe we should? */
+  this->active_channel_.reset();
+
   this->data_channels = std::move(other.data_channels);
   this->summary_channels = std::move(other.summary_channels);
   this->filters = std::move(other.filters);
   this->grouping_params = std::move(other.grouping_params);
   this->datachannel_hash = std::move(other.datachannel_hash);
-  this->active_channel_ident = std::move(other.active_channel_ident);
+  this->active_channel_ident_ = std::move(other.active_channel_ident_);
   allocator_.transfer_ownership_from(other.allocator_);
   return *this;
 }
@@ -4248,6 +4254,56 @@ bool ChannelArena::is_same_as(const ChannelArena &other) const
   return this->datachannel_hash == other.datachannel_hash &&
          this->data_channels.size() == other.data_channels.size() &&
          this->grouping_params == other.grouping_params && this->filters == other.filters;
+}
+
+std::optional<ChannelIdentifier> ChannelArena::active_channel_identifier() const
+{
+  return this->active_channel_ident_;
+}
+void ChannelArena::active_channel_identifier_set(
+    const std::optional<ChannelIdentifier> channel_identifier)
+{
+  this->active_channel_ident_ = channel_identifier;
+  this->active_channel_.reset();
+}
+
+AnimationChannel *ChannelArena::channel_for_identifier(const ChannelIdentifier &identifier)
+{
+  /* There are likely to be less summary channels than data channels, so search those first. */
+  for (AnimationChannel *chan : this->summary_channels) {
+    if (chan->identifier() == identifier) {
+      return chan;
+    }
+  }
+
+  for (AnimationChannel *chan : this->data_channels) {
+    if (chan->identifier() == identifier) {
+      return chan;
+    }
+  }
+
+  return nullptr;
+}
+
+AnimationChannel *ChannelArena::active_channel()
+{
+  /* If the active channel was already found, use the cached pointer. This is necessary for things
+   * like context.active_action, because that needs the active channel and can be requested
+   * multiple times per repaint. Doing a linear scan through all channels for each of those would
+   * be inefficient. */
+  if (this->active_channel_.has_value()) {
+    return *this->active_channel_;
+  }
+
+  if (this->active_channel_ident_) {
+    /* This lookup can fail -> sets active_channel_ = nullptr, giving it a value. */
+    this->active_channel_ = this->channel_for_identifier(*this->active_channel_ident_);
+  }
+  else {
+    /* Without an identifier, there will never be an active channel. */
+    this->active_channel_ = nullptr;
+  }
+  return this->active_channel_.value_or(nullptr);
 }
 
 /*

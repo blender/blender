@@ -912,20 +912,26 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
       return CTX_RESULT_OK;
     }
 
-    /* Go over the animation data channels, and report the unique Actions. */
-    Set<bAction *> seen_actions;
     ChannelArenaHandle arena = get_summary_tree_for_context(*C);
+
+    if (set_active_only) {
+      /* The active Action is defined as the Action related to the active animation channel. */
+      bAction *active_action = nullptr;
+      if (AnimationChannel *active_chan = arena->active_channel()) {
+        active_action = active_chan->tags().data_of_first_tag<bAction>(ChannelTagType::ACTION);
+      }
+      CTX_data_id_pointer_set(result, id_cast<ID *>(active_action));
+      return CTX_RESULT_OK;
+    }
+
+    /* Go over all data channels to find their action tags. */
+    Set<bAction *> seen_actions;
     for (const DataChannel *data_channel : arena->data_channels) {
       bAction *action = data_channel->tags().data_of_first_tag<bAction>(ChannelTagType::ACTION);
       if (!action) {
         continue;
       }
 
-      if (set_active_only) {
-        /* FIXME: this yields the _first_ Action as the active one. That's a bug. */
-        CTX_data_id_pointer_set(result, &action->id);
-        break;
-      }
       if (use_editable_only && !ID_IS_EDITABLE(action)) {
         continue;
       }

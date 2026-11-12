@@ -276,13 +276,17 @@ class ChannelTreeView : public ui::AbstractTreeView {
     return tree_settings_.show_channel_group_color_rect;
   }
 
+  AnimationChannel *active_channel() const
+  {
+    return arena_.active_channel();
+  }
   std::optional<ChannelIdentifier> active_channel_ident_get() const
   {
-    return arena_.active_channel_ident;
+    return arena_.active_channel_identifier();
   }
   void active_channel_ident_set(std::optional<ChannelIdentifier> channel_identifier)
   {
-    arena_.active_channel_ident = channel_identifier;
+    arena_.active_channel_identifier_set(channel_identifier);
   }
 };
 
@@ -307,17 +311,20 @@ void ChannelItem::on_activate(bContext &C)
   ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
   tree_view.active_channel_ident_set(this->chan_ident_);
   this->channel_api_->set_active(C, tree_view.do_selection_syncing());
+
+  /* When the active channel changes, the new active channel may have different tags.
+   * Any data that is derived from those tags has to be refreshed. */
+  WM_event_add_notifier(&C, NC_ANIMATION, nullptr);
 }
 
 std::optional<bool> ChannelItem::should_be_active() const
 {
   const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
-  const std::optional<ChannelIdentifier> active_channel_ident =
-      tree_view.active_channel_ident_get();
-  if (!active_channel_ident) {
-    return {};
-  }
-  return *active_channel_ident == this->chan_ident_;
+  /* Ideally, this would compare channel identifiers. Instead, it does a lookup and compares
+   * pointers, because the identifiers are not perfectly unique. However, the AbstractView code
+   * requires at most one item to be active. By doing a lookup and comparing pointers, "the active
+   * channel" is reduced to "the first channel that matches the active channel identifier". */
+  return &this->channel_ == tree_view.active_channel();
 }
 
 /* Returns the correct color given the FCurve::color_mode. */
