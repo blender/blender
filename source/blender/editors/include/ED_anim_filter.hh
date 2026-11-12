@@ -1246,7 +1246,7 @@ void write_channel_states(struct BlendWriter &writer,
                           Array<SpaceChannelDNAState> &ui_state_array,
                           Array<std::string> &rna_paths,
                           const ChannelUIStateMap &channel_states,
-                          ListBaseT<SpaceChannelDNAState> &channel_dna_states);
+                          ListBaseT<SpaceChannelDNAState> &channel_ui_states);
 
 /**
  * Populate the given listbase from the reader.
