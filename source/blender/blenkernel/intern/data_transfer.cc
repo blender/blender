@@ -809,7 +809,12 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
         return true;
       }
     }
-    const int idx_src = src_names.first_index_of(name_src);
+    /* The active color attribute may have another type or domain than this pass. It's only
+     * transferred by a pass that matches it, which may not run for the requested domain. */
+    const int idx_src = src_names.first_index_of_try(name_src);
+    if (idx_src == -1) {
+      return true;
+    }
 
     GVArray data_src = *src_attributes.lookup(name_src, domain, attr_type);
     if (!data_src) {
