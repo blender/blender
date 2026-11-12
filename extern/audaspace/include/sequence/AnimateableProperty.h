@@ -97,10 +97,10 @@ private:
 	void AUD_LOCAL extendBufferStart(int position);
 
 	/// Returns the values of frames in the buffer and the number of frames stored after them.
-	float* AUD_LOCAL getFrames(int position, long long& frames);
+	AUD_LOCAL float* getFrames(int position, long long& frames);
 
 	/// Returns the values of a frame in the buffer.
-	float* AUD_LOCAL getFrame(int position);
+	AUD_LOCAL float* getFrame(int position);
 
 	/// Adds frames before and after the buffer, their values are unset.
 	void AUD_LOCAL growBuffer(int before, int after);
