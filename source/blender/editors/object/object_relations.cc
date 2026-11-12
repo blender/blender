@@ -827,7 +827,7 @@ static void parent_set_vert_find(const KDTree<float3> &tree,
   const float3 co_find = child->object_to_world().location();
   if (is_tri) {
     std::array<KDTree<float3>::Nearest, 3> nearest;
-    const int tot = tree.find_nearest_n(co_find, nearest);
+    const int tot = tree.find_nearest_n(co_find, std::numeric_limits<float>::max(), nearest);
     BLI_assert(tot == 3);
     UNUSED_VARS_NDEBUG(tot);
 

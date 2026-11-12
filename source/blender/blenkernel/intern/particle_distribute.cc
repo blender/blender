@@ -508,7 +508,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
     psys_particle_on_dm(
         ctx->mesh, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co1, 0, 0, 0, orco1, 0);
     BKE_mesh_orco_verts_transform(ob->data, &orco1, 1, true);
-    maxw = ctx->tree->find_nearest_n(orco1, ptn);
+    maxw = ctx->tree->find_nearest_n(orco1, std::numeric_limits<float>::max(), ptn);
 
     for (w = 0; w < maxw; w++) {
       pa->verts[w] = ptn->num;
@@ -742,7 +742,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
                         nullptr,
                         orco1);
     BKE_mesh_orco_verts_transform(id_cast<Mesh *>(ob->data), &orco1, 1, true);
-    maxw = ctx->tree->find_nearest_n(orco1, ptn);
+    maxw = ctx->tree->find_nearest_n(orco1, std::numeric_limits<float>::max(), ptn);
 
     maxd = std::sqrt(ptn[maxw - 1].distance_sq);
 

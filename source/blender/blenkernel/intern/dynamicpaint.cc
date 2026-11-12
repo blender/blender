@@ -4376,6 +4376,7 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
     /* Find nearest particle and get distance to it */
     float nearest_dist_sq;
     const int nearest_index = tree.find_nearest(bData->realCoord[bData->s_pos[index]].v,
+                                                std::numeric_limits<float>::max(),
                                                 &nearest_dist_sq);
     const float nearest_dist = std::sqrt(nearest_dist_sq);
     /* if outside maximum range, no other particle can influence either */

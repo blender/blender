@@ -274,7 +274,8 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
       const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
       float distance_sq;
-      const int td_index = td_tree.find_nearest(vec, &distance_sq);
+      const int td_index = td_tree.find_nearest(
+          vec, std::numeric_limits<float>::max(), &distance_sq);
 
       td->rdist = -1.0f;
       if (td_index != -1) {

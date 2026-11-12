@@ -410,7 +410,8 @@ static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
             face_to_plane(ob, face, plane);
 
             float distance_sq;
-            const int nearest = tree_4d->find_nearest(float4(plane), &distance_sq);
+            const int nearest = tree_4d->find_nearest(
+                float4(plane), std::numeric_limits<float>::max(), &distance_sq);
             if (nearest != -1) {
               const float4 &nearest_plane = tree_4d->points()[nearest];
               if (distance_sq <= math::square(thresh)) {

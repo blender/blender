@@ -398,12 +398,18 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
 
         float start_dist_sq;
         const int nearest_start = tree.find_nearest_filtered(
-            start_co, [&](const int other) { return other != start_index; }, &start_dist_sq);
+            start_co,
+            [&](const int other) { return other != start_index; },
+            std::numeric_limits<float>::max(),
+            &start_dist_sq);
         const bool is_start_ok = nearest_start != -1 && start_dist_sq <= merge_distance_squared;
 
         float end_dist_sq;
         const int nearest_end = tree.find_nearest_filtered(
-            end_co, [&](const int other) { return other != end_index; }, &end_dist_sq);
+            end_co,
+            [&](const int other) { return other != end_index; },
+            std::numeric_limits<float>::max(),
+            &end_dist_sq);
         const bool is_end_ok = nearest_end != -1 && end_dist_sq <= merge_distance_squared;
 
         if (is_start_ok) {

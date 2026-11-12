@@ -89,7 +89,7 @@ int ED_mesh_mirror_spatial_table_lookup(Object *ob, Mesh *mesh_eval, const float
 
   if (const std::optional<MirrorSpatialTable> &table = mirror_spatial_table()) {
     float distance_sq;
-    const int i = table->tree.find_nearest(co, &distance_sq);
+    const int i = table->tree.find_nearest(co, std::numeric_limits<float>::max(), &distance_sq);
 
     if (i != -1) {
       if (distance_sq < math::square(KD_THRESH)) {

@@ -80,7 +80,7 @@ TEST(kdtree, Empty)
   EXPECT_EQ(tree.count_in_radius(float3(0.0f), 100.0f), 0);
 
   Array<Nearest> nearest(4);
-  EXPECT_EQ(tree.find_nearest_n(float3(0.0f), nearest), 0);
+  EXPECT_EQ(tree.find_nearest_n(float3(0.0f), std::numeric_limits<float>::max(), nearest), 0);
 
   Vector<Nearest> in_radius;
   EXPECT_EQ(tree.find_in_radius(float3(0.0f), 100.0f, in_radius), 0);
@@ -93,12 +93,35 @@ TEST(kdtree, SinglePoint)
   EXPECT_EQ(tree.size(), 1);
 
   float distance_sq = -1.0f;
-  EXPECT_EQ(tree.find_nearest(float3(1.0f, 2.0f, 4.0f), &distance_sq), 0);
+  EXPECT_EQ(
+      tree.find_nearest(float3(1.0f, 2.0f, 4.0f), std::numeric_limits<float>::max(), &distance_sq),
+      0);
   EXPECT_FLOAT_EQ(distance_sq, 1.0f);
 
   /* The only point is filtered out. */
   EXPECT_EQ(tree.find_nearest_filtered(float3(0.0f), [](const int /*index*/) { return false; }),
             -1);
+}
+
+TEST(kdtree, WithStartingDistance)
+{
+  const Array<float3> positions = {float3(1.0f, 2.0f, 3.0f)};
+  const KDTree<float3> tree(positions);
+  EXPECT_EQ(tree.size(), 1);
+
+  EXPECT_EQ(tree.find_nearest(float3(0.0f), 1.0f), -1);
+  EXPECT_EQ(tree.find_nearest(float3(0.0f), 100.0f), 0);
+
+  Array<Nearest> nearest(4);
+  EXPECT_EQ(tree.find_nearest_n(float3(0.0f), 1.0f, nearest), 0);
+  EXPECT_EQ(tree.find_nearest_n(float3(0.0f), 100.0f, nearest), 1);
+
+  EXPECT_EQ(tree.find_nearest_filtered(
+                float3(0.0f), [](const int other) { return other % 2 == 0; }, 1.0f),
+            -1);
+  EXPECT_EQ(tree.find_nearest_filtered(
+                float3(0.0f), [](const int other) { return other % 2 == 0; }, 100.0f),
+            0);
 }
 
 TEST(kdtree, FindNearest)
@@ -112,7 +135,7 @@ TEST(kdtree, FindNearest)
   for (const float3 &query : queries) {
     const Vector<Nearest> expected = brute_force_sorted(positions, indices, query);
     float distance_sq = -1.0f;
-    const int index = tree.find_nearest(query, &distance_sq);
+    const int index = tree.find_nearest(query, std::numeric_limits<float>::max(), &distance_sq);
     EXPECT_EQ(index, expected.first().index);
     EXPECT_FLOAT_EQ(distance_sq, expected.first().distance_sq);
   }
@@ -157,7 +180,7 @@ TEST(kdtree, FindNearestN)
   for (const float3 &query : queries) {
     const Vector<Nearest> expected = brute_force_sorted(positions, indices, query);
     Array<Nearest> nearest(7);
-    const int found = tree.find_nearest_n(query, nearest);
+    const int found = tree.find_nearest_n(query, std::numeric_limits<float>::max(), nearest);
     ASSERT_EQ(found, 7);
     for (const int i : IndexRange(found)) {
       EXPECT_EQ(nearest[i].index, expected[i].index);
@@ -174,7 +197,7 @@ TEST(kdtree, FindNearestNMoreThanSize)
   const Array<float3> positions = random_points(5);
   const KDTree<float3> tree(positions);
   Array<Nearest> nearest(10);
-  EXPECT_EQ(tree.find_nearest_n(float3(0.5f), nearest), 5);
+  EXPECT_EQ(tree.find_nearest_n(float3(0.5f), std::numeric_limits<float>::max(), nearest), 5);
 }
 
 TEST(kdtree, Radius)
@@ -249,13 +272,16 @@ TEST(kdtree, FindNearestWithEqualDistances)
   const KDTree<float3> tree(positions);
 
   float distance_sq;
-  const int nearest = tree.find_nearest(float3(1.5f, 1.0f, 1.0f), &distance_sq);
+  const int nearest = tree.find_nearest(
+      float3(1.5f, 1.0f, 1.0f), std::numeric_limits<float>::max(), &distance_sq);
   EXPECT_FLOAT_EQ(distance_sq, 0.25f);
   /* Two points are exactly as close, so it must be one of them. */
   EXPECT_TRUE(nearest == 4 || nearest == 13) << "found point " << nearest;
 
   Array<Nearest> nearest_n(2);
-  EXPECT_EQ(tree.find_nearest_n(float3(1.5f, 1.0f, 1.0f), nearest_n), 2);
+  EXPECT_EQ(
+      tree.find_nearest_n(float3(1.5f, 1.0f, 1.0f), std::numeric_limits<float>::max(), nearest_n),
+      2);
   EXPECT_FLOAT_EQ(nearest_n[0].distance_sq, 0.25f);
   EXPECT_FLOAT_EQ(nearest_n[1].distance_sq, 0.25f);
   EXPECT_NE(nearest_n[0].index, nearest_n[1].index);
@@ -277,13 +303,13 @@ TEST(kdtree, MaskedBuild)
 
     /* Results are indices into the original array, not positions in the mask. */
     float distance_sq = -1.0f;
-    const int index = tree.find_nearest(query, &distance_sq);
+    const int index = tree.find_nearest(query, std::numeric_limits<float>::max(), &distance_sq);
     EXPECT_EQ(index, expected.first().index);
     EXPECT_EQ(index % 3, 0);
     EXPECT_FLOAT_EQ(distance_sq, expected.first().distance_sq);
 
     Array<Nearest> nearest(4);
-    ASSERT_EQ(tree.find_nearest_n(query, nearest), 4);
+    ASSERT_EQ(tree.find_nearest_n(query, std::numeric_limits<float>::max(), nearest), 4);
     for (const int i : IndexRange(4)) {
       EXPECT_EQ(nearest[i].index, expected[i].index);
     }
@@ -331,7 +357,9 @@ TEST(kdtree, DuplicatePoints)
   EXPECT_EQ(tree.count_in_radius(float3(1.0f, 1.0f, 1.0f), 0.001f), 60);
 
   Array<Nearest> nearest(70);
-  EXPECT_EQ(tree.find_nearest_n(float3(1.0f, 1.0f, 1.0f), nearest), 70);
+  EXPECT_EQ(
+      tree.find_nearest_n(float3(1.0f, 1.0f, 1.0f), std::numeric_limits<float>::max(), nearest),
+      70);
   for (const int i : IndexRange(60)) {
     EXPECT_LT(nearest[i].index, 60);
     EXPECT_FLOAT_EQ(nearest[i].distance_sq, 0.0f);
@@ -618,7 +646,8 @@ TEST(kdtree, ThreadedBuild)
     }
 
     float distance_sq = -1.0f;
-    EXPECT_EQ(tree.find_nearest(query, &distance_sq), expected_index);
+    EXPECT_EQ(tree.find_nearest(query, std::numeric_limits<float>::max(), &distance_sq),
+              expected_index);
     EXPECT_FLOAT_EQ(distance_sq, expected_distance_sq);
   }
 
@@ -664,7 +693,7 @@ TEST(kdtree, Float)
   }
   const KDTree<float> tree(positions);
   float distance_sq;
-  EXPECT_EQ(tree.find_nearest(10.1f, &distance_sq), 20);
+  EXPECT_EQ(tree.find_nearest(10.1f, std::numeric_limits<float>::max(), &distance_sq), 20);
   EXPECT_NEAR(distance_sq, 0.01f, 1e-5f);
   EXPECT_EQ(tree.find_nearest(-3.0f), 0);
   EXPECT_EQ(tree.find_nearest(1000.0f), 99);
@@ -687,7 +716,9 @@ TEST(kdtree, Float4)
   EXPECT_EQ(tree.count_in_radius(float4(0.0f), 1.5f), 2);
 
   std::array<Nearest4, 2> nearest;
-  EXPECT_EQ(tree.find_nearest_n(float4(0.0f, 0.0f, 4.0f, 0.0f), nearest), 2);
+  EXPECT_EQ(tree.find_nearest_n(
+                float4(0.0f, 0.0f, 4.0f, 0.0f), std::numeric_limits<float>::max(), nearest),
+            2);
   EXPECT_EQ(nearest[0].index, 2);
   EXPECT_EQ(nearest[1].index, 0);
 }

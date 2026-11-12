@@ -97,7 +97,10 @@ class NearestNWithNormalBiasQuery {
                               const Span<float3> positions,
                               const float3 &position,
                               const float3 &normal)
-      : nearest_(nearest), positions_(positions), position_(position), normal_(normal)
+      : nearest_(nearest, std::numeric_limits<float>::max()),
+        positions_(positions),
+        position_(position),
+        normal_(normal)
   {
   }
 

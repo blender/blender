@@ -207,7 +207,9 @@ template<typename T> class KDTree : NonMovable, NonCopyable {
    * Find the point closest to \a position.
    * \return Its index, or -1 if the tree is empty.
    */
-  int find_nearest(const T &position, value_type *r_distance_sq = nullptr) const;
+  int find_nearest(const T &position,
+                   value_type max_distance_sq = std::numeric_limits<value_type>::max(),
+                   value_type *r_distance_sq = nullptr) const;
 
   /**
    * Find the point closest to \a position for which \a filter returns true. Useful to skip the
@@ -220,6 +222,7 @@ template<typename T> class KDTree : NonMovable, NonCopyable {
   template<typename Filter>
   int find_nearest_filtered(const T &position,
                             Filter &&filter,
+                            value_type max_distance_sq = std::numeric_limits<value_type>::max(),
                             value_type *r_distance_sq = nullptr) const
     requires kdtree::FilterFn<Filter>;
 
@@ -228,7 +231,9 @@ template<typename T> class KDTree : NonMovable, NonCopyable {
    * \param r_nearest: Filled with at most `r_nearest.size()` results.
    * \return The number of results written, which is smaller when the tree has fewer points.
    */
-  int find_nearest_n(const T &position, MutableSpan<Nearest> r_nearest) const;
+  int find_nearest_n(const T &position,
+                     value_type max_distance_sq,
+                     MutableSpan<Nearest> r_nearest) const;
 
   /** Call \a fn for every point within \a radius of \a position, in an unspecified order. */
   template<typename Fn>
@@ -291,6 +296,8 @@ template<typename ValueT> class NearestQuery {
  public:
   static constexpr bool inclusive = false;
 
+  NearestQuery(ValueT distance_sq) : distance_sq_(distance_sq) {}
+
   int index() const
   {
     return index_;
@@ -323,7 +330,10 @@ template<typename ValueT, typename Filter> class FilteredNearestQuery {
  public:
   static constexpr bool inclusive = false;
 
-  explicit FilteredNearestQuery(Filter filter) : filter_(filter) {}
+  explicit FilteredNearestQuery(Filter filter, ValueT distance_sq)
+      : filter_(filter), distance_sq_(distance_sq)
+  {
+  }
 
   int index() const
   {
@@ -353,12 +363,16 @@ template<typename ValueT, typename Filter> class FilteredNearestQuery {
 template<typename NearestT, typename ValueT> class NearestNQuery {
  private:
   MutableSpan<NearestT> nearest_;
+  ValueT distance_sq_;
   int count_ = 0;
 
  public:
   static constexpr bool inclusive = false;
 
-  explicit NearestNQuery(MutableSpan<NearestT> nearest) : nearest_(nearest) {}
+  explicit NearestNQuery(MutableSpan<NearestT> nearest, ValueT distance_sq)
+      : nearest_(nearest), distance_sq_(distance_sq)
+  {
+  }
 
   int count() const
   {
@@ -390,7 +404,7 @@ template<typename NearestT, typename ValueT> class NearestNQuery {
   ValueT max_distance_sq() const
   {
     if (count_ < int(nearest_.size())) {
-      return std::numeric_limits<ValueT>::max();
+      return distance_sq_;
     }
     return nearest_[count_ - 1].distance_sq;
   }
@@ -513,12 +527,14 @@ template<typename T> Span<int> KDTree<T>::tree_indices() const
 }
 
 template<typename T>
-int KDTree<T>::find_nearest(const T &position, value_type *r_distance_sq) const
+int KDTree<T>::find_nearest(const T &position,
+                            value_type max_distance_sq,
+                            value_type *r_distance_sq) const
 {
   if (this->is_empty()) {
     return -1;
   }
-  kdtree::NearestQuery<value_type> query;
+  kdtree::NearestQuery<value_type> query(max_distance_sq);
   this->search(query, position);
   if (query.index() != -1 && r_distance_sq) {
     *r_distance_sq = query.distance_sq();
@@ -530,6 +546,7 @@ template<typename T>
 template<typename Filter>
 int KDTree<T>::find_nearest_filtered(const T &position,
                                      Filter &&filter,
+                                     value_type max_distance_sq,
                                      value_type *r_distance_sq) const
   requires kdtree::FilterFn<Filter>
 {
@@ -537,7 +554,7 @@ int KDTree<T>::find_nearest_filtered(const T &position,
     return -1;
   }
   kdtree::FilteredNearestQuery<value_type, std::decay_t<Filter>> query(
-      std::forward<Filter>(filter));
+      std::forward<Filter>(filter), max_distance_sq);
   this->search(query, position);
   if (query.index() != -1 && r_distance_sq) {
     *r_distance_sq = query.distance_sq();
@@ -546,12 +563,14 @@ int KDTree<T>::find_nearest_filtered(const T &position,
 }
 
 template<typename T>
-int KDTree<T>::find_nearest_n(const T &position, MutableSpan<Nearest> r_nearest) const
+int KDTree<T>::find_nearest_n(const T &position,
+                              value_type max_distance_sq,
+                              MutableSpan<Nearest> r_nearest) const
 {
   if (this->is_empty() || r_nearest.is_empty()) {
     return 0;
   }
-  kdtree::NearestNQuery<Nearest, value_type> query(r_nearest);
+  kdtree::NearestNQuery<Nearest, value_type> query(r_nearest, max_distance_sq);
   this->search(query, position);
   return query.count();
 }

@@ -366,7 +366,8 @@ TEST(kdtree_performance, FindNearestN)
               const KDTree<float3> tree(positions);
               Array<KDTree<float3>::Nearest> nearest(NEAREST_N);
               time = run_queries(queries, [&](const float3 &query) {
-                found_sum += tree.find_nearest_n(query, nearest);
+                found_sum += tree.find_nearest_n(
+                    query, std::numeric_limits<float>::max(), nearest);
               });
               EXPECT_GT(found_sum, 0);
               return time;
@@ -598,8 +599,9 @@ TEST(kdtree_performance, KDTreeNewLeafSize)
             run_queries(queries, [&](const float3 &query) { sum += tree.find_nearest(query); }));
 
         Array<KDTree<float3>::Nearest> nearest(NEAREST_N);
-        print_time(run_queries(
-            queries, [&](const float3 &query) { sum += tree.find_nearest_n(query, nearest); }));
+        print_time(run_queries(queries, [&](const float3 &query) {
+          sum += tree.find_nearest_n(query, std::numeric_limits<float>::max(), nearest);
+        }));
 
         print_time(run_queries(queries, [&](const float3 &query) {
           tree.foreach_in_radius(
