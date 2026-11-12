@@ -63,6 +63,67 @@ void channel_state_trim(ChannelUIStateMap &channel_states)
   }
 }
 
+std::optional<SpaceChannelDNAIdentifier> channel_identifier_to_dna(
+    const ChannelIdentifier identifier,
+    IDNameLib_Map &id_map,
+    Array<std::string> &storage_for_rna_paths,
+    const int storage_for_rna_paths_index)
+{
+  ID *owner_id = BKE_main_idmap_lookup_uid(&id_map, identifier.owner_session_uid);
+  ID *parent_id = BKE_main_idmap_lookup_uid(&id_map, identifier.parent_session_uid);
+
+  if (!owner_id) {
+    /* Stale entry, cannot convert to DNA. */
+    return {};
+  }
+
+  /* Store the UI state map key. */
+  SpaceChannelDNAIdentifier dna_ident;
+  dna_ident.channel_owner_id = owner_id;
+  dna_ident.channel_parent_id = parent_id;
+  if (!identifier.source_rna_path.items.is_empty()) {
+    storage_for_rna_paths[storage_for_rna_paths_index] = identifier.source_rna_path.to_string();
+    dna_ident.source_rna_path = storage_for_rna_paths[storage_for_rna_paths_index].c_str();
+  }
+  else {
+    dna_ident.source_rna_path = nullptr;
+  }
+
+  return dna_ident;
+}
+
+ChannelIdentifier channel_identifier_from_dna(const SpaceChannelDNAIdentifier &dna_ident)
+{
+  ChannelIdentifier chan_ident;
+
+  if (dna_ident.channel_owner_id) {
+    BLI_assert_msg(
+        !(dna_ident.channel_owner_id->flag & ID_FLAG_EMBEDDED_DATA),
+        "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones");
+    BKE_lib_libblock_session_uid_ensure(dna_ident.channel_owner_id);
+    chan_ident.owner_session_uid = dna_ident.channel_owner_id->session_uid;
+  }
+  if (dna_ident.channel_parent_id) {
+    if (dna_ident.channel_parent_id->flag & ID_FLAG_EMBEDDED_DATA) {
+      CLOG_WARN(
+          &LOG,
+          "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones (%s)",
+          dna_ident.channel_parent_id->name);
+    }
+    else {
+      BKE_lib_libblock_session_uid_ensure(dna_ident.channel_parent_id);
+      chan_ident.parent_session_uid = dna_ident.channel_parent_id->session_uid;
+    }
+  }
+
+  if (dna_ident.source_rna_path) {
+    chan_ident.source_rna_path =
+        ParsedSourcePath::from_string(dna_ident.source_rna_path).value_or(ParsedSourcePath());
+  }
+
+  return chan_ident;
+}
+
 void write_channel_states(BlendWriter &writer,
                           Array<SpaceChannelDNAState> &ui_state_array,
                           Array<std::string> &rna_paths,
@@ -78,24 +139,16 @@ void write_channel_states(BlendWriter &writer,
   for (const auto key_value : channel_states.items()) {
     SpaceChannelDNAState *state = &ui_state_array[array_index];
 
-    ID *owner_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.owner_session_uid);
-    ID *parent_id = BKE_main_idmap_lookup_uid(id_map, key_value.key.parent_session_uid);
+    std::optional<SpaceChannelDNAIdentifier> dna_identifier = channel_identifier_to_dna(
+        key_value.key, *id_map, rna_paths, array_index);
 
-    if (!owner_id) {
+    if (!dna_identifier) {
       /* Stale entry, skip it. */
       continue;
     }
 
     /* Store the UI state map key. */
-    state->channel_owner_id = owner_id;
-    state->channel_parent_id = parent_id;
-    if (!key_value.key.source_rna_path.items.is_empty()) {
-      rna_paths[array_index] = key_value.key.source_rna_path.to_string();
-      state->source_rna_path = rna_paths[array_index].c_str();
-    }
-    else {
-      state->source_rna_path = nullptr;
-    }
+    state->identifier = *dna_identifier;
 
     /* Store the UI state map value. */
     state->is_collapsed = key_value.value.is_collapsed;
@@ -108,9 +161,7 @@ void write_channel_states(BlendWriter &writer,
   /* Write the structs in the listbase. */
   for (SpaceChannelDNAState &state : channel_ui_states) {
     writer.write_struct(&state);
-    if (state.source_rna_path) {
-      writer.write_string(state.source_rna_path);
-    }
+    writer.write_string(state.identifier.source_rna_path);
   }
 }
 
@@ -121,7 +172,7 @@ void read_channel_states_data(BlendDataReader &reader,
    * #read_channel_states_after_liblink() below. */
   BLO_read_struct_list(&reader, SpaceChannelDNAState, &channel_dna_states);
   for (SpaceChannelDNAState &state : channel_dna_states) {
-    BLO_read_string(&reader, &state.source_rna_path);
+    BLO_read_string(&reader, &state.identifier.source_rna_path);
   }
 }
 
@@ -144,31 +195,7 @@ void read_channel_states_after_liblink(BlendLibReader &reader,
   bool has_shown_warning_header = false;
   for (SpaceChannelDNAState &state : channel_dna_states) {
     /* Create the UI state map key. */
-    ChannelIdentifier chan_ident;
-    if (state.channel_owner_id) {
-      BLI_assert_msg(
-          !(state.channel_owner_id->flag & ID_FLAG_EMBEDDED_DATA),
-          "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones");
-      BKE_lib_libblock_session_uid_ensure(state.channel_owner_id);
-      chan_ident.owner_session_uid = state.channel_owner_id->session_uid;
-    }
-    if (state.channel_parent_id) {
-      if (state.channel_parent_id->flag & ID_FLAG_EMBEDDED_DATA) {
-        CLOG_WARN(
-            &LOG,
-            "ed::animfilter::ChannelIdentifier can only work on real IDs, not embedded ones (%s)",
-            state.channel_parent_id->name);
-      }
-      else {
-        BKE_lib_libblock_session_uid_ensure(state.channel_parent_id);
-        chan_ident.parent_session_uid = state.channel_parent_id->session_uid;
-      }
-    }
-
-    if (state.source_rna_path) {
-      chan_ident.source_rna_path =
-          ParsedSourcePath::from_string(state.source_rna_path).value_or(ParsedSourcePath());
-    }
+    ChannelIdentifier chan_ident = channel_identifier_from_dna(state.identifier);
 
     /* Create the UI state map value. */
     const AnimationChannelUIState ui_state{
@@ -191,7 +218,7 @@ void read_channel_states_after_liblink(BlendLibReader &reader,
     }
 
     /* Discard the RNA path, as BLI_freelistN() below won't do that. */
-    MEM_SAFE_DELETE(state.source_rna_path);
+    MEM_SAFE_DELETE(state.identifier.source_rna_path);
   }
   BLI_freelistN(&channel_dna_states);
 }

@@ -1198,6 +1198,13 @@ struct SpaceActionOverlays {
   char _pad0[4] = {};
 };
 
+/** DNA version of a ChannelIdentifier. */
+struct SpaceChannelDNAIdentifier {
+  ID *channel_owner_id = nullptr;
+  ID *channel_parent_id = nullptr;
+  const char *source_rna_path = nullptr;
+};
+
 /**
  * UI state for an animation channel stored in DNA.
  *
@@ -1208,10 +1215,7 @@ struct SpaceActionOverlays {
 struct SpaceChannelDNAState {
   struct SpaceChannelDNAState *next = nullptr, *prev = nullptr;
 
-  /* These fields store the ChannelIdentifier. */
-  ID *channel_owner_id = nullptr;
-  ID *channel_parent_id = nullptr;
-  const char *source_rna_path = nullptr;
+  SpaceChannelDNAIdentifier identifier;
 
   /* The remainder of the struct stores the actual UI state. */
   uint8_t is_collapsed = false;
@@ -1256,6 +1260,7 @@ struct SpaceAction {
 
   SpaceActionOverlays overlays;
   ListBaseT<struct SpaceChannelDNAState> channel_ui_states = {nullptr, nullptr};
+  SpaceChannelDNAIdentifier active_channel_identifier = {};
 
   struct SpaceAction_Runtime *runtime;
 };

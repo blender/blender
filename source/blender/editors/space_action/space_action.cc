@@ -1076,8 +1076,10 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 
   if (!BLI_listbase_is_empty(&sact->channel_ui_states)) {
     for (const SpaceChannelDNAState &state : sact->channel_ui_states) {
-      BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
-      BKE_LIB_FOREACHID_PROCESS_ID(data, state.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
+      BKE_LIB_FOREACHID_PROCESS_ID(
+          data, state.identifier.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
+      BKE_LIB_FOREACHID_PROCESS_ID(
+          data, state.identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
     }
   }
 }
@@ -1165,7 +1167,8 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   const SpaceAction &space_action = *reinterpret_cast<SpaceAction *>(sl);
   ed::animfilter::channel_state_trim(space_action.runtime->animfilter_runtime.channel_states);
 
-  /* Allocate memory for the UI state info in DNA. */
+  /* Allocate memory for the UI state info in DNA. This is using a ResourceScope to prevent pointer
+   * reuse (which would corrupt the blend file). */
   const int64_t num_channel_states =
       space_action.runtime->animfilter_runtime.channel_states.size();
   ResourceScope &scope = screen_writer.scope;
