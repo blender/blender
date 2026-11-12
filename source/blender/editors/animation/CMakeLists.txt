@@ -24,6 +24,7 @@ set(SRC
   anim_draw.cc
   anim_filter_channel.cc
   anim_filter_draw.cc
+  anim_filter_fake_context.cc
   anim_filter_read_write.cc
   anim_filter_source.cc
   anim_filter.cc

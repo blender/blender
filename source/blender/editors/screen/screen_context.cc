@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -39,6 +40,7 @@
 #include "RNA_prototypes.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_filter.hh"
 #include "ED_armature.hh"
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
@@ -865,11 +867,79 @@ static eContextResult screen_ctx_active_operator(const bContext *C, bContextData
   }
   return CTX_RESULT_NO_DATA;
 }
+
+/**
+ * Get the active or selected Actions.
+ *
+ * \param set_active_only: only put the active Action in the result. If false, puts only the
+ * selected Actions in the result.
+ * \param use_editable_only: only produce the editable Actions. This is ignored when
+ * set_active_only=true.
+ */
 static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
                                                   bContextDataResult *result,
-                                                  bool active_only,
-                                                  bool editable)
+                                                  const bool set_active_only,
+                                                  const bool use_editable_only)
 {
+  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+    using namespace ed::animfilter;
+
+    SpaceAction *saction = CTX_wm_space_action(C);
+    SpaceGraph *sgraph = CTX_wm_space_graph(C);
+
+    if (!saction && !sgraph) {
+      return CTX_RESULT_NO_DATA;
+    }
+
+    if (!set_active_only) {
+      CTX_data_type_set(result, ContextDataType::Collection);
+    }
+
+    /* In the Action and Shape Key editor always use the action field at the top. */
+    if (saction && ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY)) {
+      bAction *active_action = ANIM_active_action_from_area(
+          *CTX_data_main(C), CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_area(C), nullptr);
+      ID *active_action_id = active_action ? &active_action->id : nullptr;
+
+      if (set_active_only) {
+        CTX_data_id_pointer_set(result, active_action_id);
+        return CTX_RESULT_OK;
+      }
+
+      if (active_action_id && (!use_editable_only || ID_IS_EDITABLE(active_action_id))) {
+        CTX_data_id_list_add(result, active_action_id);
+      }
+      return CTX_RESULT_OK;
+    }
+
+    /* Go over the animation data channels, and report the unique Actions. */
+    Set<bAction *> seen_actions;
+    ChannelArenaHandle arena = get_summary_tree_for_context(*C);
+    for (const DataChannel *data_channel : arena->data_channels) {
+      bAction *action = data_channel->tags().data_of_first_tag<bAction>(ChannelTagType::ACTION);
+      if (!action) {
+        continue;
+      }
+
+      if (set_active_only) {
+        /* FIXME: this yields the _first_ Action as the active one. That's a bug. */
+        CTX_data_id_pointer_set(result, &action->id);
+        break;
+      }
+      if (use_editable_only && !ID_IS_EDITABLE(action)) {
+        continue;
+      }
+
+      /* Add the action to the output list if not already added. */
+      if (seen_actions.add(action)) {
+        CTX_data_id_list_add(result, &action->id);
+      }
+    }
+
+    return CTX_RESULT_OK;
+  }
+
+  /* Legacy implementation. */
   bAnimContext ac;
   if (!ANIM_animdata_get_context(C, &ac) || !ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
     return CTX_RESULT_NO_DATA;
@@ -882,11 +952,11 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
     if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY)) {
       ID *active_action_id = ac.active_action ? &ac.active_action->id : nullptr;
 
-      if (active_only) {
+      if (set_active_only) {
         CTX_data_id_pointer_set(result, active_action_id);
       }
       else {
-        if (active_action_id && !(editable && !ID_IS_EDITABLE(active_action_id))) {
+        if (active_action_id && !(use_editable_only && !ID_IS_EDITABLE(active_action_id))) {
           CTX_data_id_list_add(result, active_action_id);
         }
 
@@ -906,7 +976,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
   switch (ac.spacetype) {
     case SPACE_GRAPH:
       filter |= ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE |
-                (active_only ? ANIMFILTER_ACTIVE : ANIMFILTER_SEL);
+                (set_active_only ? ANIMFILTER_ACTIVE : ANIMFILTER_SEL);
       break;
 
     case SPACE_ACTION:
@@ -935,11 +1005,11 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
       continue;
     }
 
-    if (active_only) {
+    if (set_active_only) {
       CTX_data_id_pointer_set(result, id_cast<ID *>(action));
       break;
     }
-    if (editable && !ID_IS_EDITABLE(action)) {
+    if (use_editable_only && !ID_IS_EDITABLE(action)) {
       continue;
     }
 
@@ -951,10 +1021,9 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
 
   ANIM_animdata_freelist(&anim_data);
 
-  if (!active_only) {
+  if (!set_active_only) {
     CTX_data_type_set(result, ContextDataType::Collection);
   }
-
   return CTX_RESULT_OK;
 }
 static eContextResult screen_ctx_active_action(const bContext *C, bContextDataResult *result)

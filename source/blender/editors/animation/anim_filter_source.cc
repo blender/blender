@@ -2,6 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/**
+ * Animation Channel Collection/Sourcing code.
+ *
+ * WARNING: This code CANNOT call into any context function that's implemented with (eventually) a
+ * call to #ctx_data_get(). See anim_filter_fake_context.cc for further explanation.
+ */
+
 #include "anim_filter_source_intern.hh"
 
 #include "BLI_assert.hh"
@@ -801,26 +808,25 @@ void collect_animation_channels(const bContext &C, ChannelArena &arena)
 
   /* Objects. */
   {
-    Vector<PointerRNA> objects;
+    Vector<Object *> objects;
     if (arena.filters.only_selected) {
-      CTX_data_selected_objects(&C, &objects);
+      objects = fake_ctx_selected_objects(C);
     }
     /* Show *all* objects. */
     else if (arena.filters.show_hidden) {
       /* We can check this after `only_selected` because selected objects have to be visible. */
       Main *bmain = CTX_data_main(&C);
       for (Object &obj : bmain->objects) {
-        objects.append(RNA_id_pointer_create(&obj.id));
+        objects.append(&obj);
       }
     }
     else {
       /* Show all visible. */
-      CTX_data_visible_objects(&C, &objects);
+      objects = fake_ctx_visible_objects(C);
     }
 
-    for (PointerRNA &obj_ptr : objects) {
-      Object *obj = static_cast<Object *>(obj_ptr.data);
-      collection_channels_for_object(*obj, ctx);
+    for (Object *object : objects) {
+      collection_channels_for_object(*object, ctx);
     }
   }
 
