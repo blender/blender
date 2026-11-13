@@ -31,6 +31,7 @@
 
 namespace blender {
 
+class ResourceScope;
 struct bContext;
 struct FCurve;
 struct GreasePencil;
@@ -1240,25 +1241,13 @@ struct AnimfilterSpaceRuntime {
 void channel_state_trim(ChannelUIStateMap &channel_states);
 
 /**
- * Convert the given `channel_states` to a listbase and write them into a blendfile.
- * \param channel_dna_states has to come from the shallow copy of a `BlendStructWriter`.
+ * Convert the animfilter runtime space data into DNA data for writing to a blend file.
  */
-void write_channel_states(struct BlendWriter &writer,
-                          Array<SpaceChannelDNAState> &ui_state_array,
-                          Array<std::string> &rna_paths,
-                          const ChannelUIStateMap &channel_states,
-                          ListBaseT<SpaceChannelDNAState> &channel_ui_states);
-
-/**
- * Convert the ChannelIdentifier to a SpaceChannelDNAIdentifier, and write to a blend file.
- *
- * \returns true when ok, false when any of the identifier's session_uids could not be resolved to
- * an ID*.
- */
-bool write_channel_identifier_data(struct BlendWriter &writer,
-                                   SpaceChannelDNAIdentifier &dna_ident,
-                                   std::optional<ChannelIdentifier> chan_ident,
-                                   std::string &resource_scope_storage);
+void write_animfilter_space_runtime(struct BlendWriter &writer,
+                                    ResourceScope &scope,
+                                    const AnimfilterSpaceRuntime &animfilter_runtime,
+                                    ListBaseT<SpaceChannelDNAState> &channel_ui_states,
+                                    SpaceChannelDNAIdentifier &active_channel_identifier);
 
 /**
  * Populate the given listbase from the reader.

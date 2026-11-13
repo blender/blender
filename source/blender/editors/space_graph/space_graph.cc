@@ -1047,6 +1047,8 @@ static void graph_space_blend_read_after_liblink(BlendLibReader *reader,
 
 static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  using namespace ed::animfilter;
+
   BlendWriter *writer = screen_writer.writer;
   SpaceGraph *space_graph = reinterpret_cast<SpaceGraph *>(sl);
 
@@ -1061,23 +1063,19 @@ static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLi
     return;
   }
 
-  ed::animfilter::channel_state_trim(space_graph->runtime->animfilter_runtime.channel_states);
-
-  /* Allocate memory for the UI state info in DNA. */
-  const int64_t num_channel_states =
-      space_graph->runtime->animfilter_runtime.channel_states.size();
-  ResourceScope &scope = screen_writer.scope;
-  Array<SpaceChannelDNAState> &ui_state_array = scope.construct<Array<SpaceChannelDNAState>>(
-      num_channel_states);
-  Array<std::string> &rna_paths = scope.construct<Array<std::string>>(num_channel_states);
+  AnimfilterSpaceRuntime &animfilter_runtime = space_graph->runtime->animfilter_runtime;
+  channel_state_trim(animfilter_runtime.channel_states);
 
   writer->write_struct_cast<SpaceGraph>(sl, [&](BlendStructWriter<SpaceGraph> &struct_writer) {
     SpaceGraph &for_writing = struct_writer.shallow_data;
-    ed::animfilter::write_channel_states(*writer,
-                                         ui_state_array,
-                                         rna_paths,
-                                         space_graph->runtime->animfilter_runtime.channel_states,
-                                         for_writing.channel_ui_states);
+
+    write_animfilter_space_runtime(*writer,
+                                   screen_writer.scope,
+                                   animfilter_runtime,
+                                   for_writing.channel_ui_states,
+                                   for_writing.active_channel_identifier);
+
+    /* Prevent writing runtime data to the blend file. */
     for_writing.runtime = {};
   });
   if (space_graph->ads) {

@@ -1171,39 +1171,14 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   AnimfilterSpaceRuntime &animfilter_runtime = space_action.runtime->animfilter_runtime;
   channel_state_trim(animfilter_runtime.channel_states);
 
-  /* Allocate memory for the UI state info in DNA. This is using a ResourceScope to prevent pointer
-   * reuse (which would corrupt the blend file). */
-  const int64_t num_channel_states = animfilter_runtime.channel_states.size();
-  ResourceScope &scope = screen_writer.scope;
-  Array<SpaceChannelDNAState> &ui_state_array = scope.construct<Array<SpaceChannelDNAState>>(
-      num_channel_states);
-  /* Store RNA paths for the channel states + the active channel identifier. */
-  Array<std::string> &rna_paths = scope.construct<Array<std::string>>(num_channel_states + 1);
-
   writer->write_struct_cast<SpaceAction>(sl, [&](BlendStructWriter<SpaceAction> &struct_writer) {
     SpaceAction &for_writing = struct_writer.shallow_data;
 
-    /* Convert the channel UI states to DNA. */
-    write_channel_states(*writer,
-                         ui_state_array,
-                         rna_paths,
-                         animfilter_runtime.channel_states,
-                         for_writing.channel_ui_states);
-
-    /* Store the active channel identifier to DNA. */
-    if (animfilter_runtime.channel_arena) {
-      write_channel_identifier_data(*writer,
-                                    for_writing.active_channel_identifier,
-                                    animfilter_runtime.channel_arena->active_channel_identifier(),
-                                    rna_paths[rna_paths.size() - 1]);
-    }
-    else {
-      write_channel_identifier_data(
-          *writer, for_writing.active_channel_identifier, {}, rna_paths[rna_paths.size() - 1]);
-    }
-    BLI_assert(for_writing.active_channel_identifier.source_rna_path == nullptr ||
-               for_writing.active_channel_identifier.source_rna_path ==
-                   rna_paths[rna_paths.size() - 1].data());
+    write_animfilter_space_runtime(*writer,
+                                   screen_writer.scope,
+                                   animfilter_runtime,
+                                   for_writing.channel_ui_states,
+                                   for_writing.active_channel_identifier);
 
     /* Prevent writing runtime data to the blend file. */
     for_writing.runtime = {};

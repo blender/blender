@@ -6,6 +6,7 @@
 
 #include "BLI_listbase.hh"
 
+#include "BLI_resource_scope.hh"
 #include "BLO_read_write.hh"
 
 #include "BKE_lib_id.hh"
@@ -63,47 +64,16 @@ void channel_state_trim(ChannelUIStateMap &channel_states)
   }
 }
 
-void write_channel_states(BlendWriter &writer,
-                          Array<SpaceChannelDNAState> &ui_state_array,
-                          Array<std::string> &rna_paths,
-                          const ChannelUIStateMap &channel_states,
-                          ListBaseT<SpaceChannelDNAState> &channel_ui_states)
-{
-  BLI_assert_msg(channel_ui_states.is_empty(),
-                 "Previous writes should have cleaned up after themselves");
-  IDNameLib_Map *id_map = writer.idmap();
-  BLI_assert_msg(id_map, "Write without bmain, writing UI state will not be possible");
-  /* Construct the SpaceAction::channel_ui_states listbase. */
-  int64_t array_index = 0;
-  for (const auto key_value : channel_states.items()) {
-    SpaceChannelDNAState *state = &ui_state_array[array_index];
-
-    /* Store the UI state map key. */
-    if (!write_channel_identifier_data(
-            writer, state->identifier, key_value.key, rna_paths[array_index]))
-    {
-      /* Session UID lookup failed, stale entry, skip it. */
-      continue;
-    }
-
-    /* Store the UI state map value. */
-    state->is_collapsed = key_value.value.is_collapsed;
-    state->last_used = key_value.value.last_used;
-
-    BLI_addtail(&channel_ui_states, state);
-    array_index++;
-  }
-
-  /* Write the structs in the listbase. */
-  for (SpaceChannelDNAState &state : channel_ui_states) {
-    writer.write_struct(&state);
-  }
-}
-
-bool write_channel_identifier_data(struct BlendWriter &writer,
-                                   SpaceChannelDNAIdentifier &dna_ident,
-                                   std::optional<ChannelIdentifier> chan_ident,
-                                   std::string &resource_scope_storage)
+/**
+ * Convert the ChannelIdentifier to a SpaceChannelDNAIdentifier, and write to a blend file.
+ *
+ * \returns true when ok, false when any of the identifier's session_uids could not be resolved to
+ * an ID*.
+ */
+static bool write_channel_identifier_data(struct BlendWriter &writer,
+                                          SpaceChannelDNAIdentifier &dna_ident,
+                                          std::optional<ChannelIdentifier> chan_ident,
+                                          std::string &resource_scope_storage)
 {
   /* Make sure the DNA data is clean by default. */
   dna_ident.channel_owner_id = nullptr;
@@ -137,6 +107,78 @@ bool write_channel_identifier_data(struct BlendWriter &writer,
 
   writer.write_string(dna_ident.source_rna_path);
   return true;
+}
+
+/**
+ * Convert the given `channel_states` to a listbase and write them into a blendfile.
+ * \param channel_dna_states has to come from the shallow copy of a `BlendStructWriter`.
+ */
+static void write_channel_states(BlendWriter &writer,
+                                 Array<SpaceChannelDNAState> &ui_state_array,
+                                 Array<std::string> &rna_paths,
+                                 const ChannelUIStateMap &channel_states,
+                                 ListBaseT<SpaceChannelDNAState> &channel_ui_states)
+{
+  BLI_assert_msg(channel_ui_states.is_empty(),
+                 "Previous writes should have cleaned up after themselves");
+  IDNameLib_Map *id_map = writer.idmap();
+  BLI_assert_msg(id_map, "Write without bmain, writing UI state will not be possible");
+  /* Construct the SpaceAction::channel_ui_states listbase. */
+  int64_t array_index = 0;
+  for (const auto key_value : channel_states.items()) {
+    SpaceChannelDNAState *state = &ui_state_array[array_index];
+
+    /* Store the UI state map key. */
+    if (!write_channel_identifier_data(
+            writer, state->identifier, key_value.key, rna_paths[array_index]))
+    {
+      /* Session UID lookup failed, stale entry, skip it. */
+      continue;
+    }
+
+    /* Store the UI state map value. */
+    state->is_collapsed = key_value.value.is_collapsed;
+    state->last_used = key_value.value.last_used;
+
+    BLI_addtail(&channel_ui_states, state);
+    array_index++;
+  }
+
+  /* Write the structs in the listbase. */
+  for (SpaceChannelDNAState &state : channel_ui_states) {
+    writer.write_struct(&state);
+  }
+}
+
+void write_animfilter_space_runtime(struct BlendWriter &writer,
+                                    ResourceScope &scope,
+                                    const AnimfilterSpaceRuntime &animfilter_runtime,
+                                    ListBaseT<SpaceChannelDNAState> &channel_ui_states,
+                                    SpaceChannelDNAIdentifier &active_channel_identifier)
+{
+  /* Allocate memory for the UI state info in DNA. This is using a ResourceScope to prevent pointer
+   * reuse (which would corrupt the blend file). */
+  const int64_t num_channel_states = animfilter_runtime.channel_states.size();
+  Array<SpaceChannelDNAState> &ui_state_array = scope.construct<Array<SpaceChannelDNAState>>(
+      num_channel_states);
+  /* Store RNA paths for the channel states + the active channel identifier. */
+  Array<std::string> &rna_paths = scope.construct<Array<std::string>>(num_channel_states + 1);
+
+  /* Convert the channel UI states to DNA. */
+  write_channel_states(
+      writer, ui_state_array, rna_paths, animfilter_runtime.channel_states, channel_ui_states);
+
+  /* Store the active channel identifier to DNA. */
+  if (animfilter_runtime.channel_arena) {
+    write_channel_identifier_data(writer,
+                                  active_channel_identifier,
+                                  animfilter_runtime.channel_arena->active_channel_identifier(),
+                                  rna_paths[rna_paths.size() - 1]);
+  }
+  else {
+    write_channel_identifier_data(
+        writer, active_channel_identifier, {}, rna_paths[rna_paths.size() - 1]);
+  }
 }
 
 void read_channel_identifier_data(BlendDataReader &reader, SpaceChannelDNAIdentifier &chan_ident)

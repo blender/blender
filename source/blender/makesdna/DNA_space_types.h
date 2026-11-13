@@ -262,7 +262,10 @@ struct SpaceGraph {
   /* Store visible region size before entering the local view. */
   rctf local_view_visible_region_before = {};
 
+  /* These fields are obtained from #ed::animfilter::AnimfilterSpaceRuntime and only used for
+   * storage in blend files. Any other use should go through the runtime data. */
   ListBaseT<struct SpaceChannelDNAState> channel_ui_states = {nullptr, nullptr};
+  SpaceChannelDNAIdentifier active_channel_identifier = {};
 
   struct SpaceGraph_Runtime *runtime;
 };
