@@ -96,12 +96,13 @@ struct VertOut {
 };
 
 [[vertex]] void main_vert([[resource_table]] const Resources &srt,
-                          [[instance_index]] const int inst_index,
+                          [[instance_id]] const int inst_id,
                           [[vertex_id]] const int vert_id,
                           [[out]] VertOut &v_out,
                           [[position]] float4 &out_pos)
 {
-  int glyph_index = inst_index;
+  /* Using instance_id and not instance_index to support legacy Windows/Intel drivers. */
+  int glyph_index = inst_id;
 
   v_out.color_flat = srt.glyphs[glyph_index].glyph_color;
   v_out.glyph_offset = srt.glyphs[glyph_index].offset;
