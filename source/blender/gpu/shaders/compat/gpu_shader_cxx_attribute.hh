@@ -153,7 +153,9 @@
  * IMPORTANT: Will discard any iteration above N.
  */
 #  define unroll_n(N) likely
-/* Force a function to be inlined during BSL compilation. */
+/* Force a function to be inlined during BSL compilation. *
+ * IMPORTANT: Return statement in the function body generates a dummy loop which can increase
+ * compilation time (see #166511). */
 #  define force_inline maybe_unused
 #else
 /* This path checks for unused variables. Disable warning about unknown attributes. */

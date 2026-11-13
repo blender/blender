@@ -10,6 +10,7 @@
 
 /* Source: http://burtleburtle.net/bob/c/lookup3.c */
 
+/* NOTE: Do not add return statement to the function body (see #166511). */
 [[force_inline]] void hash_mix(uint &a, uint &b, uint &c)
 {
   a -= c;
@@ -32,6 +33,7 @@
   b += a;
 }
 
+/* NOTE: Do not add return statement to the function body (see #166511). */
 [[force_inline]] void hash_final(uint &a, uint &b, uint &c)
 {
   c ^= b;
