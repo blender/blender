@@ -952,13 +952,13 @@ struct CodegenContext : NodeErrorHandler {
 
     if (is_graphic) {
       Expr vert_fn = params.child_first();
-      if (!vert_fn.is_valid() || vert_fn.child_count() != 1) {
+      IdQualified vert_id = LocalVar(vert_fn.child_first()).identifier();
+      if (!vert_fn.is_valid() || vert_fn.child_count() != 1 || !vert_id.is_valid()) {
         error(params, Diag::ExpectedVertexShaderEntryPoint);
         return;
       }
       /* Resolve vertex function. */
-      auto &fn =
-          scope.lookup_function(table, LocalVar(vert_fn.child_first()).identifier()).unwrap(this);
+      auto &fn = scope.lookup_function(table, vert_id).unwrap(this);
       if (fn.entry_point_type != SymbolFunction::EntryPointType::VERT) {
         error(vert_fn, Diag::ExpectedVertexShaderEntryPoint);
         return;
@@ -968,13 +968,13 @@ struct CodegenContext : NodeErrorHandler {
       match_if(',');
 
       Expr frag_fn = vert_fn.next();
-      if (!frag_fn.is_valid() || frag_fn.child_count() != 1) {
+      IdQualified frag_id = LocalVar(frag_fn.child_first()).identifier();
+      if (!frag_fn.is_valid() || frag_fn.child_count() != 1 || !frag_id.is_valid()) {
         error(frag_fn, Diag::ExpectedFragmentShaderEntryPoint);
         return;
       }
       /* Resolve fragment function. */
-      auto &fn2 =
-          scope.lookup_function(table, LocalVar(frag_fn.child_first()).identifier()).unwrap(this);
+      auto &fn2 = scope.lookup_function(table, frag_id).unwrap(this);
       if (fn2.entry_point_type != SymbolFunction::EntryPointType::FRAG) {
         error(frag_fn, Diag::ExpectedFragmentShaderEntryPoint);
         return;
@@ -987,13 +987,13 @@ struct CodegenContext : NodeErrorHandler {
     }
     else {
       Expr comp_fn = params.child_first();
-      if (!comp_fn.is_valid() || comp_fn.child_count() != 1) {
+      IdQualified comp_id = LocalVar(comp_fn.child_first()).identifier();
+      if (!comp_fn.is_valid() || comp_fn.child_count() != 1 || !comp_id.is_valid()) {
         error(comp_fn, Diag::ExpectedComputeShaderEntryPoint);
         return;
       }
       /* Resolve compute function. */
-      auto &fn =
-          scope.lookup_function(table, LocalVar(comp_fn.child_first()).identifier()).unwrap(this);
+      auto &fn = scope.lookup_function(table, comp_id).unwrap(this);
       if (fn.entry_point_type != SymbolFunction::EntryPointType::COMP) {
         error(comp_fn, Diag::ExpectedComputeShaderEntryPoint);
         return;
