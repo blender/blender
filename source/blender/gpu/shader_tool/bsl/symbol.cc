@@ -950,6 +950,18 @@ struct SymbolParser : NodeErrorHandler {
     /* Check if any overload has already the same signature w.r.t. the GLSL rules. */
     const SymbolFunction &base = scope.lookup_function_base(table, id);
     for (const SymbolFunction *overload = &base; overload; overload = overload->overload_next) {
+      /* Skip template declarations, whose arguments are not parsed. */
+      if (!overload->is_complete) {
+        continue;
+      }
+      /* Skip template instances emitted with a mangled name that differs from #fn, which cannot
+       * collide in the output. */
+      if (overload->is_specialization && overload->template_data &&
+          !overload->template_data->is_adl_possible() && overload->original != fn.original)
+      {
+        continue;
+      }
+
       if (overload != &fn) {
         if (overload->has_same_signature(fn)) {
           ast::Node decl = overload->fwd.is_valid() ? overload->fwd.identifier() :

@@ -678,6 +678,33 @@ void f(const int &a[2]){}
     auto [output, _, error] = process_test_string(input, shader::Language::BSL);
     EXPECT_EQ(error, "Redefinition of function 'f'");
   }
+  {
+    string input = R"(
+template<typename T> T f() { return T(0); }
+template float f<float>();
+void f() {}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+template<typename T> T f(int a) { return T(a); }
+template float f<float>(int);
+void f(int a) {}
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+template<typename T> T f() { return T(0); }
+template float f<float>();
+template float f<float>();
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f'");
+  }
 }
 
 TEST(shader_tool, ForwardDecl)
