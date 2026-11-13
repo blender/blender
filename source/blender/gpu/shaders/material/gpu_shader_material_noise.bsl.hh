@@ -7,8 +7,7 @@
 #include "gpu_shader_common_hash.bsl.hh"
 #include "gpu_shader_math_vector_safe.bsl.hh"
 
-/* NOTE: Do not add return statement to the function body (see #166511). */
-[[force_inline]] void floor_frac(float x, int &x_int, float &x_fract)
+void floor_frac(float x, int &x_int, float &x_fract)
 {
   float x_floor = floor(x);
   x_int = int(x_floor);
