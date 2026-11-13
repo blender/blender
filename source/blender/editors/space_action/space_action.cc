@@ -216,22 +216,10 @@ static void action_draw_pre(const bContext *C, ScrArea * /*area*/)
   if (!USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     return;
   }
-
-  /* Ignore the returned value, as it's cached on the space data anyway. */
+  /* Construct a summary tree and cache it on the space data. This way the region-specific draw
+   * functions can all just use the cached summary tree without having to check that it's fresh
+   * (which takes time). */
   ed::action::get_summary_tree(*C);
-
-  // SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
-  // saction->runtime->animfilter_runtime.channel_arena.reset();
-}
-
-static void action_draw_post(const bContext * /*C*/, ScrArea * /*area*/)
-{
-  if (!USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    return;
-  }
-
-  // SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
-  // saction->runtime->animfilter_runtime.channel_arena.reset();w
 }
 
 static void action_on_show(ScrArea *area)
@@ -1240,7 +1228,6 @@ void ED_spacetype_action()
   st->listener = action_listener;
   st->refresh = action_refresh;
   st->draw_pre = action_draw_pre;
-  st->draw_post = action_draw_post;
   st->on_show = action_on_show;
   st->id_remap = action_id_remap;
   st->foreach_id = action_foreach_id;

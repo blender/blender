@@ -273,7 +273,10 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
     using namespace ed::animfilter;
     /* TODO reimplement. */
     graph_draw_ghost_curves(*scene, sipo, region->v2d);
-    ChannelArena &channels = ed::graph::get_summary_tree(*C);
+    AnimfilterSpaceRuntime &runtime = sipo->runtime->animfilter_runtime;
+    BLI_assert_msg(runtime.channel_arena.has_value(),
+                   "graph_draw_pre should ensure there is a channel arena");
+    ChannelArena &channels = runtime.channel_arena.value();
     graph_draw_fcurves(channels.data_channels, *scene, region->v2d, *sipo);
   }
   else {
@@ -444,10 +447,15 @@ static void set_v2d_height(View2D *v2d, const size_t item_count)
   ui::view2d_curRect_clamp_y(v2d);
 }
 
-static void graph_draw_pre(const bContext * /* C */, ScrArea *area)
+static void graph_draw_pre(const bContext *C, ScrArea * /*area*/)
 {
-  SpaceGraph *space_graph = area->spacedata.first_as<SpaceGraph>();
-  space_graph->runtime->animfilter_runtime.channel_arena.reset();
+  if (!USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    return;
+  }
+  /* Construct a summary tree and cache it on the space data. This way the region-specific draw
+   * functions can all just use the cached summary tree without having to check that it's fresh
+   * (which takes time). */
+  ed::graph::get_summary_tree(*C);
 }
 
 static void graph_on_show(ScrArea *area)
@@ -472,7 +480,11 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
-    ChannelArena &channels = ed::graph::get_summary_tree(*C);
+    SpaceGraph *sgraph = CTX_wm_space_graph(C);
+    AnimfilterSpaceRuntime &runtime = sgraph->runtime->animfilter_runtime;
+    BLI_assert_msg(runtime.channel_arena.has_value(),
+                   "action_draw_pre should ensure there is a channel arena");
+    ChannelArena &channels = runtime.channel_arena.value();
     set_v2d_height(v2d, channels.num_channels());
     ui::view2d_view_ortho(v2d);
     ChannelTreeSettings settings(channels.filters);
@@ -483,7 +495,6 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
     settings.show_summary = false;
     std::unique_ptr<ui::AbstractTreeView> tree = build_channel_tree_view(channels, settings);
     draw_channel_tree(*C, std::move(tree));
-    SpaceGraph *sgraph = CTX_wm_space_graph(C);
     ED_time_scrub_channel_search_draw(C, region, sgraph->ads);
   }
   else {
