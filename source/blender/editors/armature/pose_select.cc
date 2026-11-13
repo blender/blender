@@ -19,6 +19,8 @@
 #include "BLI_assert.hh"
 #include "BLI_listbase.hh"
 #include "BLI_map.hh"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_string.hh"
 
 #include "BKE_action.hh"
@@ -886,6 +888,96 @@ void POSE_OT_select_parent(wmOperatorType *ot)
 }
 
 /* -------------------------------------- */
+static bool is_constraint_target_selected(const bConstraintTarget &ct,
+                                          const Set<bPoseChannel *> &selected_bones)
+{
+  if (!ct.tar || ct.subtarget[0] == '\0') {
+    return false;
+  }
+
+  bPoseChannel *target_pchan = BKE_pose_channel_find_name(ct.tar->pose, ct.subtarget);
+
+  return target_pchan && selected_bones.contains(target_pchan);
+}
+
+static wmOperatorStatus pose_select_constrained_by_selection_exec(bContext *C, wmOperator * /*op*/)
+{
+  bool found = false;
+
+  const Main *bmain = CTX_data_main(C);
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  Vector<Object *> objects = BKE_object_pose_array_get_unique(
+      *bmain, scene, view_layer, CTX_wm_view3d(C));
+
+  Set<bPoseChannel *> selected_bones;
+
+  for (Object *ob : objects) {
+    Set<bPoseChannel *> selected_pose_bones = get_selected_pose_bones(*ob);
+    for (bPoseChannel *pchan : selected_pose_bones) {
+      selected_bones.add(pchan);
+    }
+  }
+
+  /* Loop through all the bone constraints looking for a match. */
+  for (Object *pose_object : objects) {
+    bool matched = false;
+    bArmature *arm = id_cast<bArmature *>(pose_object->data);
+    BLI_assert(arm);
+
+    ED_pose_deselect_all(pose_object, SEL_DESELECT, false);
+
+    for (bPoseChannel &pchan : pose_object->pose->chanbase) {
+      if (!animrig::bone_is_selectable(arm, &pchan)) {
+        continue;
+      }
+
+      for (bConstraint &con : pchan.constraints) {
+        ListBaseT<bConstraintTarget> targets = {nullptr, nullptr};
+
+        if (!BKE_constraint_targets_get(&con, &targets)) {
+          continue;
+        }
+
+        for (bConstraintTarget &ct : targets) {
+          if (is_constraint_target_selected(ct, selected_bones)) {
+            animrig::bone_select(&pchan);
+            found = true;
+            matched = true;
+            break;
+          }
+        }
+        BKE_constraint_targets_flush(&con, &targets, true);
+      }
+    }
+    if (matched) {
+      ED_pose_bone_select_tag_update(pose_object);
+    }
+  }
+
+  if (!found) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ED_outliner_select_sync_from_pose_bone_tag(C);
+
+  return OPERATOR_FINISHED;
+}
+
+void POSE_OT_select_constrained_by_selection(wmOperatorType *ot)
+{
+  ot->name = "Select Constraint Owners";
+  ot->idname = "POSE_OT_select_constrained_by_selection";
+  ot->description = "Select owners of constraints that target the currently selected bones";
+
+  ot->exec = pose_select_constrained_by_selection_exec;
+  ot->poll = ED_operator_posemode;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* -------------------------------------- */
 
 static wmOperatorStatus pose_select_constraint_target_exec(bContext *C, wmOperator * /*op*/)
 {
@@ -933,7 +1025,7 @@ void POSE_OT_select_constraint_target(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Select Constraint Target";
   ot->idname = "POSE_OT_select_constraint_target";
-  ot->description = "Select bones used as targets for the currently selected bones";
+  ot->description = "Select bones used as targets by the currently selected bones";
 
   /* API callbacks. */
   ot->exec = pose_select_constraint_target_exec;
@@ -941,6 +1033,164 @@ void POSE_OT_select_constraint_target(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* -------------------------------------- */
+
+enum class BoneScale { NON_UNIT = 0, NON_UNIFORM = 1 };
+
+static wmOperatorStatus pose_select_scaled_exec(bContext *C, wmOperator *op)
+{
+  const Main *bmain = CTX_data_main(C);
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Vector<Object *> objects = BKE_object_pose_array_get_unique(
+      *bmain, scene, view_layer, CTX_wm_view3d(C));
+
+  const BoneScale scale_mode = BoneScale(RNA_enum_get(op->ptr, "scale"));
+
+  for (Object *pose_object : objects) {
+    bArmature *arm = id_cast<bArmature *>(pose_object->data);
+    BLI_assert(arm);
+
+    ED_pose_deselect_all(pose_object, SEL_DESELECT, false);
+
+    for (bPoseChannel &pchan : pose_object->pose->chanbase) {
+      Bone *bone = pchan.bone_get(*pose_object);
+      if (!animrig::bone_is_selectable(arm, &pchan)) {
+        continue;
+      }
+      const float epsilon = 1.0e-4f; /* Accounts for any rounding errors when the bones
+                                      * are just slightly rotated (and not scaled).*/
+      const float4x4 pbone_mat = float4x4(pchan.pose_mat);
+      const float3 axis_scale = math::to_scale(pbone_mat);
+      bool select = false;
+
+      switch (scale_mode) {
+        case BoneScale::NON_UNIT: {
+          select = (fabsf(axis_scale.x - 1.0f) > epsilon) ||
+                   (fabsf(axis_scale.y - 1.0f) > epsilon) ||
+                   (fabsf(axis_scale.z - 1.0f) > epsilon);
+          break;
+        }
+
+        case BoneScale::NON_UNIFORM: {
+          select = (fabsf(axis_scale.x - axis_scale.y) > epsilon) ||
+                   (fabsf(axis_scale.x - axis_scale.z) > epsilon) ||
+                   (fabsf(axis_scale.y - axis_scale.z) > epsilon);
+          break;
+        }
+      }
+
+      if (select) {
+        pose_do_bone_select({&pchan, bone}, SEL_SELECT);
+      }
+    }
+    ED_pose_bone_select_tag_update(pose_object);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void POSE_OT_select_scaled(wmOperatorType *ot)
+{
+  ot->name = "Select Scaled Bones";
+  ot->idname = "POSE_OT_select_scaled";
+  ot->description = "Select bones that have non-uniform or non-unit scale";
+
+  ot->exec = pose_select_scaled_exec;
+  ot->poll = ED_operator_posemode;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  static const EnumPropertyItem deform_items[] = {
+      {int(BoneScale::NON_UNIFORM),
+       "NON_UNIFORM",
+       0,
+       "Non-Uniform",
+       "Select bones that have non-uniform scale on their final matrix.\n"
+       "(Includes scale from parenting, constraints, and drivers)"},
+      {int(BoneScale::NON_UNIT),
+       "NON_UNIT",
+       0,
+       "Non-Unit",
+       "Select bones that have non-unit scale on their final matrix.\n"
+       "(Includes scale from parenting, constraints, and drivers)"},
+      {0, nullptr, 0, nullptr, nullptr}};
+
+  RNA_def_enum(ot->srna, "scale", deform_items, int(BoneScale::NON_UNIFORM), "Scale", "");
+}
+
+/** \} */
+/* -------------------------------------------------------------------- */
+/** \name Select Deform Operator
+ * \{ */
+
+enum class BoneDeform { DEFORM = 0, NO_DEFORM = 1 };
+
+static wmOperatorStatus armature_select_deform_exec(bContext *C, wmOperator *op)
+{
+  const Main *bmain = CTX_data_main(C);
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Vector<Object *> objects = BKE_object_pose_array_get_unique(
+      *bmain, scene, view_layer, CTX_wm_view3d(C));
+
+  const BoneDeform mode = BoneDeform(RNA_enum_get(op->ptr, "mode"));
+
+  for (Object *pose_object : objects) {
+    bArmature *arm = id_cast<bArmature *>(pose_object->data);
+    BLI_assert(arm);
+
+    ED_pose_deselect_all(pose_object, SEL_DESELECT, false);
+
+    for (bPoseChannel &pchan : pose_object->pose->chanbase) {
+      Bone *bone = pchan.bone_get(*pose_object);
+      if (!bone) {
+        continue;
+      }
+
+      if (!animrig::bone_is_selectable(arm, &pchan)) {
+        continue;
+      }
+
+      const bool is_deform = !(bone->flag & BONE_NO_DEFORM);
+      const bool select = is_deform == (mode == BoneDeform::DEFORM);
+      if (select) {
+        pose_do_bone_select({&pchan, bone}, SEL_SELECT);
+      }
+    }
+    ED_pose_bone_select_tag_update(pose_object);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void POSE_OT_select_deform(wmOperatorType *ot)
+{
+  ot->name = "Select Deform Bones";
+  ot->idname = "POSE_OT_select_deform";
+  ot->description = "Select bones the have the deform option enabled (or disabled)";
+
+  ot->exec = armature_select_deform_exec;
+  ot->poll = ED_operator_posemode;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  static const EnumPropertyItem deform_items[] = {
+      {int(BoneDeform::DEFORM),
+       "DEFORM",
+       0,
+       "Enabled",
+       "Select bones that have the 'deform' option enabled"},
+      {int(BoneDeform::NO_DEFORM),
+       "NO_DEFORM",
+       0,
+       "Disabled",
+       "Select bones that have the 'deform' option disabled"},
+      {0, nullptr, 0, nullptr, nullptr}};
+
+  RNA_def_enum(ot->srna, "mode", deform_items, int(BoneDeform::DEFORM), "Deform", "");
 }
 
 /* -------------------------------------- */

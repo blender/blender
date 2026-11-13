@@ -28,6 +28,9 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "UI_interface_layout.hh"
+#include "UI_resources.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -1446,6 +1449,78 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
 }
 
 /** \} */
+/* -------------------------------------------------------------------- */
+/** \name Select Deform Operator
+ * \{ */
+
+enum class BoneDeform { NO_DEFORM = 0, DEFORM = 1 };
+
+static wmOperatorStatus armature_select_deform_exec(bContext *C, wmOperator *op)
+{
+  const Main *bmain = CTX_data_main(C);
+  const Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      *bmain, scene, view_layer, CTX_wm_view3d(C));
+
+  const BoneDeform mode = BoneDeform(RNA_enum_get(op->ptr, "deform"));
+
+  for (Object *ob : objects) {
+    bArmature *arm = id_cast<bArmature *>(ob->data);
+    bool changed = false;
+
+    ED_armature_edit_deselect_all_visible(ob);
+
+    for (EditBone &ebone : *arm->edbo) {
+      if (!animrig::bone_is_visible(arm, &ebone)) {
+        continue;
+      }
+
+      const bool is_deform = !(ebone.flag & BONE_NO_DEFORM);
+      const bool select = is_deform == (mode == BoneDeform::DEFORM);
+      if (select) {
+        ED_armature_ebone_select_set(&ebone, true);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+      DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_select_deform(wmOperatorType *ot)
+{
+  ot->name = "Select Deform Bones";
+  ot->idname = "ARMATURE_OT_select_deform";
+  ot->description = "Select bones the have the deform option enabled (or disabled)";
+
+  ot->exec = armature_select_deform_exec;
+  ot->poll = ED_operator_editarmature;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  static const EnumPropertyItem deform_items[] = {
+      {int(BoneDeform::NO_DEFORM),
+       "NO_DEFORM",
+       0,
+       "Disabled",
+       "Select bones that have the 'deform' option disabled"},
+      {int(BoneDeform::DEFORM),
+       "DEFORM",
+       0,
+       "Enabled",
+       "Select bones that have the 'deform' option enabled"},
+      {0, nullptr, 0, nullptr, nullptr}};
+
+  RNA_def_enum(ot->srna, "deform", deform_items, int(BoneDeform::DEFORM), "Deform", "");
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Select More/Less Implementation
@@ -2055,6 +2130,18 @@ static wmOperatorStatus armature_select_similar_exec(bContext *C, wmOperator *op
   return OPERATOR_FINISHED;
 }
 
+static void select_similar_ui(bContext * /*C*/, wmOperator *op)
+{
+  ui::Layout &layout = *op->layout;
+  layout.use_property_split_set(true);
+
+  const int type = RNA_enum_get(op->ptr, "type");
+  layout.prop(op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (ELEM(type, SIMEDBONE_LENGTH, SIMEDBONE_DIRECTION)) {
+    layout.prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  }
+}
+
 void ARMATURE_OT_select_similar(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2065,6 +2152,7 @@ void ARMATURE_OT_select_similar(wmOperatorType *ot)
   ot->invoke = WM_menu_invoke;
   ot->exec = armature_select_similar_exec;
   ot->poll = ED_operator_editarmature;
+  ot->ui = select_similar_ui;
   ot->description = "Select similar bones by property types";
 
   /* flags */
