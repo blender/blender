@@ -271,8 +271,10 @@ static void ale_chan_sync_gplayer(bAnimListElem *ale)
 /**
  * Set ActionGroup select/active state based on the PoseBone select/active state.
  */
-static void animchan_sync_group(ed::animfilter::AnimationChannel &channel,
-                                bool &has_set_active_group)
+static void animchan_sync_group(const bContext &C,
+                                ed::animfilter::AnimationChannel &channel,
+                                bool &has_set_active_group,
+                                const bool do_pose_bone_selection_sync)
 {
   using namespace ed::animfilter;
   BLI_assert(channel.source_is_type(RNA_ActionGroup));
@@ -296,20 +298,24 @@ static void animchan_sync_group(ed::animfilter::AnimationChannel &channel,
    * system, and should get replaced at some point.
    */
   Object *ob = id_cast<Object *>(animated_id);
-  bActionGroup *agrp = channel.source().data_as<bActionGroup>();
-  flag_update(agrp->flag, AGRP_SELECTED, pchan->flag & POSE_SELECTED);
-
-  /* Sync active group status. */
   bArmature *arm = id_cast<bArmature *>(ob->data);
   Bone *bone = pchan->bone_get(*ob);
-
-  /* If no previous group has active flag, then we're the first and only one to get it. */
-  const bool do_set_active = (bone == arm->act_bone && !has_set_active_group);
-  flag_update(agrp->flag, AGRP_ACTIVE, do_set_active);
-  has_set_active_group |= do_set_active;
+  bActionGroup *agrp = channel.source().data_as<bActionGroup>();
 
   /* Sync bone color. */
   action_group_colors_set_from_posebone(agrp, {pchan, bone});
+
+  if (do_pose_bone_selection_sync) {
+    /* Don't sync to secondary, as we're already doing the opposite (syncing from the secondary to
+     * the channel). */
+    channel.set_selected(C, pchan->flag & POSE_SELECTED, /*do_sync_to_secondary=*/false);
+
+    /* Sync active group status. */
+    /* If no previous group has active flag, then we're the first and only one to get it. */
+    const bool do_set_active = (bone == arm->act_bone && !has_set_active_group);
+    flag_update(agrp->flag, AGRP_ACTIVE, do_set_active);
+    has_set_active_group |= do_set_active;
+  }
 }
 
 static void animchan_sync_fcurve(ed::animfilter::AnimationChannel &channel)
@@ -404,10 +410,13 @@ void ANIM_sync_data_to_animchannels(const bContext *C)
       return;
     }
 
+    const bool do_pose_bone_selection_sync = do_sync_channel_selection_to_secondary(
+        channels->filters);
+
     bool has_set_active_group = false;
     foreach_channel(*channels->root(), [&](AnimationChannel &channel, int /*row_index*/) {
       if (channel.source_is_type(RNA_ActionGroup)) {
-        animchan_sync_group(channel, has_set_active_group);
+        animchan_sync_group(*C, channel, has_set_active_group, do_pose_bone_selection_sync);
       }
       else if (channel.source_is_type(RNA_FCurve)) {
         animchan_sync_fcurve(channel);
