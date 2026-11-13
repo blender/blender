@@ -355,7 +355,9 @@ struct MaterialGPencilStyle {
   float random_value_factor = 0;
 
   float random_noise_scale = 0;
-  char _pad3[4] = {};
+
+  /** Seed used to vary the random pattern. */
+  int random_noise_seed = 0;
 
   /** Color gradient. */
   struct ColorBand *gradient = nullptr;

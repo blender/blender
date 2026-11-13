@@ -353,6 +353,7 @@ void BKE_gpencil_material_attr_init(Material *ma)
     gp_style->random_saturation_factor = 0.0f;
     gp_style->random_value_factor = 0.0f;
     gp_style->random_noise_scale = 1.0f;
+    gp_style->random_noise_seed = 0;
   }
 }
 

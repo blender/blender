@@ -235,6 +235,7 @@ class MATERIAL_PT_gpencil_random(GPMaterialButtonsPanel, Panel):
             col.separator()
 
             col.prop(gpcolor, "random_noise_scale", slider=True)
+            col.prop(gpcolor, "random_noise_seed")
 
 
 class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
