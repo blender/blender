@@ -190,53 +190,18 @@ class ObjectChannelAPI : public AbstractChannelAPI {
  public:
   ObjectChannelAPI(Object &object) : object_(object) {}
 
-  void set_selected(const bContext &C,
+  void set_selected(const bContext & /*C*/,
                     const bool is_selected,
-                    const bool do_sync_to_secondary) override
+                    bool /*do_sync_to_secondary*/) override
   {
     BLI_assert_msg(object_.adt, "animated object is expected to have an AnimData struct");
     flag_update(object_.adt->flag, ADT_UI_SELECTED, is_selected);
-
-    if (!do_sync_to_secondary) {
-      return;
-    }
-
-    ViewLayer *view_layer = CTX_data_view_layer(&C);
-    Base *base = this->find_base(C, view_layer);
-
-    object::base_select(base, is_selected ? object::BA_SELECT : object::BA_DESELECT);
-    flag_update(object_.flag, OB_SELECT, is_selected);
-
-    Scene *scene = CTX_data_scene(&C);
-    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-    WM_event_add_notifier(&C, NC_SCENE | ND_OB_SELECT, scene);
-    ED_outliner_select_sync_from_object_tag(const_cast<bContext *>(&C));
   }
 
   bool is_selected() const override
   {
+    BLI_assert_msg(object_.adt, "animated object is expected to have an AnimData struct");
     return flag_is_set(object_.adt->flag, ADT_UI_SELECTED);
-  }
-
-  void set_active(const bContext &C, bool do_sync_to_secondary) override
-  {
-    if (!do_sync_to_secondary) {
-      return;
-    }
-
-    ViewLayer *view_layer = CTX_data_view_layer(&C);
-    Base *base = this->find_base(C, view_layer);
-
-    view_layer->basact = base;
-  }
-
- private:
-  Base *find_base(const bContext &C, ViewLayer *view_layer) const
-  {
-    BKE_view_layer_synced_ensure(*CTX_data_main(&C), CTX_data_scene(&C), view_layer);
-    Base *base = BKE_view_layer_base_find(view_layer, &object_);
-    BLI_assert(base);
-    return base;
   }
 };
 
