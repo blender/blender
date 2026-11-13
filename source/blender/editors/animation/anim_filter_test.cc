@@ -327,8 +327,8 @@ TEST_F(AnimChannelTest, group_channels)
   /* Collect & group the channels. */
   ChannelArena arena;
   ChannelSourcingContext ctx(arena);
-  collection_channels_for_object(*this->cube, ctx);
-  collection_channels_for_object(*this->suzanne, ctx);
+  collect_channels_for_object(*this->cube, ctx);
+  collect_channels_for_object(*this->suzanne, ctx);
   arena.grouping_params.tag_order = {
       ChannelTagType::ACTION,
       ChannelTagType::ACTION_LAYER,

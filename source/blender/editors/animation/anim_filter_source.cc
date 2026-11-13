@@ -549,7 +549,7 @@ static void foreach_modifier_ID_callback(void *user_data,
   }
 }
 
-void collection_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
+void collect_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
 {
   collect_channels_for_id(&obj.id, ctx);
   collect_channels_for_id(obj.data, ctx);
@@ -826,7 +826,7 @@ void collect_animation_channels(const bContext &C, ChannelArena &arena)
     }
 
     for (Object *object : objects) {
-      collection_channels_for_object(*object, ctx);
+      collect_channels_for_object(*object, ctx);
     }
   }
 

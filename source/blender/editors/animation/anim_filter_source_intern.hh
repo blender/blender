@@ -20,7 +20,7 @@ struct ChannelSourcingContext {
   Set<ID *> visited_ids = {};
 };
 
-void collection_channels_for_object(Object &obj, ChannelSourcingContext &ctx);
+void collect_channels_for_object(Object &obj, ChannelSourcingContext &ctx);
 
 /**
  * Callback to be registered to setting buttons using `button_func_set`.
