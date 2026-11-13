@@ -14,7 +14,7 @@
 
 #pragma once
 
-#if 0
+#if !defined(_MSC_VER) || defined(__clang__)
 /* MSVC doesn't support using the same attribute multiple times (fixed in later versions).
  * However, Clang in MSVC compatibility mode does. */
 
