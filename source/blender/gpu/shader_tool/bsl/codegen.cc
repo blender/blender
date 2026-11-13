@@ -1864,8 +1864,20 @@ struct CodegenContext : NodeErrorHandler {
       builder.ss << fn->return_type->identifier << " " << ret_val << ";\n";
     }
 
+    /* IMPORTANT: We only emit the `do {} while(false)` if inlined function has a return statement
+     * otherwise it can increase compile time drastically (see #166511). */
+    bool has_return_stmt = false;
+    for ([[maybe_unused]] auto stmt : fn->decl.descendants_of_type<ReturnStmt>()) {
+      has_return_stmt = true;
+      break;
+    }
+
     /* Create local scope. */
-    builder.ss << "do {\n";
+
+    if (has_return_stmt) {
+      builder.ss << "do ";
+    }
+    builder.ss << "{\n";
     jump_to(fn->decl.front());
 
     /* Declare argument copies. */
@@ -1904,8 +1916,13 @@ struct CodegenContext : NodeErrorHandler {
 
     local_scope(fn->decl.body(), *fn);
 
-    /* Create argument assignments. */
-    builder.ss << "} while (false);\n";
+    /* Close the local scope. */
+    if (has_return_stmt) {
+      builder.ss << "} while (false);\n";
+    }
+    else {
+      builder.ss << "}\n";
+    }
 
     inlining_stack.pop_back();
 
