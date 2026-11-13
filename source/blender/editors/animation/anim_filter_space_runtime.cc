@@ -27,6 +27,15 @@ ChannelArena &AnimfilterSpaceRuntime::get_summary_tree(const bContext &C,
   if (this->channel_arena.has_value()) {
     /* There is already a ChannelArena from a previous run. Reuse or replace it. */
     ChannelArena *cached_arena = &this->channel_arena.value();
+
+    /* Write the active channel back to the space runtime data. This should actually be done
+     * whenever the active channel identifier changes, but doing it here is good enough given that
+     * there will very likely be redraws anyway between setting the active channel and saving the
+     * blend file. */
+    this->active_channel_ident = cached_arena->active_channel_identifier();
+
+    /* Ask the build function for a new one. If it returns nullptr, it means the cached one is
+     * still good. */
     new_arena = build_summary_tree_fn(C, cached_arena);
 
     if (new_arena) {
