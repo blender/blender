@@ -877,10 +877,10 @@ This product includes software developed at:
 Pixar (http://www.pixar.com/).
 ]=])
 
-set(MATERIALX_VERSION 1.39.4)
+set(MATERIALX_VERSION 1.39.5)
 set(MATERIALX_NAME MaterialX)
 set(MATERIALX_URI https://github.com/AcademySoftwareFoundation/MaterialX/archive/refs/tags/v${MATERIALX_VERSION}.tar.gz)
-set(MATERIALX_HASH 4704716b93e4c2d6b3693aa56a13b71b)
+set(MATERIALX_HASH 1fdcad31743fbf35c7638e0fc5631e23)
 set(MATERIALX_HASH_TYPE MD5)
 set(MATERIALX_FILE materialx-v${MATERIALX_VERSION}.tar.gz)
 set(MATERIALX_CPE "cpe:2.3:a:linuxfoundation:materialx:${MATERIALX_VERSION}:-:*:*:*:*:*:*")
