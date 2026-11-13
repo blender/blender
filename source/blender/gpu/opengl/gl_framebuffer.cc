@@ -493,6 +493,8 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type, const double4 clear
 
   /* Save and restore the state. */
   GPUWriteMask write_mask = GPU_write_mask_get();
+  uint stencil_mask = GPU_stencil_mask_get();
+  GPUStencilTest stencil_test = GPU_stencil_test_get();
 
   GPU_depth_mask(true);
   GPU_color_mask(true, true, true, true);
@@ -501,11 +503,20 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type, const double4 clear
 
   if (ELEM(type, GPU_FB_DEPTH_ATTACHMENT, GPU_FB_DEPTH_STENCIL_ATTACHMENT)) {
     glClearDepth(float(clear_value.x));
-    glClear(to_gl(GPU_DEPTH_BIT));
+    GLbitfield mask = GL_DEPTH_BUFFER_BIT;
+    if (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) {
+      GPU_stencil_write_mask_set(0xFFu);
+      GPU_stencil_test(GPU_STENCIL_ALWAYS);
+      glClearStencil(GLint(uint32_t(clear_value.y)));
+      mask |= GL_STENCIL_BUFFER_BIT;
+    }
+    context_->state_manager->apply_state();
+    glClear(mask);
   }
   else {
     int slot = type - GPU_FB_COLOR_ATTACHMENT0;
     GPUTextureFormatFlag flag = attachments_[type].tex->format_flag_get();
+    context_->state_manager->apply_state();
     if (flag & GPU_FORMAT_FLOAT || flag & GPU_FORMAT_NORMALIZED_INTEGER) {
       float4 data = float4(clear_value);
       glClearBufferfv(GL_COLOR, slot, &data.x);
@@ -524,6 +535,8 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type, const double4 clear
   }
 
   GPU_write_mask(write_mask);
+  GPU_stencil_write_mask_set(stencil_mask);
+  GPU_stencil_test(stencil_test);
 }
 
 void GLFrameBuffer::clear_multi(Span<double4> clear_cols)

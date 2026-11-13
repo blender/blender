@@ -394,9 +394,13 @@ void MTLFrameBuffer::clear_attachment(GPUAttachmentType type, const double4 clea
 
   bool do_clear = false;
 
-  if (type == GPU_FB_DEPTH_ATTACHMENT) {
+  if (ELEM(type, GPU_FB_DEPTH_ATTACHMENT, GPU_FB_DEPTH_STENCIL_ATTACHMENT)) {
     if (this->has_depth_attachment()) {
       this->set_depth_attachment_clear_value(clear_value.x);
+      do_clear = true;
+    }
+    if (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT && this->has_stencil_attachment()) {
+      this->set_stencil_attachment_clear_value(uint32_t(clear_value.y));
       do_clear = true;
     }
   }
