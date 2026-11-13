@@ -49,6 +49,7 @@
 
 #include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
+#include "ED_anim_filter_read_write.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_space_action.hh"
@@ -1129,8 +1130,8 @@ static void action_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
   saction->runtime = MEM_new<SpaceAction_Runtime>(__func__);
 
-  ed::animfilter::read_channel_states_data(*reader, saction->channel_ui_states);
-  ed::animfilter::read_channel_identifier_data(*reader, saction->active_channel_identifier);
+  ed::animfilter::read_space_runtime_data(
+      *reader, saction->channel_ui_states, saction->active_channel_identifier);
 }
 
 static void action_space_blend_read_after_liblink(BlendLibReader *reader,
@@ -1141,15 +1142,8 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
   AnimfilterSpaceRuntime &animfilter_runtime = saction->runtime->animfilter_runtime;
 
-  read_channel_states_after_liblink(
-      *reader, saction->channel_ui_states, animfilter_runtime.channel_states);
-
-  ChannelIdentifier active_channel_ident;
-  read_channel_identifier_data_after_liblink(saction->active_channel_identifier,
-                                             active_channel_ident);
-  if (active_channel_ident != ChannelIdentifier{}) {
-    animfilter_runtime.active_channel_ident = active_channel_ident;
-  }
+  read_space_runtime_data_after_liblink(
+      *reader, animfilter_runtime, saction->channel_ui_states, saction->active_channel_identifier);
 }
 
 static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
@@ -1174,11 +1168,11 @@ static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceL
   writer->write_struct_cast<SpaceAction>(sl, [&](BlendStructWriter<SpaceAction> &struct_writer) {
     SpaceAction &for_writing = struct_writer.shallow_data;
 
-    write_animfilter_space_runtime(*writer,
-                                   screen_writer.scope,
-                                   animfilter_runtime,
-                                   for_writing.channel_ui_states,
-                                   for_writing.active_channel_identifier);
+    write_space_runtime_data(*writer,
+                             screen_writer.scope,
+                             animfilter_runtime,
+                             for_writing.channel_ui_states,
+                             for_writing.active_channel_identifier);
 
     /* Prevent writing runtime data to the blend file. */
     for_writing.runtime = {};

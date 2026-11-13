@@ -33,6 +33,7 @@
 
 #include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
+#include "ED_anim_filter_read_write.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_space_action.hh"
@@ -986,6 +987,10 @@ static void graph_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
           data, state.identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
     }
   }
+  BKE_LIB_FOREACHID_PROCESS_ID(
+      data, sgraph->active_channel_identifier.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
+  BKE_LIB_FOREACHID_PROCESS_ID(
+      data, sgraph->active_channel_identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
 }
 
 static int graph_space_subtype_get(ScrArea *area)
@@ -1030,19 +1035,19 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   sipo->runtime = MEM_new<SpaceGraph_Runtime>(__func__);
 
   BLO_read_struct(reader, bDopeSheet, &sipo->ads);
-  ed::animfilter::read_channel_states_data(*reader, sipo->channel_ui_states);
+  ed::animfilter::read_space_runtime_data(
+      *reader, sipo->channel_ui_states, sipo->active_channel_identifier);
 }
 
 static void graph_space_blend_read_after_liblink(BlendLibReader *reader,
                                                  ID * /*parent_id*/,
                                                  SpaceLink *sl)
 {
-  using namespace ed::animfilter;
   SpaceGraph *space_graph = reinterpret_cast<SpaceGraph *>(sl);
-  ed::animfilter::read_channel_states_after_liblink(
-      *reader,
-      space_graph->channel_ui_states,
-      space_graph->runtime->animfilter_runtime.channel_states);
+  ed::animfilter::read_space_runtime_data_after_liblink(*reader,
+                                                        space_graph->runtime->animfilter_runtime,
+                                                        space_graph->channel_ui_states,
+                                                        space_graph->active_channel_identifier);
 }
 
 static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
@@ -1069,11 +1074,11 @@ static void graph_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLi
   writer->write_struct_cast<SpaceGraph>(sl, [&](BlendStructWriter<SpaceGraph> &struct_writer) {
     SpaceGraph &for_writing = struct_writer.shallow_data;
 
-    write_animfilter_space_runtime(*writer,
-                                   screen_writer.scope,
-                                   animfilter_runtime,
-                                   for_writing.channel_ui_states,
-                                   for_writing.active_channel_identifier);
+    write_space_runtime_data(*writer,
+                             screen_writer.scope,
+                             animfilter_runtime,
+                             for_writing.channel_ui_states,
+                             for_writing.active_channel_identifier);
 
     /* Prevent writing runtime data to the blend file. */
     for_writing.runtime = {};

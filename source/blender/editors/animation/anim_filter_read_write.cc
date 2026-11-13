@@ -4,10 +4,10 @@
 
 #include <sstream>
 
-#include "BLI_listbase.hh"
+#include "ED_anim_filter_read_write.hh"
 
+#include "BLI_listbase.hh"
 #include "BLI_resource_scope.hh"
-#include "BLO_read_write.hh"
 
 #include "BKE_lib_id.hh"
 #include "BKE_main_idmap.hh"
@@ -62,7 +62,7 @@ void channel_state_trim(ChannelUIStateMap &channel_states)
  * \returns true when ok, false when any of the identifier's session_uids could not be resolved to
  * an ID*.
  */
-static bool write_channel_identifier_data(struct BlendWriter &writer,
+static bool write_channel_identifier_data(BlendWriter &writer,
                                           SpaceChannelDNAIdentifier &dna_ident,
                                           std::optional<ChannelIdentifier> chan_ident,
                                           std::string &resource_scope_storage)
@@ -142,11 +142,11 @@ static void write_channel_states(BlendWriter &writer,
   }
 }
 
-void write_animfilter_space_runtime(struct BlendWriter &writer,
-                                    ResourceScope &scope,
-                                    const AnimfilterSpaceRuntime &animfilter_runtime,
-                                    ListBaseT<SpaceChannelDNAState> &channel_ui_states,
-                                    SpaceChannelDNAIdentifier &active_channel_identifier)
+void write_space_runtime_data(struct BlendWriter &writer,
+                              ResourceScope &scope,
+                              const AnimfilterSpaceRuntime &animfilter_runtime,
+                              ListBaseT<SpaceChannelDNAState> &channel_ui_states,
+                              SpaceChannelDNAIdentifier &active_channel_identifier)
 {
   /* Allocate memory for the UI state info in DNA. This is using a ResourceScope to prevent pointer
    * reuse (which would corrupt the blend file). */
@@ -173,13 +173,14 @@ void write_animfilter_space_runtime(struct BlendWriter &writer,
   }
 }
 
-void read_channel_identifier_data(BlendDataReader &reader, SpaceChannelDNAIdentifier &chan_ident)
+static void read_channel_identifier_data(BlendDataReader &reader,
+                                         SpaceChannelDNAIdentifier &chan_ident)
 {
   BLO_read_string(&reader, &chan_ident.source_rna_path);
 }
 
-void read_channel_identifier_data_after_liblink(SpaceChannelDNAIdentifier &dna_ident,
-                                                ChannelIdentifier &chan_ident)
+static void read_channel_identifier_data_after_liblink(SpaceChannelDNAIdentifier &dna_ident,
+                                                       ChannelIdentifier &chan_ident)
 {
   if (dna_ident.channel_owner_id) {
     BLI_assert_msg(
@@ -212,8 +213,8 @@ void read_channel_identifier_data_after_liblink(SpaceChannelDNAIdentifier &dna_i
   MEM_SAFE_DELETE(dna_ident.source_rna_path);
 }
 
-void read_channel_states_data(BlendDataReader &reader,
-                              ListBaseT<SpaceChannelDNAState> &channel_dna_states)
+static void read_channel_states_data(BlendDataReader &reader,
+                                     ListBaseT<SpaceChannelDNAState> &channel_dna_states)
 {
   /* Read the UI state. This has to be converted to runtime data with
    * #read_channel_states_after_liblink() below. */
@@ -223,9 +224,9 @@ void read_channel_states_data(BlendDataReader &reader,
   }
 }
 
-void read_channel_states_after_liblink(BlendLibReader &reader,
-                                       ListBaseT<SpaceChannelDNAState> &channel_dna_states,
-                                       ChannelUIStateMap &channel_states)
+static void read_channel_states_after_liblink(BlendLibReader &reader,
+                                              ListBaseT<SpaceChannelDNAState> &channel_dna_states,
+                                              ChannelUIStateMap &channel_states)
 {
   if (BLI_listbase_is_empty(&channel_dna_states)) {
     return;
@@ -271,6 +272,28 @@ void read_channel_states_after_liblink(BlendLibReader &reader,
     MEM_SAFE_DELETE(state.identifier.source_rna_path);
   }
   BLI_freelistN(&channel_dna_states);
+}
+
+void read_space_runtime_data(BlendDataReader &reader,
+                             ListBaseT<SpaceChannelDNAState> &channel_ui_states,
+                             SpaceChannelDNAIdentifier &active_channel_identifier)
+{
+  read_channel_states_data(reader, channel_ui_states);
+  read_channel_identifier_data(reader, active_channel_identifier);
+}
+
+void read_space_runtime_data_after_liblink(BlendLibReader &reader,
+                                           AnimfilterSpaceRuntime &animfilter_runtime,
+                                           ListBaseT<SpaceChannelDNAState> &channel_ui_states,
+                                           SpaceChannelDNAIdentifier &active_channel_identifier)
+{
+  read_channel_states_after_liblink(reader, channel_ui_states, animfilter_runtime.channel_states);
+
+  ChannelIdentifier active_channel_ident;
+  read_channel_identifier_data_after_liblink(active_channel_identifier, active_channel_ident);
+  if (active_channel_ident != ChannelIdentifier{}) {
+    animfilter_runtime.active_channel_ident = active_channel_ident;
+  }
 }
 
 }  // namespace blender::ed::animfilter

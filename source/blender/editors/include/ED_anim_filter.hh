@@ -31,7 +31,6 @@
 
 namespace blender {
 
-class ResourceScope;
 struct bContext;
 struct FCurve;
 struct GreasePencil;
@@ -1255,34 +1254,6 @@ struct AnimfilterSpaceRuntime {
  * Trims the ChannelUIStateMap to only the N most recent updated channels.
  */
 void channel_state_trim(ChannelUIStateMap &channel_states);
-
-/**
- * Convert the animfilter runtime space data into DNA data for writing to a blend file.
- */
-void write_animfilter_space_runtime(struct BlendWriter &writer,
-                                    ResourceScope &scope,
-                                    const AnimfilterSpaceRuntime &animfilter_runtime,
-                                    ListBaseT<SpaceChannelDNAState> &channel_ui_states,
-                                    SpaceChannelDNAIdentifier &active_channel_identifier);
-
-/**
- * Populate the given listbase from the reader.
- */
-void read_channel_states_data(struct BlendDataReader &reader,
-                              ListBaseT<SpaceChannelDNAState> &channel_dna_states);
-
-/**
- * Populate the `channel_states` with entries from the `channel_dna_states`.
- * `channel_dna_states` will be freed and turn into an empty list after this function.
- * As the name implies this has to be called in a `blend_read_after_liblink` callback.
- */
-void read_channel_states_after_liblink(struct BlendLibReader &reader,
-                                       ListBaseT<SpaceChannelDNAState> &channel_dna_states,
-                                       ChannelUIStateMap &channel_states);
-
-void read_channel_identifier_data(BlendDataReader &reader, SpaceChannelDNAIdentifier &chan_ident);
-void read_channel_identifier_data_after_liblink(SpaceChannelDNAIdentifier &dna_ident,
-                                                ChannelIdentifier &chan_ident);
 
 /**
  * Iterate all channels in depth-first order. This is the same order as the channels are listed
