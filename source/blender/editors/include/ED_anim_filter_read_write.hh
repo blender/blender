@@ -13,6 +13,7 @@
 
 namespace blender {
 class ResourceScope;
+struct LibraryForeachIDData;
 struct SpaceChannelDNAIdentifier;
 struct SpaceChannelDNAState;
 }  // namespace blender
@@ -40,5 +41,12 @@ void read_space_runtime_data_after_liblink(BlendLibReader &reader,
                                            AnimfilterSpaceRuntime &animfilter_runtime,
                                            ListBaseT<SpaceChannelDNAState> &channel_ui_states,
                                            SpaceChannelDNAIdentifier &active_channel_identifier);
+
+/**
+ * Loop over & report the ID* in the common DNA data of animation editors.
+ */
+void space_data_foreach_id(ListBaseT<SpaceChannelDNAState> &channel_ui_states,
+                           SpaceChannelDNAIdentifier &active_channel_identifier,
+                           LibraryForeachIDData *data);
 
 }  // namespace blender::ed::animfilter

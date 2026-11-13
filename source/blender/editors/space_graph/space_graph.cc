@@ -979,18 +979,8 @@ static void graph_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
     sgraph->runtime->flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
   }
 
-  if (!BLI_listbase_is_empty(&sgraph->channel_ui_states)) {
-    for (const SpaceChannelDNAState &state : sgraph->channel_ui_states) {
-      BKE_LIB_FOREACHID_PROCESS_ID(
-          data, state.identifier.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
-      BKE_LIB_FOREACHID_PROCESS_ID(
-          data, state.identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
-    }
-  }
-  BKE_LIB_FOREACHID_PROCESS_ID(
-      data, sgraph->active_channel_identifier.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
-  BKE_LIB_FOREACHID_PROCESS_ID(
-      data, sgraph->active_channel_identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
+  ed::animfilter::space_data_foreach_id(
+      sgraph->channel_ui_states, sgraph->active_channel_identifier, data);
 }
 
 static int graph_space_subtype_get(ScrArea *area)

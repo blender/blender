@@ -1011,40 +1011,6 @@ static void action_id_remap(ScrArea * /*area*/,
 
   mappings.apply(reinterpret_cast<ID **>(&sact->ads.filter_grp), ID_REMAP_APPLY_DEFAULT);
   mappings.apply(&sact->ads.source, ID_REMAP_APPLY_DEFAULT);
-
-  if (sact->runtime->animfilter_runtime.channel_states.is_empty()) {
-    return;
-  }
-
-  // /* Remap the ID pointers in the UI state map. */
-  // printf("\033[95maction_id_remap: remapping %ld channel states\033[0m\n",
-  //        sact->runtime->channel_states.size());
-  // ChannelUIStateMap remapped_ui_state;
-  // for (const auto &ui_state_item : sact->runtime->channel_states.items()) {
-  //   /* Create a copy of the key, because map keys shouldn't be remapped. Instead, they should be
-  //    * removed & re-inserted. */
-  //   ChannelIdentifier new_ident = ui_state_item.key;
-  //   switch (mappings.apply(&new_ident.owner_id, ID_REMAP_APPLY_DEFAULT)) {
-  //     case IDRemapperApplyResult::ID_REMAP_RESULT_SOURCE_UNAVAILABLE:
-  //       /* No remapping for this owner_id, so keep the item as-is. */
-  //       printf("    kept %p\n", ui_state_item.key.owner_id);
-  //       remapped_ui_state.add_new(ui_state_item.key, ui_state_item.value);
-  //       break;
-  //     case IDRemapperApplyResult::ID_REMAP_RESULT_SOURCE_REMAPPED:
-  //       /* Owner ID got remapped, so add under the new key. */
-  //       printf("    remapped %p -> %p\n", ui_state_item.key.owner_id, new_ident.owner_id);
-  //       remapped_ui_state.add_new(new_ident, ui_state_item.value);
-  //       break;
-  //     case IDRemapperApplyResult::ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE:
-  //     case IDRemapperApplyResult::ID_REMAP_RESULT_SOURCE_UNASSIGNED:
-  //       /* Don't add this to the new UI state map. */
-  //       printf("    dropped %p\n", ui_state_item.key.owner_id);
-  //       break;
-  //   }
-  // }
-  // sact->runtime->channel_states = std::move(remapped_ui_state);
-  // printf("\033[95maction_id_remap: done remapping, left with %ld channel states\033[0m\n",
-  //        sact->runtime->channel_states.size());
 }
 
 static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
@@ -1063,18 +1029,8 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
     sact->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
   }
 
-  if (!BLI_listbase_is_empty(&sact->channel_ui_states)) {
-    for (const SpaceChannelDNAState &state : sact->channel_ui_states) {
-      BKE_LIB_FOREACHID_PROCESS_ID(
-          data, state.identifier.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
-      BKE_LIB_FOREACHID_PROCESS_ID(
-          data, state.identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
-    }
-  }
-  BKE_LIB_FOREACHID_PROCESS_ID(
-      data, sact->active_channel_identifier.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
-  BKE_LIB_FOREACHID_PROCESS_ID(
-      data, sact->active_channel_identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
+  ed::animfilter::space_data_foreach_id(
+      sact->channel_ui_states, sact->active_channel_identifier, data);
 }
 
 static int action_space_subtype_get(ScrArea *area)
@@ -1138,12 +1094,11 @@ static void action_space_blend_read_after_liblink(BlendLibReader *reader,
                                                   ID * /*parent_id*/,
                                                   SpaceLink *sl)
 {
-  using namespace ed::animfilter;
   SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
-  AnimfilterSpaceRuntime &animfilter_runtime = saction->runtime->animfilter_runtime;
-
-  read_space_runtime_data_after_liblink(
-      *reader, animfilter_runtime, saction->channel_ui_states, saction->active_channel_identifier);
+  ed::animfilter::read_space_runtime_data_after_liblink(*reader,
+                                                        saction->runtime->animfilter_runtime,
+                                                        saction->channel_ui_states,
+                                                        saction->active_channel_identifier);
 }
 
 static void action_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)

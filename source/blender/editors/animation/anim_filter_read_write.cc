@@ -10,6 +10,7 @@
 #include "BLI_resource_scope.hh"
 
 #include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_main_idmap.hh"
 
 #include "ED_anim_filter.hh"
@@ -294,6 +295,27 @@ void read_space_runtime_data_after_liblink(BlendLibReader &reader,
   if (active_channel_ident != ChannelIdentifier{}) {
     animfilter_runtime.active_channel_ident = active_channel_ident;
   }
+}
+
+void space_data_foreach_id(ListBaseT<SpaceChannelDNAState> &channel_ui_states,
+                           SpaceChannelDNAIdentifier &active_channel_identifier,
+                           LibraryForeachIDData *data)
+{
+  /* The ID* visited in this function are never set on runtime data, and are only here to
+   * facilitate reading & writing to blend files. See the other functions in
+   * ED_anim_filter_read_write.hh. */
+
+  for (const SpaceChannelDNAState &state : channel_ui_states) {
+    BKE_LIB_FOREACHID_PROCESS_ID(
+        data, state.identifier.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
+    BKE_LIB_FOREACHID_PROCESS_ID(
+        data, state.identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
+  }
+
+  BKE_LIB_FOREACHID_PROCESS_ID(
+      data, active_channel_identifier.channel_owner_id, IDWALK_CB_DIRECT_WEAK_LINK);
+  BKE_LIB_FOREACHID_PROCESS_ID(
+      data, active_channel_identifier.channel_parent_id, IDWALK_CB_DIRECT_WEAK_LINK);
 }
 
 }  // namespace blender::ed::animfilter
