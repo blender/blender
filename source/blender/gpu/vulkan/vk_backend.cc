@@ -642,15 +642,17 @@ void VKBackend::detect_workarounds(VKDevice &device)
     GPUIntelGpuArch gpu_arch = GPU_platform_get_intel_arch(
         device.physical_device_properties_get().deviceID);
 
-    if (gpu_arch == GPUIntelGpuArch::Gen9AndOlder) {
-      /* Intel Gen9 iGPUs (Intel 7th to 10th Gen Processor Graphics driver) show a black screen at
-       * application startup when using VK_EXT_vertex_input_dynamic_state.
+    if (gpu_arch <= GPUIntelGpuArch::Gen11) {
+      /* Intel Gen11 and older iGPUs (Intel 7th to 10th Gen Processor Graphics driver) show a black
+       * screen at application startup when using VK_EXT_vertex_input_dynamic_state.
+       *
+       * Driver reports support, but returns nullpointer for the needed functions.
        *
        * See #147721
        */
       extensions.vertex_input_dynamic_state = false;
 
-      /* Using the texture pool causes visual corruptions on Gen9 and older iGPUs (Intel 7th to
+      /* Using the texture pool causes visual corruptions on Gen11 and older iGPUs (Intel 7th to
        * 10th Gen Processor Graphics driver; #147721). */
       GCaps.texture_pool_workaround = true;
     }
