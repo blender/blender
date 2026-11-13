@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "ply_data.hh"
+
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
@@ -45,6 +47,8 @@ class FileBuffer : private NonMovable {
   virtual void write_UV(float u, float v) = 0;
 
   virtual void write_data(float v) = 0;
+
+  virtual void write_data(const void *value, PlyDataTypes type) = 0;
 
   virtual void write_vertex_normal(float nx, float ny, float nz) = 0;
 

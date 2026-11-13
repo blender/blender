@@ -10,12 +10,14 @@
 #include "IO_mesh_utils.hh"
 #include "IO_ply.hh"
 #include "ply_data.hh"
+#include "ply_export_data.hh"
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
+#include "BKE_report.hh"
 #include "BLI_array_utils.hh"
 #include "BLI_color.hh"
 #include "BLI_hash.hh"
@@ -152,33 +154,94 @@ static void generate_vertex_map(const Mesh *mesh,
   }
 }
 
-static float *find_or_add_attribute(const StringRef name,
-                                    int64_t size,
-                                    uint32_t vertex_offset,
-                                    Vector<PlyCustomAttribute> &r_attributes)
+static bool property_name_is_used(const StringRef name, const Span<PlyCustomAttribute> attributes)
 {
-  /* Do we have this attribute from some other object already? */
-  for (PlyCustomAttribute &attr : r_attributes) {
-    if (attr.name == name) {
-      BLI_assert(attr.data.size() == vertex_offset);
-      attr.data.resize(attr.data.size() + size, 0.0f);
-      return attr.data.data() + vertex_offset;
+  /* Positions are always written; optional standard properties are checked once all meshes are
+   * loaded, see #remove_custom_attributes_clashing_with_standard. */
+  if (ELEM(name, "x", "y", "z")) {
+    return true;
+  }
+  for (const PlyCustomAttribute &attr : attributes) {
+    const bke::AttrType type = bke::cpp_type_to_attribute_type(attr.type());
+    const auto layout = custom_attribute_layout(type);
+    BLI_assert(layout);
+    for (const StringRef suffix : layout->suffixes) {
+      if (name == attr.name + suffix) {
+        return true;
+      }
     }
   }
-  /* We don't have it yet, create and fill with zero data for previous objects. */
-  r_attributes.append(PlyCustomAttribute(name, vertex_offset + size));
-  return r_attributes.last().data.data() + vertex_offset;
+  return false;
+}
+
+void append_custom_attribute(const StringRef name,
+                             const GVArray &src,
+                             const Span<int> ply_to_vertex,
+                             const uint32_t vertex_offset,
+                             const StringRef mesh_name,
+                             ReportList *reports,
+                             Vector<PlyCustomAttribute> &r_attributes)
+{
+  if (src.is_empty()) {
+    return;
+  }
+  const int64_t size = ply_to_vertex.size();
+  const bke::AttrType type = bke::cpp_type_to_attribute_type(src.type());
+  const std::optional<PlyCustomAttributeLayout> layout = custom_attribute_layout(type);
+  if (!layout) {
+    return;
+  }
+
+  /* Do we have this attribute from some other object already? */
+  PlyCustomAttribute *dst = nullptr;
+  for (PlyCustomAttribute &attr : r_attributes) {
+    if (attr.name == name) {
+      dst = &attr;
+      break;
+    }
+  }
+  if (!dst) {
+    for (const StringRef suffix : layout->suffixes) {
+      const std::string property_name = name + suffix;
+      if (property_name_is_used(property_name, r_attributes)) {
+        BKE_reportf(reports,
+                    RPT_WARNING,
+                    "PLY Export: skipping attribute '%s' of mesh '%s' (property name '%s' is "
+                    "already used)",
+                    std::string(name).c_str(),
+                    std::string(mesh_name).c_str(),
+                    property_name.c_str());
+        return;
+      }
+    }
+    /* Create and fill with zero data for previous objects. */
+    r_attributes.append(PlyCustomAttribute(name, vertex_offset + size, src.type()));
+    dst = &r_attributes.last();
+  }
+  else if (dst->type() != src.type()) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "PLY Export: skipping attribute '%s' of mesh '%s' (type differs from a "
+                "previously exported attribute with the same name)",
+                std::string(name).c_str(),
+                std::string(mesh_name).c_str());
+    return;
+  }
+  else {
+    dst->resize(vertex_offset + size);
+  }
+  array_utils::gather(src, ply_to_vertex, dst->data_for_write().slice(vertex_offset, size));
 }
 
 static void load_custom_attributes(const Mesh *mesh,
                                    const Span<int> ply_to_vertex,
-                                   uint32_t vertex_offset,
+                                   const uint32_t vertex_offset,
+                                   ReportList *reports,
                                    Vector<PlyCustomAttribute> &r_attributes)
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
   const StringRef color_name = mesh->active_color_attribute;
   const StringRef uv_name = mesh->active_uv_map_name();
-  const int64_t size = ply_to_vertex.size();
 
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     /* Skip internal, standard and non-vertex domain attributes. */
@@ -188,138 +251,50 @@ static void load_custom_attributes(const Mesh *mesh,
     {
       return;
     }
-
-    const GVArraySpan attribute = *iter.get();
-    if (attribute.is_empty()) {
+    if (!custom_attribute_layout(iter.data_type)) {
       return;
     }
-    switch (iter.data_type) {
-      case bke::AttrType::Float: {
-        float *attr = find_or_add_attribute(iter.name, size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<float>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          attr[i] = typed[ply_to_vertex[i]];
-        }
-        break;
+    append_custom_attribute(iter.name,
+                            *iter.get(),
+                            ply_to_vertex,
+                            vertex_offset,
+                            mesh->id.name + 2,
+                            reports,
+                            r_attributes);
+  });
+}
+
+static void remove_custom_attributes_clashing_with_standard(PlyData &ply_data, ReportList *reports)
+{
+  Vector<StringRef> standard_names;
+  if (!ply_data.vertex_normals.is_empty()) {
+    standard_names.extend({"nx", "ny", "nz"});
+  }
+  if (!ply_data.vertex_colors.is_empty()) {
+    standard_names.extend({"red", "green", "blue", "alpha"});
+  }
+  if (!ply_data.uv_coordinates.is_empty()) {
+    standard_names.extend({"s", "t"});
+  }
+  if (standard_names.is_empty()) {
+    return;
+  }
+  ply_data.vertex_custom_attr.remove_if([&](const PlyCustomAttribute &attr) {
+    const bke::AttrType type = bke::cpp_type_to_attribute_type(attr.type());
+    const auto layout = custom_attribute_layout(type);
+    BLI_assert(layout);
+    for (const StringRef suffix : layout->suffixes) {
+      const std::string property_name = attr.name + suffix;
+      if (standard_names.contains(property_name)) {
+        BKE_reportf(reports,
+                    RPT_WARNING,
+                    "PLY Export: skipping attribute '%s' (property name '%s' is already used)",
+                    attr.name.c_str(),
+                    property_name.c_str());
+        return true;
       }
-      case bke::AttrType::Int8: {
-        float *attr = find_or_add_attribute(iter.name, size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<int8_t>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          attr[i] = typed[ply_to_vertex[i]];
-        }
-        break;
-      }
-      case bke::AttrType::Int32: {
-        float *attr = find_or_add_attribute(iter.name, size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<int32_t>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          attr[i] = typed[ply_to_vertex[i]];
-        }
-        break;
-      }
-      case bke::AttrType::Int16_2D: {
-        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
-        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<short2>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          int j = ply_to_vertex[i];
-          attr_x[i] = typed[j].x;
-          attr_y[i] = typed[j].y;
-        }
-        break;
-      }
-      case bke::AttrType::Int32_2D: {
-        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
-        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<int2>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          int j = ply_to_vertex[i];
-          attr_x[i] = typed[j].x;
-          attr_y[i] = typed[j].y;
-        }
-        break;
-      }
-      case bke::AttrType::Float2: {
-        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
-        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<float2>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          int j = ply_to_vertex[i];
-          attr_x[i] = typed[j].x;
-          attr_y[i] = typed[j].y;
-        }
-        break;
-      }
-      case bke::AttrType::Float3: {
-        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
-        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
-        float *attr_z = find_or_add_attribute(iter.name + "_z", size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<float3>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          int j = ply_to_vertex[i];
-          attr_x[i] = typed[j].x;
-          attr_y[i] = typed[j].y;
-          attr_z[i] = typed[j].z;
-        }
-        break;
-      }
-      case bke::AttrType::ColorByte: {
-        float *attr_r = find_or_add_attribute(iter.name + "_r", size, vertex_offset, r_attributes);
-        float *attr_g = find_or_add_attribute(iter.name + "_g", size, vertex_offset, r_attributes);
-        float *attr_b = find_or_add_attribute(iter.name + "_b", size, vertex_offset, r_attributes);
-        float *attr_a = find_or_add_attribute(iter.name + "_a", size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<ColorGeometry4b>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          ColorGeometry4f col = color::decode(typed[ply_to_vertex[i]]);
-          attr_r[i] = col.r;
-          attr_g[i] = col.g;
-          attr_b[i] = col.b;
-          attr_a[i] = col.a;
-        }
-        break;
-      }
-      case bke::AttrType::ColorFloat: {
-        float *attr_r = find_or_add_attribute(iter.name + "_r", size, vertex_offset, r_attributes);
-        float *attr_g = find_or_add_attribute(iter.name + "_g", size, vertex_offset, r_attributes);
-        float *attr_b = find_or_add_attribute(iter.name + "_b", size, vertex_offset, r_attributes);
-        float *attr_a = find_or_add_attribute(iter.name + "_a", size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<ColorGeometry4f>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          ColorGeometry4f col = typed[ply_to_vertex[i]];
-          attr_r[i] = col.r;
-          attr_g[i] = col.g;
-          attr_b[i] = col.b;
-          attr_a[i] = col.a;
-        }
-        break;
-      }
-      case bke::AttrType::Bool: {
-        float *attr = find_or_add_attribute(iter.name, size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<bool>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          attr[i] = typed[ply_to_vertex[i]] ? 1.0f : 0.0f;
-        }
-        break;
-      }
-      case bke::AttrType::Quaternion: {
-        float *attr_x = find_or_add_attribute(iter.name + "_x", size, vertex_offset, r_attributes);
-        float *attr_y = find_or_add_attribute(iter.name + "_y", size, vertex_offset, r_attributes);
-        float *attr_z = find_or_add_attribute(iter.name + "_z", size, vertex_offset, r_attributes);
-        float *attr_w = find_or_add_attribute(iter.name + "_w", size, vertex_offset, r_attributes);
-        auto typed = attribute.typed<math::Quaternion>();
-        for (const int64_t i : ply_to_vertex.index_range()) {
-          int j = ply_to_vertex[i];
-          attr_x[i] = typed[j].x;
-          attr_y[i] = typed[j].y;
-          attr_z[i] = typed[j].z;
-          attr_w[i] = typed[j].w;
-        }
-        break;
-      }
-      default:
-        BLI_assert_msg(0, "Unsupported attribute type for PLY export.");
     }
+    return false;
   });
 }
 
@@ -469,7 +444,8 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
 
     /* Custom attributes */
     if (export_params.export_attributes) {
-      load_custom_attributes(mesh, ply_to_vertex, vertex_offset, plyData.vertex_custom_attr);
+      load_custom_attributes(
+          mesh, ply_to_vertex, vertex_offset, export_params.reports, plyData.vertex_custom_attr);
     }
 
     /* Loose edges */
@@ -492,9 +468,10 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
     plyData.vertex_colors.resize(vertex_offset, float4(0));
   }
   for (PlyCustomAttribute &attr : plyData.vertex_custom_attr) {
-    BLI_assert(attr.data.size() <= vertex_offset);
-    attr.data.resize(vertex_offset, 0.0f);
+    BLI_assert(attr.size() <= vertex_offset);
+    attr.resize(vertex_offset);
   }
+  remove_custom_attributes_clashing_with_standard(plyData, export_params.reports);
 }
 
 }  // namespace blender::io::ply

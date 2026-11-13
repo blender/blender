@@ -5,7 +5,9 @@
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
 
+#include "BLI_color_types.hh"
 #include "BLI_fileops.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_string.hh"
 
 #include "BKE_appdir.hh"
@@ -21,6 +23,9 @@
 #include "ply_export_load_plydata.hh"
 #include "ply_file_buffer_ascii.hh"
 #include "ply_file_buffer_binary.hh"
+#include "ply_import.hh"
+#include "ply_import_buffer.hh"
+#include "ply_import_data.hh"
 
 #include <fstream>
 
@@ -453,6 +458,215 @@ TEST_F(PLYExportTest, WriteFloatColors)
   EXPECT_NE(result.find("end_header\n0 0 0 -0.25 0.5 2 1.5\n"), std::string::npos);
 }
 
+TEST_F(PLYExportTest, WriteIntegerAttribute)
+{
+  const std::string filepath = get_temp_ply_filename(temp_file_path);
+  PlyData data;
+  data.vertices.append({0, 0, 0});
+  PlyCustomAttribute attr("id", 1, CPPType::get<int32_t>());
+  attr.data_for_write().typed<int32_t>()[0] = 16777217; /* Can' be represented as a float. */
+  data.vertex_custom_attr.append(attr);
+
+  PLYExportParams params;
+  params.ascii_format = true;
+  FileBufferAscii buffer(filepath.c_str());
+  write_header(buffer, data, params);
+  write_vertices(buffer, data);
+  buffer.close_file();
+
+  const std::string result = read_temp_file_in_string(filepath);
+  EXPECT_NE(result.find("property int id\n"), std::string::npos);
+  EXPECT_NE(result.find("end_header\n0 0 0 16777217\n"), std::string::npos);
+}
+
+TEST_F(PLYExportTest, ByteColorAttributeRoundTrip)
+{
+  const ColorGeometry4b colors[] = {{10, 20, 30, 40}, {250, 128, 0, 255}};
+  PlyData data;
+  data.vertices.append({0, 0, 0});
+  data.vertices.append({1, 0, 0});
+  PlyCustomAttribute color_attr("col", 2, CPPType::get<ColorGeometry4b>());
+  color_attr.data_for_write().typed<ColorGeometry4b>().copy_from(colors);
+  data.vertex_custom_attr.append(color_attr);
+
+  /* A float attribute with a color-like suffix must stay a float attribute. */
+  PlyCustomAttribute float_attr("foo_r", 2);
+  float_attr.data_for_write().typed<float>()[1] = 0.5f;
+  data.vertex_custom_attr.append(float_attr);
+
+  for (const bool ascii : {true, false}) {
+    const std::string filepath = get_temp_ply_filename(temp_file_path);
+    PLYExportParams params;
+    params.ascii_format = ascii;
+    std::unique_ptr<FileBuffer> buffer;
+    if (ascii) {
+      buffer = std::make_unique<FileBufferAscii>(filepath.c_str());
+    }
+    else {
+      buffer = std::make_unique<FileBufferBinary>(filepath.c_str());
+    }
+    write_header(*buffer, data, params);
+    write_vertices(*buffer, data);
+    buffer->close_file();
+
+    PlyReadBuffer infile(filepath.c_str());
+    PlyHeader header;
+    ASSERT_EQ(read_header(infile, header), nullptr);
+    const std::unique_ptr<PlyData> imported = import_ply_data(infile, header);
+    ASSERT_TRUE(imported->error.empty());
+    ASSERT_EQ(imported->vertex_custom_attr.size(), 2);
+
+    const PlyCustomAttribute &imported_color = imported->vertex_custom_attr[0];
+    EXPECT_EQ(imported_color.name, "col");
+    ASSERT_TRUE(imported_color.type().is<ColorGeometry4b>());
+    EXPECT_EQ_SPAN<ColorGeometry4b>(Span<ColorGeometry4b>(colors),
+                                    imported_color.data().typed<ColorGeometry4b>());
+
+    const PlyCustomAttribute &imported_float = imported->vertex_custom_attr[1];
+    EXPECT_EQ(imported_float.name, "foo_r");
+    ASSERT_TRUE(imported_float.type().is<float>());
+    EXPECT_EQ(imported_float.data().typed<float>()[1], 0.5f);
+  }
+}
+
+static PlyData typed_attributes_ply_data()
+{
+  PlyData data;
+  data.vertices.append({0, 0, 0});
+  PlyCustomAttribute attr_i8("a", 1, CPPType::get<int8_t>());
+  attr_i8.data_for_write().typed<int8_t>()[0] = -5;
+  data.vertex_custom_attr.append(attr_i8);
+  PlyCustomAttribute attr_s2("b", 1, CPPType::get<short2>());
+  attr_s2.data_for_write().typed<short2>()[0] = short2(-300, 7);
+  data.vertex_custom_attr.append(attr_s2);
+  PlyCustomAttribute attr_bool("c", 1, CPPType::get<bool>());
+  attr_bool.data_for_write().typed<bool>()[0] = true;
+  data.vertex_custom_attr.append(attr_bool);
+  PlyCustomAttribute attr_quat("q", 1, CPPType::get<math::Quaternion>());
+  attr_quat.data_for_write().typed<math::Quaternion>()[0] = math::Quaternion(1, 2, 3, 4);
+  data.vertex_custom_attr.append(attr_quat);
+  return data;
+}
+
+TEST_F(PLYExportTest, WriteTypedAttributesAscii)
+{
+  const std::string filepath = get_temp_ply_filename(temp_file_path);
+  const PlyData data = typed_attributes_ply_data();
+  PLYExportParams params;
+  params.ascii_format = true;
+  FileBufferAscii buffer(filepath.c_str());
+  write_header(buffer, data, params);
+  write_vertices(buffer, data);
+  buffer.close_file();
+
+  const std::string result = read_temp_file_in_string(filepath);
+  EXPECT_NE(result.find("property char a\n"
+                        "property short b_x\n"
+                        "property short b_y\n"
+                        "property uchar c\n"
+                        "property float q_x\n"
+                        "property float q_y\n"
+                        "property float q_z\n"
+                        "property float q_w\n"),
+            std::string::npos);
+  /* Quaternion is (w=1, x=2, y=3, z=4), written as x, y, z, w. */
+  EXPECT_NE(result.find("end_header\n0 0 0 -5 -300 7 1 2 3 4 1\n"), std::string::npos);
+}
+
+TEST_F(PLYExportTest, WriteTypedAttributesBinary)
+{
+  const std::string filepath = get_temp_ply_filename(temp_file_path);
+  const PlyData data = typed_attributes_ply_data();
+  PLYExportParams params;
+  params.ascii_format = false;
+  FileBufferBinary buffer(filepath.c_str());
+  write_header(buffer, data, params);
+  write_vertices(buffer, data);
+  buffer.close_file();
+
+  std::vector<char> expected;
+  auto append = [&](const auto value) {
+    const char *bytes = reinterpret_cast<const char *>(&value);
+    expected.insert(expected.end(), bytes, bytes + sizeof(value));
+  };
+  append(float3(0, 0, 0));
+  append(int8_t(-5));
+  append(int16_t(-300));
+  append(int16_t(7));
+  append(uint8_t(1));
+  append(float4(2, 3, 4, 1));
+
+  const std::vector<char> result = read_temp_file_in_vectorchar(filepath);
+  ASSERT_GE(result.size(), expected.size());
+  EXPECT_EQ(std::vector<char>(result.end() - expected.size(), result.end()), expected);
+}
+
+TEST_F(PLYExportTest, AppendCustomAttributeMergesAcrossMeshes)
+{
+  Vector<PlyCustomAttribute> attrs;
+  const int map_a[] = {1, 0};
+  const int map_b[] = {0};
+  append_custom_attribute(
+      "id", VArray<int>::from_container(Vector<int>{10, 20}), map_a, 0, "A", nullptr, attrs);
+  append_custom_attribute(
+      "id", VArray<int>::from_container(Vector<int>{30}), map_b, 2, "B", nullptr, attrs);
+  /* Mesh without the attribute: will get filled with zeroes. */
+  attrs[0].resize(4);
+  ASSERT_EQ(attrs.size(), 1);
+  ASSERT_TRUE(attrs[0].type().is<int>());
+  EXPECT_EQ_SPAN<int>(Span<int>({20, 10, 30, 0}), attrs[0].data().typed<int>());
+}
+
+TEST_F(PLYExportTest, AppendCustomAttributeSkipsTypeMismatch)
+{
+  Vector<PlyCustomAttribute> attrs;
+  const int map[] = {0};
+  append_custom_attribute(
+      "foo", VArray<int>::from_container(Vector<int>{7}), map, 0, "A", nullptr, attrs);
+  append_custom_attribute(
+      "foo", VArray<float>::from_container(Vector<float>{0.5f}), map, 1, "B", nullptr, attrs);
+  attrs[0].resize(2);
+  ASSERT_EQ(attrs.size(), 1);
+  ASSERT_TRUE(attrs[0].type().is<int>());
+  EXPECT_EQ_SPAN<int>(Span<int>({7, 0}), attrs[0].data().typed<int>());
+}
+
+TEST_F(PLYExportTest, AppendCustomAttributeSkipsDuplicatePropertyNames)
+{
+  Vector<PlyCustomAttribute> attrs;
+  const int map[] = {0};
+  append_custom_attribute("foo",
+                          VArray<float3>::from_container(Vector<float3>{float3(1, 2, 3)}),
+                          map,
+                          0,
+                          "A",
+                          nullptr,
+                          attrs);
+  /* Would also write a "foo_x" property. */
+  append_custom_attribute(
+      "foo_x", VArray<float>::from_container(Vector<float>{4}), map, 0, "A", nullptr, attrs);
+  /* Would clash with the always written position property. */
+  append_custom_attribute(
+      "x", VArray<float>::from_container(Vector<float>{5}), map, 0, "A", nullptr, attrs);
+  /* Optional standard properties are only checked once all meshes are loaded. */
+  append_custom_attribute(
+      "red", VArray<float>::from_container(Vector<float>{5}), map, 0, "A", nullptr, attrs);
+  /* A scalar named like a component of an existing vector attribute, added before it. */
+  append_custom_attribute(
+      "bar_y", VArray<float>::from_container(Vector<float>{6}), map, 0, "A", nullptr, attrs);
+  append_custom_attribute("bar",
+                          VArray<float2>::from_container(Vector<float2>{float2(7, 8)}),
+                          map,
+                          0,
+                          "A",
+                          nullptr,
+                          attrs);
+  ASSERT_EQ(attrs.size(), 3);
+  EXPECT_EQ(attrs[0].name, "foo");
+  EXPECT_EQ(attrs[1].name, "red");
+  EXPECT_EQ(attrs[2].name, "bar_y");
+}
+
 class PLYExportPLYDataTest : public PLYExportTest {
  public:
   PlyData load_ply_data_from_blendfile(const std::string &blendfile, PLYExportParams &params)
@@ -572,8 +786,9 @@ TEST_F(PLYExportPLYDataTest, CubesVertexAttrs)
   PlyData plyData = load_ply_data_from_blendfile(
       "io_tests/blend_geometry/cubes_vertex_attrs.blend", params);
   EXPECT_EQ(plyData.vertices.size(), 28);
-  EXPECT_EQ(plyData.vertex_custom_attr.size(), 11); /* Float 1 + Color 4 + ByteColor 4 + Int2D 2 */
-  EXPECT_EQ(plyData.vertex_custom_attr[0].data.size(), 28);
+  EXPECT_EQ(plyData.vertex_custom_attr.size(), 4); /* Float, Color, ByteColor, Int2D. */
+  EXPECT_EQ(custom_attribute_properties(plyData).size(), 11);
+  EXPECT_EQ(plyData.vertex_custom_attr[0].size(), 28);
 }
 
 TEST_F(PLYExportPLYDataTest, SuzanneLoadPLYDataUV)

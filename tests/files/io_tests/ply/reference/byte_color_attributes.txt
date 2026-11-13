@@ -1,0 +1,51 @@
+==== Meshes: 1
+- Mesh 'byte_color_attributes' vtx:3 face:0 loop:0 edge:0
+  - attr 'col' BYTE_COLOR POINT
+    - (1.000, 0.000, 0.000, 1.000)
+    - (0.000, 1.000, 0.000, 0.502)
+    - (0.000, 0.000, 1.000, 0.000)
+  - attr 'dup' FLOAT POINT
+    - 9.000 8.000 7.000 
+  - attr 'dup_b' FLOAT POINT
+    - 6.000 9.000 12.000 
+  - attr 'dup_g' FLOAT POINT
+    - 5.000 8.000 11.000 
+  - attr 'dup_r' FLOAT POINT
+    - 4.000 7.000 10.000 
+  - attr 'f_b' FLOAT POINT
+    - 0.750 1.750 2.750 
+  - attr 'f_g' FLOAT POINT
+    - 0.500 1.500 2.500 
+  - attr 'f_r' FLOAT POINT
+    - 0.250 1.250 2.250 
+  - attr 'ord' BYTE_COLOR POINT
+    - (0.000, 0.127, 0.578, 1.000)
+    - (1.000, 0.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000, 1.000)
+  - attr 'part_g' FLOAT POINT
+    - 2.000 4.000 6.000 
+  - attr 'part_r' FLOAT POINT
+    - 1.000 3.000 5.000 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (0.000, 1.000, 0.000)
+  - attr 'position_a' FLOAT POINT
+    - 255.000 255.000 255.000 
+  - attr 'position_b' FLOAT POINT
+    - 13.000 23.000 33.000 
+  - attr 'position_g' FLOAT POINT
+    - 12.000 22.000 32.000 
+  - attr 'position_r' FLOAT POINT
+    - 11.000 21.000 31.000 
+  - attr 'rgb' BYTE_COLOR POINT
+    - (0.003, 0.007, 0.013, 1.000)
+    - (0.021, 0.032, 0.045, 1.000)
+    - (0.061, 0.080, 0.102, 1.000)
+
+==== Objects: 1
+- Obj 'byte_color_attributes' MESH data:'byte_color_attributes'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

@@ -94,8 +94,9 @@ class GsplatPlyDataBuilder {
 
     auto add_attribute = [&](const std::string &name, auto value_for_point) {
       PlyCustomAttribute attribute(name, num_points);
+      MutableSpan<float> values = attribute.data_for_write().typed<float>();
       for (int point = 0; point < num_points; point++) {
-        attribute.data[point] = value_for_point(point);
+        values[point] = value_for_point(point);
       }
       data.vertex_custom_attr.append(attribute);
     };

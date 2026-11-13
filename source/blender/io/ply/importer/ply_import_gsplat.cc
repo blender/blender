@@ -7,6 +7,7 @@
  */
 
 #include "ply_import_gsplat.hh"
+#include "ply_import_data.hh"
 
 #include "BLI_memory_utils.hh"
 #include "BLI_string_ref.hh"
@@ -25,8 +26,8 @@ static std::optional<Span<float>> find_custom_attribute(const PlyData &data,
                                                         const StringRefNull name)
 {
   for (const PlyCustomAttribute &attr : data.vertex_custom_attr) {
-    if (attr.name == name) {
-      return attr.data;
+    if (attr.name == name && attr.type().is<float>()) {
+      return attr.data().typed<float>();
     }
   }
   return std::nullopt;
@@ -209,9 +210,7 @@ PointCloud *convert_gsplat_ply_to_point_cloud(const PlyData &data, const PLYImpo
       if (is_builtin_gsplat_attribute(attr.name)) {
         continue;
       }
-      attributes.add<float>(attr.name,
-                            bke::AttrDomain::Point,
-                            bke::AttributeInitVArray(VArray<float>::from_span(attr.data)));
+      add_custom_attribute(attributes, attr);
     }
   }
 
