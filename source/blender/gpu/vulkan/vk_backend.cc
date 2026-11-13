@@ -610,7 +610,11 @@ void VKBackend::detect_workarounds(VKDevice &device)
    * (VUID-StandaloneSpirv-OpTypeImage-06214) requires the layer to be implicit from the fragment
    * position.
    */
-  if (GPU_type_matches_ex(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL, GPU_BACKEND_VULKAN)) {
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    extensions.dynamic_rendering_local_read = false;
+  }
+  /* Similar issue seems to happen on Windows + Intel. */
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL)) {
     extensions.dynamic_rendering_local_read = false;
   }
 
