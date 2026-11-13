@@ -1951,6 +1951,9 @@ struct CodegenContext : NodeErrorHandler {
       if (member.array_dimensions > 0) {
         error(member.loc.tok, Diag::UnionArrayUnsupported);
       }
+      if (member.type.size > 16) {
+        error(member.loc.tok, Diag::UnionMatrixUnsupported);
+      }
       string to_var = "this_." +
                       union_data_access(member.offset, member_type.size, union_type.size);
       fn_body += "  " + to_var + " = " + member_to_float(member.type, "v") + ";\n";

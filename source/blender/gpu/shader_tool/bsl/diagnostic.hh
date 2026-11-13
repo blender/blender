@@ -286,6 +286,7 @@ enum class Diag {
   TypeNotConvertibleToBool,
 
   UnionArrayUnsupported,
+  UnionMatrixUnsupported,
 
   UnknownAttribute,
   UnknownClassInstantiation,
@@ -631,6 +632,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Value of type '{}' is not contextually convertible to 'bool'";
     case Diag::UnionArrayUnsupported:
       return "Unsupported array at union base scope; wrap it inside a named struct";
+    case Diag::UnionMatrixUnsupported:
+      return "Unsupported matrix in union";
     case Diag::UnknownAttribute:
       return "Unknown attribute '{}'";
     case Diag::UnknownClassInstantiation:
