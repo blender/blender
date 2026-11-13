@@ -170,11 +170,6 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
       VKRenderGraphNode &node = render_graph.nodes_[node_handle];
       Barrier barrier = {};
       Barrier within_rendering_barrier = {};
-      if (node.type == VKNodeType::BEGIN_RENDERING) {
-        /* The begin barriers transition the attachments, so record their layouts before the
-         * barriers are extracted. */
-        image_tracker.prepare(render_graph, node_handle);
-      }
       build_pipeline_barriers(render_graph,
                               node_handle,
                               node.pipeline_stage_get(),
@@ -221,6 +216,9 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
         BLI_assert(!rendering_active);
         rendering_scope = node_handle;
         rendering_active = true;
+        /* The begin barriers transition the whole attachment images, so record their layouts
+         * after the barriers are extracted. */
+        image_tracker.prepare(render_graph, node_handle);
         image_tracker.begin(render_graph, node_handle);
       }
 
@@ -259,7 +257,7 @@ void VKCommandBuilder::groups_extract_barriers(VKRenderGraph &render_graph,
           post_barriers.append(barrier);
         }
 
-        /* Sync the global state to the pre-scope layout recorded by the tracker, so subsequent
+        /* Sync the global state to the base layout recorded by the tracker, so subsequent
          * barriers use the correct oldLayout. Falls back to #to_default_image_layout for images
          * that were never written to (UNDEFINED base). */
         for (const VKRenderGraphImage &link : render_graph.linked_images(end_rendering_scope)) {
