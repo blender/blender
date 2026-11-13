@@ -41,7 +41,8 @@ static Span<animfilter::ChannelTagType> get_tag_order()
   return default_tag_order;
 }
 
-static animfilter::ChannelArena build_summary_tree(const bContext &C)
+static std::optional<ed::animfilter::ChannelArena> build_summary_tree(
+    const bContext &C, const ed::animfilter::ChannelArena *cached_arena)
 {
   using namespace ed::animfilter;
 
@@ -51,7 +52,7 @@ static animfilter::ChannelArena build_summary_tree(const bContext &C)
     return {};
   }
 
-  PRF_scope_with_name("ed::animfilter::get_summary_tree", ProfileCategory::Editor);
+  PRF_scope_with_name("ed::graph::build_summary_tree", ProfileCategory::Editor);
 
   ChannelArena arena;
   arena.filters = get_filters(*space_graph->ads);
@@ -68,10 +69,17 @@ static animfilter::ChannelArena build_summary_tree(const bContext &C)
 
   arena.grouping_params.use_minimal_grouping = space_graph->ads->flag & ADS_FLAG_MINIMAL_GROUPING;
   arena.grouping_params.tag_order = get_tag_order();
+  arena.compute_datachannel_hash();
+
+  if (cached_arena && arena.is_same_as(*cached_arena)) {
+    /* Skip grouping into Summary Channels and re-syncing of the UI state. */
+    return {};
+  }
+
   group_channels(arena);
 
   {
-    PRF_scope_with_name("ed::animfilter::get_summary_tree::ui_state", ProfileCategory::Editor);
+    PRF_scope_with_name("ed::graph::build_summary_tree::ui_state", ProfileCategory::Editor);
 
     /* Record this "use" of the channel runtime, as this is the moment where new channels are first
      * seen and old channels no longer exist. */
@@ -86,17 +94,11 @@ static animfilter::ChannelArena build_summary_tree(const bContext &C)
   return arena;
 }
 
-/* The cached channel_arena is reset in #graph_draw_pre in space_graph.cc. */
 animfilter::ChannelArena &get_summary_tree(const bContext &C)
 {
-  SpaceGraph *space_graph = CTX_wm_space_graph(&C);
-  SpaceGraph_Runtime *runtime = space_graph->runtime;
-  if (!runtime->animfilter_runtime.channel_arena) {
-    ed::animfilter::ChannelArena channels = build_summary_tree(C);
-    runtime->animfilter_runtime.channel_arena.emplace(std::move(channels));
-  }
-
-  return *runtime->animfilter_runtime.channel_arena;
+  SpaceGraph *sgraph = CTX_wm_space_graph(&C);
+  ed::animfilter::AnimfilterSpaceRuntime &runtime = sgraph->runtime->animfilter_runtime;
+  return runtime.get_summary_tree(C, build_summary_tree);
 }
 
 }  // namespace blender::ed::graph

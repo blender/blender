@@ -111,7 +111,7 @@ static std::optional<ed::animfilter::ChannelArena> build_summary_tree(
     return {};
   }
 
-  PRF_scope_with_name("ed::animfilter::get_summary_tree", ProfileCategory::Editor);
+  PRF_scope_with_name("ed::animfilter::build_summary_tree", ProfileCategory::Editor);
 
   ChannelArena arena;
   arena.filters = get_filters(saction->ads);
@@ -131,7 +131,7 @@ static std::optional<ed::animfilter::ChannelArena> build_summary_tree(
   group_channels(arena);
 
   {
-    PRF_scope_with_name("ed::animfilter::get_summary_tree::ui_state", ProfileCategory::Editor);
+    PRF_scope_with_name("ed::action::build_summary_tree::ui_state", ProfileCategory::Editor);
 
     /* Record this "use" of the channel runtime, as this is the moment where new channels are first
      * seen and old channels no longer exist. */
@@ -148,43 +148,9 @@ static std::optional<ed::animfilter::ChannelArena> build_summary_tree(
 
 ed::animfilter::ChannelArena &get_summary_tree(const bContext &C)
 {
-  using namespace ed::animfilter;
-
   SpaceAction *saction = CTX_wm_space_action(&C);
-  BLI_assert(saction->runtime);
-  AnimfilterSpaceRuntime &runtime = saction->runtime->animfilter_runtime;
-
-  std::optional<ChannelArena> new_arena;
-  if (runtime.channel_arena.has_value()) {
-    /* There is already a ChannelArena from a previous run. Reuse or replace it. */
-    ChannelArena *cached_arena = &runtime.channel_arena.value();
-    new_arena = build_summary_tree(C, cached_arena);
-
-    if (new_arena) {
-      /* Replace. Migrate data from the old ChannelArena to the new ChannelArena. */
-      new_arena->active_channel_identifier_set(cached_arena->active_channel_identifier());
-    }
-    else {
-      /* Reuse. Cached channels are still valid, but that doesn't mean their data is fresh. */
-      cached_arena->mark_channels_dirty();
-    }
-  }
-  else {
-    /* Construct a brand new ChannelArena for this space. It should get the active channel
-     * identifier from the space data, as it this may be the first time one is created after
-     * loading this file. */
-    new_arena = build_summary_tree(C, nullptr);
-    BLI_assert_msg(new_arena.has_value(),
-                   "when there is no cached ChannelArena, a new one should always be built.");
-    new_arena->active_channel_identifier_set(runtime.active_channel_ident);
-  }
-
-  if (new_arena) {
-    BLI_assert(new_arena->datachannel_hash != UniqueHash{});
-    runtime.channel_arena.emplace(std::move(*new_arena));
-  }
-
-  return *runtime.channel_arena;
+  ed::animfilter::AnimfilterSpaceRuntime &runtime = saction->runtime->animfilter_runtime;
+  return runtime.get_summary_tree(C, build_summary_tree);
 }
 
 }  // namespace blender::ed::action

@@ -1233,6 +1233,22 @@ struct AnimfilterSpaceRuntime {
    * be updated. This also sets the entry's `last_used` field to #last_used.
    */
   AnimationChannelUIState &channel_state_for_update(const ChannelIdentifier &channel_key);
+
+  using build_tree_fn = FunctionRef<std::optional<ed::animfilter::ChannelArena>(
+      const bContext &C, const ed::animfilter::ChannelArena *cached_arena)>;
+  /**
+   * Get the ChannelArena for this space.
+   *
+   * \param build_summary_tree_fn callback function that is used to construct a new summary tree
+   * for the space. It gets a pointer to the cached ChannelArena (can be nullptr), in which case
+   * the callback is expected to do a hash comparison to see if it is necessary to replace the
+   * cached ChannelArena with a new one.
+   *
+   * \see #ed::action::build_summary_tree
+   * \see #ed::graph::build_summary_tree
+   */
+  ed::animfilter::ChannelArena &get_summary_tree(const bContext &C,
+                                                 build_tree_fn build_summary_tree_fn);
 };
 
 /**

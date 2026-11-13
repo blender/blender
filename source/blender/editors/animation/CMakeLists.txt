@@ -22,12 +22,13 @@ set(SRC
   anim_convert.cc
   anim_deps.cc
   anim_draw.cc
+  anim_filter.cc
   anim_filter_channel.cc
   anim_filter_draw.cc
   anim_filter_fake_context.cc
   anim_filter_read_write.cc
   anim_filter_source.cc
-  anim_filter.cc
+  anim_filter_space_runtime.cc
   anim_ipo_utils.cc
   anim_markers.cc
   anim_motion_paths.cc
