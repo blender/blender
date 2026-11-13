@@ -17,6 +17,7 @@
 #include "BLI_string.hh"
 
 #include "DNA_ID.h"
+#include "DNA_ID_enums.h"
 #include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -549,6 +550,22 @@ static void foreach_modifier_ID_callback(void *user_data,
   }
 }
 
+static void collect_channels_for_material(Material &mat, ChannelSourcingContext &ctx)
+{
+  if (ctx.arena.filters.id_type_blocklist.contains(ID_MA)) {
+    /* This has to be done here, instead of in the collect_channels_for_id() calls below, because
+     * the embedded node tree is presented in Blender's UI as "the material". Filtering out a
+     * material should also hide their node tree, even when node trees are not blocklisted. */
+    return;
+  }
+
+  collect_channels_for_id(&mat.id, ctx);
+
+  ParsedSourcePath path_to_embedded_id;
+  path_to_embedded_id.items.append(rna_path::Member{UString("nodetree")});
+  collect_channels_for_id(&mat.nodetree->id, ctx, &mat.id, path_to_embedded_id);
+}
+
 void collect_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
 {
   collect_channels_for_id(&obj.id, ctx);
@@ -559,11 +576,7 @@ void collect_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
     Material *mat = BKE_object_material_get(&obj, i + 1);
 
     if (mat) {
-      collect_channels_for_id(&mat->id, ctx);
-
-      ParsedSourcePath path_to_embedded_id;
-      path_to_embedded_id.items.append(rna_path::Member{UString("nodetree")});
-      collect_channels_for_id(&mat->nodetree->id, ctx, &mat->id, path_to_embedded_id);
+      collect_channels_for_material(*mat, ctx);
     }
   }
   if (obj.data) {
