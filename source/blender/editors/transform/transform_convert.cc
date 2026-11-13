@@ -1068,7 +1068,13 @@ void create_trans_data(bContext *C, TransInfo *t)
   else {
     BKE_view_layer_synced_ensure(*t->bmain, t->scene, t->view_layer);
     Object *ob = BKE_view_layer_active_object_get(t->view_layer);
-    init_TransDataContainers(t, ob, {});
+    /* Grease Pencil Draw mode only supports editing the active object. */
+    if (ob->mode & OB_MODE_PAINT_GREASE_PENCIL) {
+      init_TransDataContainers(t, ob, {ob});
+    }
+    else {
+      init_TransDataContainers(t, ob, {});
+    }
   }
 
   if (t->data_type == &TransConvertType_Object) {
