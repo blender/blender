@@ -566,6 +566,22 @@ static void collect_channels_for_material(Material &mat, ChannelSourcingContext 
   collect_channels_for_id(&mat.nodetree->id, ctx, &mat.id, path_to_embedded_id);
 }
 
+static void collect_channels_for_world(World &world, ChannelSourcingContext &ctx)
+{
+  if (ctx.arena.filters.id_type_blocklist.contains(ID_WO)) {
+    /* This has to be done here, instead of in the collect_channels_for_id() calls below, because
+     * the embedded node tree is presented in Blender's UI as "the world". Filtering out a
+     * world should also hide their node tree, even when node trees are not blocklisted. */
+    return;
+  }
+
+  collect_channels_for_id(&world.id, ctx);
+
+  ParsedSourcePath path_to_embedded_id;
+  path_to_embedded_id.items.append(rna_path::Member{UString("nodetree")});
+  collect_channels_for_id(&world.nodetree->id, ctx, &world.id, path_to_embedded_id);
+}
+
 void collect_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
 {
   collect_channels_for_id(&obj.id, ctx);
@@ -611,18 +627,12 @@ void collect_channels_for_object(Object &obj, ChannelSourcingContext &ctx)
 static void collect_channels_for_scene(Scene &scene, ChannelSourcingContext &ctx)
 {
   collect_channels_for_id(&scene.id, ctx);
-  collect_channels_for_id(id_cast<ID *>(scene.world), ctx);
+  if (scene.world) {
+    collect_channels_for_world(*scene.world, ctx);
+  }
 
   /* Include various node trees, unless they are on the blocklist. */
   if (ctx.arena.filters.id_type_blocklist.contains(ID_NT)) {
-    /* World node tree, which is an embedded ID. */
-    if (scene.world && scene.world->nodetree) {
-      ParsedSourcePath path_to_embedded_id;
-      path_to_embedded_id.items.append(rna_path::Member{UString("nodetree")});
-      collect_channels_for_id(
-          id_cast<ID *>(scene.world), ctx, &scene.world->id, path_to_embedded_id);
-    }
-
     /* Compositor effect node trees. */
     for (SceneCompositorEffect &effect : scene.compositor_effects) {
       collect_channels_for_id(id_cast<ID *>(effect.node_group), ctx);
