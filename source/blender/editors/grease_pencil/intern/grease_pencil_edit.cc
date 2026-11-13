@@ -2038,10 +2038,6 @@ static wmOperatorStatus grease_pencil_move_to_layer_exec(bContext *C, wmOperator
   }
 
   Layer &layer_dst = target_node->as_layer();
-  if (layer_dst.is_locked()) {
-    BKE_reportf(op->reports, RPT_ERROR, "'%s' Layer is locked", target_layer_name.c_str());
-    return OPERATOR_CANCELLED;
-  }
 
   /* Iterate through all the drawings at current scene frame. */
   const Vector<MutableDrawingInfo> drawings_src = retrieve_editable_drawings(*scene,
