@@ -1087,7 +1087,7 @@ class RetimingRange {
   {
     for (int frame = start; frame <= end; frame++) {
       /* We need number actual number of frames here. */
-      const double normal_step = 1 / double(strip->content_length() - 1);
+      const double normal_step = 1 / double(max_ii(strip->content_length() - 1, 1));
 
       const int frame_index = frame - strip->content_start();
       /* Who needs calculus, when you can have slow code? */
