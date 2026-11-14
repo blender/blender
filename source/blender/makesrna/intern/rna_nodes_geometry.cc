@@ -1835,6 +1835,7 @@ void RNA_def_nodes_geometry(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeGreasePencilDrawTime");
   define("GeometryNode", "GeometryNodeGreasePencilFillID");
   define("GeometryNode", "GeometryNodeGreasePencilOpacity");
+  define("GeometryNode", "GeometryNodeGreasePencilMaterialInfo");
   define("GeometryNode", "GeometryNodeGreasePencilStrokeSoftness");
   define("GeometryNode", "GeometryNodeGreasePencilStrokeVisibility");
   define("GeometryNode", "GeometryNodeGreasePencilToCurves");
