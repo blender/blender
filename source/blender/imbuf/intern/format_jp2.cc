@@ -469,7 +469,10 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     float_divs[i] = (1 << image->comps[i].prec) - 1;
   }
 
-  ibuf = IMB_allocImBuf(w, h, use_float ? ImBufFlags::FloatData : ImBufFlags::ByteData);
+  ibuf = IMB_allocImBuf(w,
+                        h,
+                        (use_float ? ImBufFlags::FloatData : ImBufFlags::ByteData) |
+                            (flags & ImBufFlags::PoolPixels));
 
   if (ibuf == nullptr) {
     goto finally;

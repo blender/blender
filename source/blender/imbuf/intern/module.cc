@@ -31,6 +31,9 @@ void IMB_init()
 
 void IMB_exit()
 {
+  /* Free unused pooled storage; make buffers still in use not return themselves to the pool
+   * anymore. */
+  IMB_pixel_pool_set_limit(0);
   imb_filetypes_exit();
   colormanagement_exit();
 

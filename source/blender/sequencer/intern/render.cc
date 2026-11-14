@@ -748,7 +748,10 @@ static SeqResult input_preprocess(const RenderData *context,
     const int x = context->rectx;
     const int y = context->recty;
     ImBuf *transformed_ibuf = IMB_allocImBuf(
-        x, y, result.image->float_data() ? ImBufFlags::FloatData : ImBufFlags::ByteData);
+        x,
+        y,
+        (result.image->float_data() ? ImBufFlags::FloatData : ImBufFlags::ByteData) |
+            ImBufFlags::PoolPixels);
 
     sequencer_preprocess_transform_crop(result.image,
                                         transformed_ibuf,
@@ -829,7 +832,8 @@ static SeqResult seq_render_effect_strip_impl(const RenderData *context,
 
   if (!sh.execute) {
     /* effect not supported in this version... */
-    out.image = IMB_allocImBuf(context->rectx, context->recty, ImBufFlags::ByteData);
+    out.image = IMB_allocImBuf(
+        context->rectx, context->recty, ImBufFlags::ByteData | ImBufFlags::PoolPixels);
     return out;
   }
 
@@ -890,7 +894,8 @@ static SeqResult seq_render_effect_strip_impl(const RenderData *context,
   }
 
   if (!out.is_valid()) {
-    out.image = IMB_allocImBuf(context->rectx, context->recty, ImBufFlags::ByteData);
+    out.image = IMB_allocImBuf(
+        context->rectx, context->recty, ImBufFlags::ByteData | ImBufFlags::PoolPixels);
   }
 
   return out;
@@ -911,11 +916,11 @@ void ensure_ibuf_is_rgba(ImBuf *ibuf)
   /* Combined layer might be non-4 channels, however the rest
    * of sequencer assumes RGBA everywhere. Convert to 4 channel if needed. */
   if (ibuf->float_data() != nullptr && ibuf->channels != 4) {
-    float *dst = MEM_new_array_uninitialized<float>(4 * size_t(ibuf->x) * size_t(ibuf->y),
-                                                    __func__);
-    IMB_buffer_float_rgba_from_float(dst, ibuf->float_data(), ibuf->channels, ibuf->x, ibuf->y);
-    ibuf->assign_float_data(dst);
-    ibuf->channels = 4;
+    const ImBufFloatBuffer source = ibuf->float_buffer;
+    const int channels = ibuf->channels;
+    IMB_alloc_float_pixels(ibuf, 4, false);
+    IMB_buffer_float_rgba_from_float(
+        ibuf->float_data_for_write(), source.data, channels, ibuf->x, ibuf->y);
   }
 }
 
@@ -927,7 +932,7 @@ static ImBuf *seq_render_image_strip_view(
 {
   ImBuf *ibuf = nullptr;
 
-  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata;
+  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata | ImBufFlags::PoolPixels;
   if (strip->alpha_mode == SEQ_ALPHA_PREMUL) {
     flag |= ImBufFlags::AlphaPremul;
   }
@@ -994,7 +999,8 @@ static ImBuf *create_missing_media_image(const RenderData *context, int width, i
     return nullptr;
   }
 
-  ImBuf *ibuf = IMB_allocImBuf(max_ii(width, 1), max_ii(height, 1), ImBufFlags::ByteData);
+  ImBuf *ibuf = IMB_allocImBuf(
+      max_ii(width, 1), max_ii(height, 1), ImBufFlags::ByteData | ImBufFlags::PoolPixels);
   float col[4] = {0.85f, 0.0f, 0.75f, 1.0f};
   IMB_rectfill(ibuf, col);
   return ibuf;
@@ -1085,7 +1091,7 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const RenderData *context
       /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
        * kept unchanged for the performance reasons. */
       proxy->anim = openanim(
-          filepath, ImBufFlags::Zero, 0, true, &strip->data->colorspace_settings);
+          filepath, ImBufFlags::PoolPixels, 0, true, &strip->data->colorspace_settings);
     }
     if (proxy->anim == nullptr) {
       return nullptr;
@@ -1362,7 +1368,7 @@ ImBuf *seq_render_mask(Depsgraph *depsgraph,
   ImBuf *ibuf = IMB_allocImBuf(width,
                                height,
                                (make_float ? ImBufFlags::FloatData : ImBufFlags::ByteData) |
-                                   ImBufFlags::UninitializedPixels);
+                                   ImBufFlags::UninitializedPixels | ImBufFlags::PoolPixels);
   const float x_inv = 1.0f / float(width);
   const float y_inv = 1.0f / float(height);
   const float x_px_ofs = x_inv * 0.5f;
@@ -1658,15 +1664,16 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
       RE_AcquireResultImage(re, &rres, view_id);
 
       if (rres.ibuf && rres.ibuf->float_data()) {
-        ibufs_arr[view_id].image = IMB_allocImBuf(rres.rectx, rres.recty, ImBufFlags::Zero);
+        ibufs_arr[view_id].image = IMB_allocImBuf(rres.rectx, rres.recty, ImBufFlags::PoolPixels);
         ibufs_arr[view_id].image->float_buffer = rres.ibuf->float_buffer;
       }
       else if (rres.ibuf && rres.ibuf->byte_data()) {
-        ibufs_arr[view_id].image = IMB_allocImBuf(rres.rectx, rres.recty, ImBufFlags::Zero);
+        ibufs_arr[view_id].image = IMB_allocImBuf(rres.rectx, rres.recty, ImBufFlags::PoolPixels);
         ibufs_arr[view_id].image->byte_buffer = rres.ibuf->byte_buffer;
       }
       else {
-        ibufs_arr[view_id].image = IMB_allocImBuf(rres.rectx, rres.recty, ImBufFlags::ByteData);
+        ibufs_arr[view_id].image = IMB_allocImBuf(
+            rres.rectx, rres.recty, ImBufFlags::ByteData | ImBufFlags::PoolPixels);
       }
 
       if (view_id != context->view_id) {
@@ -1932,7 +1939,8 @@ SeqResult seq_render_strip(const RenderData *context,
   }
 
   if (!res.is_valid()) {
-    res.image = IMB_allocImBuf(context->rectx, context->recty, ImBufFlags::ByteData);
+    res.image = IMB_allocImBuf(
+        context->rectx, context->recty, ImBufFlags::ByteData | ImBufFlags::PoolPixels);
   }
 
   return res;
@@ -2078,7 +2086,8 @@ static SeqResult seq_render_strip_stack(const RenderData *context,
         break;
       case StripEarlyOut::UseInput1:
         if (i == 0) {
-          out.image = IMB_allocImBuf(context->rectx, context->recty, ImBufFlags::ByteData);
+          out.image = IMB_allocImBuf(
+              context->rectx, context->recty, ImBufFlags::ByteData | ImBufFlags::PoolPixels);
         }
         break;
       case StripEarlyOut::DoEffect:
@@ -2091,7 +2100,8 @@ static SeqResult seq_render_strip_stack(const RenderData *context,
           SeqResult ibuf1;
           ibuf1.image = IMB_allocImBuf(context->rectx,
                                        context->recty,
-                                       use_float ? ImBufFlags::FloatData : ImBufFlags::ByteData);
+                                       (use_float ? ImBufFlags::FloatData : ImBufFlags::ByteData) |
+                                           ImBufFlags::PoolPixels);
           seq_imbuf_assign_sequencer_space(context->scene, ibuf1.image);
 
           out = seq_render_strip_stack_apply_effect(

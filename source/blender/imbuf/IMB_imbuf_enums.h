@@ -64,6 +64,9 @@ enum class ImBufFlags {
 
   /** Perform no color space conversions when reading, leave the image in the file color-space. */
   NoColorspaceConvert = 1 << 18,
+
+  /** Allow large enough CPU pixel data to come from a pixel data pool. */
+  PoolPixels = 1 << 19,
 };
 ENUM_OPERATORS(ImBufFlags);
 

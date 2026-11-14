@@ -335,8 +335,10 @@ static ImBuf *ibJpegImageFromCinfo(jpeg_decompress_struct *cinfo,
         ibuf->color_mode = color_mode;
       }
     }
-    else if ((ibuf = IMB_allocImBuf(
-                  x, y, ImBufFlags::ByteData | ImBufFlags::UninitializedPixels)) == nullptr)
+    else if ((ibuf = IMB_allocImBuf(x,
+                                    y,
+                                    ImBufFlags::ByteData | ImBufFlags::UninitializedPixels |
+                                        (flags & ImBufFlags::PoolPixels))) == nullptr)
     {
       jpeg_abort_decompress(cinfo);
     }

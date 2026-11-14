@@ -53,8 +53,10 @@ SeqResult prepare_effect_imbufs(const RenderData *context,
       (ibuf2.is_valid() &&
        (ibuf2.image->float_data() || &ibuf2.image->byte_colorspace() != sequencer_colorspace));
 
-  out.image = IMB_allocImBuf(
-      x, y, (use_float ? ImBufFlags::FloatData : ImBufFlags::ByteData) | base_flags);
+  out.image = IMB_allocImBuf(x,
+                             y,
+                             (use_float ? ImBufFlags::FloatData : ImBufFlags::ByteData) |
+                                 base_flags | ImBufFlags::PoolPixels);
   seq_imbuf_assign_sequencer_space(scene, out.image);
 
   if (use_float) {

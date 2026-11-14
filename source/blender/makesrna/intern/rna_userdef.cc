@@ -33,6 +33,8 @@
 
 #include "GPU_platform.hh"
 
+#include "IMB_imbuf.hh"
+
 #include "rna_internal.hh"
 
 #include "UI_interface_c.hh"
@@ -1158,6 +1160,7 @@ static void rna_Userdef_memcache_update(Main * /*bmain*/, Scene * /*scene*/, Poi
   const int64_t new_limit = int64_t(U.memcachelimit) * 1024 * 1024;
   MEM_CacheLimiter_set_maximum(new_limit);
   memory_cache::set_approximate_size_limit(new_limit);
+  IMB_pixel_pool_set_limit(size_t(new_limit / 6));
   USERDEF_TAG_DIRTY;
 }
 

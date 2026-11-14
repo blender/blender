@@ -21,6 +21,7 @@
 #include "IMB_metadata.hh"
 
 #include "imbuf.hh"
+#include "pixel_pool.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -46,14 +47,21 @@ bool imb_alloc_buffer(BufferType &buffer,
                       const uint y,
                       const uint channels,
                       const size_t type_size,
-                      bool initialize_pixels)
+                      bool initialize_pixels,
+                      bool use_pool = false,
+                      size_t alignment = 0)
 {
-  void *data = imb_alloc_pixels(x, y, channels, type_size, initialize_pixels, __func__);
-  if (!data) {
+  /* Keep the same overflow validation as imb_alloc_pixels. */
+  if (channels == 0 || !(uint64_t(x) * uint64_t(y) < (SIZE_MAX / (channels * type_size)))) {
     return false;
   }
-  buffer.data = static_cast<decltype(BufferType::data)>(data);
-  buffer.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(buffer.data));
+  imbuf::PixelPoolAllocation allocation = imbuf::pixel_pool_allocate(
+      size_t(x) * y * channels * type_size, alignment, initialize_pixels, use_pool);
+  if (!allocation.data) {
+    return false;
+  }
+  buffer.data = static_cast<decltype(BufferType::data)>(allocation.data);
+  buffer.sharing_info = std::move(allocation.sharing_info);
   return true;
 }
 
@@ -67,11 +75,12 @@ uint8_t *ImBuf::byte_data_for_write()
   }
   else {
     const size_t size = size_t(this->x) * size_t(this->y) * 4;
-    uint8_t *new_data = MEM_new_array_uninitialized<uint8_t>(size, __func__);
+    imbuf::PixelPoolAllocation allocation = imbuf::pixel_pool_allocate(
+        size, 0, false, flag_is_set(this->flags, ImBufFlags::PoolPixels));
+    uint8_t *new_data = static_cast<uint8_t *>(allocation.data);
     std::copy_n(this->byte_buffer.data, size, new_data);
     this->byte_buffer.data = new_data;
-    this->byte_buffer.sharing_info = ImplicitSharingPtr<>(
-        implicit_sharing::info_for_mem_free(new_data));
+    this->byte_buffer.sharing_info = std::move(allocation.sharing_info);
   }
   return const_cast<uint8_t *>(this->byte_buffer.data);
 }
@@ -86,11 +95,12 @@ float *ImBuf::float_data_for_write()
   }
   else {
     const size_t size = size_t(this->x) * size_t(this->y) * this->channels;
-    float *new_data = MEM_new_array_uninitialized<float>(size, __func__);
+    imbuf::PixelPoolAllocation allocation = imbuf::pixel_pool_allocate(
+        size * sizeof(float), 0, false, flag_is_set(this->flags, ImBufFlags::PoolPixels));
+    float *new_data = static_cast<float *>(allocation.data);
     std::copy_n(this->float_buffer.data, size, new_data);
     this->float_buffer.data = new_data;
-    this->float_buffer.sharing_info = ImplicitSharingPtr<>(
-        implicit_sharing::info_for_mem_free(new_data));
+    this->float_buffer.sharing_info = std::move(allocation.sharing_info);
   }
   return const_cast<float *>(this->float_buffer.data);
 }
@@ -197,7 +207,10 @@ void *imb_alloc_pixels(
                              MEM_new_uninitialized(size, alloc_name);
 }
 
-bool IMB_alloc_float_pixels(ImBuf *ibuf, const uint channels, bool initialize_pixels)
+bool IMB_alloc_float_pixels(ImBuf *ibuf,
+                            const uint channels,
+                            bool initialize_pixels,
+                            size_t alignment)
 {
   if (ibuf == nullptr) {
     return false;
@@ -205,8 +218,14 @@ bool IMB_alloc_float_pixels(ImBuf *ibuf, const uint channels, bool initialize_pi
 
   IMB_free_float_pixels(ibuf);
 
-  if (!imb_alloc_buffer(
-          ibuf->float_buffer, ibuf->x, ibuf->y, channels, sizeof(float), initialize_pixels))
+  if (!imb_alloc_buffer(ibuf->float_buffer,
+                        ibuf->x,
+                        ibuf->y,
+                        channels,
+                        sizeof(float),
+                        initialize_pixels,
+                        flag_is_set(ibuf->flags, ImBufFlags::PoolPixels),
+                        alignment))
   {
     return false;
   }
@@ -216,7 +235,7 @@ bool IMB_alloc_float_pixels(ImBuf *ibuf, const uint channels, bool initialize_pi
   return true;
 }
 
-bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels)
+bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels, size_t alignment)
 {
   /* Question; why also add ZBUF (when `planes > 32`)? */
 
@@ -226,8 +245,14 @@ bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels)
 
   IMB_free_byte_pixels(ibuf);
 
-  if (!imb_alloc_buffer(
-          ibuf->byte_buffer, ibuf->x, ibuf->y, 4, sizeof(uint8_t), initialize_pixels))
+  if (!imb_alloc_buffer(ibuf->byte_buffer,
+                        ibuf->x,
+                        ibuf->y,
+                        4,
+                        sizeof(uint8_t),
+                        initialize_pixels,
+                        flag_is_set(ibuf->flags, ImBufFlags::PoolPixels),
+                        alignment))
   {
     return false;
   }
@@ -385,6 +410,7 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, ImBufFlags flags)
 
   ibuf->x = x;
   ibuf->y = y;
+  ibuf->flags |= flags & ImBufFlags::PoolPixels;
   ibuf->color_mode = ImColorMode::RGBA;
   ibuf->ftype = IMB_FTYPE_PNG;
   /* float option, is set to other values when buffers get assigned. */

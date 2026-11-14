@@ -2408,7 +2408,7 @@ ImBuf *imb_load_openexr(const uchar *mem,
       const bool is_alpha = exr_has_alpha(*file);
       const Header &colorspace_header = imb_exr_colorspace_header(*file);
 
-      ibuf = IMB_allocImBuf(width, height, ImBufFlags::Zero);
+      ibuf = IMB_allocImBuf(width, height, flags & ImBufFlags::PoolPixels);
       ibuf->color_mode = is_alpha ? ImColorMode::RGBA : ImColorMode::RGB;
       ibuf->foptions.flag |= exr_is_half_float(colorspace_header) ? OPENEXR_HALF : 0;
       ibuf->foptions.flag |= openexr_header_get_compression(colorspace_header);

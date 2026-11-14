@@ -164,7 +164,8 @@ static SeqResult do_compositor_effect(const RenderData *context,
   const int x = context->rectx;
   const int y = context->recty;
   SeqResult out;
-  out.image = IMB_allocImBuf(x, y, ImBufFlags::FloatData | ImBufFlags::UninitializedPixels);
+  out.image = IMB_allocImBuf(
+      x, y, ImBufFlags::FloatData | ImBufFlags::UninitializedPixels | ImBufFlags::PoolPixels);
   IMB_colormanagement_assign_float_colorspace(
       out.image, IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
 

@@ -270,7 +270,7 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   BLI_path_abs(file_path, ID_BLEND_PATH(bmain, &scene->id));
 
   ImBuf *ibuf = IMB_load_image_from_filepath(
-      file_path, ImBufFlags::ByteData, &strip->data->colorspace_settings);
+      file_path, ImBufFlags::ByteData | ImBufFlags::PoolPixels, &strip->data->colorspace_settings);
   if (ibuf != nullptr) {
     /* Set image resolution. Assume that all images in sequence are same size. This fields are only
      * informative. */
@@ -420,7 +420,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
         /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
          * kept unchanged for the performance reasons. */
         anim_arr[j].reset(
-            openanim(filepath_view, ImBufFlags::Zero, 0, true, &colorspace_settings));
+            openanim(filepath_view, ImBufFlags::PoolPixels, 0, true, &colorspace_settings));
 
         if (anim_arr[j]) {
           seq_anim_add_suffix(scene, anim_arr[j].get(), i);
@@ -434,8 +434,8 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBaseT<Strip> *seqbase, Loa
   if (is_multiview_loaded == false) {
     /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
      * kept unchanged for the performance reasons. */
-    anim_arr[0].reset(
-        openanim(filepath, ImBufFlags::Zero, load_data->stream_index, true, &colorspace_settings));
+    anim_arr[0].reset(openanim(
+        filepath, ImBufFlags::PoolPixels, load_data->stream_index, true, &colorspace_settings));
   }
 
   if (anim_arr[0] == nullptr && !load_data->allow_invalid_file) {

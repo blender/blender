@@ -937,7 +937,8 @@ MovieReader *movie_open_proxy(MovieReader *anim, IMB_Proxy_Size preview_size)
    * the image buffers from the proxy builder are not used anywhere else in Blender. */
   ColorManagedColorspaceSettings colorspace_settings;
   IMB_colormanagement_colorspace_settings_set(&colorspace_settings, anim->colorspace);
-  anim->proxy_anim[i] = MOV_open_file(filepath, ImBufFlags::Zero, 0, true, &colorspace_settings);
+  anim->proxy_anim[i] = MOV_open_file(
+      filepath, anim->ib_flags & ImBufFlags::PoolPixels, 0, true, &colorspace_settings);
 
   anim->proxies_tried |= preview_size;
 

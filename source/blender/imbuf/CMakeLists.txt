@@ -38,6 +38,8 @@ set(SRC
   intern/metadata.cc
   intern/module.cc
   intern/partial_update.cc
+  intern/pixel_pool.cc
+  intern/pixel_pool.hh
   intern/readimage.cc
   intern/rectop.cc
   intern/rotate.cc
@@ -136,6 +138,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     tests/IMB_colormanagement_test.cc
     tests/IMB_partial_update_test.cc
+    tests/IMB_pixel_pool_test.cc
     tests/IMB_scaling_test.cc
     tests/IMB_transform_test.cc
   )

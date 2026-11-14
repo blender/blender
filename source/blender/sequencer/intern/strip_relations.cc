@@ -23,6 +23,8 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "IMB_imbuf.hh"
+
 #include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
 #include "SEQ_preview_cache.hh"
@@ -61,6 +63,9 @@ void cache_cleanup(Scene *scene, CacheCleanup mode)
     intra_frame_cache_invalidate(scene);
     preview_cache_invalidate(scene);
   }
+  if (mode == CacheCleanup::All) {
+    IMB_pixel_pool_clear();
+  }
 }
 
 void cache_settings_changed(Scene *scene)
@@ -78,8 +83,19 @@ void cache_settings_changed(Scene *scene)
 bool is_cache_full(const Scene *scene)
 {
   size_t cache_limit = size_t(U.memcachelimit) * 1024 * 1024;
-  return source_image_cache_calc_memory_size(scene) + final_image_cache_calc_memory_size(scene) >
+  return source_image_cache_calc_memory_size(scene) + final_image_cache_calc_memory_size(scene) +
+             IMB_pixel_pool_unused_bytes_get() >
          cache_limit;
+}
+
+/* After cache image eviction, trim unused pixel pool storage too,
+ * to fit within overall cache budget. */
+static void trim_pixel_pool_to_cache_budget(const Scene *scene)
+{
+  const size_t cache_limit = size_t(U.memcachelimit) * 1024 * 1024;
+  const size_t image_cache_bytes = source_image_cache_calc_memory_size(scene) +
+                                   final_image_cache_calc_memory_size(scene);
+  IMB_pixel_pool_trim(cache_limit - std::min(cache_limit, image_cache_bytes));
 }
 
 bool evict_caches_if_full(Scene *scene)
@@ -124,10 +140,12 @@ bool evict_caches_if_full(Scene *scene)
       }
     }
 
+    /* Evicting an image can return pixels to the pixel pool. Trim that if needed,
+     * before checking whether more images need to be evicted. */
+    trim_pixel_pool_to_cache_budget(scene);
   } while (is_cache_full(scene) && (evicted_final || evicted_source));
 
-  /* Did we evict anything to free up the cache? */
-  return !(evicted_final || evicted_source);
+  return is_cache_full(scene);
 }
 
 static void update_range_with_effects(const Scene *scene, const Strip *strip, int2 &r_range)

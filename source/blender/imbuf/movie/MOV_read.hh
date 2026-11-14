@@ -28,7 +28,7 @@ struct MovieProxyBuilder;
 
 /**
  * Opens a movie file for reading / playback.
- * From ib_flags only ImBufFlags::Deinterlace is taken into account.
+ * From ib_flags, ImBufFlags::Deinterlace and ImBufFlags::PoolPixels are taken into account.
  * streamindex is for multi-track movie files.
  *
  * Returned MovieReader object can be used in other playback related functions.

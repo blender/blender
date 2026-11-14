@@ -1957,9 +1957,7 @@ static void colormanage_display_buffer_process(ImBuf *ibuf,
       (processor || flatten_alpha))
   {
     source_buffer = ibuf->float_buffer;
-    float *output = MEM_new_array_uninitialized<float>(size_t(ibuf->x) * ibuf->y * ibuf->channels,
-                                                       __func__);
-    ibuf->assign_float_data(output);
+    IMB_alloc_float_pixels(ibuf, ibuf->channels, false);
     ibuf->float_buffer.colorspace = source_buffer.colorspace;
   }
   float *display_buffer = ibuf->float_data_for_write();
