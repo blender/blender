@@ -1852,6 +1852,7 @@ static SeqResult do_render_strip_uncached(const RenderData *context,
           local_context.skip_cache = true;
 
           out = do_render_strip_seqbase(&local_context, state, strip, frame_index);
+          out.is_opaque_before_transform = out.image && !out.image->can_contain_alpha();
         }
       }
       else {
