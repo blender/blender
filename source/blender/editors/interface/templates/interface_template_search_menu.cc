@@ -906,7 +906,15 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
   /* Finally sort menu items.
    *
    * NOTE: we might want to keep the in-menu order, for now sort all. */
-  std::ranges::sort(data->items, menu_item_sort_by_drawstr_full);
+  bool keep_order = false;
+  if (single_menu_idname) {
+    if (MenuType *mt = WM_menutype_find(single_menu_idname, false)) {
+      keep_order = flag_is_set(mt->flag, MenuTypeFlag::KeepOrder);
+    }
+  }
+  if (!keep_order) {
+    std::ranges::sort(data->items, menu_item_sort_by_drawstr_full);
+  }
 
   if (include_all_areas) {
     CTX_wm_area_set(C, area_init);

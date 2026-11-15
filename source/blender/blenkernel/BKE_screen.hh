@@ -783,6 +783,10 @@ enum class MenuTypeFlag {
    * Automatically start searching in the menu when pressing a key.
    */
   SearchOnKeyPress = (1 << 1),
+  /**
+   * Don't sort menu items alphabetically when flag is set.
+   */
+  KeepOrder = (1 << 2),
 };
 ENUM_OPERATORS(MenuTypeFlag)
 

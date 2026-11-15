@@ -268,6 +268,7 @@ static void recent_files_menu_register()
   STRNCPY_UTF8(mt->label, N_("Open Recent"));
   STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = recent_files_menu_draw;
+  mt->flag = MenuTypeFlag::KeepOrder;
   WM_menutype_add(mt);
 }
 
