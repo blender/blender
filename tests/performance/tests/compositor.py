@@ -51,8 +51,11 @@ class CompositorTest(api.Test):
 
     def supported_device_types(self):
         return [
-            "CPU", "METAL", "VULKAN", "OPENGL",
+            "CPU", "METAL", "METAL-RT", "VULKAN", "OPENGL",
         ]
+
+    def remove_redundant_device_types(self, devices):
+        return self.remove_redundant_hwrt_device_types(devices)
 
     def run(self, env, device_id, gpu_backend):
         device_type = device_id.split('_')[0]
