@@ -305,7 +305,12 @@ enum eFCurve_Flags : short {
   FCURVE_VISIBLE = (1 << 0),
   /** Curve is selected for editing. */
   FCURVE_SELECTED = (1 << 1),
-  /** Curve is active one. */
+  /**
+   * Curve is active one. DEPRECATED.
+   *
+   * This is a legacy flag. New code should be using the active channel from the
+   * ed::animfilter::ChannelArena.
+   */
   FCURVE_ACTIVE = (1 << 2),
   /** Keyframes (beztriples) cannot be edited. */
   FCURVE_PROTECTED = (1 << 3),

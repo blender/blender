@@ -207,9 +207,15 @@ class ObjectChannelAPI : public AbstractChannelAPI {
 
 class FCurveChannelAPI : public AbstractChannelAPI {
   FCurve &fcurve_;
+  /* Can be nullptr when the F-Curve doesn't come from a channelbag. In that case, there may be
+   * multiple F-Curves marked as 'active'. */
+  animrig::Channelbag *channelbag_;
 
  public:
-  FCurveChannelAPI(FCurve &fcurve) : fcurve_(fcurve) {}
+  FCurveChannelAPI(FCurve &fcurve, animrig::Channelbag *channelbag)
+      : fcurve_(fcurve), channelbag_(channelbag)
+  {
+  }
 
   void set_selected(const bContext & /*C*/,
                     const bool is_selected,
@@ -220,6 +226,29 @@ class FCurveChannelAPI : public AbstractChannelAPI {
   bool is_selected() const override
   {
     return flag_is_set(fcurve_.flag, FCURVE_SELECTED);
+  }
+
+  /**
+   * Legacy support for 'active F-Curve' support.
+   *
+   * New code should be using the active channel from the ChannelArena, and not the FCURVE_ACTIVE
+   * flag.
+   */
+  void set_active(const bContext & /*C*/, bool /*do_sync_to_secondary*/) override
+  {
+    if (!channelbag_) {
+      /* Without a channelbag, we can only set this F-Curve's flag. There may be more marked as
+       * active now. */
+      flag_update(fcurve_.flag, FCURVE_ACTIVE, true);
+      return;
+    }
+
+    for (FCurve *fcurve : channelbag_->fcurves()) {
+      const bool is_active = (fcurve == &fcurve_);
+      flag_update(fcurve->flag, FCURVE_ACTIVE, is_active);
+    }
+
+    BLI_assert_msg(fcurve_.flag & FCURVE_ACTIVE, "F-Curve was not found in its channelbag");
   }
 };
 
@@ -443,7 +472,10 @@ std::unique_ptr<AbstractChannelAPI> create_channel_api(const AnimationChannel &c
     return std::make_unique<NoOpChannelAPI>();
   }
   if (ptr.type == RNA_FCurve) {
-    return std::make_unique<FCurveChannelAPI>(*ptr.data_as<FCurve>());
+    animrig::Channelbag *channelbag = channel.tags().data_of_first_tag<animrig::Channelbag>(
+        ChannelTagType::ACTION_CHANNELBAG);
+    BLI_assert(channelbag);
+    return std::make_unique<FCurveChannelAPI>(*ptr.data_as<FCurve>(), channelbag);
   }
   if (ptr.type == RNA_GreasePencilLayer) {
     return std::make_unique<GreasePencilChannelAPI>(*ptr.data_as<GreasePencilLayer>());
@@ -1317,6 +1349,27 @@ static void change_fcurve_key_selection(FCurve &fcurve,
   }
 }
 
+/**
+ * Return the icon of the animated property.
+ *
+ * The RNA path is resolved against the #ChannelTagType::ID tag's data.
+ */
+static int animated_property_icon_from_id_tag(const ChannelTagSet &tags,
+                                              const ParsedRNAPathRef rna_path)
+{
+  const PointerRNA &animated_id_ptr = tags.first_by_type(ChannelTagType::ID)->source_data();
+
+  PointerRNA ptr;
+  PropertyRNA *prop;
+
+  if (!RNA_path_resolve_property(&animated_id_ptr, rna_path, &ptr, &prop)) {
+    /* Fall back to the icon of the ID itself. */
+    return RNA_struct_ui_icon(animated_id_ptr.type);
+  }
+
+  return RNA_struct_ui_icon(ptr.type);
+}
+
 /* ===== F-Curve Channel ===== */
 
 static KeyframeHandleSummary handle_summary_from_key(const BezTriple &key)
@@ -1461,7 +1514,7 @@ void FCurveChannel::change_datapoint_selection(const SelectionMode mode, const B
 
 StringRefNull FCurveChannel::label() const
 {
-  const ID *animated_id = find_animated_id_from_tags(this->tags());
+  const ID *animated_id = this->tags().data_of_first_tag<ID>(ChannelTagType::ID);
   if (!animated_id) {
     // TODO: getname_anim_fcurve_for_slot() can come to the rescue here.
     return this->label_;
@@ -1474,6 +1527,12 @@ StringRefNull FCurveChannel::label() const
   }
 
   return this->label_;
+}
+
+int FCurveChannel::animated_property_icon() const
+{
+  return animated_property_icon_from_id_tag(this->tags(),
+                                            this->get_source<FCurve>()->rna_path_parsed());
 }
 
 std::optional<ParsedSourcePath> FCurveChannel::sorting_rna_path() const
@@ -1499,7 +1558,7 @@ DriverChannel::DriverChannel(const PointerRNA &driver_fcurve_ptr,
 
 StringRefNull DriverChannel::label() const
 {
-  const ID *animated_id = find_animated_id_from_tags(this->tags());
+  const ID *animated_id = this->tags().data_of_first_tag<ID>(ChannelTagType::ID);
   if (!animated_id) {
     return this->label_;
   }
@@ -1511,6 +1570,12 @@ StringRefNull DriverChannel::label() const
   }
 
   return this->label_;
+}
+
+int DriverChannel::animated_property_icon() const
+{
+  return animated_property_icon_from_id_tag(this->tags(),
+                                            this->get_source<FCurve>()->rna_path_parsed());
 }
 
 void DriverChannel::set_setting(const ChannelSettingKey setting, const bool value)
@@ -1886,15 +1951,6 @@ void ChannelTagSet::reset_bookkeeping()
 {
   used_for_grouping_.resize(tags_.size());
   used_for_grouping_.fill(false);
-}
-
-const ID *find_animated_id_from_tags(const ChannelTagSet &tags)
-{
-  const ChannelTag *id_tag = tags.first_by_type(ChannelTagType::ID);
-  if (!id_tag) {
-    return nullptr;
-  }
-  return id_tag->source_data().data_as<ID>();
 }
 
 }  // namespace blender::ed::animfilter

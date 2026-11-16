@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -1097,6 +1098,22 @@ static eContextResult screen_ctx_selected_visible_fcurves(const bContext *C,
 static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
                                                         bContextDataResult *result)
 {
+  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+    using namespace ed::animfilter;
+
+    ChannelArenaHandle arena = get_summary_tree_for_context(*C);
+    AnimationChannel *active_chan = arena->active_channel();
+    if (!active_chan || !active_chan->source_is_type(RNA_FCurve)) {
+      return CTX_RESULT_NO_DATA;
+    }
+    /* TODO: should we move this into a method AnimationChannel::is_source_editable() ? */
+    if (!ID_IS_EDITABLE(active_chan->source().owner_id)) {
+      return CTX_RESULT_NO_DATA;
+    }
+    CTX_data_pointer_set_ptr(result, active_chan->source_ptr());
+    return CTX_RESULT_OK;
+  }
+
   bAnimContext ac;
   if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_GRAPH)) {
     ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};

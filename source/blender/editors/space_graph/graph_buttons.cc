@@ -18,6 +18,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_assert.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_string.hh"
@@ -46,6 +47,7 @@
 #include "RNA_prototypes.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_anim_filter.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 
@@ -167,55 +169,91 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
 /** \name Active F-Curve
  * \{ */
 
-static void graph_panel_properties(const bContext *C, Panel *panel)
+static bool graph_panel_fcurve_poll(const bContext *C, PanelType * /*pt*/)
 {
-  bAnimListElem *ale;
-  FCurve *fcu;
-  ui::Layout &layout = *panel->layout;
-  char name[256];
-  int icon = 0;
-
-  if (!graph_panel_context(C, &ale, &fcu)) {
-    return;
+  if (!graph_panel_context(C, nullptr, nullptr)) {
+    return false;
+  }
+  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+    using namespace ed::animfilter;
+    ChannelArenaHandle arena = get_summary_tree_for_context(*C);
+    const AnimationChannel *active_chan = arena->active_channel();
+    return active_chan && active_chan->source_is_type(RNA_FCurve);
   }
 
-  /* F-Curve pointer */
-  PointerRNA fcu_ptr = RNA_pointer_create_discrete(ale->fcurve_owner_id, RNA_FCurve, fcu);
+  return true;
+}
 
-  /* user-friendly 'name' for F-Curve */
-  ui::Layout &name_col = layout.column(false);
-  if (ale->type == ANIMTYPE_FCURVE) {
-    /* get user-friendly name for F-Curve */
-    const std::optional<int> optional_icon = getname_anim_fcurve(name, ale->id, fcu);
-    if (optional_icon) {
-      icon = *optional_icon;
-    }
-    else if (ale->id) {
-      icon = RNA_struct_ui_icon(ID_code_to_RNA_type(GS(ale->id->name)));
-    }
-    else {
-      icon = ICON_NONE;
-    }
+static void graph_panel_fcurve_properties(const bContext *C, Panel *panel)
+{
+  FCurve *fcu = nullptr;
+  PointerRNA fcu_ptr;
+  int icon = 0;
+  std::string fcu_label;
+
+  /* Only for the legacy code. */
+  bAnimListElem *ale = nullptr;
+
+  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+    using namespace ed::animfilter;
+
+    ChannelArenaHandle arena = get_summary_tree_for_context(*C);
+    const AnimationChannel *active_chan = arena->active_channel();
+    /* The poll function ensures this: */
+    BLI_assert(active_chan && active_chan->source_is_type(RNA_FCurve));
+    fcu_ptr = active_chan->source();
+    fcu = fcu_ptr.data_as<FCurve>();
+    icon = active_chan->animated_property_icon();
   }
   else {
-    /* NLA Control Curve, etc. */
-    const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+    /* Legacy code. */
+    char name[256];
 
-    /* get name */
-    if (acf && acf->name) {
-      acf->name(ale, name);
+    if (!graph_panel_context(C, &ale, &fcu)) {
+      return;
+    }
+
+    /* F-Curve pointer */
+    fcu_ptr = RNA_pointer_create_discrete(ale->fcurve_owner_id, RNA_FCurve, fcu);
+
+    /* user-friendly 'name' for F-Curve */
+    if (ale->type == ANIMTYPE_FCURVE) {
+      /* get user-friendly name for F-Curve */
+      const std::optional<int> optional_icon = getname_anim_fcurve(name, ale->id, fcu);
+      if (optional_icon) {
+        icon = *optional_icon;
+      }
+      else if (ale->id) {
+        icon = RNA_struct_ui_icon(ID_code_to_RNA_type(GS(ale->id->name)));
+      }
+      else {
+        icon = ICON_NONE;
+      }
     }
     else {
-      STRNCPY_UTF8(name, IFACE_("<invalid>"));
-      icon = ICON_STATUS_ERROR;
-    }
+      /* NLA Control Curve, etc. */
+      const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 
-    /* icon */
-    if (ale->type == ANIMTYPE_NLACURVE) {
-      icon = ICON_NLA;
+      /* get name */
+      if (acf && acf->name) {
+        acf->name(ale, name);
+      }
+      else {
+        STRNCPY_UTF8(name, IFACE_("<invalid>"));
+        icon = ICON_STATUS_ERROR;
+      }
+
+      /* icon */
+      if (ale->type == ANIMTYPE_NLACURVE) {
+        icon = ICON_NLA;
+      }
     }
+    fcu_label = name;
   }
-  name_col.label(name, icon);
+
+  ui::Layout &layout = *panel->layout;
+  ui::Layout &name_col = layout.column(false);
+  name_col.label(fcu_label, icon);
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
@@ -362,17 +400,38 @@ static void graphedit_activekey_right_handle_coord_cb(bContext *C, void *fcu_ptr
 
 static void graph_panel_key_properties(const bContext *C, Panel *panel)
 {
-  bAnimListElem *ale;
   FCurve *fcu;
   BezTriple *bezt, *prevbezt;
+  ID *fcurve_owner_id;
 
   ui::Layout &layout = *panel->layout;
   const ARegion *region = CTX_wm_region(C);
   /* Just a width big enough so buttons use entire layout width (will be clamped by it then). */
   const int but_max_width = region->winx;
 
-  if (!graph_panel_context(C, &ale, &fcu)) {
-    return;
+  PointerRNA animated_id_ptr;
+  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+    using namespace ed::animfilter;
+    ChannelArenaHandle arena = get_summary_tree_for_context(*C);
+    const AnimationChannel *active_chan = arena->active_channel();
+    /* The poll function ensures this: */
+    BLI_assert(active_chan && active_chan->source_is_type(RNA_FCurve));
+
+    fcu = active_chan->source().data_as<FCurve>();
+    fcurve_owner_id = active_chan->source().owner_id;
+    animated_id_ptr = active_chan->tags().first_by_type(ChannelTagType::ID)->source_data();
+  }
+  else {
+    bAnimListElem *ale = nullptr;
+
+    if (!graph_panel_context(C, &ale, &fcu)) {
+      return;
+    }
+
+    animated_id_ptr = RNA_id_pointer_create(ale->id);
+    fcurve_owner_id = ale->fcurve_owner_id;
+
+    MEM_delete(ale);
   }
 
   ui::Block *block = layout.block();
@@ -387,11 +446,12 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     int unit = B_UNIT_NONE;
 
     /* RNA pointer to keyframe, to allow editing */
-    PointerRNA bezt_ptr = RNA_pointer_create_discrete(ale->fcurve_owner_id, RNA_Keyframe, bezt);
+    PointerRNA bezt_ptr = RNA_pointer_create_discrete(fcurve_owner_id, RNA_Keyframe, bezt);
 
     /* get property that F-Curve affects, for some unit-conversion magic */
-    PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
-    if (RNA_path_resolve_property(&id_ptr, fcu->rna_path_parsed(), &fcu_prop_ptr, &fcu_prop)) {
+    if (RNA_path_resolve_property(
+            &animated_id_ptr, fcu->rna_path_parsed(), &fcu_prop_ptr, &fcu_prop))
+    {
       /* determine the unit for this property */
       unit = RNA_SUBTYPE_UNIT(RNA_property_subtype(fcu_prop));
     }
@@ -594,8 +654,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       layout.label(RPT_("No active keyframe on F-Curve"), ICON_NONE);
     }
   }
-
-  MEM_delete(ale);
 }
 
 /** \} */
@@ -1380,8 +1438,8 @@ void graph_buttons_register(ARegionType *art)
   STRNCPY_UTF8(pt->label, N_("Active F-Curve"));
   STRNCPY_UTF8(pt->category, "F-Curve");
   STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-  pt->draw = graph_panel_properties;
-  pt->poll = graph_panel_poll;
+  pt->draw = graph_panel_fcurve_properties;
+  pt->poll = graph_panel_fcurve_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_new_zeroed<PanelType>("spacetype graph panel properties");
@@ -1390,7 +1448,7 @@ void graph_buttons_register(ARegionType *art)
   STRNCPY_UTF8(pt->category, "F-Curve");
   STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_key_properties;
-  pt->poll = graph_panel_poll;
+  pt->poll = graph_panel_fcurve_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_new_zeroed<PanelType>("spacetype graph panel drivers driven");

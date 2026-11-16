@@ -362,8 +362,6 @@ class ChannelTagSet {
   const ChannelTagSet &const_this() const;
 };
 
-const ID *find_animated_id_from_tags(const ChannelTagSet &tags);
-
 /**
  * Identifier for an AnimationChannel.
  *
@@ -564,13 +562,32 @@ class AnimationChannel {
   {
     return this->label_;
   }
+
   PointerRNA source() const
   {
     return this->source_;
   }
+  PointerRNA *source_ptr()
+  {
+    return &this->source_;
+  }
   bool source_is_id() const;
   ID_Type source_id_type() const;
   bool source_is_type(const StructRNA *rna_type) const;
+
+  /**
+   * Return the icon for the channel's animated property.
+   *
+   * This is made for #FCurveChannel and #DriverChannel to provide an icon, but is not specific to
+   * those classes. The function is named "animated property icon" to clearly distinguish it from
+   * "source type icon".
+   *
+   * \return 0 if no icon could be found, or this function was not implemented.
+   */
+  virtual int animated_property_icon() const
+  {
+    return 0;
+  }
 
   AnimationChannelFlags &flags()
   {
@@ -853,6 +870,7 @@ class FCurveChannel : public DataChannel {
 
   /** Construct a label for the F-Curve, depending on its tags. */
   StringRefNull label() const override;
+  int animated_property_icon() const override;
 
   std::optional<ParsedSourcePath> sorting_rna_path() const override;
 
@@ -884,6 +902,7 @@ class DriverChannel : public DataChannel {
   DriverChannel(const PointerRNA &driver_fcurve_ptr, const ParsedSourcePath source_rna_path);
 
   StringRefNull label() const override;
+  int animated_property_icon() const override;
 
   void set_setting(ChannelSettingKey setting, bool value) override;
   void change_datapoint_selection(SelectionMode mode,

@@ -75,6 +75,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
   PointerRNA ptr;
   PropertyRNA *prop;
 
+  /* TODO: use the parsed RNA path here. */
   if (!RNA_path_resolve_property(&id_ptr, rna_path.c_str(), &ptr, &prop)) {
     /* Could not resolve the path, so just use the path itself as 'name'. */
     BLI_snprintf_utf8(name, name_maxncpy, "\"%s[%d]\"", rna_path.c_str(), fcu->array_index);
