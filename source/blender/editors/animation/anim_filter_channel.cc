@@ -861,7 +861,7 @@ ID_Type AnimationChannel::source_id_type() const
 
 bool AnimationChannel::source_is_type(const StructRNA *rna_type) const
 {
-  return this->source_.type == rna_type;
+  return this->source_.has_data() && this->source_.type == rna_type;
 }
 
 void AnimationChannel::source_set(PointerRNA &&source_ptr)
@@ -1074,7 +1074,7 @@ void SummaryChannel::gather_channel_settings()
     this->channel_settings_.merge(child->channel_settings());
   }
   /* Special case for GP groups. They override the visibility setting. */
-  if (this->source() && this->source().type == RNA_GreasePencilLayerGroup) {
+  if (this->source_is_type(RNA_GreasePencilLayerGroup)) {
     bke::greasepencil::LayerGroup &group =
         this->source().data_as<GreasePencilLayerTreeGroup>()->wrap();
     this->channel_settings_.set_state(
@@ -1090,8 +1090,8 @@ void SummaryChannel::gather_channel_settings()
 void SummaryChannel::set_setting(const ChannelSettingKey setting, const bool value)
 {
   this->flags_ |= ANIM_CHANNEL_DIRTY_SETTINGS;
-  if (setting == ChannelSettingKey::VISIBLE_V3D && this->source() &&
-      this->source().type == RNA_GreasePencilLayerGroup)
+  if (setting == ChannelSettingKey::VISIBLE_V3D &&
+      this->source_is_type(RNA_GreasePencilLayerGroup))
   {
     /* Special case for GP groups. They should not flush their visibility setting to children but
      * instead set their own flag. */
