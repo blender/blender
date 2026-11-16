@@ -49,6 +49,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot);
 void ARMATURE_OT_parent_clear(wmOperatorType *ot);
 
 void ARMATURE_OT_select_all(wmOperatorType *ot);
+void ARMATURE_OT_select_deform(wmOperatorType *ot);
 void ARMATURE_OT_select_mirror(wmOperatorType *ot);
 void ARMATURE_OT_select_more(wmOperatorType *ot);
 void ARMATURE_OT_select_less(wmOperatorType *ot);
@@ -113,7 +114,10 @@ void POSE_OT_select_parent(wmOperatorType *ot);
 void POSE_OT_select_hierarchy(wmOperatorType *ot);
 void POSE_OT_select_linked(wmOperatorType *ot);
 void POSE_OT_select_linked_pick(wmOperatorType *ot);
+void POSE_OT_select_scaled(wmOperatorType *ot);
+void POSE_OT_select_deform(wmOperatorType *ot);
 void POSE_OT_select_constraint_target(wmOperatorType *ot);
+void POSE_OT_select_constrained_by_selection(wmOperatorType *ot);
 void POSE_OT_select_grouped(wmOperatorType *ot);
 void POSE_OT_select_mirror(wmOperatorType *ot);
 

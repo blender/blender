@@ -176,6 +176,11 @@ struct SymbolClass : SymbolScope {
     return builtin_class != builtin::ClassId::Invalid;
   }
 
+  bool is_matrix() const
+  {
+    return is_builtin() && (uint16_t(builtin_class) & builtin::MATRIX_MASK) != 0;
+  }
+
   /* Structure to hold the flattened member data */
   struct MemberNode {
     const SymbolClass *type;

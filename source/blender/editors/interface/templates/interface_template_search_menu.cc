@@ -122,6 +122,8 @@ struct MenuSearch_Data {
   Vector<std::reference_wrapper<MenuSearch_Item>> items;
   /** Use for all small allocations. */
   ResourceScope scope;
+  /** Keep the menu order instead of sorting, see #MenuTypeFlag::KeepOrder. */
+  bool keep_order = false;
 
   /** Use for context menu, to fake a button to create a context menu. */
   struct {
@@ -906,7 +908,14 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
   /* Finally sort menu items.
    *
    * NOTE: we might want to keep the in-menu order, for now sort all. */
-  std::ranges::sort(data->items, menu_item_sort_by_drawstr_full);
+  if (single_menu_idname) {
+    if (MenuType *mt = WM_menutype_find(single_menu_idname, false)) {
+      data->keep_order = flag_is_set(mt->flag, MenuTypeFlag::KeepOrder);
+    }
+  }
+  if (!data->keep_order) {
+    std::ranges::sort(data->items, menu_item_sort_by_drawstr_full);
+  }
 
   if (include_all_areas) {
     CTX_wm_area_set(C, area_init);
@@ -1007,7 +1016,11 @@ static void menu_search_update_fn(const bContext * /*C*/,
 {
   MenuSearch_Data *data = static_cast<MenuSearch_Data *>(arg);
 
-  string_search::StringSearch<MenuSearch_Item> search;
+  /* Don't let recent searches reorder menus that keep their order. */
+  const blender::string_search::RecentCache *recent_cache =
+      data->keep_order ? nullptr : string_search::get_recent_cache_or_null();
+  blender::string_search::StringSearch<MenuSearch_Item> search(
+      recent_cache, blender::string_search::MainWordsHeuristic::LastGroup);
 
   for (MenuSearch_Item &item : data->items) {
     search.add(item.drawwstr_full, &item, item.weight);

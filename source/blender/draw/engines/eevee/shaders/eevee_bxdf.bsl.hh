@@ -34,7 +34,7 @@ BsdfSample BsdfClosure::sample(const UtilityTexture &util_tx,
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return BsdfThinGlassTransmission::unpack(*this).sample(rand, Vt, thickness);
     case CLOSURE_BSDF_SHEEN_ID:
-      return BsdfSheen::unpack(util_tx, Vt, *this).sample(rand, Vt, thickness);
+      return BsdfSheen::unpack(util_tx, Vt.z, *this).sample(rand, Vt, thickness);
     case CLOSURE_NONE_ID:
       assert(false);
       return {};
@@ -63,7 +63,7 @@ BsdfEval BsdfClosure::eval(const UtilityTexture &util_tx,
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return BsdfThinGlassTransmission::unpack(*this).eval(V, L, thickness);
     case CLOSURE_BSDF_SHEEN_ID:
-      return BsdfSheen::unpack(util_tx, V, *this).eval(V, L, thickness);
+      return BsdfSheen::unpack(util_tx, dot(N, V), *this).eval(V, L, thickness);
     case CLOSURE_NONE_ID:
       assert(false);
       return {};
@@ -91,7 +91,7 @@ LightProbeRay BsdfClosure::lightprobe_ray(const UtilityTexture &util_tx,
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return BsdfThinGlassTransmission::unpack(*this).lightprobe_ray(V, thickness);
     case CLOSURE_BSDF_SHEEN_ID:
-      return BsdfSheen::unpack(util_tx, V, *this).lightprobe_ray(V, thickness);
+      return BsdfSheen::unpack(util_tx, dot(N, V), *this).lightprobe_ray(V, thickness);
     case CLOSURE_NONE_ID:
       assert(false);
       return {};
@@ -119,7 +119,8 @@ LightEvalContext BsdfClosure::light_eval_context(const UtilityTexture &util_tx,
     case CLOSURE_BSDF_THIN_GLASS_TRANSMISSION_ID:
       return BsdfThinGlassTransmission::unpack(*this).light_eval_context(util_tx, V, thickness);
     case CLOSURE_BSDF_SHEEN_ID:
-      return BsdfSheen::unpack(util_tx, V, *this).light_eval_context(util_tx, V, thickness);
+      return BsdfSheen::unpack(util_tx, dot(N, V), *this)
+          .light_eval_context(util_tx, V, thickness);
     case CLOSURE_NONE_ID:
       assert(false);
       return {};

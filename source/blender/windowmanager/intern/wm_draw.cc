@@ -53,6 +53,7 @@
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
+#include "GPU_shader.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
 #include "GPU_viewport.hh"
@@ -1756,6 +1757,16 @@ void wm_draw_update(bContext *C)
   GPU_render_begin();
   GPU_render_step();
 
+  /* Reset on-demand pipeline compilation tracking at the redraw boundary. Runs after the frame
+   * change handlers (notifiers), so a poll of `bpy.app.is_job_running("SHADER_COMPILATION")`
+   * reflects the pipelines compiled during the previous redraw. During animation playback, idle
+   * iterations without redraw happen between frames, so only reset when a window is redrawn. */
+  bool pipeline_tracking_reset = false;
+  if (!ED_screen_animation_playing(wm)) {
+    GPU_shader_compiler_reset_frame_pipeline_tracking();
+    pipeline_tracking_reset = true;
+  }
+
 #ifdef WITH_METAL_BACKEND
   /* Reset drawable to ensure GPU context activation happens at least once per frame if only a
    * single context exists. This is required to ensure the default framebuffer is updated
@@ -1778,6 +1789,11 @@ void wm_draw_update(bContext *C)
     CTX_wm_window_set(C, &win);
 
     if (wm_draw_update_test_window(bmain, C, &win)) {
+      if (!pipeline_tracking_reset) {
+        GPU_shader_compiler_reset_frame_pipeline_tracking();
+        pipeline_tracking_reset = true;
+      }
+
       PRF_frame_mark_start("Window Drawing"_ustr);
       /* Sets context window+screen. */
       wm_window_make_drawable(wm, &win);

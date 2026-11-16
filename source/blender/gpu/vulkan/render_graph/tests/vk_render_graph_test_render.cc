@@ -630,8 +630,9 @@ TEST_P(VKRenderGraphTestRender, begin_draw_draw_draw_end__layered_attachment_lay
 
   submit(render_graph, command_buffer);
 
-  /* The image tracker keeps layer 1 in GENERAL while the scope is open. Layer 1 isn't attached to
-   * the scope, so the transition starts from the layout the image had before the scope. */
+  /* The image tracker keeps layer 1 in GENERAL while the scope is open. The begin barrier
+   * transitions the whole image, so the transition of layer 1 starts from the attachment layout.
+   */
   EXPECT_EQ(12, log.size());
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
@@ -644,7 +645,7 @@ TEST_P(VKRenderGraphTestRender, begin_draw_draw_draw_end__layered_attachment_lay
           "dst_access_mask=VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT, "
           "VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
           "VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, "
-          "old_layout=VK_IMAGE_LAYOUT_UNDEFINED, "
+          "old_layout=VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR, "
           "new_layout=VK_IMAGE_LAYOUT_GENERAL, image=0x1, subresource_range=" +
           endl() +
           "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, base_mip_level=0, level_count=1, "

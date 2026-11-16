@@ -609,8 +609,10 @@ void VKBackend::detect_workarounds(VKDevice &device)
   /* AMD official driver always reads layer 0 for all layers in subpassLoad. The Vulkan spec
    * (VUID-StandaloneSpirv-OpTypeImage-06214) requires the layer to be implicit from the fragment
    * position.
+   *
+   * Similar issue seems to happen on Windows + Intel and on Mesa.
    */
-  if (GPU_type_matches_ex(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL, GPU_BACKEND_VULKAN)) {
+  if (GPU_type_matches(GPU_DEVICE_ATI | GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     extensions.dynamic_rendering_local_read = false;
   }
 
@@ -640,15 +642,17 @@ void VKBackend::detect_workarounds(VKDevice &device)
     GPUIntelGpuArch gpu_arch = GPU_platform_get_intel_arch(
         device.physical_device_properties_get().deviceID);
 
-    if (gpu_arch == GPUIntelGpuArch::Gen9AndOlder) {
-      /* Intel Gen9 iGPUs (Intel 7th to 10th Gen Processor Graphics driver) show a black screen at
-       * application startup when using VK_EXT_vertex_input_dynamic_state.
+    if (gpu_arch <= GPUIntelGpuArch::Gen11) {
+      /* Intel Gen11 and older iGPUs (Intel 7th to 10th Gen Processor Graphics driver) show a black
+       * screen at application startup when using VK_EXT_vertex_input_dynamic_state.
+       *
+       * Driver reports support, but returns nullpointer for the needed functions.
        *
        * See #147721
        */
       extensions.vertex_input_dynamic_state = false;
 
-      /* Using the texture pool causes visual corruptions on Gen9 and older iGPUs (Intel 7th to
+      /* Using the texture pool causes visual corruptions on Gen11 and older iGPUs (Intel 7th to
        * 10th Gen Processor Graphics driver; #147721). */
       GCaps.texture_pool_workaround = true;
     }
@@ -692,6 +696,16 @@ void VKBackend::init_resources()
 void VKBackend::delete_resources()
 {
   MEM_delete(compiler_);
+}
+
+bool VKBackend::pipelines_compiled_since_last_reset()
+{
+  return device.pipelines.compiled_since_last_reset();
+}
+
+void VKBackend::reset_pipeline_compilation_tracking()
+{
+  device.pipelines.reset_compilation_tracking();
 }
 
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)

@@ -37,6 +37,7 @@ void ED_operatortypes_armature()
   WM_operatortype_append(ARMATURE_OT_parent_clear);
 
   WM_operatortype_append(ARMATURE_OT_select_all);
+  WM_operatortype_append(ARMATURE_OT_select_deform);
   WM_operatortype_append(ARMATURE_OT_select_mirror);
   WM_operatortype_append(ARMATURE_OT_select_more);
   WM_operatortype_append(ARMATURE_OT_select_less);
@@ -97,7 +98,10 @@ void ED_operatortypes_armature()
   WM_operatortype_append(POSE_OT_select_hierarchy);
   WM_operatortype_append(POSE_OT_select_linked);
   WM_operatortype_append(POSE_OT_select_linked_pick);
+  WM_operatortype_append(POSE_OT_select_scaled);
+  WM_operatortype_append(POSE_OT_select_deform);
   WM_operatortype_append(POSE_OT_select_constraint_target);
+  WM_operatortype_append(POSE_OT_select_constrained_by_selection);
   WM_operatortype_append(POSE_OT_select_grouped);
   WM_operatortype_append(POSE_OT_select_mirror);
 

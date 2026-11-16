@@ -108,7 +108,9 @@ struct AlphaUnderEffectOp {
     }
 
     for (int64_t idx = 0; idx < size; idx++) {
-      if (src2[3] <= 0.0f && fac >= 1.0f) {
+      if (std::is_same_v<T, uchar> && src2[3] == 0 && fac >= 1.0f) {
+        /* Optimization for fully transparent pixels: copy src1. Only do this for byte images;
+         * in floats alpha=0 can still have pure emissive color. */
         memcpy(dst, src1, sizeof(T) * 4);
       }
       else if (alpha_opaque(src2[3])) {

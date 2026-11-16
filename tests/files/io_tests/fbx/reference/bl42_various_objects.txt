@@ -431,7 +431,7 @@
 - Obj 'LightSpotScaled' LIGHT data:'Spot'
   - pos 8.753, 0.000, 8.420
   - rot 0.383, 0.073, 0.504 (XYZ)
-  - scl 0.442, 1.000, 1.109
+  - scl 0.442, 1.109, 1.000
 - Obj 'LightSun' LIGHT data:'Sun'
   - pos -2.110, -6.385, 0.000
   - rot -1.669, -1.341, 1.437 (XYZ)

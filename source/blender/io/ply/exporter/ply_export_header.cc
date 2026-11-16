@@ -10,6 +10,7 @@
 
 #include "IO_ply.hh"
 #include "ply_data.hh"
+#include "ply_export_data.hh"
 #include "ply_export_header.hh"
 #include "ply_file_buffer.hh"
 
@@ -39,10 +40,11 @@ void write_header(FileBuffer &buffer,
   }
 
   if (!ply_data.vertex_colors.is_empty()) {
-    buffer.write_header_scalar_property("uchar", "red");
-    buffer.write_header_scalar_property("uchar", "green");
-    buffer.write_header_scalar_property("uchar", "blue");
-    buffer.write_header_scalar_property("uchar", "alpha");
+    const StringRef color_type = ply_data.vertex_colors_are_float ? "float" : "uchar";
+    buffer.write_header_scalar_property(color_type, "red");
+    buffer.write_header_scalar_property(color_type, "green");
+    buffer.write_header_scalar_property(color_type, "blue");
+    buffer.write_header_scalar_property(color_type, "alpha");
   }
 
   if (!ply_data.uv_coordinates.is_empty()) {
@@ -50,8 +52,11 @@ void write_header(FileBuffer &buffer,
     buffer.write_header_scalar_property("float", "t");
   }
 
-  for (const PlyCustomAttribute &attr : ply_data.vertex_custom_attr) {
-    buffer.write_header_scalar_property("float", attr.name);
+  static const char *type_names[] = {
+      "", "char", "uchar", "short", "ushort", "int", "uint", "float", "double"};
+  static_assert(std::size(type_names) == PLY_TYPE_COUNT);
+  for (const PlyCustomAttributeProperty &property : custom_attribute_properties(ply_data)) {
+    buffer.write_header_scalar_property(type_names[property.type], property.name);
   }
 
   if (!ply_data.face_sizes.is_empty()) {

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1298,10 +1298,6 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
-msgid "Mirror"
-msgstr "Чагылтуу"
-
-
 msgid "Import"
 msgstr "Импорттоо"
 
@@ -1316,6 +1312,10 @@ msgstr "Колдонуу"
 
 msgid "Tracking"
 msgstr "Трекинг"
+
+
+msgid "Mirror"
+msgstr "Чагылтуу"
 
 
 msgctxt "MovieClip"
@@ -2600,6 +2600,10 @@ msgid "Development"
 msgstr "Иштетүү"
 
 
+msgid "Font Style"
+msgstr "Арип стили"
+
+
 msgctxt "Operator"
 msgid "Draw"
 msgstr "Тартуу"
@@ -2842,14 +2846,6 @@ msgstr "Активдүү маркер"
 
 msgid "Selected Marker"
 msgstr "Тандалган маркер"
-
-
-msgid "Font Style"
-msgstr "Арип стили"
-
-
-msgid "Shadow Size"
-msgstr "Көлөкө өлчөмү"
 
 
 msgid "Window Background"
@@ -3601,14 +3597,6 @@ msgstr "4L"
 
 msgid "Size:"
 msgstr "Өлчөмү:"
-
-
-msgid "fps: %.2f"
-msgstr "FPS: %.2f"
-
-
-msgid "fps: %i"
-msgstr "FPS: %i"
 
 
 msgid "(Smooth)"

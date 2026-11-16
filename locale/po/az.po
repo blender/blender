@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-11-07 23:26+0000\n"
 "Last-Translator: Ramal Rahimov <jhonaluman@gmail.com>\n"
 "Language-Team: Azerbaijani <https://translate.blender.org/projects/blender-ui/ui/az/>\n"
@@ -4021,48 +4021,24 @@ msgid "File path or URI of the OpenColorIO configuration currently in use"
 msgstr "Hal-hazırda istifadə olunan OpenColorIO konfiqurasiyasının fayl yolu və ya URI-si"
 
 
-msgid "OpenColorIO Configuration Source"
-msgstr "OpenColorIO konfiqurasiya mənbəyi"
-
-
 msgid "Where the OpenColorIO configuration came from"
 msgstr "OpenColorIO konfiqurasiyasının haradan gəldiyi"
-
-
-msgid "BLENDER_OCIO environment variable"
-msgstr "BLENDER_OCIO mühit dəyişəni"
 
 
 msgid "The BLENDER_OCIO environment variable"
 msgstr "BLENDER_OCIO mühit dəyişəni"
 
 
-msgid "OCIO environment variable"
-msgstr "OCIO mühit dəyişəni"
-
-
 msgid "The OCIO environment variable"
 msgstr "OCIO mühit dəyişəni"
-
-
-msgid "Project"
-msgstr "Layihə"
 
 
 msgid "The active project's OpenColorIO configuration setting"
 msgstr "Aktiv layihənin OpenColorIO konfiqurasiya tənzimləməsi"
 
 
-msgid "Blender"
-msgstr "Blender"
-
-
 msgid "The OpenColorIO configuration bundled with Blender"
 msgstr "Blender ilə birlikdə gələn OpenColorIO konfiqurasiyası"
-
-
-msgid "Fallback"
-msgstr "Ehtiyat"
 
 
 msgid "The built-in fallback configuration, if loading other configurations failed"
@@ -4352,6 +4328,10 @@ msgstr "Layihənin adı"
 
 msgid "OpenColorIO configuration to use for this project"
 msgstr "Bu layihə üçün istifadə olunacaq OpenColorIO konfiqurasiyası"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "The default Blender OpenColorIO configuration. Works with both ACES workflows and Blender specific views and color spaces"
@@ -6684,32 +6664,16 @@ msgid "Factor used to mix vertex color to get final color"
 msgstr "Son rəngi əldə etmək üçün təpə rənginin qarışdırılmasında istifadə olunan əmsal"
 
 
-msgid "Mode Type"
-msgstr "Rejim növü"
-
-
 msgid "Defines how vertex color affect to the strokes"
 msgstr "Təpə rənginin vuruşlara necə təsir etdiyini təyin edir"
-
-
-msgid "Stroke"
-msgstr "Cizgi"
 
 
 msgid "Painting affects only strokes, not fills"
 msgstr "Boyama yalnız cizgilərə təsir edir, doldurmalara yox"
 
 
-msgid "Fill"
-msgstr "Doldur"
-
-
 msgid "Painting affects only fills, not strokes"
 msgstr "Boyama yalnız doldurmalara təsir edir, cizgilərə yox"
-
-
-msgid "Both"
-msgstr "Hər ikisi"
 
 
 msgid "Painting affects both strokes and fills"
@@ -11124,6 +11088,10 @@ msgid "Shrink the location to the nearest target surface"
 msgstr "Mövqeyi ən yaxın hədəf səthinə sıxır"
 
 
+msgid "Project"
+msgstr "Layihə"
+
+
 msgid "Shrink the location to the nearest target surface along a given axis"
 msgstr "Mövqeni verilmiş ox boyunca ən yaxın hədəf səthinə sıxışdırır"
 
@@ -12915,6 +12883,10 @@ msgstr "Məlumat yolu"
 
 msgid "RNA Path (from ID-block) to property used"
 msgstr "ID bloku üzrə istifadə olunan xüsusiyyətin RNA yolu"
+
+
+msgid "Fallback"
+msgstr "Ehtiyat"
 
 
 msgid "The value to use if the data path cannot be resolved"
@@ -17979,6 +17951,10 @@ msgid "Integer Vector"
 msgstr "Tam ədəd vektoru"
 
 
+msgid "Dynamic"
+msgstr "Dinamik"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle xətt dəsti"
 
@@ -18677,10 +18653,6 @@ msgstr "Qapanmanı siyahı elementinə çevir"
 
 msgid "Automatically detect a good structure type based on how the socket is used"
 msgstr "Yuvanın necə istifadə olunmasına əsasən yaxşı struktur növünü avtomatik aşkarlayır"
-
-
-msgid "Dynamic"
-msgstr "Dinamik"
 
 
 msgid "Socket can work with different kinds of structures"
@@ -36645,136 +36617,8 @@ msgid "Editor menu containing buttons"
 msgstr "Düymələri ehtiva edən redaktor menyusu"
 
 
-msgid "Enable Bone Options"
-msgstr "Sümük seçimlərini aktivləşdir"
-
-
-msgid "Disable Bone Options"
-msgstr "Sümük seçimlərini söndür"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh seçim rejimi"
-
-
-msgid "Creative"
-msgstr "Yaradıcı"
-
-
-msgid "Face Data"
-msgstr "Üz məlumatları"
-
-
-msgid "Select by Face Strength"
-msgstr "Üz gücünə görə seç"
-
-
-msgid "Set Face Strength"
-msgstr "Üz gücünü təyin et"
-
-
-msgid "Clean Up"
-msgstr "Təmizlə"
-
-
-msgid "Merge"
-msgstr "Birləşdir"
-
-
-msgid "Show/Hide"
-msgstr "Göstər/Gizlət"
-
-
-msgid "Special Characters"
-msgstr "Xüsusi simvollar"
-
-
-msgid "Kerning"
-msgstr "Hərf aralığı"
-
-
-msgid "Metaball"
-msgstr "Metabol"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Bone Roll"
-msgstr "Sümük rulosu"
-
-
-msgid "Math"
-msgstr "Riyaziyyat"
-
-
-msgid "Utilities"
-msgstr "Köməkçi"
-
-
-msgid "Pivot Point"
-msgstr "Fırlanma mərkəzi"
-
-
-msgid "Snap"
-msgstr "Yapışdırma"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Mütənasib redaktə zəifləməsi"
-
-
-msgid "Mask Edit"
-msgstr "Maska redaktəsi"
-
-
-msgid "Automasking"
-msgstr "Avtomatik maskalama"
-
-
-msgid "Face Sets Edit"
-msgstr "Üz dəstlərini redaktə et"
-
-
-msgid "Vertex Group Locks"
-msgstr "Təpə qrupu kilidləri"
-
-
-msgid "Read"
-msgstr "Oxu"
-
-
-msgid "Sample"
-msgstr "Nümunə"
-
-
 msgid "Write"
 msgstr "Yaz"
-
-
-msgid "Primitives"
-msgstr "İlkellər"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Mirror"
-msgstr "Güzgü"
-
-
-msgid "Instances"
-msgstr "Nüsxələr"
-
-
-msgid "UV Mapping"
-msgstr "UV xəritələmə"
-
-
-msgid "Local View"
-msgstr "Lokal görünüş"
 
 
 msgid "Viewpoint"
@@ -36783,6 +36627,10 @@ msgstr "Baxış nöqtəsi"
 
 msgid "Navigation"
 msgstr "Naviqasiya"
+
+
+msgid "Primitives"
+msgstr "İlkellər"
 
 
 msgid "Align View"
@@ -36809,6 +36657,10 @@ msgid "Select Similar"
 msgstr "Oxşar seçimi"
 
 
+msgid "Utilities"
+msgstr "Köməkçi"
+
+
 msgid "Select All by Trait"
 msgstr "Xüsusiyyətə görə hamısını seç"
 
@@ -36825,16 +36677,36 @@ msgid "Select Loops"
 msgstr "Döngüləri seç"
 
 
-msgid "Render Preview"
-msgstr "Render önbaxışı"
+msgid "Math"
+msgstr "Riyaziyyat"
 
 
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Read"
+msgstr "Oxu"
+
+
+msgid "Render Preview"
+msgstr "Render önbaxışı"
+
+
+msgid "Sample"
+msgstr "Nümunə"
+
+
+msgid "Stroke"
+msgstr "Cizgi"
+
+
 msgid "Assign Material"
 msgstr "Material təyin et"
+
+
+msgid "Metaball"
+msgstr "Metabol"
 
 
 msgid "Light"
@@ -36869,6 +36741,14 @@ msgid "Quick Effects"
 msgstr "Sürətli effektlər"
 
 
+msgid "Show/Hide"
+msgstr "Göstər/Gizlət"
+
+
+msgid "Clean Up"
+msgstr "Təmizlə"
+
+
 msgid "Asset"
 msgstr "Aktiv"
 
@@ -36885,16 +36765,20 @@ msgid "Link/Transfer Data"
 msgstr "Məlumatı bağla/ötür"
 
 
-msgid "Hooks"
-msgstr "Qarmaqlar"
-
-
 msgid "Linked"
 msgstr "Bağlı"
 
 
 msgid "Layout"
 msgstr "Tərtibat"
+
+
+msgid "Hooks"
+msgstr "Qarmaqlar"
+
+
+msgid "Vertex Group Locks"
+msgstr "Təpə qrupu kilidləri"
 
 
 msgid "Trim/Add"
@@ -36913,36 +36797,128 @@ msgid "Random Mask"
 msgstr "Təsadüfi maska"
 
 
-msgid "Clear Transform"
-msgstr "Transformasiyanı təmizlə"
-
-
 msgid "Adjust"
 msgstr "Tənzimlə"
+
+
+msgid "Clear Transform"
+msgstr "Transformasiyanı təmizlə"
 
 
 msgid "In-Betweens"
 msgstr "Aralıq kadrlar"
 
 
-msgid "Propagate"
-msgstr "Yayılma"
-
-
-msgid "Bone Collections"
-msgstr "Sümük kolleksiyaları"
-
-
 msgid "Keying"
 msgstr "Açarlama"
+
+
+msgid "Propagate"
+msgstr "Yayılma"
 
 
 msgid "Tracking"
 msgstr "İzləmə"
 
 
+msgid "Bone Collections"
+msgstr "Sümük kolleksiyaları"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
 msgid "Toggle Bone Options"
 msgstr "Sümük seçimlərini dəyiş"
+
+
+msgid "Enable Bone Options"
+msgstr "Sümük seçimlərini aktivləşdir"
+
+
+msgid "Disable Bone Options"
+msgstr "Sümük seçimlərini söndür"
+
+
+msgid "Creative"
+msgstr "Yaradıcı"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh seçim rejimi"
+
+
+msgid "Face Data"
+msgstr "Üz məlumatları"
+
+
+msgid "Select by Face Strength"
+msgstr "Üz gücünə görə seç"
+
+
+msgid "Set Face Strength"
+msgstr "Üz gücünü təyin et"
+
+
+msgid "Merge"
+msgstr "Birləşdir"
+
+
+msgid "Special Characters"
+msgstr "Xüsusi simvollar"
+
+
+msgid "Kerning"
+msgstr "Hərf aralığı"
+
+
+msgid "Bone Roll"
+msgstr "Sümük rulosu"
+
+
+msgid "Pivot Point"
+msgstr "Fırlanma mərkəzi"
+
+
+msgid "Snap"
+msgstr "Yapışdırma"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Mütənasib redaktə zəifləməsi"
+
+
+msgid "Mask Edit"
+msgstr "Maska redaktəsi"
+
+
+msgid "Automasking"
+msgstr "Avtomatik maskalama"
+
+
+msgid "Face Sets Edit"
+msgstr "Üz dəstlərini redaktə et"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Mirror"
+msgstr "Güzgü"
+
+
+msgid "Instances"
+msgstr "Nüsxələr"
+
+
+msgid "UV Mapping"
+msgstr "UV xəritələmə"
+
+
+msgid "Local View"
+msgstr "Lokal görünüş"
 
 
 msgid "Keyframe Insert Pie"
@@ -40855,6 +40831,10 @@ msgstr "Dolgu və cizgi rənglərini dəyişdirir"
 
 msgid "Modify stroke color only"
 msgstr "Yalnız cizgi rəngini dəyişdir"
+
+
+msgid "Fill"
+msgstr "Doldur"
 
 
 msgid "Modify fill color only"
@@ -51117,6 +51097,10 @@ msgstr "Cizginin nöqtələri üçün rəngi və qeyri-şəffaflığı təyin ed
 
 msgid "Set the color and opacity for the stroke fills"
 msgstr "Vuruş doldurmaları üçün rəng və qeyri-şəffaflığı təyin edir"
+
+
+msgid "Both"
+msgstr "Hər ikisi"
 
 
 msgid "Set the color and opacity for stroke points and fills together"
@@ -69510,6 +69494,11 @@ msgid "Deselect linked strokes"
 msgstr "Bağlı vuruşların seçimini ləğv et"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "Bağlı elementi seç"
+
+
 msgid "Selects random points from the current strokes selection"
 msgstr "Cari vuruş seçimindən təsadüfi nöqtələr seçir"
 
@@ -76752,17 +76741,9 @@ msgid "Join Geometry"
 msgstr "Həndəsəni birləşdir"
 
 
-msgid "Join Geometry Mode"
-msgstr "Həndəsə birləşmə rejimi"
-
-
 msgctxt "NodeTree"
 msgid "Geometry to Instance"
 msgstr "Həndəsədən nüsxəyə"
-
-
-msgid "Geometry to Instance Mode"
-msgstr "Həndəsədən nüsxə rejiminə"
 
 
 msgctxt "NodeTree"
@@ -76770,21 +76751,9 @@ msgid "Intersect"
 msgstr "Kəsişmə"
 
 
-msgid "Intersect Mode"
-msgstr "Kəsişmə rejimi"
-
-
 msgctxt "NodeTree"
 msgid "Union"
 msgstr "Birləşmə"
-
-
-msgid "Union Mode"
-msgstr "Birləşmə rejimi"
-
-
-msgid "Difference Mode"
-msgstr "Fərq rejimi"
 
 
 msgid "Add to End"
@@ -81830,11 +81799,6 @@ msgid "Select linked faces"
 msgstr "Bağlı üzləri seçin"
 
 
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "Bağlı elementi seç"
-
-
 msgid "Select linked faces under the cursor"
 msgstr "Kursorun altındakı bağlı üzləri seç"
 
@@ -83396,10 +83360,6 @@ msgstr "Seçilmiş sümüklərin miqyasını standart dəyərlərinə sıfırlay
 msgctxt "Operator"
 msgid "Select Constraint Target"
 msgstr "Məhdudiyyət hədəfini seç"
-
-
-msgid "Select bones used as targets for the currently selected bones"
-msgstr "Hal-hazırda seçilmiş sümüklər üçün hədəf kimi istifadə olunan sümükləri seçin"
 
 
 msgid "Select all visible bones grouped by similar properties"
@@ -92932,14 +92892,6 @@ msgid "Set \"Fake User\" for appended items (except objects and collections)"
 msgstr "Əlavə olunmuş elementlər üçün \"Fake User\"-i təyin edir (obyektlər və kolleksiyalar istisna olmaqla)"
 
 
-msgid "Localize All"
-msgstr "Hamısını lokallaşdır"
-
-
-msgid "Localize all appended data, including those indirectly linked from other libraries"
-msgstr "Digər kitabxanalardan dolayı yolla bağlı olanlar da daxil olmaqla, əlavə edilmiş bütün məlumatları yerli edir"
-
-
 msgid "Type of data to rename"
 msgstr "Adı dəyişdiriləcək məlumat növü"
 
@@ -96402,58 +96354,6 @@ msgid "Panel containing UI elements"
 msgstr "UI elementlərini ehtiva edən panel"
 
 
-msgid "Active Tool"
-msgstr "Aktiv alət"
-
-
-msgid "View Lock"
-msgstr "Görünüş kilidi"
-
-
-msgid "Selectability & Visibility"
-msgstr "Seçilə bilənlik və görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Kölgə tənzimləmələri"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO tənzimləmələri"
-
-
-msgid "Cavity"
-msgstr "Oyuqluq"
-
-
-msgid "Render Pass"
-msgstr "Render keçidi"
-
-
-msgid "Overlays"
-msgstr "Örtüklər"
-
-
-msgid "Guides"
-msgstr "Bələdçilər"
-
-
-msgid "Viewer Node"
-msgstr "Baxıcı düyünü"
-
-
-msgid "Motion Tracking"
-msgstr "Hərəkət izləmə"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh redaktə rejimi"
-
-
-msgid "Measurement"
-msgstr "Ölçmələr"
-
-
 msgid "Curve Edit Mode"
 msgstr "Əyri redaktə rejimi"
 
@@ -96472,6 +96372,10 @@ msgstr "Cizgi yerləşdirilməsi"
 
 msgid "Drawing Plane"
 msgstr "Çəkiliş müstəvisi"
+
+
+msgid "Guides"
+msgstr "Bələdçilər"
 
 
 msgid "Grease Pencil Options"
@@ -96514,14 +96418,6 @@ msgid "Viewport Debug"
 msgstr "Görünüş sahəsi sazlaması"
 
 
-msgid "glTF Variants"
-msgstr "glTF variantları"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF material variantları"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -96530,12 +96426,68 @@ msgid "VR Info"
 msgstr "VR məlumatı"
 
 
+msgid "glTF Variants"
+msgstr "glTF variantları"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF material variantları"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF animasiyaları"
+
+
+msgid "Active Tool"
+msgstr "Aktiv alət"
+
+
+msgid "View Lock"
+msgstr "Görünüş kilidi"
+
+
+msgid "Selectability & Visibility"
+msgstr "Seçilə bilənlik və görünürlük"
+
+
+msgid "Shadow Settings"
+msgstr "Kölgə tənzimləmələri"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO tənzimləmələri"
+
+
+msgid "Cavity"
+msgstr "Oyuqluq"
+
+
+msgid "Render Pass"
+msgstr "Render keçidi"
+
+
+msgid "Overlays"
+msgstr "Örtüklər"
+
+
+msgid "Viewer Node"
+msgstr "Baxıcı düyünü"
+
+
+msgid "Motion Tracking"
+msgstr "Hərəkət izləmə"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh redaktə rejimi"
+
+
+msgid "Measurement"
+msgstr "Ölçmələr"
 
 
 msgid "Import Settings"
@@ -97666,6 +97618,10 @@ msgid "Text Rendering"
 msgstr "Mətn renderi"
 
 
+msgid "Font Style"
+msgstr "Şrift üslubu"
+
+
 msgctxt "WindowManager"
 msgid "Language"
 msgstr "Dil"
@@ -97845,10 +97801,6 @@ msgstr "Alətlər paneli / Yan panel"
 
 msgid "Sequencer Strip Color Tags"
 msgstr "Sequencer zolaq rəng etiketləri"
-
-
-msgid "Text Style"
-msgstr "Mətn üslubu"
 
 
 msgid "User Interface"
@@ -99812,6 +99764,10 @@ msgstr "Avtomatik ofset"
 
 msgid "Automatically offset the following or previous nodes in a chain when inserting a new node"
 msgstr "Yeni düyün əlavə edərkən zəncirdəki sonrakı və ya əvvəlki düyünləri avtomatik sürüşdürür"
+
+
+msgid "Noodle Curving"
+msgstr "Əlaqə əyriliyi"
 
 
 msgid "Align Object To"
@@ -102194,10 +102150,6 @@ msgstr "Lokal kodu: pt_BR. Tərcümə irəliləyişi: 40%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portuqal (Portuqaliya) - Português europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 82%"
-msgstr "Lokal kodu: pt_PT. Tərcümə irəliləyişi: 82%"
 
 
 msgid "Romanian - Român"
@@ -115893,6 +115845,10 @@ msgid "Active Theme Area"
 msgstr "Aktiv mövzu sahəsi"
 
 
+msgid "Text Style"
+msgstr "Mətn üslubu"
+
+
 msgid "Theme Bone Color Set"
 msgstr "Mövzu sümük rəng dəsti"
 
@@ -116325,10 +116281,6 @@ msgid "Overlay color on every other row"
 msgstr "Hər digər sətirə rəng örtüyü əlavə edir"
 
 
-msgid "Font Style"
-msgstr "Şrift üslubu"
-
-
 msgid "Theme settings for Font"
 msgstr "Şrift üçün mövzu tənzimləmələri"
 
@@ -116343,38 +116295,6 @@ msgstr "Simvolların çəkisi. 100-900, 400 normaldır."
 
 msgid "Font size in points"
 msgstr "Şrift ölçüsü (punkt)"
-
-
-msgid "Shadow Size"
-msgstr "Kölgə ölçüsü"
-
-
-msgid "Shadow type (0 none, 3, 5 blur, 6 outline)"
-msgstr "Kölgə növü (0 heç biri, 3, 5 bulanıqlıq, 6 kontur)"
-
-
-msgid "Shadow Alpha"
-msgstr "Kölgə alfası"
-
-
-msgid "Shadow X Offset"
-msgstr "Kölgə X sürüşməsi"
-
-
-msgid "Shadow offset in pixels"
-msgstr "Piksellərlə kölgə sürüşməsi"
-
-
-msgid "Shadow Y Offset"
-msgstr "Kölgə Y sürüşməsi"
-
-
-msgid "Shadow Brightness"
-msgstr "Kölgə parlaqlığı"
-
-
-msgid "Shadow color in gray value"
-msgstr "Boz dəyərdə kölgə rəngi"
 
 
 msgid "Theme Background Color"
@@ -116781,14 +116701,6 @@ msgid "Node Selected"
 msgstr "Düyün seçildi"
 
 
-msgid "Noodle Curving"
-msgstr "Əlaqə əyriliyi"
-
-
-msgid "Curving of the noodle"
-msgstr "Eriştənin əyilməsi"
-
-
 msgid "Repeat Zone"
 msgstr "Təkrarlama zonası"
 
@@ -116983,10 +116895,6 @@ msgstr "Zolaq rəngi mövzusu"
 
 msgid "Theme settings for strip colors"
 msgstr "Zolaq rəngləri üçün tema tənzimləmələri"
-
-
-msgid "Theme settings for style sets"
-msgstr "Üslub dəstləri üçün mövzu tənzimləmələri"
 
 
 msgid "Panel Title Font"
@@ -117219,6 +117127,10 @@ msgstr "Panel mətni"
 
 msgid "Panel Title"
 msgstr "Panel başlığı"
+
+
+msgid "Shadow offset in pixels"
+msgstr "Piksellərlə kölgə sürüşməsi"
 
 
 msgid "Primary Color"
@@ -125348,6 +125260,10 @@ msgid "Legacy Add-on"
 msgstr "Köhnə əlavə"
 
 
+msgid "Close"
+msgstr "Bağlı"
+
+
 msgid "The dropped extension comes from an unknown repository."
 msgstr "Buraxılan genişlənmə naməlum depodan gəlir."
 
@@ -133179,10 +133095,6 @@ msgid "Float"
 msgstr "Üzən"
 
 
-msgid "Overridden by the {:s} environment variable"
-msgstr "{:s} mühit dəyişəni tərəfindən ləğv edilib"
-
-
 msgctxt "Operator"
 msgid "Reload to Apply Changes"
 msgstr "Dəyişiklikləri tətbiq etmək üçün yenidən yüklə"
@@ -134236,6 +134148,11 @@ msgid "Hinting"
 msgstr "İpucları"
 
 
+msgctxt "Text"
+msgid "Weight"
+msgstr "Qalınlıq"
+
+
 msgctxt "Preferences"
 msgid "Translate"
 msgstr "Yerini dəyiş"
@@ -134473,15 +134390,6 @@ msgstr "Görünüşə düzləndir"
 
 msgid "Toolbar Saturation"
 msgstr "Alətlər paneli doyması"
-
-
-msgctxt "Text"
-msgid "Weight"
-msgstr "Qalınlıq"
-
-
-msgid "Shadow Offset X"
-msgstr "Kölgə sürüşməsi X"
 
 
 msgid "Temporary Files"
@@ -134856,11 +134764,6 @@ msgstr "Şablonu seç..."
 
 msgid "Bone Selection Set"
 msgstr "Sümük seçim dəsti"
-
-
-msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "Məhdudiyyət hədəfi"
 
 
 msgctxt "Operator"
@@ -141029,10 +140932,6 @@ msgid "There is no layer '%s'"
 msgstr "'%s' təbəqəsi yoxdur"
 
 
-msgid "'%s' Layer is locked"
-msgstr "'%s' təbəqəsi kilidlənib"
-
-
 msgid "Copied %d selected curve(s)"
 msgstr "%d seçilmiş əyri kopyalandı"
 
@@ -141389,10 +141288,6 @@ msgstr "Linki kopyala"
 
 msgid "Non-Keyboard Shortcut"
 msgstr "Klaviatura olmayan qısayol"
-
-
-msgid "Search..."
-msgstr "Axtar..."
 
 
 msgid "Pin Panel"
@@ -143180,10 +143075,6 @@ msgid "No intersections found"
 msgstr "Heç bir kəsişmə tapılmadı"
 
 
-msgid "Close"
-msgstr "Bağlı"
-
-
 msgid "Stop"
 msgstr "Dayandır"
 
@@ -143494,14 +143385,6 @@ msgstr "Meshdə olanlardan çox poliqon çıxarmaq olmur"
 
 msgid "Cannot add more than %i UV maps"
 msgstr "%i-dən çox UV xəritəsi əlavə etmək olmaz"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s güzgüləndi, %d uğursuz oldu"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s güzgüləndi"
 
 
 msgid "Cannot join while in edit mode"
@@ -150384,14 +150267,6 @@ msgid "Synchronization"
 msgstr "Sinxronizasiya"
 
 
-msgid "fps: %.2f"
-msgstr "fps: %.2f"
-
-
-msgid "fps: %i"
-msgstr "fps: %i"
-
-
 msgid "Create object instance from object-data"
 msgstr "Obyekt məlumatlarından obyekt nüsxəsi yarat"
 
@@ -151257,10 +151132,6 @@ msgid "Realized grease pencil has too many layers."
 msgstr "Realizə olunmuş Grease Pencil-də çox təbəqə var."
 
 
-msgid "Error writing frame"
-msgstr "Kadr yazılarkən xəta"
-
-
 msgid "No valid formats found"
 msgstr "Düzgün formatlar tapılmadı"
 
@@ -152045,10 +151916,6 @@ msgstr "Əlaqəli məlumat blokları yenidən adlandırıla bilməz"
 
 msgid "Built-in fonts cannot be renamed"
 msgstr "Daxili şriftlərin adı dəyişdirilə bilməz"
-
-
-msgid "Data-blocks not in global Main data-base cannot be renamed"
-msgstr "Qlobal Main verilənlər bazasında olmayan verilən blokların adı dəyişdirilə bilməz"
 
 
 msgid "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition always runtime"
@@ -153212,14 +153079,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "Daxili düyündə yuvaları köçürmək mümkün deyil."
 
 
-msgid "Unable to locate item in node"
-msgstr "Elementi düyündə tapmaq mümkün deyil"
-
-
-msgid "Unable to create item with this socket type"
-msgstr "Bu yuva növü ilə element yaratmaq mümkün deyil"
-
-
 msgid "Registering node tree class: '%s' is too long, maximum length is %d"
 msgstr "Düyün ağacı sinfinin qeydiyyatı: '%s' çox uzundur, maksimum uzunluq %d-dir"
 
@@ -153282,6 +153141,14 @@ msgstr "%s zona giriş düyününü %s ilə cütləşdirmək mümkün deyil, ç�
 
 msgid "The output node %s is already paired with %s"
 msgstr "Çıxış düyünü %s artıq %s ilə cütləşdirilib"
+
+
+msgid "Unable to locate item in node"
+msgstr "Elementi düyündə tapmaq mümkün deyil"
+
+
+msgid "Unable to create item with this socket type"
+msgstr "Bu yuva növü ilə element yaratmaq mümkün deyil"
 
 
 msgid "Unable to locate item '%s' in node"
@@ -155055,10 +154922,6 @@ msgstr "Qaus bulanıqlığı tətbiq edir."
 
 msgid "Fast Gaussian"
 msgstr "Sürətli Gauss"
-
-
-msgid "Applies a recursive Gaussian blur that can be faster and more accurate in some cases, but less accurate in other cases"
-msgstr "Bəzi hallarda daha sürətli və dəqiq, digər hallarda isə daha az dəqiq ola bilən rekursiv Qauss bulanıqlaşdırması tətbiq edir"
 
 
 msgid "Catrom"
@@ -157847,11 +157710,11 @@ msgid "Implicit type conversion when evaluating closure"
 msgstr "Qapanma qiymətləndirilərkən gizli tip çevrilməsi"
 
 
-msgid "Closure not have output: \"{}\""
+msgid "Closure does not have output: \"{}\""
 msgstr "Qapanmanın çıxışı yoxdur: \"{}\""
 
 
-msgid "Closure not have input: \"{}\""
+msgid "Closure does not have input: \"{}\""
 msgstr "Qapanmanın girişi yoxdur: \"{}\""
 
 
@@ -160731,14 +160594,6 @@ msgstr "İdarə et"
 
 msgid "No named attributes used"
 msgstr "Adlandırılmış atribut istifadə olunmur"
-
-
-msgid "Closure does not have input: \"{}\""
-msgstr "Qapanmanın girişi yoxdur: \"{}\""
-
-
-msgid "Closure does not have output: \"{}\""
-msgstr "Qapanmanın çıxışı yoxdur: \"{}\""
 
 
 msgid "Input geometry has no elements in the iteration domain."

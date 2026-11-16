@@ -10,7 +10,7 @@
 
 /* Source: http://burtleburtle.net/bob/c/lookup3.c */
 
-[[force_inline]] void hash_mix(uint &a, uint &b, uint &c)
+void hash_mix(uint &a, uint &b, uint &c)
 {
   a -= c;
   a ^= (((c) << (4)) | ((c) >> (32 - (4))));
@@ -32,7 +32,7 @@
   b += a;
 }
 
-[[force_inline]] void hash_final(uint &a, uint &b, uint &c)
+void hash_final(uint &a, uint &b, uint &c)
 {
   c ^= b;
   c -= (((b) << (14)) | ((b) >> (32 - (14))));

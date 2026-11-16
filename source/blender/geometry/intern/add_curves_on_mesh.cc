@@ -74,7 +74,8 @@ static void find_curve_neighbors(const Span<float3> root_positions,
     for (const int i : range) {
       const float3 root = root_positions[i];
       std::array<KDTree<float3>::Nearest, max_neighbors> nearest_n;
-      const int found_neighbors = old_roots_kdtree.find_nearest_n(root, nearest_n);
+      const int found_neighbors = old_roots_kdtree.find_nearest_n(
+          root, std::numeric_limits<float>::max(), nearest_n);
       float tot_weight = 0.0f;
       for (const int neighbor_i : IndexRange(found_neighbors)) {
         const KDTree<float3>::Nearest &nearest = nearest_n[neighbor_i];

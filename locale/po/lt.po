@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -1041,10 +1041,6 @@ msgid "Version"
 msgstr "Versija"
 
 
-msgid "Blender"
-msgstr "„Blender“"
-
-
 msgid "Not yet defined"
 msgstr "Dar nėra apibrėžtas"
 
@@ -1060,6 +1056,10 @@ msgstr "ID tipas"
 
 msgid "Import Info"
 msgstr "Importavimo informacija"
+
+
+msgid "Blender"
+msgstr "„Blender“"
 
 
 msgid "Path"
@@ -1293,14 +1293,6 @@ msgstr "Lygumas"
 
 msgid "Random Settings"
 msgstr "Atsitiktiniai nustatymai"
-
-
-msgid "Mode Type"
-msgstr "Veiksenos tipas"
-
-
-msgid "Fill"
-msgstr "Užpildyti"
 
 
 msgctxt "File browser"
@@ -3073,10 +3065,6 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Show/Hide"
-msgstr "Rodyti/Slėpti"
-
-
 msgid "Import"
 msgstr "Importuoti"
 
@@ -3087,6 +3075,10 @@ msgstr "Pritaikyti"
 
 msgid "Track"
 msgstr "Sekti"
+
+
+msgid "Show/Hide"
+msgstr "Rodyti/Slėpti"
 
 
 msgid "Layout"
@@ -3168,6 +3160,10 @@ msgstr "Nustatymai"
 msgctxt "Mesh"
 msgid "Mode"
 msgstr "Veiksena"
+
+
+msgid "Fill"
+msgstr "Užpildyti"
 
 
 msgid "Copy"
@@ -3609,6 +3605,10 @@ msgstr "Sąsajos išdėstymas/maketas"
 
 msgid "Modes"
 msgstr "Veiksenos"
+
+
+msgid "Font Style"
+msgstr "Šrifto stilius"
 
 
 msgctxt "WindowManager"
@@ -4112,16 +4112,8 @@ msgid "Path Before"
 msgstr "Kelias prieš"
 
 
-msgid "Font Style"
-msgstr "Šrifto stilius"
-
-
 msgid "Font size in points"
 msgstr "Šrifto dydis taškais"
-
-
-msgid "Shadow Size"
-msgstr "Šešėlio dydis"
 
 
 msgid "Wires"
@@ -4290,6 +4282,10 @@ msgstr "Pasirinkti"
 msgctxt "WindowManager"
 msgid "Apply"
 msgstr "Pritaikyti"
+
+
+msgid "Close"
+msgstr "Uždaryti"
 
 
 msgctxt "Preferences"
@@ -4620,10 +4616,6 @@ msgstr "„Blender“ duomenys"
 
 msgid "Import {} files"
 msgstr "Importuoti „{}“ failus"
-
-
-msgid "Close"
-msgstr "Uždaryti"
 
 
 msgctxt "Object"

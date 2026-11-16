@@ -800,8 +800,8 @@ struct ExpressionTypeParser
       return val;
     }
     /* Operand types match. We can return either but the value depends is only known at runtime, so
-     * it can't be constexpr. */
-    return {*tval.type, ExprFlag(tval.flags & fval.flags & ExprFlag::IsConstant)};
+     * it can't be constexpr. It is only constant if the condition and both branches are. */
+    return {*tval.type, ExprFlag(left.flags & tval.flags & fval.flags & ExprFlag::IsConstant)};
   }
 
   ExpressionResult error(ErrorType err, lexit::TokenType type)

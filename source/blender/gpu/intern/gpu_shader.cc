@@ -11,6 +11,8 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_string.hh"
 
+#include "BKE_global.hh"
+
 #include "CLG_log.h"
 
 #include "GPU_capabilities.hh"
@@ -343,7 +345,16 @@ void GPU_shader_async_compilation_cancel(AsyncCompilationHandle &handle)
 
 bool GPU_shader_compiler_has_pending_work()
 {
-  return GPUBackend::get()->get_compiler()->is_compiling();
+  if (GPUBackend::get()->get_compiler()->is_compiling()) {
+    return true;
+  }
+  /* Pipeline tracking is reset on window redraw, which doesn't happen in background mode. */
+  return !G.background && GPUBackend::get()->pipelines_compiled_since_last_reset();
+}
+
+void GPU_shader_compiler_reset_frame_pipeline_tracking()
+{
+  GPUBackend::get()->reset_pipeline_compilation_tracking();
 }
 
 void GPU_shader_compiler_wait_for_all()

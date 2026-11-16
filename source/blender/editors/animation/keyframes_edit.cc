@@ -745,7 +745,7 @@ static short ok_bezier_channel_circle(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-KeyframeEditFunc ANIM_editkeyframes_ok(short mode)
+KeyframeEditFunc ANIM_editkeyframes_ok(const eEditKeyframes_Validate mode)
 {
   /* eEditKeyframes_Validate */
   switch (mode) {

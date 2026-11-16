@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-07-22 11:12+0000\n"
 "Last-Translator: Gamfid <gamfid@users.noreply.translate.blender.org>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -2739,14 +2739,6 @@ msgid "Collection of worlds"
 msgstr "Колекція світів"
 
 
-msgid "Project"
-msgstr "Проєктування"
-
-
-msgid "Blender"
-msgstr "Blender"
-
-
 msgctxt "ID"
 msgid "ID Type"
 msgstr "Тип ID"
@@ -2754,6 +2746,10 @@ msgstr "Тип ID"
 
 msgid "Dirty"
 msgstr "Брудно"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "Path"
@@ -4292,24 +4288,8 @@ msgid "Factor used to mix vertex color to get final color"
 msgstr "Фактор, що використовується для змішування кольору вершин для отримання остаточного кольору"
 
 
-msgid "Mode Type"
-msgstr "Тип Режиму"
-
-
 msgid "Defines how vertex color affect to the strokes"
 msgstr "Визначає, як колір вершин впливає на штрихи"
-
-
-msgid "Stroke"
-msgstr "Штрих"
-
-
-msgid "Fill"
-msgstr "Заповнення"
-
-
-msgid "Both"
-msgstr "Обидва"
 
 
 msgid "Byte Color Attribute Value"
@@ -7256,6 +7236,10 @@ msgstr "Найближча точка поверхні"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Змістити положення до найближчої цільової поверхні"
+
+
+msgid "Project"
+msgstr "Проєктування"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -13120,6 +13104,10 @@ msgid "Sound"
 msgstr "Звук"
 
 
+msgid "Dynamic"
+msgstr "Динамічно"
+
+
 msgid "Freestyle Line Set"
 msgstr "Набір ліній Freestyle"
 
@@ -13770,10 +13758,6 @@ msgstr "Вжити Криву"
 
 msgid "Use curve to define primitive stroke thickness"
 msgstr "Використати криву для визначення товщини штриха примітива"
-
-
-msgid "Dynamic"
-msgstr "Динамічно"
 
 
 msgid "Single"
@@ -26352,124 +26336,16 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
-
-
-msgid "Merge"
-msgstr "Об'єднання"
-
-
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
-
-
-msgid "Names"
-msgstr "Назви"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
-
-
-msgid "Pivot Point"
-msgstr "Точка Опертя"
-
-
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Спад Пропорційного Редагування"
-
-
-msgid "Mask Edit"
-msgstr "Редагування Маски"
-
-
-msgid "Automasking"
-msgstr "Автомаскування"
-
-
-msgid "Face Sets Edit"
-msgstr "Редагування Наборів Граней"
-
-
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
-msgid "Sample"
-msgstr "Вибірка"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
 msgid "Viewpoint"
 msgstr "Точка зору"
 
 
 msgid "Navigation"
 msgstr "Навігація"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Align View"
@@ -26496,6 +26372,10 @@ msgid "Select Similar"
 msgstr "Вибрати подібні"
 
 
+msgid "Utilities"
+msgstr "Утиліти"
+
+
 msgid "Select All by Trait"
 msgstr "Вибрати все за рисою"
 
@@ -26508,12 +26388,28 @@ msgid "Select Loops"
 msgstr "Виділити петлі"
 
 
+msgid "Math"
+msgstr "Математика"
+
+
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Sample"
+msgstr "Вибірка"
+
+
+msgid "Stroke"
+msgstr "Штрих"
+
+
 msgid "Assign Material"
 msgstr "Призначити Матеріал"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
 
 
 msgid "Light"
@@ -26548,6 +26444,14 @@ msgid "Quick Effects"
 msgstr "Швидкі ефекти"
 
 
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
 msgid "Asset"
 msgstr "Актив"
 
@@ -26564,16 +26468,20 @@ msgid "Link/Transfer Data"
 msgstr "Пов'язати/Перенести Дані"
 
 
-msgid "Hooks"
-msgstr "Гачки"
-
-
 msgid "Linked"
 msgstr "Пов'язане"
 
 
 msgid "Layout"
 msgstr "Розстановка"
+
+
+msgid "Hooks"
+msgstr "Гачки"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
 
 
 msgid "Sculpt Set Pivot"
@@ -26592,20 +26500,100 @@ msgid "In-Betweens"
 msgstr "У проміжках"
 
 
-msgid "Propagate"
-msgstr "Поширити"
-
-
 msgid "Keying"
 msgstr "Ключування"
+
+
+msgid "Propagate"
+msgstr "Поширити"
 
 
 msgid "Tracking"
 msgstr "Стеження"
 
 
+msgid "Names"
+msgstr "Назви"
+
+
 msgid "Toggle Bone Options"
 msgstr "Перемкнути параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
+
+
+msgid "Pivot Point"
+msgstr "Точка Опертя"
+
+
+msgid "Snap"
+msgstr "Підхоп"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Спад Пропорційного Редагування"
+
+
+msgid "Mask Edit"
+msgstr "Редагування Маски"
+
+
+msgid "Automasking"
+msgstr "Автомаскування"
+
+
+msgid "Face Sets Edit"
+msgstr "Редагування Наборів Граней"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
 
 
 msgid "Basic"
@@ -29499,6 +29487,10 @@ msgstr "Модифікує кольори заповнення та штриха
 
 msgid "Modify stroke color only"
 msgstr "Модифікує лише колір штриха"
+
+
+msgid "Fill"
+msgstr "Заповнення"
 
 
 msgid "Modify fill color only"
@@ -34480,6 +34472,10 @@ msgstr "Цільова Геометрія"
 
 msgid "Element of the target geometry to calculate the distance from"
 msgstr "Елемент цільової геометрії для розрахування відстані від нього"
+
+
+msgid "Both"
+msgstr "Обидва"
 
 
 msgid "Tangent Space"
@@ -44071,6 +44067,11 @@ msgid "(De)select All Strokes"
 msgstr "(Зне)Вибрати всі штрихи"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "Вибрати пов'язані з підбором"
+
+
 msgid "Select all strokes with similar characteristics"
 msgstr "Вибрати всі штрихи зі схожими характеристиками"
 
@@ -52199,11 +52200,6 @@ msgid "Select linked faces"
 msgstr "Вибрати пов'язані грані"
 
 
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "Вибрати пов'язані з підбором"
-
-
 msgid "Select linked faces under the cursor"
 msgstr "Вибрати зв'язані грані під курсором"
 
@@ -53295,10 +53291,6 @@ msgstr "Скинути масштаб вибраних кісток до ста�
 msgctxt "Operator"
 msgid "Select Constraint Target"
 msgstr "Вибрати ціль примусу"
-
-
-msgid "Select bones used as targets for the currently selected bones"
-msgstr "Виберіть кістки, що будуть цільовими для вибраних кісток"
 
 
 msgid "Select all visible bones grouped by similar properties"
@@ -59056,14 +59048,6 @@ msgid "Set \"Fake User\" for appended items (except objects and collections)"
 msgstr "Задати фейковий користувач \"Fake User\" для прилучених елементів (окрім об'єктів і колекцій)"
 
 
-msgid "Localize All"
-msgstr "Локалізувати все"
-
-
-msgid "Localize all appended data, including those indirectly linked from other libraries"
-msgstr "Локалізувати усі прилучені дані, включно з тими, що непрямо прив'язані з інших бібліотек"
-
-
 msgid "Type of data to rename"
 msgstr "Тип даних для перейменування"
 
@@ -60560,6 +60544,50 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
+
+
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
+
+
+msgid "Stroke Placement"
+msgstr "Розміщення Штриха"
+
+
+msgid "Drawing Plane"
+msgstr "Площина Рисування"
+
+
+msgid "Guides"
+msgstr "Напрямні"
+
+
+msgid "Quad View"
+msgstr "Чотирибічний Огляд"
+
+
+msgid "Onion Skin"
+msgstr "Покрив Калькою"
+
+
+msgid "Stereoscopy"
+msgstr "Стереоскопія"
+
+
+msgid "Multi Frame"
+msgstr "Багато Кадр"
+
+
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
+
+
+msgid "VR"
+msgstr "ВР"
+
+
 msgid "Active Tool"
 msgstr "Активний Засіб"
 
@@ -60588,10 +60616,6 @@ msgid "Overlays"
 msgstr "Накладки"
 
 
-msgid "Guides"
-msgstr "Напрямні"
-
-
 msgid "Motion Tracking"
 msgstr "Відстеження руху"
 
@@ -60602,46 +60626,6 @@ msgstr "Режим Редагування Сіті"
 
 msgid "Measurement"
 msgstr "Вимірювання"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
-
-
-msgid "Stroke Placement"
-msgstr "Розміщення Штриха"
-
-
-msgid "Drawing Plane"
-msgstr "Площина Рисування"
-
-
-msgid "Quad View"
-msgstr "Чотирибічний Огляд"
-
-
-msgid "Onion Skin"
-msgstr "Покрив Калькою"
-
-
-msgid "Stereoscopy"
-msgstr "Стереоскопія"
-
-
-msgid "Multi Frame"
-msgstr "Багато Кадр"
-
-
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
-
-
-msgid "VR"
-msgstr "ВР"
 
 
 msgid "Chain Scaling"
@@ -61426,6 +61410,10 @@ msgid "Text Rendering"
 msgstr "Рендеринг Тексту"
 
 
+msgid "Font Style"
+msgstr "Стиль шрифту"
+
+
 msgid "Preferences Navigation"
 msgstr "Навігація Уподобань"
 
@@ -61536,10 +61524,6 @@ msgstr "Вкладка"
 
 msgid "Toolbar Item"
 msgstr "Елемент Смуги засобів"
-
-
-msgid "Text Style"
-msgstr "Стиль тексту"
 
 
 msgid "User Interface"
@@ -63117,6 +63101,10 @@ msgstr "Авто-зсув"
 
 msgid "Automatically offset the following or previous nodes in a chain when inserting a new node"
 msgstr "Автоматично зсувати наступні або попередні вузли у ланцюгу, мережі при вставці між ними нового вузла"
+
+
+msgid "Noodle Curving"
+msgstr "Вигинання З'єднань"
 
 
 msgid "Align Object To"
@@ -71946,6 +71934,10 @@ msgid "Active Theme Area"
 msgstr "Область активної теми"
 
 
+msgid "Text Style"
+msgstr "Стиль тексту"
+
+
 msgid "Theme Bone Color Set"
 msgstr "Тема набору кольорів кісток"
 
@@ -72278,44 +72270,12 @@ msgid "Overlay color on every other row"
 msgstr "Колір накладання на кожен інший ряд"
 
 
-msgid "Font Style"
-msgstr "Стиль шрифту"
-
-
 msgid "Theme settings for Font"
 msgstr "Параметри теми для шрифту"
 
 
 msgid "Font size in points"
 msgstr "Розмір шрифту в точках"
-
-
-msgid "Shadow Size"
-msgstr "Розмір тіні"
-
-
-msgid "Shadow Alpha"
-msgstr "Альфа тіні"
-
-
-msgid "Shadow X Offset"
-msgstr "Зсув тіні вздовж X"
-
-
-msgid "Shadow offset in pixels"
-msgstr "Зсув тіні у пікселях"
-
-
-msgid "Shadow Y Offset"
-msgstr "Зсув тіні вздовж Y"
-
-
-msgid "Shadow Brightness"
-msgstr "Яскравість тіні"
-
-
-msgid "Shadow color in gray value"
-msgstr "Колір тіні у значенні сірого"
 
 
 msgid "Theme Background Color"
@@ -72682,14 +72642,6 @@ msgid "Node Selected"
 msgstr "Вибраний вузол"
 
 
-msgid "Noodle Curving"
-msgstr "Вигинання З'єднань"
-
-
-msgid "Curving of the noodle"
-msgstr "Викривлення зв'язків"
-
-
 msgid "Script Node"
 msgstr "Вузол скрипту"
 
@@ -72800,10 +72752,6 @@ msgstr "Тема Смуги Статусу"
 
 msgid "Theme settings for the Status Bar"
 msgstr "Устави теми для Смуги Статусу"
-
-
-msgid "Theme settings for style sets"
-msgstr "Параметри теми для наборів стилів"
 
 
 msgid "Panel Title Font"
@@ -72936,6 +72884,10 @@ msgstr "Насиченість іконок в інтерфейсі"
 
 msgid "Panel Title"
 msgstr "Назва Панелі"
+
+
+msgid "Shadow offset in pixels"
+msgstr "Зсув тіні у пікселях"
 
 
 msgid "Primary Color"
@@ -75814,6 +75766,10 @@ msgstr "Узагальнений Засіб: Багатобічник Аноту
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Eraser"
 msgstr "Узагальнений Засіб: Стирач Анотування"
+
+
+msgid "Close"
+msgstr "Закриття"
 
 
 msgid "Multiple add-ons with the same name found!"
@@ -79819,10 +79775,6 @@ msgid "B"
 msgstr "B"
 
 
-msgid "Shadow Offset X"
-msgstr "Зсув Тіні по X"
-
-
 msgid "Temporary Files"
 msgstr "Тимчасові Файли"
 
@@ -79981,11 +79933,6 @@ msgstr "Вибрати Активну Камеру"
 msgctxt "Operator"
 msgid "Select Pattern..."
 msgstr "Патерн Вибору..."
-
-
-msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "Ціль Примусу"
 
 
 msgctxt "Operator"
@@ -83416,10 +83363,6 @@ msgid "No intersections found"
 msgstr "Перетинів не знайдено"
 
 
-msgid "Close"
-msgstr "Закриття"
-
-
 msgid "Selected faces required"
 msgstr "Слід вибрати грані"
 
@@ -83602,14 +83545,6 @@ msgstr "Неможливо вилучати полігони у режимі р�
 
 msgid "Cannot remove more polys than the mesh contains"
 msgstr "Неможливо вилучити більше полігонів, ніж має сіть"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s віддзеркалено, %d невдало"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s віддзеркалено"
 
 
 msgid "Cannot join while in edit mode"
@@ -86185,14 +86120,6 @@ msgid " (Local)"
 msgstr " (Локально)"
 
 
-msgid "fps: %.2f"
-msgstr "к/сек: %.2f"
-
-
-msgid "fps: %i"
-msgstr "к/сек: %i"
-
-
 msgid "Create object instance from object-data"
 msgstr "Створити примірник об'єкта з даних об'єкта"
 
@@ -86640,10 +86567,6 @@ msgstr "Freestyle: Створення карти вигляду"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Рендеринг штриха"
-
-
-msgid "Error writing frame"
-msgstr "Помилка запису кадру"
 
 
 msgid "No valid formats found"

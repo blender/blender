@@ -10,9 +10,16 @@
 
 #include "ply_data.hh"
 
+namespace blender::bke {
+class MutableAttributeAccessor;
+}
+
 namespace blender::io::ply {
 
 class PlyReadBuffer;
+
+void add_custom_attribute(bke::MutableAttributeAccessor &attributes,
+                          const PlyCustomAttribute &attr);
 
 /**
  * Loads the information from a PLY file to a #PlyData data-structure.

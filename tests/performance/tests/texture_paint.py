@@ -9,6 +9,7 @@ import pathlib
 
 class BrushType(enum.Enum):
     PAINT_HARD = "Paint Hard"
+    SMEAR = "Smear"
 
 
 class MeshType(enum.IntEnum):
@@ -25,7 +26,9 @@ DIMENSIONS = [1024, 4096]
 
 UDIM_OBJECT_NAME = "body_GEO_NEW"
 UDIM_UV_NAME = "godzilUV"
-UDIM_BRUSH_SIZE = 500
+UDIM_SIMPLE_BRUSH_SIZE = 500
+# For more complex brushes (e.g. Smear, Blur) use a smaller size to avoid extremely long benchmark runs
+UDIM_COMPLEX_BRUSH_SIZE = 100
 UDIM_SUBDIVIDE_LEVEL = 3
 UDIM_CANVAS_IMAGE = {
     DataType.BYTE: "overlayColor",
@@ -233,7 +236,7 @@ def _run_brush_test(args: dict):
     return _measure_brush_strokes(context, args.get("test_setup", False), total_time_start, timeout)
 
 
-def prepare_udim_scene(context: any, data_type: DataType, subdivide_level: int = 0):
+def prepare_udim_scene(context: any, data_type: DataType, brush_type: BrushType, subdivide_level: int = 0):
     import bpy
 
     bpy.context.preferences.experimental.use_3d_texture_paint = True
@@ -288,7 +291,10 @@ def prepare_udim_scene(context: any, data_type: DataType, subdivide_level: int =
 
     bpy.ops.paint.texture_paint_toggle()
 
-    tool_settings.image_paint.unified_paint_settings.size = UDIM_BRUSH_SIZE
+    if (brush_type == BrushType.PAINT_HARD):
+        tool_settings.image_paint.unified_paint_settings.size = UDIM_SIMPLE_BRUSH_SIZE
+    else:
+        tool_settings.image_paint.unified_paint_settings.size = UDIM_COMPLEX_BRUSH_SIZE
 
 
 def _run_udim_brush_test(args: dict):
@@ -310,7 +316,7 @@ def _run_udim_brush_test(args: dict):
     # Create an undo stack explicitly. This isn't created by default in background mode.
     bpy.ops.ed.undo_push()
 
-    prepare_udim_scene(context, args["data_type"], args["subdivide_level"])
+    prepare_udim_scene(context, args["data_type"], args["brush_type"], args["subdivide_level"])
     context_override = context.copy()
     set_view3d_context_override(context_override)
     with context.temp_override(**context_override):

@@ -15,6 +15,7 @@
 #include "eevee_defines.hh"
 #include "eevee_light_lib.bsl.hh"
 #include "eevee_ltc_lut_lib.bsl.hh"
+#include "eevee_sampling_lib.bsl.hh"
 #include "gpu_shader_compat.hh"
 #include "gpu_shader_math_constants.bsl.hh"
 #include "gpu_shader_math_safe.bsl.hh"
@@ -166,17 +167,33 @@ float upper_parabole(float x, float scale, float y_1)
   return saturate((x * scale + x) / (scale + x));
 }
 
+/* -------------------------------------------------------------------- */
 /**
- * Get the 3rd column of the inverse of 3x3 matrix M^{-1}, normalized. We can avoid
- * computing the reciprocal determinant as we need a unit vector.
- */
-float3 dominant_bxdf_direction(float3x3 Minv)
+ * Get dominant direction of an LTC.
+ *
+ * According to "Real-Time Polygonal-Light Shading with Linearly Transformed Cosines"
+ * by Eric Heitz et. al, the transformed median vector is the median vector of the transformed
+ * distribution, so we only need the normalized 3rd column of M.
+ * \{ */
+
+/* Given M^{-1}, get dominant direction in the LTC space. */
+float3 dominant_direction(const float3x3 &Minv)
 {
+  /* We can avoid computing the reciprocal determinant as we need a unit vector. */
   float3 adjoint_z = float3(+(Minv[1][0] * Minv[2][1] - Minv[2][0] * Minv[1][1]),
                             -(Minv[0][0] * Minv[2][1] - Minv[2][0] * Minv[0][1]),
                             +(Minv[0][0] * Minv[1][1] - Minv[1][0] * Minv[0][1]));
   return normalize(adjoint_z);
 }
+
+/* Given M, get dominant direction in the global space defined by Normal direction N and view
+ * direction V. */
+float3 dominant_direction(const float3x3 &M, const float3 N, const float3 V)
+{
+  return normalize(from_incident_vector(N, V) * M[2]);
+}
+
+/** \} */
 
 /**
  * Fitted function to attenuation light leakage caused by the sphere integral approximation.
@@ -185,7 +202,7 @@ float form_factor_attenuation(LightShape shape, LTCData ltc_data, float3 L)
 {
   /* First, find an approximate dominant BxDF direction D. Then, find a vector T on the light
    * plane, coplanar with D and L, i.e. T = cross(cross(L, D), shape.N). */
-  float3 D = dominant_bxdf_direction(ltc_data.Minv);
+  float3 D = dominant_direction(ltc_data.Minv);
   float3 T = normalize_fallback(D * dot(L, shape.N) - L * dot(D, shape.N), float3(0.0));
 
   /* Find t where D intersects the line L + t*T. */
@@ -383,6 +400,36 @@ float evaluate(
     return evaluate_quad(util_tx, shape, lv, ltc_data);
   }
   return evaluate_disk(util_tx, shape, lv, ltc_data);
+}
+
+/**
+ * Generate a sample following linearly transformed cosine hemispherical distribution (LTC).
+ */
+float3 sample(const float3x3 &M, const float2 rand)
+{
+  return normalize(M * sample_cos_hemisphere(rand));
+}
+
+/**
+ * The pdf of sampling a direction L with normal N following a LTC distribution defined by M.
+ * This is given by applying the Jacobian to the pdf of sampling the original cosine hemispherical
+ * distribution.
+ */
+float pdf(float3 L,
+          const float3 N,
+          const float3 V,
+          const float3x3 M,
+          const float3x3 M_inv,
+          const float det_M_inv)
+{
+  /* Convert to LTC space. */
+  L = L * from_incident_vector(N, V);
+
+  /* Convert to the original space. */
+  L = normalize(M_inv * L);
+
+  const float Jacobian = pow3f(length(M * L)) * det_M_inv;
+  return M_1_PI * saturate(L.z) * Jacobian;
 }
 
 }  // namespace eevee::ltc

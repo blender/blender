@@ -407,10 +407,10 @@ double IDP_coerce_to_double_or_zero(const IDProperty *prop);
  * \note Container types (groups and arrays) are processed after applying the callback on them.
  *
  * \param type_filter: If not 0, only apply callback on properties of matching types, see
- * IDP_TYPE_FILTER_ enum in DNA_ID.h.
+ * #eIDPropertyTypeFilter enum in DNA_ID.h.
  */
 void IDP_foreach_property(IDProperty *id_property_root,
-                          int type_filter,
+                          eIDPropertyTypeFilter type_filter,
                           FunctionRef<void(IDProperty *id_property)> callback);
 
 /* Format IDProperty as strings */

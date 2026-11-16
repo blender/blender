@@ -46,7 +46,7 @@ void wire_vert([[resource_table]] const Resources &srt,
                [[resource_table]] const WeightMap &weight_map,
                [[instance_index]] const int inst_index,
                [[in]] const VertWeight &v_weight,
-               [[out]] VertOut &v_out,
+               [[out]] VertOutSmooth &v_out,
                [[clip_distance, condition(use_clipping)]] float (&clip_distances)[6],
                [[position]] float4 &out_pos)
 {
@@ -117,11 +117,11 @@ PipelineGraphic point_clipped(point_vert,
                               draw::SelectConstant{.selectable = false});
 
 PipelineGraphic wire(wire_vert,
-                     wire_frag,
+                     wire_frag_smooth,
                      ClippingConstant{.use_clipping = false},
                      draw::SelectConstant{.selectable = false});
 PipelineGraphic wire_clipped(wire_vert,
-                             wire_frag,
+                             wire_frag_smooth,
                              ClippingConstant{.use_clipping = true},
                              draw::SelectConstant{.selectable = false});
 

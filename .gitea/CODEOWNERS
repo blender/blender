@@ -128,8 +128,6 @@ source/blender/blenkernel/intern/grease_pencil.*        @filedescriptor
 # --------------------------------------------------
 # Geometry Nodes.
 source/blender/functions/.*                @JacquesLucke
-source/blender/nodes/NOD_geometry_nodes.*  @JacquesLucke
-source/blender/nodes/geometry/.*           @JacquesLucke
 
 scripts/startup/bl_ui/node_add_menu_geometry.py     @zazizizou
 

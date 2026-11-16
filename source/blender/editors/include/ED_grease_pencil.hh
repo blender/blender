@@ -314,23 +314,23 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
  */
 bool select_frame_at(bke::greasepencil::Layer &layer,
                      const int frame_number,
-                     const short select_mode);
+                     const eEditKeyframes_Select select_mode);
 
 void select_frames_at(bke::greasepencil::LayerGroup &layer_group,
                       const int frame_number,
-                      const short select_mode);
+                      const eEditKeyframes_Select select_mode);
 
-void select_all_frames(bke::greasepencil::Layer &layer, const short select_mode);
+void select_all_frames(bke::greasepencil::Layer &layer, const eEditKeyframes_Select select_mode);
 
 void select_frames_region(KeyframeEditData *ked,
                           bke::greasepencil::TreeNode &node,
-                          const short tool,
-                          const short select_mode);
+                          const eEditKeyframes_Validate tool,
+                          const eEditKeyframes_Select select_mode);
 
 void select_frames_range(bke::greasepencil::TreeNode &node,
                          const float min,
                          const float max,
-                         const short select_mode);
+                         const eEditKeyframes_Select select_mode);
 
 /**
  * Returns true if any frame of the \a layer is selected.
@@ -1035,6 +1035,7 @@ struct CurveBooleanResult {
   bke::CurvesGeometry curves;
   Array<bool> unchanged_curves;
   Array<int> dst_to_src_curves;
+  Array<bool> is_clipping_point;
 };
 
 /* Project the point from local space to the clipping 2d space. */
@@ -1047,15 +1048,15 @@ CurveBooleanResult curve_boolean(const CurveBooleanOpParameters op_params,
                                  const IndexMask &editable_shapes,
                                  const IndexMask &clipping_shapes);
 
-CurveBooleanResult curve_boolean_with_planes(const CurveBooleanOpParameters op_params,
-                                             const bke::CurvesGeometry &curves,
-                                             ProjectionFunc project_fn,
-                                             GroupedSpan<int> shapes,
-                                             Span<float4> curve_planes,
-                                             const IndexMask &editable_shapes,
-                                             const IndexMask &clipping_shapes,
+/**
+ * Post step of the boolean operation: move all the points that come from the clipping shape onto
+ * the plane of the source curve they were merged into, so the carved strokes stay planar.
+ */
+void project_clipping_points_to_curve_planes(boolean::CurveBooleanResult &result,
+                                             const Span<float4> curve_planes,
                                              const float4x4 &layer_to_world,
-                                             const ARegion &region);
+                                             const ARegion &region,
+                                             const boolean::ProjectionFunc project_fn);
 
 }  // namespace boolean
 

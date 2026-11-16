@@ -112,8 +112,13 @@ bool ED_scene_replace_active_for_deletion(bContext &C, Main &bmain, Scene &scene
   /* NOTE: Usages of BPy_..._ALLOW_THREADS macros below are necessary because this code is also
    * called from RNA (and therefore BPY). */
 
-  /* Cancel animation playback. */
-  if (bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(&C))) {
+  /* Cancel animation playback.
+   *
+   * Note that #ED_screen_animation_playing will also return a valid
+   * screen when user is scrubbing, in which case `bScreen::animtimer` is `nullptr`.
+   */
+  bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(&C));
+  if (screen && screen->animtimer) {
     ScreenAnimData *sad = static_cast<ScreenAnimData *>(screen->animtimer->customdata);
     if (sad->scene == &scene) {
 #ifdef WITH_PYTHON

@@ -58,7 +58,10 @@ namespace blender {
  * --> Most tracks are now selection only.
  */
 
-static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, short selectmode)
+static int mouse_nla_tracks(bContext *C,
+                            bAnimContext *ac,
+                            const int track_index,
+                            const eEditKeyframes_Select selectmode)
 {
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
@@ -296,7 +299,7 @@ static wmOperatorStatus nlatracks_mouseclick_invoke(bContext *C,
   View2D *v2d;
   int track_index;
   int notifierFlags = 0;
-  short selectmode;
+  eEditKeyframes_Select selectmode;
   float x, y;
 
   /* get editor data */

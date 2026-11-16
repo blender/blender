@@ -357,7 +357,7 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
   if (adt == nullptr || adt->nla_tracks.is_empty()) {
     return;
   }
-  KeyframeEditData ked = {{nullptr}};
+  KeyframeEditData ked{};
   KeyframeEditFunc map_cb;
 
   /* init edit data
@@ -388,6 +388,45 @@ void ANIM_nla_mapping_apply_if_needed_fcurve(bAnimListElem *ale,
     return;
   }
   ANIM_nla_mapping_apply_fcurve(ale->adt, fcu, restore, only_keys);
+}
+
+TimeMapping ANIM_nla_time_mapping_get(bAnimListElem &ale)
+{
+  if (!ANIM_nla_mapping_allowed(&ale)) {
+    return {};
+  }
+  AnimData *adt = ale.adt;
+  if ((adt == nullptr) || !(adt->flag & ADT_NLA_EDIT_ON) || (adt->flag & ADT_NLA_EDIT_NOMAP)) {
+    return {};
+  }
+  if (adt->act_track == nullptr) {
+    if (adt->actstrip) {
+      adt->act_track = BKE_nlatrack_find_tweaked(adt);
+    }
+    else {
+      adt->act_track = BKE_nlatrack_find_active(&adt->nla_tracks);
+    }
+  }
+  if (adt->actstrip == nullptr) {
+    adt->actstrip = BKE_nlastrip_find_active(adt->act_track);
+  }
+  NlaStrip *strip = adt->actstrip;
+  if (!strip || (strip->flag & NLASTRIP_FLAG_USR_TIME)) {
+    /* No strip or the strip is using a curve to define the time for which we cannot determine a
+     * linear mapping. */
+    return {};
+  }
+  TimeMapping time_mapping;
+  if (strip->flag & NLASTRIP_FLAG_REVERSE) {
+    time_mapping.scale = -strip->scale;
+    time_mapping.offset = strip->end;
+    time_mapping.scale_offset = strip->actstart;
+    return time_mapping;
+  }
+  time_mapping.scale = strip->scale;
+  time_mapping.offset = strip->start;
+  time_mapping.scale_offset = strip->actstart;
+  return time_mapping;
 }
 
 /* *************************************************** */

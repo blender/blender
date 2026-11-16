@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-11-04 01:08+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -4021,48 +4021,24 @@ msgid "File path or URI of the OpenColorIO configuration currently in use"
 msgstr "Chemin de fichier ou URI de la configuration OpenColorIO en cours d’utilisation"
 
 
-msgid "OpenColorIO Configuration Source"
-msgstr "Source de configuration OpenColorIO"
-
-
 msgid "Where the OpenColorIO configuration came from"
 msgstr "D’où provient la configuration OpenColorIO"
-
-
-msgid "BLENDER_OCIO environment variable"
-msgstr "Variable d’environnement BLENDER_OCIO"
 
 
 msgid "The BLENDER_OCIO environment variable"
 msgstr "La variable d’environnement BLENDER_OCIO"
 
 
-msgid "OCIO environment variable"
-msgstr "Variable d’environnement OCIO"
-
-
 msgid "The OCIO environment variable"
 msgstr "La variable d’environnement OCIO"
-
-
-msgid "Project"
-msgstr "Projeter"
 
 
 msgid "The active project's OpenColorIO configuration setting"
 msgstr "Le paramètre « Configuration OpenColorIO » du project actif"
 
 
-msgid "Blender"
-msgstr "Blender"
-
-
 msgid "The OpenColorIO configuration bundled with Blender"
 msgstr "La configuration OpenColorIO livrée avec Blender"
-
-
-msgid "Fallback"
-msgstr "Repli"
 
 
 msgid "The built-in fallback configuration, if loading other configurations failed"
@@ -4352,6 +4328,10 @@ msgstr "Nom du projet"
 
 msgid "OpenColorIO configuration to use for this project"
 msgstr "Configuration OpenColorIO à utiliser pour ce projet"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "The default Blender OpenColorIO configuration. Works with both ACES workflows and Blender specific views and color spaces"
@@ -6684,32 +6664,16 @@ msgid "Factor used to mix vertex color to get final color"
 msgstr "Facteur de mélange de la couleur de sommets pour obtenir la couleur finale"
 
 
-msgid "Mode Type"
-msgstr "Type de mode"
-
-
 msgid "Defines how vertex color affect to the strokes"
 msgstr "Comment la couleur de sommets affecte les traits"
-
-
-msgid "Stroke"
-msgstr "Trait"
 
 
 msgid "Painting affects only strokes, not fills"
 msgstr "La peinture n’affecte que les traits, pas les remplissages"
 
 
-msgid "Fill"
-msgstr "Remplissage"
-
-
 msgid "Painting affects only fills, not strokes"
 msgstr "La peinture n’affecte que les remplissages, pas les traits"
-
-
-msgid "Both"
-msgstr "Les deux"
 
 
 msgid "Painting affects both strokes and fills"
@@ -11124,6 +11088,10 @@ msgid "Shrink the location to the nearest target surface"
 msgstr "Contracter la position à la surface de la cible la plus proche"
 
 
+msgid "Project"
+msgstr "Projeter"
+
+
 msgid "Shrink the location to the nearest target surface along a given axis"
 msgstr "Contracter la position à la surface de la cible la plus proche, selon un axe donné"
 
@@ -12915,6 +12883,10 @@ msgstr "Chemin de données"
 
 msgid "RNA Path (from ID-block) to property used"
 msgstr "Chemin RNA (depuis le bloc ID) pour la propriété utilisée"
+
+
+msgid "Fallback"
+msgstr "Repli"
 
 
 msgid "The value to use if the data path cannot be resolved"
@@ -17979,6 +17951,10 @@ msgid "Integer Vector"
 msgstr "Vecteur d’entiers"
 
 
+msgid "Dynamic"
+msgstr "Dynamique"
+
+
 msgid "Freestyle Line Set"
 msgstr "Ensemble de lignes Freestyle"
 
@@ -18677,10 +18653,6 @@ msgstr "Élément de fermeture vers liste"
 
 msgid "Automatically detect a good structure type based on how the socket is used"
 msgstr "Détecter automatiquement un bon type de structure d’après l’usage de la prise"
-
-
-msgid "Dynamic"
-msgstr "Dynamique"
 
 
 msgid "Socket can work with different kinds of structures"
@@ -36645,136 +36617,8 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
-msgid "Enable Bone Options"
-msgstr "Activer des options d’os"
-
-
-msgid "Disable Bone Options"
-msgstr "Désactiver des options d’os"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mode de sélection du maillage"
-
-
-msgid "Creative"
-msgstr "Créatif"
-
-
-msgid "Face Data"
-msgstr "Données de face"
-
-
-msgid "Select by Face Strength"
-msgstr "Sélectionner par force de face"
-
-
-msgid "Set Face Strength"
-msgstr "Définir la force de face"
-
-
-msgid "Clean Up"
-msgstr "Nettoyer"
-
-
-msgid "Merge"
-msgstr "Fusionner"
-
-
-msgid "Show/Hide"
-msgstr "Afficher/cacher"
-
-
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
-
-
-msgid "Kerning"
-msgstr "Approche"
-
-
-msgid "Metaball"
-msgstr "Métaballe"
-
-
-msgid "Names"
-msgstr "Noms"
-
-
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Utilities"
-msgstr "Utilitaires"
-
-
-msgid "Pivot Point"
-msgstr "Point de pivot"
-
-
-msgid "Snap"
-msgstr "Aimanter"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Atténuation de l’édition proportionnelle"
-
-
-msgid "Mask Edit"
-msgstr "Édition du masque"
-
-
-msgid "Automasking"
-msgstr "Masquage auto"
-
-
-msgid "Face Sets Edit"
-msgstr "Édition des ensembles de faces"
-
-
-msgid "Vertex Group Locks"
-msgstr "Verrouillages des groupes de sommets"
-
-
-msgid "Read"
-msgstr "Lecture"
-
-
-msgid "Sample"
-msgstr "Échantillonner"
-
-
 msgid "Write"
 msgstr "Écriture"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Mirror"
-msgstr "Miroir"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "UV Mapping"
-msgstr "Placage UV"
-
-
-msgid "Local View"
-msgstr "Vue locale"
 
 
 msgid "Viewpoint"
@@ -36783,6 +36627,10 @@ msgstr "Point de vue"
 
 msgid "Navigation"
 msgstr "Navigation"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Align View"
@@ -36809,6 +36657,10 @@ msgid "Select Similar"
 msgstr "Sélectionner similaires"
 
 
+msgid "Utilities"
+msgstr "Utilitaires"
+
+
 msgid "Select All by Trait"
 msgstr "Tout sélectionner par caractéristiques"
 
@@ -36825,16 +36677,36 @@ msgid "Select Loops"
 msgstr "Sélectionner les boucles"
 
 
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
+msgid "Math"
+msgstr "Maths"
 
 
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Read"
+msgstr "Lecture"
+
+
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
+
+
+msgid "Sample"
+msgstr "Échantillonner"
+
+
+msgid "Stroke"
+msgstr "Trait"
+
+
 msgid "Assign Material"
 msgstr "Assigner un matériau"
+
+
+msgid "Metaball"
+msgstr "Métaballe"
 
 
 msgid "Light"
@@ -36869,6 +36741,14 @@ msgid "Quick Effects"
 msgstr "Effets rapides"
 
 
+msgid "Show/Hide"
+msgstr "Afficher/cacher"
+
+
+msgid "Clean Up"
+msgstr "Nettoyer"
+
+
 msgid "Asset"
 msgstr "Asset"
 
@@ -36885,16 +36765,20 @@ msgid "Link/Transfer Data"
 msgstr "Lier/transférer des données"
 
 
-msgid "Hooks"
-msgstr "Crochets"
-
-
 msgid "Linked"
 msgstr "Liés"
 
 
 msgid "Layout"
 msgstr "Disposition"
+
+
+msgid "Hooks"
+msgstr "Crochets"
+
+
+msgid "Vertex Group Locks"
+msgstr "Verrouillages des groupes de sommets"
 
 
 msgid "Trim/Add"
@@ -36913,36 +36797,128 @@ msgid "Random Mask"
 msgstr "Masque aléatoire"
 
 
-msgid "Clear Transform"
-msgstr "Réinitialiser la transformation"
-
-
 msgid "Adjust"
 msgstr "Ajuster"
+
+
+msgid "Clear Transform"
+msgstr "Réinitialiser la transformation"
 
 
 msgid "In-Betweens"
 msgstr "Intervalles"
 
 
-msgid "Propagate"
-msgstr "Propager"
-
-
-msgid "Bone Collections"
-msgstr "Collections d’os"
-
-
 msgid "Keying"
 msgstr "Incrustation"
+
+
+msgid "Propagate"
+msgstr "Propager"
 
 
 msgid "Tracking"
 msgstr "Suivi"
 
 
+msgid "Bone Collections"
+msgstr "Collections d’os"
+
+
+msgid "Names"
+msgstr "Noms"
+
+
 msgid "Toggle Bone Options"
 msgstr "(Dés)activer des options d’os"
+
+
+msgid "Enable Bone Options"
+msgstr "Activer des options d’os"
+
+
+msgid "Disable Bone Options"
+msgstr "Désactiver des options d’os"
+
+
+msgid "Creative"
+msgstr "Créatif"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mode de sélection du maillage"
+
+
+msgid "Face Data"
+msgstr "Données de face"
+
+
+msgid "Select by Face Strength"
+msgstr "Sélectionner par force de face"
+
+
+msgid "Set Face Strength"
+msgstr "Définir la force de face"
+
+
+msgid "Merge"
+msgstr "Fusionner"
+
+
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
+
+
+msgid "Kerning"
+msgstr "Approche"
+
+
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
+
+
+msgid "Pivot Point"
+msgstr "Point de pivot"
+
+
+msgid "Snap"
+msgstr "Aimanter"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Atténuation de l’édition proportionnelle"
+
+
+msgid "Mask Edit"
+msgstr "Édition du masque"
+
+
+msgid "Automasking"
+msgstr "Masquage auto"
+
+
+msgid "Face Sets Edit"
+msgstr "Édition des ensembles de faces"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Mirror"
+msgstr "Miroir"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "UV Mapping"
+msgstr "Placage UV"
+
+
+msgid "Local View"
+msgstr "Vue locale"
 
 
 msgid "Keyframe Insert Pie"
@@ -40857,6 +40833,10 @@ msgstr "Modifier les couleurs de remplissage et de trait"
 
 msgid "Modify stroke color only"
 msgstr "Ne modifier que la couleur de trait"
+
+
+msgid "Fill"
+msgstr "Remplissage"
 
 
 msgid "Modify fill color only"
@@ -51119,6 +51099,10 @@ msgstr "Définir la couleur et l’opacité des points du trait"
 
 msgid "Set the color and opacity for the stroke fills"
 msgstr "Définir la couleur et l’opacité des remplissages du trait"
+
+
+msgid "Both"
+msgstr "Les deux"
 
 
 msgid "Set the color and opacity for stroke points and fills together"
@@ -69513,6 +69497,11 @@ msgid "Deselect linked strokes"
 msgstr "Désélectionner les traits liés"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "Sélectionner liées sous le curseur"
+
+
 msgid "Selects random points from the current strokes selection"
 msgstr "Sélectionner des points aléatoires dans la sélection de traits actuelle"
 
@@ -76755,17 +76744,9 @@ msgid "Join Geometry"
 msgstr "Fusionner les géométries"
 
 
-msgid "Join Geometry Mode"
-msgstr "Mode Fusionner les géométries"
-
-
 msgctxt "NodeTree"
 msgid "Geometry to Instance"
 msgstr "Géométrie vers instance"
-
-
-msgid "Geometry to Instance Mode"
-msgstr "Mode de géométrie vers instance"
 
 
 msgctxt "NodeTree"
@@ -76773,21 +76754,9 @@ msgid "Intersect"
 msgstr "Intersection"
 
 
-msgid "Intersect Mode"
-msgstr "Mode Intersection"
-
-
 msgctxt "NodeTree"
 msgid "Union"
 msgstr "Union"
-
-
-msgid "Union Mode"
-msgstr "Mode Union"
-
-
-msgid "Difference Mode"
-msgstr "Mode Différence"
 
 
 msgid "Add to End"
@@ -81833,11 +81802,6 @@ msgid "Select linked faces"
 msgstr "Sélectionner les faces liées"
 
 
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "Sélectionner liées sous le curseur"
-
-
 msgid "Select linked faces under the cursor"
 msgstr "Sélectionner les faces liées sous le curseur"
 
@@ -83399,10 +83363,6 @@ msgstr "Réinitialiser les échelles des os sélectionnés à leurs valeurs par 
 msgctxt "Operator"
 msgid "Select Constraint Target"
 msgstr "Sélectionner la cible de la contrainte"
-
-
-msgid "Select bones used as targets for the currently selected bones"
-msgstr "Sélectionner les os utilisés comme cibles des os actuellement sélectionnés"
 
 
 msgid "Select all visible bones grouped by similar properties"
@@ -92935,14 +92895,6 @@ msgid "Set \"Fake User\" for appended items (except objects and collections)"
 msgstr "Activer « utilisateur factice » pour les éléments ajoutés (à l’exception des objets et collections)"
 
 
-msgid "Localize All"
-msgstr "Tout localiser"
-
-
-msgid "Localize all appended data, including those indirectly linked from other libraries"
-msgstr "Localiser toutes les données ajoutées, y compris celles indirectement liées depuis d’autres bibliothèques"
-
-
 msgid "Type of data to rename"
 msgstr "Type de données à renommer"
 
@@ -96405,58 +96357,6 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
-msgid "Active Tool"
-msgstr "Outil actif"
-
-
-msgid "View Lock"
-msgstr "Verrouillage de la vue"
-
-
-msgid "Selectability & Visibility"
-msgstr "Sélectionnabilité et visibilité"
-
-
-msgid "Shadow Settings"
-msgstr "Réglages d’ombre"
-
-
-msgid "SSAO Settings"
-msgstr "Réglages de SSAO"
-
-
-msgid "Cavity"
-msgstr "Cavité"
-
-
-msgid "Render Pass"
-msgstr "Passe de rendu"
-
-
-msgid "Overlays"
-msgstr "Surimpressions"
-
-
-msgid "Guides"
-msgstr "Guides"
-
-
-msgid "Viewer Node"
-msgstr "Nœud visualiseur"
-
-
-msgid "Motion Tracking"
-msgstr "Suivi de mouvement (motion tracking)"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mode édition maillage"
-
-
-msgid "Measurement"
-msgstr "Mesure"
-
-
 msgid "Curve Edit Mode"
 msgstr "Mode édition courbe"
 
@@ -96475,6 +96375,10 @@ msgstr "Placement de trait"
 
 msgid "Drawing Plane"
 msgstr "Plan de dessin"
+
+
+msgid "Guides"
+msgstr "Guides"
 
 
 msgid "Grease Pencil Options"
@@ -96517,14 +96421,6 @@ msgid "Viewport Debug"
 msgstr "Débugage vue 3D"
 
 
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de matériaux glTF"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -96533,12 +96429,68 @@ msgid "VR Info"
 msgstr "Infos VR"
 
 
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de matériaux glTF"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "Animations glTF"
+
+
+msgid "Active Tool"
+msgstr "Outil actif"
+
+
+msgid "View Lock"
+msgstr "Verrouillage de la vue"
+
+
+msgid "Selectability & Visibility"
+msgstr "Sélectionnabilité et visibilité"
+
+
+msgid "Shadow Settings"
+msgstr "Réglages d’ombre"
+
+
+msgid "SSAO Settings"
+msgstr "Réglages de SSAO"
+
+
+msgid "Cavity"
+msgstr "Cavité"
+
+
+msgid "Render Pass"
+msgstr "Passe de rendu"
+
+
+msgid "Overlays"
+msgstr "Surimpressions"
+
+
+msgid "Viewer Node"
+msgstr "Nœud visualiseur"
+
+
+msgid "Motion Tracking"
+msgstr "Suivi de mouvement (motion tracking)"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mode édition maillage"
+
+
+msgid "Measurement"
+msgstr "Mesure"
 
 
 msgid "Import Settings"
@@ -97669,6 +97621,10 @@ msgid "Text Rendering"
 msgstr "Rendu du texte"
 
 
+msgid "Font Style"
+msgstr "Style de police"
+
+
 msgctxt "WindowManager"
 msgid "Language"
 msgstr "Langue"
@@ -97848,10 +97804,6 @@ msgstr "Barre d’outil / barre latérale"
 
 msgid "Sequencer Strip Color Tags"
 msgstr "Étiquettes de couleur des bandes du séquenceur"
-
-
-msgid "Text Style"
-msgstr "Style de texte"
 
 
 msgid "User Interface"
@@ -99815,6 +99767,10 @@ msgstr "Décalage auto"
 
 msgid "Automatically offset the following or previous nodes in a chain when inserting a new node"
 msgstr "Décaler automatiquement les nœuds suivants ou précédents d’une chaîne à l’insertion d’un nouveau nœud"
+
+
+msgid "Noodle Curving"
+msgstr "Courbure des liens"
 
 
 msgid "Align Object To"
@@ -102197,10 +102153,6 @@ msgstr "Identificateur de culture : pt_BR. Progrès de la traduction : 40%"
 
 msgid "Portuguese (Portugal) - Português europeu"
 msgstr "Portugais (Portugal) – Português europeu"
-
-
-msgid "Locale code: pt_PT. Translation progress: 82%"
-msgstr "Identificateur de culture : pt_PT. Progrès de la traduction : 82%"
 
 
 msgid "Romanian - Român"
@@ -115896,6 +115848,10 @@ msgid "Active Theme Area"
 msgstr "Zone du thème actif"
 
 
+msgid "Text Style"
+msgstr "Style de texte"
+
+
 msgid "Theme Bone Color Set"
 msgstr "Ensemble de couleurs d’os du thème"
 
@@ -116328,10 +116284,6 @@ msgid "Overlay color on every other row"
 msgstr "Couleur différente d’une ligne sur deux"
 
 
-msgid "Font Style"
-msgstr "Style de police"
-
-
 msgid "Theme settings for Font"
 msgstr "Réglages du thème pour les polices de caractères"
 
@@ -116346,38 +116298,6 @@ msgstr "Graisse des caractères. 100-900, 400 est normal."
 
 msgid "Font size in points"
 msgstr "Taille de police en points"
-
-
-msgid "Shadow Size"
-msgstr "Taille de l’ombre"
-
-
-msgid "Shadow type (0 none, 3, 5 blur, 6 outline)"
-msgstr "Type d’ombre (0 aucune, 3 et 5 flou, 6 contour)"
-
-
-msgid "Shadow Alpha"
-msgstr "Alpha de l’ombre"
-
-
-msgid "Shadow X Offset"
-msgstr "Décalage en X de l’ombre"
-
-
-msgid "Shadow offset in pixels"
-msgstr "Décalage de l’ombre, en pixels"
-
-
-msgid "Shadow Y Offset"
-msgstr "Décalage en Y de l’ombre"
-
-
-msgid "Shadow Brightness"
-msgstr "Luminosité de l’ombre"
-
-
-msgid "Shadow color in gray value"
-msgstr "Couleur de l’ombre en niveaux de gris"
 
 
 msgid "Theme Background Color"
@@ -116784,14 +116704,6 @@ msgid "Node Selected"
 msgstr "Nœud sélectionné"
 
 
-msgid "Noodle Curving"
-msgstr "Courbure des liens"
-
-
-msgid "Curving of the noodle"
-msgstr "Courbure des liens entre nœuds"
-
-
 msgid "Repeat Zone"
 msgstr "Zone de répétition"
 
@@ -116986,10 +116898,6 @@ msgstr "Couleur de bande du thème"
 
 msgid "Theme settings for strip colors"
 msgstr "Réglages du thème pour les couleurs des bandes"
-
-
-msgid "Theme settings for style sets"
-msgstr "Réglages du thème pour les ensembles de styles"
 
 
 msgid "Panel Title Font"
@@ -117222,6 +117130,10 @@ msgstr "Texte des panneaux"
 
 msgid "Panel Title"
 msgstr "Titre des panneaux"
+
+
+msgid "Shadow offset in pixels"
+msgstr "Décalage de l’ombre, en pixels"
 
 
 msgid "Primary Color"
@@ -125351,6 +125263,10 @@ msgid "Legacy Add-on"
 msgstr "Add-on (héritage)"
 
 
+msgid "Close"
+msgstr "Fermer"
+
+
 msgid "The dropped extension comes from an unknown repository."
 msgstr "L’extension déposée vient d’un dépôt inconnu."
 
@@ -133182,10 +133098,6 @@ msgid "Float"
 msgstr "Flottant"
 
 
-msgid "Overridden by the {:s} environment variable"
-msgstr "Écrasé par la variable d’environnement {:s}"
-
-
 msgctxt "Operator"
 msgid "Reload to Apply Changes"
 msgstr "Recharger pour appliquer les changements"
@@ -134239,6 +134151,11 @@ msgid "Hinting"
 msgstr "Optimisation"
 
 
+msgctxt "Text"
+msgid "Weight"
+msgstr "Graisse"
+
+
 msgctxt "Preferences"
 msgid "Translate"
 msgstr "Traduire"
@@ -134476,15 +134393,6 @@ msgstr "Vue alignée"
 
 msgid "Toolbar Saturation"
 msgstr "Saturation de la barre d’outils"
-
-
-msgctxt "Text"
-msgid "Weight"
-msgstr "Graisse"
-
-
-msgid "Shadow Offset X"
-msgstr "Décalage de l’ombre en X"
 
 
 msgid "Temporary Files"
@@ -134859,11 +134767,6 @@ msgstr "Sélectionner par motif…"
 
 msgid "Bone Selection Set"
 msgstr "Ensemble de sélection d’os"
-
-
-msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "Cible de contrainte"
 
 
 msgctxt "Operator"
@@ -141040,10 +140943,6 @@ msgid "There is no layer '%s'"
 msgstr "Il n’y a pas de calque « %s »"
 
 
-msgid "'%s' Layer is locked"
-msgstr "Le calque « %s » est verrouillé"
-
-
 msgid "Copied %d selected curve(s)"
 msgstr "%d courbes sélectionnées copiées"
 
@@ -141356,10 +141255,6 @@ msgstr "Copier le lien"
 
 msgid "Non-Keyboard Shortcut"
 msgstr "Raccourci non-clavier"
-
-
-msgid "Search..."
-msgstr "Rechercher…"
 
 
 msgid "Pin Panel"
@@ -143147,10 +143042,6 @@ msgid "No intersections found"
 msgstr "Aucune intersection trouvée"
 
 
-msgid "Close"
-msgstr "Fermer"
-
-
 msgid "Stop"
 msgstr "Arrêter"
 
@@ -143461,14 +143352,6 @@ msgstr "Impossible de supprimer plus de faces que le maillage n’en a"
 
 msgid "Cannot add more than %i UV maps"
 msgstr "Impossible d’ajouter plus de %i cartes UV"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s inversés en miroir, %d échecs"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s inversés en miroir"
 
 
 msgid "Cannot join while in edit mode"
@@ -150359,14 +150242,6 @@ msgid "Synchronization"
 msgstr "Synchronisation"
 
 
-msgid "fps: %.2f"
-msgstr "fps : %.2f"
-
-
-msgid "fps: %i"
-msgstr "fps : %i"
-
-
 msgid "Create object instance from object-data"
 msgstr "Créer une instance d’objet depuis les données d’objet"
 
@@ -151232,10 +151107,6 @@ msgid "Realized grease pencil has too many layers."
 msgstr "Le Grease Pencil rendu réel a trop de calques."
 
 
-msgid "Error writing frame"
-msgstr "Erreur à l’écriture de la frame"
-
-
 msgid "No valid formats found"
 msgstr "Aucun format valide trouvé"
 
@@ -152024,10 +151895,6 @@ msgstr "Les blocs de données liés ne peuvent pas être renommés"
 
 msgid "Built-in fonts cannot be renamed"
 msgstr "Les polices intégrées ne peuvent pas être renommées"
-
-
-msgid "Data-blocks not in global Main data-base cannot be renamed"
-msgstr "Les blocs de données dans la base de données Main globale ne peuvent pas être renommés"
 
 
 msgid "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition always runtime"
@@ -153191,14 +153058,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "Impossible de déplacer des prises d’un nœud intégré"
 
 
-msgid "Unable to locate item in node"
-msgstr "Impossible de trouver l’élément dans le nœud"
-
-
-msgid "Unable to create item with this socket type"
-msgstr "Impossible de créer un élément avec ce type de prise"
-
-
 msgid "Registering node tree class: '%s' is too long, maximum length is %d"
 msgstr "Enregistrement de la classe d’arborescence nodale : « %s » est trop long, la longueur maximale est %d"
 
@@ -153261,6 +153120,14 @@ msgstr "Impossible d’appareiller le nœud d’entrée de zone %s avec %s car i
 
 msgid "The output node %s is already paired with %s"
 msgstr "Le nœud de sortie %s est déjà appareillé avec %s"
+
+
+msgid "Unable to locate item in node"
+msgstr "Impossible de trouver l’élément dans le nœud"
+
+
+msgid "Unable to create item with this socket type"
+msgstr "Impossible de créer un élément avec ce type de prise"
 
 
 msgid "Unable to locate item '%s' in node"
@@ -155038,10 +154905,6 @@ msgstr "Appliquer un filtre de flou gaussien"
 
 msgid "Fast Gaussian"
 msgstr "Gaussien rapide"
-
-
-msgid "Applies a recursive Gaussian blur that can be faster and more accurate in some cases, but less accurate in other cases"
-msgstr "Appliquer un flou gaussien récursif, qui peut être plus rapide et précis dans certains cas, mais moins précis dans d’autres"
 
 
 msgid "Catrom"
@@ -157830,11 +157693,11 @@ msgid "Implicit type conversion when evaluating closure"
 msgstr "Conversion de type implicite à l’évaluation de la fermeture"
 
 
-msgid "Closure not have output: \"{}\""
+msgid "Closure does not have output: \"{}\""
 msgstr "La fermeture n’a pas de sortie : « {} »"
 
 
-msgid "Closure not have input: \"{}\""
+msgid "Closure does not have input: \"{}\""
 msgstr "La fermeture n’a pas d’entrée : « {} »"
 
 
@@ -160714,14 +160577,6 @@ msgstr "Gérer"
 
 msgid "No named attributes used"
 msgstr "Aucun attribut nommé utilisé"
-
-
-msgid "Closure does not have input: \"{}\""
-msgstr "La fermeture n’a pas d’entrée : « {} »"
-
-
-msgid "Closure does not have output: \"{}\""
-msgstr "La fermeture n’a pas de sortie : « {} »"
 
 
 msgid "Input geometry has no elements in the iteration domain."

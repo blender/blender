@@ -167,13 +167,7 @@ class Prepass : Overlay {
                                        res.select_id(ob_ref);
 
             Batch *geom = DRW_cache_particles_get_hair(ob, &psys, nullptr);
-            if (res.is_selection()) {
-              /* Conservative shader needs expanded draw-call. */
-              mesh_ps_->draw_expand(geom, GPU_PRIM_TRIS, 1, 1, handle, select_id.get());
-            }
-            else {
-              mesh_ps_->draw(geom, handle, select_id.get());
-            }
+            hair_ps_->draw(geom, handle, select_id.get());
             break;
           }
           break;

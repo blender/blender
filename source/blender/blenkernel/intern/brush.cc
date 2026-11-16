@@ -1852,6 +1852,7 @@ bool implements_3d_texture_paint(const Brush &brush)
   switch (brush.image_brush_type) {
     case IMAGE_PAINT_BRUSH_TYPE_DRAW:
     case IMAGE_PAINT_BRUSH_TYPE_MASK:
+    case IMAGE_PAINT_BRUSH_TYPE_SMEAR:
       return true;
     default:
       return false;

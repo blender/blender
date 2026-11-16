@@ -285,8 +285,11 @@ void MovieReaderCache::reader_open(MovieReaderCacheEntry &entry)
   IMB_colormanagement_colorspace_settings_set(&colorspace_settings, key.colorspace.c_str());
   const std::string &filepath = key.multiview_filepath.empty() ? key.source_filepath :
                                                                  key.multiview_filepath;
-  entry.reader = MOV_open_file(
-      filepath.c_str(), key.flags, key.stream_index, true, &colorspace_settings);
+  entry.reader = MOV_open_file(filepath.c_str(),
+                               key.flags | ImBufFlags::PoolPixels,
+                               key.stream_index,
+                               true,
+                               &colorspace_settings);
   if (entry.reader == nullptr) {
     return;
   }

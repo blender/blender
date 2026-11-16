@@ -133,6 +133,13 @@ ImBuf *IMB_thumb_load_image(const char *filepath,
 ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, ImBufFlags flags);
 void IMB_freeImBuf(ImBuf *ibuf);
 
+void IMB_pixel_pool_set_limit(size_t limit);
+void IMB_pixel_pool_clear();
+/** Free oldest unused storage until at most max_unused_bytes remain. */
+void IMB_pixel_pool_trim(size_t max_unused_bytes);
+/** Bytes cached in the pixel pool, excluding storage owned by live images. */
+size_t IMB_pixel_pool_unused_bytes_get();
+
 /**
  * Initialize given ImBuf.
  *
@@ -542,7 +549,7 @@ void IMB_rectfill_alpha(ImBuf *ibuf, float value);
  * Allocate storage for byte type pixels.
  * If the image already contains byte data storage, it is freed first.
  */
-bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels = true);
+bool IMB_alloc_byte_pixels(ImBuf *ibuf, bool initialize_pixels = true, size_t alignment = 0);
 
 /**
  * Deallocate image byte storage. The colorspace is kept.
@@ -553,7 +560,10 @@ void IMB_free_byte_pixels(ImBuf *ibuf);
  * Allocate storage for float type pixels.
  * If the image already contains float data storage, it is freed first.
  */
-bool IMB_alloc_float_pixels(ImBuf *ibuf, unsigned int channels, bool initialize_pixels = true);
+bool IMB_alloc_float_pixels(ImBuf *ibuf,
+                            unsigned int channels,
+                            bool initialize_pixels = true,
+                            size_t alignment = 0);
 /**
  * Deallocate image float storage. The colorspace is kept.
  */

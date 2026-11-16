@@ -589,6 +589,29 @@ static void data_transfer_layersmapping_add_item_cd(
                                        interp_data);
 }
 
+static std::string add_attribute_unique_name(Mesh &mesh_dst,
+                                             const StringRef name,
+                                             const bke::AttrDomain domain,
+                                             const bke::AttrType attr_type)
+{
+  std::string unique_name = BKE_attribute_calc_unique_name(AttributeOwner::from_id(&mesh_dst.id),
+                                                           name);
+  mesh_dst.attributes_for_write().add(
+      unique_name, domain, attr_type, bke::AttributeInitDefaultValue());
+  return unique_name;
+}
+
+static bke::GSpanAttributeWriter lookup_matching_writer(bke::MutableAttributeAccessor &attributes,
+                                                        const StringRef name,
+                                                        const bke::AttrDomain domain,
+                                                        const bke::AttrType attr_type)
+{
+  if (attributes.lookup_meta_data(name) != bke::AttributeMetaData{domain, attr_type}) {
+    return {};
+  }
+  return attributes.lookup_for_write_span(name);
+}
+
 /**
  * \note
  * All those layer mapping handlers return false *only* if they were given invalid parameters.
@@ -633,7 +656,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
   }
 
   switch (tolayers) {
-    case DT_LAYERS_INDEX_DST:
+    case DT_LAYERS_INDEX_DST: {
+      Vector<std::string> created_names;
       idx_dst = tot_dst;
 
       /* Find last source actually used! */
@@ -646,8 +670,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
         if (use_create) {
           /* Create as much data layers as necessary! */
           for (; idx_dst < idx_src; idx_dst++) {
-            dst_attributes.add(
-                src_names[idx_dst], domain, attr_type, bke::AttributeInitDefaultValue());
+            created_names.append(
+                add_attribute_unique_name(mesh_dst, src_names[idx_dst], domain, attr_type));
           }
         }
         else {
@@ -665,9 +689,10 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
           if (!use_layers_src[idx_src]) {
             continue;
           }
-          /* Layers created above use the source names and aren't part of #dst_names. */
-          const StringRef name_dst = idx_src < tot_dst ? StringRef(dst_names[idx_src]) :
-                                                         StringRef(src_names[idx_src]);
+          /* Layers created above aren't part of #dst_names. */
+          const StringRef name_dst = idx_src < tot_dst ?
+                                         StringRef(dst_names[idx_src]) :
+                                         StringRef(created_names[idx_src - tot_dst]);
           data_src = *src_attributes.lookup(src_names[idx_src], domain, attr_type);
           data_dst = dst_attributes.lookup_for_write_span(name_dst);
           data_transfer_layersmapping_add_item_cd(r_map,
@@ -682,6 +707,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
         }
       }
       break;
+    }
     case DT_LAYERS_NAME_DST: {
       Vector<std::string> data_dst_to_delete;
 
@@ -693,6 +719,15 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
         }
 
         name = src_names[idx_src].c_str();
+
+        /* An attribute with this name but another type or domain can't be written to, and blocks
+         * creating the layer. */
+        const std::optional<bke::AttributeMetaData> meta_dst = dst_attributes.lookup_meta_data(
+            name);
+        if (meta_dst && *meta_dst != bke::AttributeMetaData{domain, attr_type}) {
+          continue;
+        }
+
         data_src = *src_attributes.lookup(src_names[idx_src], domain, attr_type);
         data_dst = dst_attributes.lookup_for_write_span(name);
         if (!std::get<bke::GSpanAttributeWriter>(data_dst)) {
@@ -809,7 +844,12 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
         return true;
       }
     }
-    const int idx_src = src_names.first_index_of(name_src);
+    /* The active color attribute may have another type or domain than this pass. It's only
+     * transferred by a pass that matches it, which may not run for the requested domain. */
+    const int idx_src = src_names.first_index_of_try(name_src);
+    if (idx_src == -1) {
+      return true;
+    }
 
     GVArray data_src = *src_attributes.lookup(name_src, domain, attr_type);
     if (!data_src) {
@@ -844,13 +884,9 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
         if (!use_create) {
           return true;
         }
-        name_dst = name_src;
-        dst_attributes.add(name_dst, domain, attr_type, bke::AttributeInitDefaultValue());
-        data_dst = dst_attributes.lookup_for_write_span(name_dst);
+        name_dst = add_attribute_unique_name(mesh_dst, name_src, domain, attr_type);
       }
-      else {
-        data_dst = dst_attributes.lookup_for_write_span(name_dst);
-      }
+      data_dst = lookup_matching_writer(dst_attributes, name_dst, domain, attr_type);
     }
     else if (tolayers == DT_LAYERS_INDEX_DST) {
       int num = dst_names.size();
@@ -861,8 +897,7 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
         }
         /* Create as much data layers as necessary! */
         for (; num <= idx_dst; num++) {
-          dst_attributes.add(src_names[num], domain, attr_type, bke::AttributeInitDefaultValue());
-          dst_names.append(src_names[num]);
+          dst_names.append(add_attribute_unique_name(mesh_dst, src_names[num], domain, attr_type));
         }
       }
 
@@ -880,14 +915,16 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
 
         dst_attributes.add(name, domain, attr_type, bke::AttributeInitDefaultValue());
       }
-      data_dst = dst_attributes.lookup_for_write_span(name);
+      data_dst = lookup_matching_writer(dst_attributes, name, domain, attr_type);
     }
     else {
       return false;
     }
 
+    /* The destination has another type or domain than this pass. There is nothing to transfer, but
+     * these are not invalid parameters. */
     if (!std::visit([&](const auto &value) { return bool(value); }, data_dst)) {
-      return false;
+      return true;
     }
 
     transfer_attribute_name_strings(cddata_type, mesh_dst, mesh_src);

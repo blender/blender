@@ -17,7 +17,9 @@ class BlurWeightPaintOperation : public WeightPaintOperation {
     /* Find the nearest neighbors of the to-be-blurred point. The point itself is included. */
     std::array<KDTree<float2>::Nearest, BLUR_NEIGHBOUR_NUM> nearest_points;
     const int point_num = touched_points.kdtree.find_nearest_n(
-        drawing_weight.point_positions[point.drawing_point_index], nearest_points);
+        drawing_weight.point_positions[point.drawing_point_index],
+        std::numeric_limits<float>::max(),
+        nearest_points);
 
     if (point_num <= 1) {
       return;

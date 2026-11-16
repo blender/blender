@@ -694,6 +694,7 @@ void KDTree<T>::build(const Span<T> points,
                       const int leaf_size,
                       LinearAllocator<> &allocator)
 {
+  PRF_scope(ProfileCategory::Core);
   const Span<VecT> vectors(reinterpret_cast<const VecT *>(points.data()), points.size());
   points_ = vectors.data();
   if (size == 0) {

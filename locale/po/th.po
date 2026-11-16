@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-03-19 12:41+0000\n"
 "Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -3610,10 +3610,6 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "ไม่พบพื้นที่สี มุมมอง หรือการแสดงผล ซึ่งอาจหมายความว่าไฟล์การกำหนดค่า OpenColorIO ที่ใช้สร้างไฟล์ Blend นี้หายไป"
 
 
-msgid "Blender"
-msgstr "Blender"
-
-
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "พื้นที่สีที่ใช้สำหรับสีเชิงเส้นทั้งหมดในฉากในไฟล์นี้ รวมถึงการประมวลผลโหนดการจัดองค์ประกอบภาพ เชเดอร์ และเรขาคณิต"
 
@@ -3652,6 +3648,10 @@ msgstr "ตัวเลือกสำหรับการนำเข้าไ
 
 msgid "Only link data, instead of appending it"
 msgstr "เพียงแค่เชื่อมโยงข้อมูล ไม่ใช่เพิ่มข้อมูลต่อท้าย"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "Path"
@@ -4893,50 +4893,6 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
-msgid "Snap"
-msgstr "ยึดติด"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
-
-
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
-
-
 msgid "Viewpoint"
 msgstr "จุดของมุมมอง"
 
@@ -4961,8 +4917,16 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
 
 
 msgid "Light"
@@ -4981,16 +4945,52 @@ msgid "Track"
 msgstr "แทร็ค"
 
 
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
 msgid "Layout"
 msgstr "เค้าโครง"
 
 
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
 msgid "Keying"
 msgstr "คีย์"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Pivot Point"
+msgstr "จุดหมุน"
+
+
+msgid "Snap"
+msgstr "ยึดติด"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
 
 
 msgid "Zoom"
@@ -6335,10 +6335,6 @@ msgid "Editor"
 msgstr "ตัวแก้ไข"
 
 
-msgid "Text Style"
-msgstr "สไตล์ข้อความ"
-
-
 msgid "User Interface"
 msgstr "อินเตอร์เฟสผู้ใช้"
 
@@ -6673,6 +6669,10 @@ msgstr "เสียง"
 
 msgid "Text color"
 msgstr "สีข้อความ"
+
+
+msgid "Text Style"
+msgstr "สไตล์ข้อความ"
 
 
 msgid "Selected Text"

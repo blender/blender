@@ -69,8 +69,9 @@ struct ProxyBuildContext {
 static MovieReader *movie_reader_open(Strip &strip, const char *filepath, const bool open_file)
 {
   /* Sequencer performs colorspace conversion, so keep the decoded input unchanged. */
-  const ImBufFlags flags = (strip.flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace :
-                                                            ImBufFlags::Zero;
+  const ImBufFlags flags = ImBufFlags::PoolPixels |
+                           ((strip.flag & SEQ_DEINTERLACE) ? ImBufFlags::Deinterlace :
+                                                             ImBufFlags::Zero);
   if (open_file) {
     return openanim(filepath, flags, strip.streamindex, true, &strip.data->colorspace_settings);
   }
@@ -311,7 +312,7 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
       /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
        * kept unchanged for the performance reasons. */
       proxy->anim = openanim(
-          filepath, ImBufFlags::Zero, 0, true, &strip->data->colorspace_settings);
+          filepath, ImBufFlags::PoolPixels, 0, true, &strip->data->colorspace_settings);
     }
     if (proxy->anim == nullptr) {
       return nullptr;
@@ -333,7 +334,8 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
         context->scene->sequencer_colorspace_settings;
     return IMB_load_image_from_filepath(filepath,
                                         ImBufFlags::ByteData | ImBufFlags::Metadata |
-                                            ImBufFlags::NoColorspaceConvert,
+                                            ImBufFlags::NoColorspaceConvert |
+                                            ImBufFlags::PoolPixels,
                                         &colorspace_settings);
   }
 
@@ -598,7 +600,7 @@ static ImBuf *render_image_strip_frame(const ProxyBuildContext &context,
 {
   ImBuf *ibuf = nullptr;
 
-  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata;
+  ImBufFlags flag = ImBufFlags::ByteData | ImBufFlags::Metadata | ImBufFlags::PoolPixels;
   if (strip.alpha_mode == SEQ_ALPHA_PREMUL) {
     flag |= ImBufFlags::AlphaPremul;
   }

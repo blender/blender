@@ -1424,7 +1424,7 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
 }
 
 static void idp_foreach_property_recurse(IDProperty *id_property_root,
-                                         const int type_filter,
+                                         const eIDPropertyTypeFilter type_filter,
                                          const int recursion_depth,
                                          const FunctionRef<void(IDProperty *id_property)> callback)
 {
@@ -1467,7 +1467,7 @@ static void idp_foreach_property_recurse(IDProperty *id_property_root,
 }
 
 void IDP_foreach_property(IDProperty *id_property_root,
-                          const int type_filter,
+                          const eIDPropertyTypeFilter type_filter,
                           const FunctionRef<void(IDProperty *id_property)> callback)
 {
   idp_foreach_property_recurse(id_property_root, type_filter, 0, callback);
@@ -2250,7 +2250,7 @@ namespace bke::idprop {
 
 void hash(const IDProperty &base_prop, XXH3_state_t *hash_state)
 {
-  IDP_foreach_property(&const_cast<IDProperty &>(base_prop), 0, [&](const IDProperty *prop) {
+  IDP_foreach_property(&const_cast<IDProperty &>(base_prop), {}, [&](const IDProperty *prop) {
     XXH3_64bits_update(hash_state, prop->name, strlen(prop->name));
     XXH3_64bits_update(hash_state, &prop->type, sizeof(prop->type));
 

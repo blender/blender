@@ -116,7 +116,7 @@ void asset_tooltip(const asset_system::AssetRepresentation &asset,
 BIFIconID asset_preview_icon_id(const asset_system::AssetRepresentation &asset)
 {
   if (const PreviewImage *preview = asset.get_preview()) {
-    if (!BKE_previewimg_is_invalid(preview, ICON_SIZE_ICON)) {
+    if (!BKE_previewimg_is_invalid(preview, ICON_SIZE_PREVIEW)) {
       return preview->runtime->icon_id;
     }
   }

@@ -906,6 +906,12 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Noise Scale", "Scale the noise frequency");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
+  /* Random Noise Seed. */
+  prop = RNA_def_property(srna, "random_noise_seed", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "random_noise_seed");
+  RNA_def_property_ui_text(prop, "Seed", "Seed for the random pattern");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+
   /* Pass index for modifiers. */
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "index");

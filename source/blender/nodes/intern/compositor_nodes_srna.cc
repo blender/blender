@@ -64,7 +64,7 @@ find_strip_and_modifier_data_from_system_property(const PointerRNA *ptr)
   for (Strip *strip : seq::query_all_strips_recursive(&ed->seqbase)) {
     for (StripModifierData &md : strip->modifiers) {
       bool found = false;
-      IDP_foreach_property(md.system_properties, 0, [&](IDProperty *id_prop) {
+      IDP_foreach_property(md.system_properties, {}, [&](IDProperty *id_prop) {
         if (id_prop == ptr->data) {
           found = true;
         }
@@ -91,7 +91,7 @@ static const Strip *find_effect_strip_from_system_property(const PointerRNA *ptr
     }
     const auto *comp = static_cast<const CompositorEffectVars *>(strip->effectdata);
     bool found = false;
-    IDP_foreach_property(comp->system_properties, 0, [&](IDProperty *id_prop) {
+    IDP_foreach_property(comp->system_properties, {}, [&](IDProperty *id_prop) {
       if (id_prop == ptr->data) {
         found = true;
       }

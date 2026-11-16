@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-11-02 21:33+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -1871,10 +1871,6 @@ msgid "Saturation"
 msgstr "Saturație"
 
 
-msgid "Both"
-msgstr "Ambele"
-
-
 msgid "Object Path"
 msgstr "Calea Obiectului"
 
@@ -2305,6 +2301,10 @@ msgstr "Pornire"
 
 msgid "Rotate"
 msgstr "Rotație"
+
+
+msgid "Both"
+msgstr "Ambele"
 
 
 msgid "Ambient Occlusion"

@@ -1502,7 +1502,8 @@ static void emit_from_particles_task_cb(void *__restrict userdata,
       /* Find particle distance from the kdtree. */
       const float range = data->solid + data->smooth;
       float nearest_dist_sq;
-      const int nearest_index = data->tree->find_nearest(ray_start, &nearest_dist_sq);
+      const int nearest_index = data->tree->find_nearest(
+          ray_start, std::numeric_limits<float>::max(), &nearest_dist_sq);
       const float nearest_dist = std::sqrt(nearest_dist_sq);
 
       if (nearest_dist < range) {

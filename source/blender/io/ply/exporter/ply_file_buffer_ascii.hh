@@ -21,6 +21,8 @@ class FileBufferAscii : public FileBuffer {
 
   void write_data(float v) override;
 
+  void write_data(const void *value, PlyDataTypes type) override;
+
   void write_vertex_normal(float nx, float ny, float nz) override;
 
   void write_vertex_color(uchar r, uchar g, uchar b, uchar a) override;

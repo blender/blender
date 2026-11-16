@@ -52,7 +52,7 @@ static SeqResult do_solid_color(const RenderData * /*context*/,
   SeqResult out;
 
   const SolidColorVars *cv = static_cast<const SolidColorVars *>(strip->effectdata);
-  out.image = IMB_allocImBuf(cv->width, cv->height, ImBufFlags::ByteData);
+  out.image = IMB_allocImBuf(cv->width, cv->height, ImBufFlags::ByteData | ImBufFlags::PoolPixels);
 
   uchar color[4];
   rgb_float_to_uchar(color, cv->col);

@@ -183,6 +183,8 @@ class NODE_MT_gn_grease_pencil_read_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "GeometryNodeGreasePencilOpacity")
         self.node_operator(layout, "GeometryNodeGreasePencilStrokeSoftness")
         self.node_operator(layout, "GeometryNodeGreasePencilStrokeVisibility")
+        layout.separator()
+        self.node_operator(layout, "GeometryNodeGreasePencilMaterialInfo")
         self.node_operator(layout, "GeometryNodeInputNamedLayerSelection")
 
         self.draw_assets_for_catalog(layout, self.menu_path)
@@ -713,6 +715,8 @@ class NODE_MT_gn_utilities_sound_base(node_add_menu.NodeMenu):
     def draw(self, context):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeSampleSoundFrequencies")
+
+        self.draw_assets_for_catalog(layout, self.menu_path)
 
 
 class NODE_MT_gn_texture_base(node_add_menu.NodeMenu):

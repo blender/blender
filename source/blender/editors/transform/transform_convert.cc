@@ -274,7 +274,8 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
       const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
       float distance_sq;
-      const int td_index = td_tree.find_nearest(vec, &distance_sq);
+      const int td_index = td_tree.find_nearest(
+          vec, std::numeric_limits<float>::max(), &distance_sq);
 
       td->rdist = -1.0f;
       if (td_index != -1) {
@@ -1067,7 +1068,13 @@ void create_trans_data(bContext *C, TransInfo *t)
   else {
     BKE_view_layer_synced_ensure(*t->bmain, t->scene, t->view_layer);
     Object *ob = BKE_view_layer_active_object_get(t->view_layer);
-    init_TransDataContainers(t, ob, {});
+    /* Grease Pencil Draw mode only supports editing the active object. */
+    if (ob && (ob->mode & OB_MODE_PAINT_GREASE_PENCIL)) {
+      init_TransDataContainers(t, ob, {ob});
+    }
+    else {
+      init_TransDataContainers(t, ob, {});
+    }
   }
 
   if (t->data_type == &TransConvertType_Object) {

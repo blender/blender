@@ -378,10 +378,13 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
   }
   Scene *changed_scene = update_ctx->scene;
 
-  /* Changed datablocks invalidate camera-input scene strips.
-   * Changed strips invalidate sequencer-input scene strips. */
-  if (id->id_type() != ID_SCE || id->recalc & ID_RECALC_SEQUENCER_STRIPS) {
+  /* Changed datablocks invalidate camera-input scene strips. */
+  if (id->id_type() != ID_SCE) {
     seq::relations_invalidate_scene_strips(bmain, changed_scene);
+  }
+  /* Changed strips invalidate sequencer-input scene strips. */
+  else if (id->recalc & ID_RECALC_SEQUENCER_STRIPS) {
+    seq::relations_invalidate_scene_strips(bmain, id_cast<Scene *>(id));
   }
 
   /* Invalidate rendered VSE caches in `changed_scene`, because strip animation may have been

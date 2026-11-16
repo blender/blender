@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-01-20 15:20+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -1132,10 +1132,6 @@ msgid "Saturation"
 msgstr "היוור"
 
 
-msgid "Both"
-msgstr "םהינש"
-
-
 msgctxt "File browser"
 msgid "Path"
 msgstr "ביתנ"
@@ -2237,14 +2233,6 @@ msgid "Grease Pencil Color"
 msgstr "Grease Pencil יאבצ"
 
 
-msgid "Face Data"
-msgstr "האפ ינותנ"
-
-
-msgid "Mirror"
-msgstr "הארמ"
-
-
 msgid "Apply"
 msgstr "לחה"
 
@@ -2255,6 +2243,14 @@ msgstr "רמה"
 
 msgid "Layout"
 msgstr "הסירפ"
+
+
+msgid "Face Data"
+msgstr "האפ ינותנ"
+
+
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Proxy"
@@ -2421,6 +2417,10 @@ msgid "UV Sphere"
 msgstr "UV רודכ"
 
 
+msgid "Both"
+msgstr "םהינש"
+
+
 msgid "Set Position"
 msgstr "םוקימ עבק"
 
@@ -2557,6 +2557,11 @@ msgid "Eraser"
 msgstr "קחמ"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "תרשוקמ הריחב רחב"
+
+
 msgid "Image Name"
 msgstr "הנומת םש"
 
@@ -2675,11 +2680,6 @@ msgstr "םש הנש"
 
 msgid "Reset"
 msgstr "לוחתא"
-
-
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "תרשוקמ הריחב רחב"
 
 
 msgid "Affect only faces facing towards the view"

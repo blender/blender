@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-08-25 20:13+0000\n"
 "Last-Translator: \"Mattis V.\" <mattis@users.noreply.translate.blender.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -3057,14 +3057,6 @@ msgid "Collection of worlds"
 msgstr "Sammlung von Welten"
 
 
-msgid "Project"
-msgstr "Projekt"
-
-
-msgid "Blender"
-msgstr "Blender"
-
-
 msgid "Options for this blendfile import operation"
 msgstr "Optionen für diese blendfile Import-Operation"
 
@@ -3232,6 +3224,10 @@ msgstr "Ob das Projekt ungespeicherte Änderungen hat"
 
 msgid "The project's name"
 msgstr "Der Projektname"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "Path"
@@ -4849,24 +4845,8 @@ msgid "Factor used to mix vertex color to get final color"
 msgstr "Faktor, der zum Mischen von Eckpunktfarbe verwendet wird, um die endgültige Farbe zu erhalten"
 
 
-msgid "Mode Type"
-msgstr "Modustyp"
-
-
 msgid "Defines how vertex color affect to the strokes"
 msgstr "Definiert, wie sich die Eckpunktfarbe auf die Striche auswirkt"
-
-
-msgid "Stroke"
-msgstr "Pinselstrich"
-
-
-msgid "Fill"
-msgstr "Füllen"
-
-
-msgid "Both"
-msgstr "Beides"
 
 
 msgid "Byte Color Attribute Value"
@@ -7609,6 +7589,10 @@ msgstr "Nächster Oberflächenpunkt"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Zwischen ausgewählten Markierungen"
+
+
+msgid "Project"
+msgstr "Projekt"
 
 
 msgid "Nearest Vertex"
@@ -11301,6 +11285,10 @@ msgid "Sound"
 msgstr "Sound"
 
 
+msgid "Dynamic"
+msgstr "Dynamisch"
+
+
 msgid "A collection of objects based on which feature edges are selected"
 msgstr "Eine Sammlung von Objekten, auf deren Grundlage welche Feature-Kanten ausgewählt werden"
 
@@ -11643,10 +11631,6 @@ msgstr "Strichdicke skalieren"
 
 msgid "Use Curve"
 msgstr "Kurve verwenden"
-
-
-msgid "Dynamic"
-msgstr "Dynamisch"
 
 
 msgid "Single"
@@ -19292,100 +19276,8 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Math"
-msgstr "Mathe"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Read"
-msgstr "Lesen"
-
-
-msgid "Sample"
-msgstr "Beispiel"
-
-
 msgid "Write"
 msgstr "Schreiben"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Instances"
-msgstr "Instanzen"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
 
 
 msgid "Viewpoint"
@@ -19394,6 +19286,10 @@ msgstr "Ansicht"
 
 msgid "Navigation"
 msgstr "Navigation"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
 
 
 msgid "Align View"
@@ -19432,12 +19328,32 @@ msgid "Select Loops"
 msgstr "Schleifen auswählen"
 
 
+msgid "Math"
+msgstr "Mathe"
+
+
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Read"
+msgstr "Lesen"
+
+
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Stroke"
+msgstr "Pinselstrich"
+
+
 msgid "Assign Material"
 msgstr "Material zuweisen"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -19472,6 +19388,14 @@ msgid "Quick Effects"
 msgstr "Schnelle Effekte"
 
 
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
 msgid "Asset"
 msgstr "Asset"
 
@@ -19484,16 +19408,20 @@ msgid "Convert"
 msgstr "Konvertieren"
 
 
-msgid "Hooks"
-msgstr "Haken"
-
-
 msgid "Linked"
 msgstr "Verknüpft"
 
 
 msgid "Layout"
 msgstr "Layout"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
 
 
 msgid "Random Mask"
@@ -19516,8 +19444,68 @@ msgid "Tracking"
 msgstr "Verfolgen"
 
 
+msgid "Names"
+msgstr "Namen"
+
+
 msgid "Toggle Bone Options"
 msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Instances"
+msgstr "Instanzen"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
 
 
 msgid "Assets"
@@ -20959,6 +20947,10 @@ msgstr "Verzögerung"
 
 msgid "Grow"
 msgstr "Wachsen"
+
+
+msgid "Fill"
+msgstr "Füllen"
 
 
 msgid "Fills"
@@ -24130,6 +24122,10 @@ msgstr "Festlegen von Griffpositionen"
 
 msgid "Set Curve Radius"
 msgstr "Setze Kurvenradius"
+
+
+msgid "Both"
+msgstr "Beides"
 
 
 msgid "Set ID"
@@ -30150,6 +30146,11 @@ msgid "(De)select All Strokes"
 msgstr "(Ab)wählen aller Striche"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "Verknüpfte auswählen"
+
+
 msgid "By Material"
 msgstr "Nach Material"
 
@@ -34733,11 +34734,6 @@ msgstr "Flächenauswahl ausblenden"
 
 
 msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "Verknüpfte auswählen"
-
-
-msgctxt "Operator"
 msgid "Grab Clone"
 msgstr "Kegel greifen"
 
@@ -38378,10 +38374,6 @@ msgid "Select new objects"
 msgstr "Auswählen neuer Objekte"
 
 
-msgid "Localize All"
-msgstr "Alles lokalisieren"
-
-
 msgctxt "Operator"
 msgid "Call Menu"
 msgstr "Menü aufrufen"
@@ -39308,6 +39300,42 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -39336,10 +39364,6 @@ msgid "Overlays"
 msgstr "Überlagerungen"
 
 
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -39350,38 +39374,6 @@ msgstr "Maschenbearbeitungsmodus"
 
 msgid "Measurement"
 msgstr "Messung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -40007,6 +39999,10 @@ msgid "Text Rendering"
 msgstr "Text-Rendering"
 
 
+msgid "Font Style"
+msgstr "Schriftart-Stil"
+
+
 msgctxt "WindowManager"
 msgid "Language"
 msgstr "Sprache"
@@ -40098,10 +40094,6 @@ msgstr "Bildlaufleiste"
 
 msgid "Tab"
 msgstr "Tab"
-
-
-msgid "Text Style"
-msgstr "Stil setzen"
 
 
 msgid "User Interface"
@@ -41081,6 +41073,10 @@ msgstr "Material verknüpfen mit"
 
 msgid "Toggle whether the material is linked to object data or the object block"
 msgstr "Umschalten, ob ein Material mit den Objektdaten oder dem Objekt-Block verknüpft wird"
+
+
+msgid "Noodle Curving"
+msgstr "Experimentiergrümmung"
 
 
 msgid "Align Object To"
@@ -46455,6 +46451,10 @@ msgid "Active Theme Area"
 msgstr "Aktives Themengebiet"
 
 
+msgid "Text Style"
+msgstr "Stil setzen"
+
+
 msgid "Colored Constraints"
 msgstr "Färbe Beschränkungen ein"
 
@@ -46653,38 +46653,6 @@ msgstr "Dateibrowser Thema"
 
 msgid "Theme settings for the File Browser"
 msgstr "Themeneinstellungen für den Dateibrowser"
-
-
-msgid "Font Style"
-msgstr "Schriftart-Stil"
-
-
-msgid "Shadow Size"
-msgstr "Schattengröße"
-
-
-msgid "Shadow Alpha"
-msgstr "Schattenalpha"
-
-
-msgid "Shadow X Offset"
-msgstr "Schatten X-Versatz"
-
-
-msgid "Shadow offset in pixels"
-msgstr "Schattenversatz in Pixel"
-
-
-msgid "Shadow Y Offset"
-msgstr "Schatten Y-Versatz"
-
-
-msgid "Shadow Brightness"
-msgstr "Schattenhelligkeit"
-
-
-msgid "Shadow color in gray value"
-msgstr "Schattenfarbe in Graustufen"
 
 
 msgid "Theme Background Color"
@@ -46907,14 +46875,6 @@ msgid "Node Selected"
 msgstr "Knotenauswahl"
 
 
-msgid "Noodle Curving"
-msgstr "Experimentiergrümmung"
-
-
-msgid "Curving of the noodle"
-msgstr "Kurven des Kabelsalats"
-
-
 msgid "Script Node"
 msgstr "Skriptknoten"
 
@@ -47027,10 +46987,6 @@ msgid "Theme settings for the Status Bar"
 msgstr "Themeneinstellungen für die Statusleiste"
 
 
-msgid "Theme settings for style sets"
-msgstr "Themeneinstellungen für Stilmengen"
-
-
 msgid "Theme settings for the Text Editor"
 msgstr "Themeneinstellungen für den Texteditor"
 
@@ -47133,6 +47089,10 @@ msgstr "Rundheit der Paneele"
 
 msgid "Panel Title"
 msgstr "Paneltitel"
+
+
+msgid "Shadow offset in pixels"
+msgstr "Schattenversatz in Pixel"
 
 
 msgid "Menu Backdrop Colors"
@@ -48841,6 +48801,10 @@ msgstr "Allgemeines Werkzeug: Polygonkommentar"
 msgctxt "WindowManager"
 msgid "Generic Tool: Annotate Eraser"
 msgstr "Allgemeines Werkzeug: Radiergummikommentar"
+
+
+msgid "Close"
+msgstr "Schließen"
 
 
 msgctxt "Operator"
@@ -52330,10 +52294,6 @@ msgid "B"
 msgstr "B"
 
 
-msgid "Shadow Offset X"
-msgstr "Schattenversatz X"
-
-
 msgid "Temporary Files"
 msgstr "Temporäre Dateien"
 
@@ -52486,11 +52446,6 @@ msgstr "Aktive Kamera auswählen"
 msgctxt "Operator"
 msgid "Select Pattern..."
 msgstr "Nach Muster auswählen..."
-
-
-msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "Beschränkungsziel"
 
 
 msgctxt "Operator"
@@ -55154,10 +55109,6 @@ msgid "Intersection Type"
 msgstr "Schnittflächentyp"
 
 
-msgid "Close"
-msgstr "Schließen"
-
-
 msgid "Select Ring"
 msgstr "Ringauswahl"
 
@@ -55272,14 +55223,6 @@ msgstr "Ploys können im Bearbeitungsmodus nicht entfertn werden"
 
 msgid "Cannot remove more polys than the mesh contains"
 msgstr "Es können nicht mehr Polys entfernt werden, als in der Masche enthalten sind"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s gespiegelt, %d fehlgeschlagen"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s gespiegelt"
 
 
 msgid "Cannot join while in edit mode"
@@ -56779,14 +56722,6 @@ msgid " (Local)"
 msgstr " (Lokal)"
 
 
-msgid "fps: %.2f"
-msgstr "fps: %.2f"
-
-
-msgid "fps: %i"
-msgstr "fps: %i"
-
-
 msgid "Cannot navigate when the view offset is locked"
 msgstr "Navigieren ist nicht möglich wenn der Sichtversatz gesperrt ist"
 
@@ -57074,10 +57009,6 @@ msgstr "Überschreibe %s"
 
 msgid "UV Vertex"
 msgstr "UV Knoten"
-
-
-msgid "Error writing frame"
-msgstr "Einzelbild Schreibfehler"
 
 
 msgid "No valid formats found"

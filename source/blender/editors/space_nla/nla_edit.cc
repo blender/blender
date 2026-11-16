@@ -2173,7 +2173,7 @@ static wmOperatorStatus nlaedit_apply_scale_exec(bContext *C, wmOperator * /*op*
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bool copied = false;
 
-  KeyframeEditData ked = {{nullptr}};
+  KeyframeEditData ked{};
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {

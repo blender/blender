@@ -369,6 +369,14 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
     float tf = float(t * fps + anim_offset);
     ufbx_transform xform = ufbx_evaluate_transform(fbx_anim, fnode, t);
 
+    /* Camera/light axes must be corrected before applying the bone-parent offset. */
+    if (fnode->camera || fnode->light ||
+        (fnode->parent && (fnode->parent->camera || fnode->parent->light)))
+    {
+      const ufbx_matrix matrix = camera_light_transform_to_matrix(xform, *fnode);
+      xform = ufbx_matrix_to_transform(&matrix);
+    }
+
     if (is_bone) {
       ufbx_matrix matrix = calc_bone_pose_matrix(xform, *fnode, bone_xform);
       xform = ufbx_matrix_to_transform(&matrix);

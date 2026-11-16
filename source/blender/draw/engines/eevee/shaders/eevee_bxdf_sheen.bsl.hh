@@ -5,7 +5,7 @@
 #pragma once
 
 #include "eevee_bxdf_types.bsl.hh"
-#include "eevee_sampling_lib.bsl.hh"
+#include "eevee_ltc_lib.bsl.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Sheen BSDF
@@ -38,7 +38,7 @@ struct Sheen {
   float3x3 M() const
   {
     const float inv_A = 1.0f / A;
-    return float3x3(inv_A, 0.0f, 0.0f, 0.0f, inv_A, 0.0f, B * inv_A, 0.0f, 1.0f);
+    return float3x3(inv_A, 0.0f, 0.0f, 0.0f, inv_A, 0.0f, -B * inv_A, 0.0f, 1.0f);
   }
 
   /* Determinant of M^{-1}. */
@@ -47,10 +47,10 @@ struct Sheen {
     return square(A);
   }
 
-  /* Probability of sampling direction L with normal direction N. */
-  float pdf(const float3 L, const float3 N) const
+  /* Probability of sampling direction L with normal direction N and view direction V. */
+  float pdf(const float3 L, const float3 N, const float3 V) const
   {
-    return pdf_ltc(L, N, M(), M_inv(), det_M_inv());
+    return eevee::ltc::pdf(L, N, V, M(), M_inv(), det_M_inv());
   }
 };
 
@@ -67,10 +67,10 @@ struct BsdfSheen : BsdfClosure::Interface {
     return bsdf;
   }
 
-  static BsdfSheen unpack(const UtilityTexture &util_tx, const float3 V, const BsdfClosure cl)
+  static BsdfSheen unpack(const UtilityTexture &util_tx, const float NV, const BsdfClosure cl)
   {
     BsdfSheen bsdf = unpack(cl);
-    bsdf.sheen = Sheen::init(util_tx, cl.data.x, dot(cl.N, V));
+    bsdf.sheen = Sheen::init(util_tx, cl.data.x, NV);
     return bsdf;
   }
 
@@ -78,31 +78,28 @@ struct BsdfSheen : BsdfClosure::Interface {
   {
     BsdfSample result;
     /* Same as `sample_ltc(M, rand)` but unnormalized, so we can compute the Jacobian for pdf. */
-    result.direction = sheen.M() * sample_cos_hemisphere(rand);
+    result.direction = sheen.M() * sample_cos_hemisphere(rand, result.pdf);
     const float l = length(result.direction);
     result.direction /= l;
 
     /* Same as `pdf_ltc()`, but saves a few matrix multiplications. */
     const float Jacobian = pow3f(l) * sheen.det_M_inv();
-    result.pdf = M_1_PI * saturate(result.direction.z) * Jacobian;
+    result.pdf *= Jacobian;
 
     return result;
   }
 
-  BsdfEval eval(const float3 /*V*/, const float3 L, Thickness /*thickness*/) const final
+  BsdfEval eval(const float3 V, const float3 L, Thickness /*thickness*/) const final
   {
-    const float pdf = sheen.pdf(L, N);
-    return {.throughput = pdf * sheen.R, .pdf = pdf, .weight = sheen.R};
+    const float pdf = sheen.pdf(L, N, V);
+    return {.throughput = pdf, .pdf = pdf, .weight = 1.0f};
   }
 
-  LightProbeRay lightprobe_ray(float3 /*V*/, Thickness /*thickness*/) const final
+  LightProbeRay lightprobe_ray(const float3 V, Thickness /*thickness*/) const final
   {
     LightProbeRay probe;
     probe.perceptual_roughness = perceived_roughness();
-    /* According to "Real-Time Polygonal-Light Shading with Linearly Transformed Cosines"
-     * by Eric Heitz et. al, the transformed median vector is the median vector of the transformed
-     * distribution. */
-    probe.dominant_direction = normalize(sheen.M() * float3(N));
+    probe.dominant_direction = eevee::ltc::detail::dominant_direction(sheen.M(), N, V);
     return probe;
   }
 

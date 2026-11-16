@@ -6,6 +6,7 @@
 
 #include <concepts>
 
+#include "BLI_build_config.hh"
 #include "BLI_fixed_string.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_structure_of_array_pointer.hh"
@@ -312,7 +313,7 @@ template<typename ParamTag, typename T> inline auto to_eval_pointer_args(T &&v)
  * obvious loop instead of being embedded into a much larger parent function.
  */
 template<int UnrollAmount, typename ElementFn, typename... ParamTags, typename... Args>
-#ifndef _MSC_VER
+#if COMPILER_GCC
 [[gnu::flatten, gnu::noinline]]
 #endif
 inline void evaluate_element_wise_flattened(const ElementFn &element_fn,

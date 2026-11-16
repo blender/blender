@@ -166,6 +166,12 @@ BMesh *BKE_editmesh_bmesh_get_for_write(Mesh *mesh)
   if (!em) {
     return nullptr;
   }
+  if ((mesh->id.tag & ID_TAG_NO_MAIN) && !(mesh->id.tag & ID_TAG_COPIED_ON_EVAL)) {
+    /* See #BKE_editmesh_bmesh_get. */
+    if (mesh->runtime->wrapper_type != ME_WRAPPER_TYPE_BMESH) {
+      return nullptr;
+    }
+  }
   /* Only original meshes can edit the #BMesh. Evaluated meshes share the original's #EditMesh. */
   BLI_assert((mesh->id.tag & ID_TAG_NO_MAIN) == 0);
   return em->bm;

@@ -345,7 +345,7 @@ static PyObject *py_kdtree_find_impl(PyKDTree *self, const float *co, PyObject *
   int nearest;
 
   if (py_filter == Py_None) {
-    nearest = data.tree->find_nearest(CoordT(co), &distance_sq);
+    nearest = data.tree->find_nearest(CoordT(co), std::numeric_limits<float>::max(), &distance_sq);
   }
   else {
     PyKDTree_FilteredNearestQuery query{py_filter, data.indices};
@@ -425,7 +425,8 @@ static PyObject *py_kdtree_find_n_impl(PyKDTree *self, const float *co, uint n)
   const PyKDTreeData<CoordT> &data = *pykdtree_data_get<CoordT>(self);
   Array<typename KDTree<CoordT>::Nearest> nearest(std::min<int64_t>(n, data.tree->size()));
 
-  const int found = data.tree->find_nearest_n(CoordT(co), nearest);
+  const int found = data.tree->find_nearest_n(
+      CoordT(co), std::numeric_limits<float>::max(), nearest);
 
   PyObject *py_list = PyList_New(found);
 

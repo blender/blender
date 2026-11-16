@@ -1631,6 +1631,9 @@ int pyrna_pydict_to_props(PointerRNA *ptr,
     if (STREQ(arg_name, "rna_type")) {
       continue;
     }
+    if (RNA_property_is_shadowed(*ptr, *prop)) {
+      continue;
+    }
 
     if (kw == nullptr) {
       PyErr_Format(
@@ -9335,9 +9338,12 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *e
 
   /* Unfortunately PyObject_GetAttrString won't look up this types tp_dict first :/ */
   if (PyType_Check(self)) {
-    py_srna = reinterpret_cast<BPy_StructRNA *>(
-        PyDict_GetItem((reinterpret_cast<PyTypeObject *>(self))->tp_dict, bpy_intern_str_bl_rna));
-    Py_XINCREF(py_srna);
+    PyTypeObject *py_type = reinterpret_cast<PyTypeObject *>(self);
+    if (py_type->tp_dict) {
+      py_srna = reinterpret_cast<BPy_StructRNA *>(
+          PyDict_GetItem(py_type->tp_dict, bpy_intern_str_bl_rna));
+      Py_XINCREF(py_srna);
+    }
   }
 
   if (parent) {

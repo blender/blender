@@ -186,13 +186,15 @@ struct DensityAddOperationExecutor {
       for (const int new_i : range) {
         const float3 &new_root_pos_cu = new_positions_cu[new_i];
         float distance_to_old_sq = FLT_MAX;
-        self_->deformed_curve_roots_kdtree_->find_nearest(new_root_pos_cu, &distance_to_old_sq);
+        self_->deformed_curve_roots_kdtree_->find_nearest(
+            new_root_pos_cu, std::numeric_limits<float>::max(), &distance_to_old_sq);
         if (distance_to_old_sq < minimum_distance_sq) {
           new_curve_skipped[new_i] = true;
           continue;
         }
         float distance_to_added_sq = FLT_MAX;
-        added_this_stroke_kdtree.find_nearest(new_root_pos_cu, &distance_to_added_sq);
+        added_this_stroke_kdtree.find_nearest(
+            new_root_pos_cu, std::numeric_limits<float>::max(), &distance_to_added_sq);
         if (distance_to_added_sq < minimum_distance_sq) {
           new_curve_skipped[new_i] = true;
         }

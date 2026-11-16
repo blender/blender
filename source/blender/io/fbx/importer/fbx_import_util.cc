@@ -78,11 +78,45 @@ void ufbx_matrix_to_obj(const ufbx_matrix &mtx, Object *obj)
   BKE_object_to_mat4(obj, obj->runtime->object_to_world.ptr());
 }
 
+ufbx_matrix camera_light_transform_to_matrix(const ufbx_transform &transform,
+                                             const ufbx_node &node)
+{
+  ufbx_transform local = transform;
+  ufbx_transform correction = ufbx_identity_transform;
+  if (node.camera || node.light) {
+    correction.rotation = node.adjust_post_rotation;
+    ufbx_quat inverse = correction.rotation;
+    inverse.x = -inverse.x;
+    inverse.y = -inverse.y;
+    inverse.z = -inverse.z;
+    local.rotation = ufbx_quat_mul(local.rotation, inverse);
+  }
+
+  /* Apply axis correction to the matrix, including scale. */
+  ufbx_matrix matrix = ufbx_transform_to_matrix(&local);
+  const ufbx_matrix post = ufbx_transform_to_matrix(&correction);
+  matrix = ufbx_matrix_mul(&matrix, &post);
+  if (node.parent && (node.parent->camera || node.parent->light)) {
+    correction.rotation = node.parent->adjust_post_rotation;
+    const ufbx_matrix parent_post = ufbx_transform_to_matrix(&correction);
+    const ufbx_matrix parent_inverse = ufbx_matrix_invert(&parent_post);
+    matrix = ufbx_matrix_mul(&parent_inverse, &matrix);
+  }
+  return matrix;
+}
+
 void node_matrix_to_obj(const ufbx_node *node, Object *obj, const FbxElementMapping &mapping)
 {
-  ufbx_matrix mtx = ufbx_matrix_mul(node->node_depth < 2 ? &node->node_to_world :
-                                                           &node->node_to_parent,
-                                    &node->geometry_to_node);
+  ufbx_matrix local = node->node_depth < 2 ? node->node_to_world : node->node_to_parent;
+  if (node->camera || node->light ||
+      (node->parent && (node->parent->camera || node->parent->light)))
+  {
+    local = camera_light_transform_to_matrix(node->local_transform, *node);
+    if (node->node_depth < 2 && node->parent) {
+      local = ufbx_matrix_mul(&node->parent->node_to_world, &local);
+    }
+  }
+  ufbx_matrix mtx = ufbx_matrix_mul(&local, &node->geometry_to_node);
 
   /* Handle case of an object parented to a bone: need to set
    * bone as parent, and make transform be at the end of the bone. */

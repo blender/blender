@@ -37,6 +37,11 @@ void FileBufferBinary::write_data(float v)
   write_bytes(span);
 }
 
+void FileBufferBinary::write_data(const void *value, PlyDataTypes type)
+{
+  write_bytes(Span<char>(static_cast<const char *>(value), data_type_size[type]));
+}
+
 void FileBufferBinary::write_vertex_normal(float nx, float ny, float nz)
 {
   float3 vector(nx, ny, nz);

@@ -122,20 +122,22 @@ struct RandomParameters {
   float random_value;
 
   float random_noise_scale;
+  float random_seed_offset;
 };
 
 RandomParameters unpack_random(uint4 random_packed)
 {
   float2 unpacked_x = unpackUnorm2x16(random_packed.x);
-  float2 unpacked_y = unpackUnorm2x16(random_packed.y);
+  float4 unpacked_y = unpackUnorm4x8(random_packed.y);
   float2 unpacked_z = unpackUnorm2x16(random_packed.z);
   return {unpacked_x.x,
           unpacked_x.y,
           unpacked_y.x,
           unpacked_y.y,
-          unpacked_z.x,
-          unpacked_z.y,
-          uintBitsToFloat(random_packed.w)};
+          unpacked_y.z,
+          unpacked_y.w,
+          unpacked_z.x * GP_RANDOM_NOISE_SCALE_MAX,
+          unpacked_z.y * GP_RANDOM_SEED_OFFSET_SCALE};
 }
 
 float simple_noise(float x)
@@ -155,7 +157,7 @@ float4 get_dot_color(float2 uv, int i, float2 dx, float2 dy)
   uint matid = gp_interp_flat.mat_flag >> GPENCIL_MATID_SHIFT;
   RandomParameters Parameters = unpack_random(gp_materials[matid].random_packed);
 
-  float noise_x = float(i) * Parameters.random_noise_scale;
+  float noise_x = float(i) * Parameters.random_noise_scale + Parameters.random_seed_offset;
 
   /* Apply scale, rotate and aspect around the center of the dot/square. */
   uv -= 0.5f;

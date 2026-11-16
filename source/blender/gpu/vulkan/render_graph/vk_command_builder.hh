@@ -100,7 +100,10 @@ class VKCommandBuilder {
     };
     Vector<TrackedAttachment> tracked_attachments;
 
-    /** Layout of the tracked images before the rendering scope started. */
+    /**
+     * Layout of the tracked images after the barriers of the VKNodeType::BEGIN_RENDERING node.
+     * Sub-resources without changes are in this layout.
+     */
     Map<VkImage, VkImageLayout> base_layouts;
 
     /**
@@ -116,10 +119,10 @@ class VKCommandBuilder {
     Vector<SubImageChange> changes;
 
     /**
-     * Record the layouts of the images that the rendering scope is about to attach.
+     * Record the layouts of the images that the rendering scope attaches.
      *
-     * Needs to be called before the barriers of the VKNodeType::BEGIN_RENDERING node are
-     * extracted, as those change the layout of the attachments.
+     * Needs to be called after the barriers of the VKNodeType::BEGIN_RENDERING node are
+     * extracted, as those transition the whole attachment images.
      *
      * #node_handle must be a VKNodeType::BEGIN_RENDERING node.
      */

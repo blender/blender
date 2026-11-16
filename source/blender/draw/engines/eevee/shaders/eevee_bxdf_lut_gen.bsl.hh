@@ -455,17 +455,15 @@ struct LTCFitter {
     update();
   }
 
-  BsdfEval eval(const float3 &L) const
+  BsdfEval eval(const float3 &N, const float3 &V, const float3 &L) const
   {
-    constexpr float3 N = float3(0.0f, 0.0f, 1.0f);
-    const float pdf = pdf_ltc(L, N, M, invM, 1.0f);
-
+    const float pdf = ltc::pdf(L, N, V, M, invM, 1.0f);
     return {.throughput = pdf, .pdf = pdf, .weight = 1.0f};
   }
 
   float3 sample(const float2 rand) const
   {
-    return sample_ltc(M, rand);
+    return ltc::sample(M, rand);
   }
 };
 
@@ -521,7 +519,7 @@ template<typename BSDF> float error_(const LTCFitter &fitter, const BSDF &bsdf, 
   constexpr float3 N = float3(0.0f, 0.0f, 1.0f);
 
   const BsdfEval eval_closure = bsdf.closure.bsdf_eval(N, bsdf.V, L);
-  const BsdfEval eval_ltc = fitter.eval(L);
+  const BsdfEval eval_ltc = fitter.eval(N, bsdf.V, L);
   const float error = abs(eval_closure.throughput - eval_ltc.throughput);
 
   /* L3 error with MIS weight. */

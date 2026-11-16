@@ -1238,88 +1238,35 @@ CurveBooleanResult curve_boolean(const CurveBooleanOpParameters op_params,
   result.curves = std::move(dst_curves);
   result.unchanged_curves = std::move(data.unchanged_curves);
   result.dst_to_src_curves = std::move(data.dst_to_src_curves);
+  result.is_clipping_point = Array<bool>(is_point_clipping.as_span());
 
   return result;
 }
 
-CurveBooleanResult curve_boolean_with_planes(const CurveBooleanOpParameters op_params,
-                                             const bke::CurvesGeometry &curves,
-                                             const ProjectionFunc project_fn,
-                                             const GroupedSpan<int> shapes,
+void project_clipping_points_to_curve_planes(boolean::CurveBooleanResult &result,
                                              const Span<float4> curve_planes,
-                                             const IndexMask &editable_shapes,
-                                             const IndexMask &clipping_shapes,
                                              const float4x4 &layer_to_world,
-                                             const ARegion &region)
+                                             const ARegion &region,
+                                             const boolean::ProjectionFunc project_fn)
 {
-  Array<float2> src_positions_2d(curves.points_num());
-  const Span<float3> src_positions = curves.positions();
-  for (const int i : curves.points_range()) {
-    src_positions_2d[i] = project_fn(src_positions[i]);
-  }
-
-  const VArray<int> fill_ids = *curves.attributes().lookup<int>("fill_id", bke::AttrDomain::Curve);
-
-  const BooleanData data = execute_boolean(op_params,
-                                           src_positions_2d,
-                                           curves.points_by_curve(),
-                                           editable_shapes,
-                                           clipping_shapes,
-                                           shapes,
-                                           fill_ids,
-                                           curves.cyclic());
-
-  if (data.segments.is_empty()) {
-    CurveBooleanResult result;
-    result.curves = bke::CurvesGeometry();
-    return result;
-  }
-
-  const OffsetIndices<int> dst_segments_by_curve = OffsetIndices<int>(data.segment_offsets);
-
-  Vector<bool> is_point_clipping;
-  bke::CurvesGeometry dst_curves = create_curves_from_segments(curves,
-                                                               data.segments,
-                                                               data.segment_reversed,
-                                                               data.cyclic,
-                                                               data.is_segments_clipping,
-                                                               data.dst_to_src_curves,
-                                                               dst_segments_by_curve,
-                                                               data.unchanged_curves,
-                                                               op_params.skip_clipping_attributes,
-                                                               is_point_clipping);
-
-  const OffsetIndices<int> points_by_curve = dst_curves.points_by_curve();
-  MutableSpan<float3> positions = dst_curves.positions_for_write();
+  bke::CurvesGeometry &curves = result.curves;
+  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+  MutableSpan<float3> positions = curves.positions_for_write();
   const float4x4 world_to_layer = math::invert(layer_to_world);
-  for (const int curve_i : dst_curves.curves_range()) {
-    const int src_curve = data.dst_to_src_curves[curve_i];
-    const float4 &plane = transform_plane(layer_to_world, curve_planes[src_curve]);
-    const IndexRange points = points_by_curve[curve_i];
 
-    for (const int point_i : points) {
-      if (is_point_clipping[point_i]) {
-        const float2 positions_2d = project_fn(positions[point_i]);
-        ED_view3d_win_to_3d_on_plane(&region, plane, positions_2d, false, positions[point_i]);
-        positions[point_i] = math::transform_point(world_to_layer, positions[point_i]);
+  for (const int curve_i : curves.curves_range()) {
+    const int src_curve = result.dst_to_src_curves[curve_i];
+    const float4 plane = transform_plane(layer_to_world, curve_planes[src_curve]);
+
+    for (const int point_i : points_by_curve[curve_i]) {
+      if (!result.is_clipping_point[point_i]) {
+        continue;
       }
+      const float2 position_2d = project_fn(positions[point_i]);
+      ED_view3d_win_to_3d_on_plane(&region, plane, position_2d, false, positions[point_i]);
+      positions[point_i] = math::transform_point(world_to_layer, positions[point_i]);
     }
   }
-
-  if (!op_params.keep_caps) {
-    cut_caps(dst_curves, data.segments, data.segment_reversed, data.cyclic, dst_segments_by_curve);
-  }
-
-  if (op_params.separate_islands) {
-    separate_fill_islands(dst_curves, data.unchanged_curves, project_fn);
-  }
-
-  CurveBooleanResult result;
-  result.curves = std::move(dst_curves);
-  result.unchanged_curves = std::move(data.unchanged_curves);
-  result.dst_to_src_curves = std::move(data.dst_to_src_curves);
-
-  return result;
 }
 
 }  // namespace blender::ed::greasepencil::boolean

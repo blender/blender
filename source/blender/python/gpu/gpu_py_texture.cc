@@ -169,6 +169,54 @@ static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
   } \
   ((void)0)
 
+static bool pygpu_texture_update_data_check(BPyGPUTexture *self,
+                                            BPyGPUBuffer *pybuffer_obj,
+                                            const eGPUDataFormat data_format,
+                                            const size_t data_space_expected)
+{
+  if (!GPU_context_active_get()) {
+    PyErr_SetString(PyExc_RuntimeError, "GPUTexture.update: No active GPU context found");
+    return false;
+  }
+
+  if (data_format != GPU_DATA_UBYTE) {
+    PyErr_SetString(PyExc_ValueError,
+                    "GPUTexture.update: Only pixel data format `UBYTE` is currently supported");
+    return false;
+  }
+
+  if (pybuffer_obj->format != data_format) {
+    PyErr_SetString(PyExc_ValueError, "GPUTexture.update: Buffer format must match `format`");
+    return false;
+  }
+
+  if (GPU_texture_format(self->tex) != gpu::TextureFormat::UNORM_8_8_8_8) {
+    PyErr_SetString(PyExc_ValueError,
+                    "GPUTexture.update: Only RGBA8 textures are currently supported");
+    return false;
+  }
+
+  if (GPU_texture_dimensions(self->tex) != 2 || GPU_texture_is_array(self->tex) ||
+      GPU_texture_is_cube(self->tex))
+  {
+    PyErr_SetString(PyExc_ValueError,
+                    "GPUTexture.update: Only 2D non-array textures are currently supported");
+    return false;
+  }
+
+  const size_t data_space_found = bpygpu_Buffer_size(pybuffer_obj);
+  if (data_space_found != data_space_expected) {
+    PyErr_Format(PyExc_ValueError,
+                 "GPUTexture.update: Buffer size does not match texture size "
+                 "(expected %llu bytes, got %llu)",
+                 static_cast<unsigned long long>(data_space_expected),
+                 static_cast<unsigned long long>(data_space_found));
+    return false;
+  }
+
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -697,6 +745,64 @@ static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObje
 
 PyDoc_STRVAR(
     /* Wrap. */
+    pygpu_texture_update_doc,
+    ".. method:: update(data, *, format='UBYTE')\n"
+    "\n"
+    "   Replace all pixels in this texture.\n"
+    "\n"
+    "   Currently only tightly packed ``UBYTE`` buffers for 2D ``RGBA8`` textures are "
+    "supported.\n"
+    "\n"
+    "   :param data: Buffer object containing the replacement pixels.\n"
+    "   :type data: :class:`gpu.types.Buffer`\n"
+    "   :param format: The format that describes the pixel data.\n"
+    "   :type format: " PYDOC_DATAFORMAT_LITERAL "\n");
+static PyObject *pygpu_texture_update(BPyGPUTexture *self, PyObject *args, PyObject *kwds)
+{
+  BPYGPU_TEXTURE_CHECK_OBJ(self);
+
+  PyObject *py_data;
+  PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items, int(GPU_DATA_UBYTE)};
+
+  static const char *_keywords[] = {"data", "format", nullptr};
+  static _PyArg_Parser _parser = {
+      "O"  /* `data` */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `format` */
+      ":update",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kwds, &_parser, &py_data, PyC_ParseStringEnum, &pygpu_dataformat))
+  {
+    return nullptr;
+  }
+
+  if (!BPyGPU_Buffer_Check(py_data)) {
+    PyErr_Format(PyExc_TypeError,
+                 "GPUTexture.update: expected a Buffer, not %.200s",
+                 Py_TYPE(py_data)->tp_name);
+    return nullptr;
+  }
+
+  BPyGPUBuffer *pybuffer_obj = reinterpret_cast<BPyGPUBuffer *>(py_data);
+  const eGPUDataFormat data_format = eGPUDataFormat(pygpu_dataformat.value_found);
+  const size_t data_space_expected = size_t(GPU_texture_width(self->tex)) *
+                                     size_t(GPU_texture_height(self->tex)) *
+                                     GPU_texture_component_len(GPU_texture_format(self->tex)) *
+                                     GPU_texture_dataformat_size(data_format);
+
+  if (!pygpu_texture_update_data_check(self, pybuffer_obj, data_format, data_space_expected)) {
+    return nullptr;
+  }
+
+  GPU_texture_update(self->tex, data_format, pybuffer_obj->buf.as_void);
+  Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
     pygpu_texture_read_doc,
     ".. method:: read()\n"
     "\n"
@@ -827,6 +933,10 @@ static PyMethodDef pygpu_texture__tp_methods[] = {
      reinterpret_cast<PyCFunction>(pygpu_texture_clear),
      METH_VARARGS | METH_KEYWORDS,
      pygpu_texture_clear_doc},
+    {"update",
+     reinterpret_cast<PyCFunction>(pygpu_texture_update),
+     METH_VARARGS | METH_KEYWORDS,
+     pygpu_texture_update_doc},
     {"read",
      reinterpret_cast<PyCFunction>(pygpu_texture_read),
      METH_NOARGS,

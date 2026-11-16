@@ -29,7 +29,7 @@ BsdfSample ray_generate_direction(
 
   cl.context_amend(V, thickness);
 
-  float3x3 tangent_to_world = from_up_axis(cl.N);
+  float3x3 tangent_to_world = from_incident_vector(cl.N, V);
 
   float3 Vt = V * tangent_to_world;
   /* Sample in tangent space. */

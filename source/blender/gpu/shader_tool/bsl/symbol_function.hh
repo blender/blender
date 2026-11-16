@@ -125,7 +125,7 @@ struct SymbolFunction : SymbolScope {
         is_inline(decl.attributes().contains_attr("force_inline")),
         /* Note: We leave to the C++ linting to catch invalid keyword usage. */
         is_virtual(decl.virtual_qualifier().is_valid() || decl.virtual_specifier().is_valid()),
-        is_pure_virtual(is_virtual && decl.pure_specifier().is_valid()),
+        is_pure_virtual(decl.pure_specifier().is_valid()),
         is_const(decl.is_const()),
         fn_type(decl.is_method() ? (decl.is_static() ? STATIC : MEMBER) : GLOBAL),
         entry_point_type(EntryPointType::NONE)

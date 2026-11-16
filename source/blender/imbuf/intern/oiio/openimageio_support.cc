@@ -126,7 +126,7 @@ static ImBuf *load_pixels(
       color_mode = ImColorMode::RGB;
     }
   }
-  ImBuf *ibuf = IMB_allocImBuf(width, height, ibuf_flags);
+  ImBuf *ibuf = IMB_allocImBuf(width, height, ibuf_flags | (flags & ImBufFlags::PoolPixels));
   if (!ibuf) {
     return nullptr;
   }

@@ -110,7 +110,7 @@ bool ED_gpencil_layer_frame_select_check(const bGPDlayer *gpl)
 }
 
 /* Helper function: select GP-frame based on SELECT_* mode. */
-static void gpencil_frame_select(bGPDframe *gpf, short select_mode)
+static void gpencil_frame_select(bGPDframe *gpf, const eEditKeyframes_Select select_mode)
 {
   if (gpf == nullptr) {
     return;
@@ -126,10 +126,15 @@ static void gpencil_frame_select(bGPDframe *gpf, short select_mode)
     case SELECT_INVERT:
       gpf->flag ^= GP_FRAME_SELECT;
       break;
+    case SELECT_REPLACE:
+    case SELECT_EXTEND_RANGE:
+    case SELECT_CHILDREN:
+      BLI_assert_unreachable();
+      break;
   }
 }
 
-void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
+void ED_gpencil_select_frames(bGPDlayer *gpl, const eEditKeyframes_Select select_mode)
 {
   /* error checking */
   if (gpl == nullptr) {
@@ -142,7 +147,7 @@ void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
   }
 }
 
-void ED_gpencil_layer_frame_select_set(bGPDlayer *gpl, short mode)
+void ED_gpencil_layer_frame_select_set(bGPDlayer *gpl, const eEditKeyframes_Select select_mode)
 {
   /* error checking */
   if (gpl == nullptr) {
@@ -150,10 +155,10 @@ void ED_gpencil_layer_frame_select_set(bGPDlayer *gpl, short mode)
   }
 
   /* now call the standard function */
-  ED_gpencil_select_frames(gpl, mode);
+  ED_gpencil_select_frames(gpl, select_mode);
 }
 
-void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
+void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, const eEditKeyframes_Select select_mode)
 {
   bGPDframe *gpf;
 
@@ -168,7 +173,10 @@ void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
   }
 }
 
-void ED_gpencil_layer_frames_select_box(bGPDlayer *gpl, float min, float max, short select_mode)
+void ED_gpencil_layer_frames_select_box(bGPDlayer *gpl,
+                                        const float min,
+                                        const float max,
+                                        const eEditKeyframes_Select select_mode)
 {
   if (gpl == nullptr) {
     return;
@@ -184,8 +192,8 @@ void ED_gpencil_layer_frames_select_box(bGPDlayer *gpl, float min, float max, sh
 
 void ED_gpencil_layer_frames_select_region(KeyframeEditData *ked,
                                            bGPDlayer *gpl,
-                                           short tool,
-                                           short select_mode)
+                                           const eEditKeyframes_Validate tool,
+                                           const eEditKeyframes_Select select_mode)
 {
   if (gpl == nullptr) {
     return;

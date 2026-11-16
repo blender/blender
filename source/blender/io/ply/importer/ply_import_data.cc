@@ -13,7 +13,9 @@
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 
+#include "BLI_color_types.hh"
 #include "BLI_endian_switch.hh"
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 #include "fast_float.h"
@@ -87,8 +89,29 @@ static void endian_switch_array(uint8_t *ptr, int type_size, int size)
 
 namespace io::ply {
 
-static const int data_type_size[] = {0, 1, 1, 2, 2, 4, 4, 4, 8};
-static_assert(std::size(data_type_size) == PLY_TYPE_COUNT, "PLY data type size table mismatch");
+void add_custom_attribute(bke::MutableAttributeAccessor &attributes,
+                          const PlyCustomAttribute &attr)
+{
+  /* If a byte color attribute happens to have one of built-in attribute names,
+   * we should not add it as byte color; add the attribute as floats. */
+  if (attr.type().is<ColorGeometry4b>() && attributes.is_builtin(attr.name)) {
+    const Span<ColorGeometry4b> colors = attr.data().typed<ColorGeometry4b>();
+    const char *suffixes[] = {"_r", "_g", "_b", "_a"};
+    for (const int channel : IndexRange(4)) {
+      attributes.add<float>(
+          attr.name + suffixes[channel],
+          bke::AttrDomain::Point,
+          bke::AttributeInitVArray(VArray<float>::from_func(colors.size(), [=](const int64_t i) {
+            return float(reinterpret_cast<const uint8_t *>(&colors[i])[channel]);
+          })));
+    }
+    return;
+  }
+  attributes.add(attr.name,
+                 bke::AttrDomain::Point,
+                 bke::cpp_type_to_attribute_type(attr.type()),
+                 bke::AttributeInitVArray(GVArray::from_span(attr.data())));
+}
 
 static const float data_type_normalizer[] = {
     1.0f, 127.0f, 255.0f, 32767.0f, 65535.0f, float(INT_MAX), float(UINT_MAX), 1.0f, 1.0f};
@@ -282,8 +305,11 @@ static const char *load_vertex_element(PlyReadBuffer &file,
     return "Vertex positions are not present in the file";
   }
 
-  Vector<int64_t> custom_attr_indices;
-  for (const int64_t prop_idx : element.properties.index_range()) {
+  /* Indices of PLY properties that make up each custom attribute: one for float attributes,
+   * or red/green/blue/alpha for byte colors (alpha is -1 when not present). */
+  Vector<int4> custom_attr_indices;
+  Vector<int> custom_props;
+  for (const int prop_idx : element.properties.index_range()) {
     const PlyProperty &prop = element.properties[prop_idx];
     bool is_standard = ELEM(
         prop.name, "x", "y", "z", "nx", "ny", "nz", "red", "green", "blue", "alpha", "s", "t");
@@ -296,10 +322,46 @@ static const char *load_vertex_element(PlyReadBuffer &file,
     {
       continue;
     }
+    custom_props.append(prop_idx);
+  }
 
-    custom_attr_indices.append(prop_idx);
-    PlyCustomAttribute attr(prop.name, element.count);
-    data->vertex_custom_attr.append(attr);
+  /* Find a custom property by name and type. */
+  auto find_custom_prop = [&](const StringRef name, const PlyDataTypes type) -> int {
+    for (const int prop_idx : custom_props) {
+      const PlyProperty &prop = element.properties[prop_idx];
+      if (prop.name == name && (type == NONE || prop.type == type)) {
+        return prop_idx;
+      }
+    }
+    return -1;
+  };
+
+  /* Byte color attributes are exported as `<name>_r`, `<name>_g`, `<name>_b`, `<name>_a` uchar
+   * properties; turn them back into byte color attributes. Alpha is optional. */
+  Set<int> color_props;
+  for (const int prop_idx : custom_props) {
+    const StringRef name = element.properties[prop_idx].name;
+    if (element.properties[prop_idx].type != UCHAR || !name.endswith("_r")) {
+      continue;
+    }
+    const StringRef base = name.drop_known_suffix("_r");
+    const int g = find_custom_prop(base + "_g", UCHAR);
+    const int b = find_custom_prop(base + "_b", UCHAR);
+    const int a = find_custom_prop(base + "_a", UCHAR);
+    if (base.is_empty() || g < 0 || b < 0 || find_custom_prop(base, NONE) >= 0) {
+      continue;
+    }
+    custom_attr_indices.append({prop_idx, g, b, a});
+    data->vertex_custom_attr.append(
+        PlyCustomAttribute(base, element.count, CPPType::get<ColorGeometry4b>()));
+    color_props.add_multiple({prop_idx, g, b, a});
+  }
+  for (const int prop_idx : custom_props) {
+    if (!color_props.contains(prop_idx)) {
+      custom_attr_indices.append({prop_idx, -1, -1, -1});
+      data->vertex_custom_attr.append(
+          PlyCustomAttribute(element.properties[prop_idx].name, element.count));
+    }
   }
 
   data->vertices.reserve(element.count);
@@ -321,6 +383,11 @@ static const char *load_vertex_element(PlyReadBuffer &file,
   }
   if (has_alpha) {
     color_norm.w = data_type_normalizer[element.properties[alpha_index].type];
+  }
+
+  Vector<GMutableSpan> custom_attr_data;
+  for (PlyCustomAttribute &attr : data->vertex_custom_attr) {
+    custom_attr_data.append(attr.data_for_write());
   }
 
   Vector<float> value_vec(element.properties.size());
@@ -383,8 +450,17 @@ static const char *load_vertex_element(PlyReadBuffer &file,
 
     /* Custom attributes */
     for (const int64_t ci : custom_attr_indices.index_range()) {
-      float value = value_vec[custom_attr_indices[ci]];
-      data->vertex_custom_attr[ci].data[i] = value;
+      const int4 indices = custom_attr_indices[ci];
+      if (indices.y < 0) {
+        custom_attr_data[ci].typed<float>()[i] = value_vec[indices.x];
+      }
+      else {
+        custom_attr_data[ci].typed<ColorGeometry4b>()[i] = ColorGeometry4b(
+            float_to_value<uint8_t>(value_vec[indices.x]),
+            float_to_value<uint8_t>(value_vec[indices.y]),
+            float_to_value<uint8_t>(value_vec[indices.z]),
+            indices.w < 0 ? 255 : float_to_value<uint8_t>(value_vec[indices.w]));
+      }
     }
   }
   return nullptr;

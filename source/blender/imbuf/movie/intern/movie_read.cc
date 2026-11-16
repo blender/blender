@@ -1366,19 +1366,19 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int frame_index)
     color_mode = ImColorMode::RGB;
   }
 
-  ImBuf *cur_frame_final = IMB_allocImBuf(anim->x, anim->y, ImBufFlags::Zero);
+  ImBuf *cur_frame_final = IMB_allocImBuf(
+      anim->x, anim->y, anim->ib_flags & ImBufFlags::PoolPixels);
   cur_frame_final->color_mode = color_mode;
 
   /* Allocate the storage explicitly to ensure the memory is aligned. */
   const size_t align = ffmpeg_get_buffer_alignment();
   const size_t pixel_size = anim->is_float ? 16 : 4;
-  uint8_t *buffer_data = static_cast<uint8_t *>(
-      MEM_new_uninitialized_aligned(pixel_size * anim->x * anim->y, align, "ffmpeg ibuf"));
-  if (anim->is_float) {
-    cur_frame_final->assign_float_data((float *)buffer_data);
-  }
-  else {
-    cur_frame_final->assign_byte_data(buffer_data);
+  const bool allocated = anim->is_float ?
+                             IMB_alloc_float_pixels(cur_frame_final, 4, false, align) :
+                             IMB_alloc_byte_pixels(cur_frame_final, false, align);
+  if (!allocated) {
+    IMB_freeImBuf(cur_frame_final);
+    return nullptr;
   }
 
   AVFrame *final_frame = ffmpeg_frame_by_pts_get(anim, target_pts);
@@ -1410,6 +1410,9 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int frame_index)
     ffmpeg_postprocess(anim, final_frame, cur_frame_final);
   }
   else {
+    void *buffer_data = anim->is_float ?
+                            static_cast<void *>(cur_frame_final->float_data_for_write()) :
+                            cur_frame_final->byte_data_for_write();
     memset(buffer_data, 0, pixel_size * anim->x * anim->y);
   }
 

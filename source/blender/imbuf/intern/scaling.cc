@@ -545,7 +545,7 @@ ImBuf *IMB_scale_into_new(const ImBuf *ibuf,
   }
 
   /* Allocate destination buffers. */
-  ImBufFlags flags = ImBufFlags::UninitializedPixels;
+  ImBufFlags flags = ImBufFlags::UninitializedPixels | (ibuf->flags & ImBufFlags::PoolPixels);
   if (ibuf->byte_data()) {
     flags |= ImBufFlags::ByteData;
   }

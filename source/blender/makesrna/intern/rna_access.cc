@@ -892,6 +892,12 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const UString identifier)
   return nullptr;
 }
 
+bool RNA_property_is_shadowed(PointerRNA &ptr, PropertyRNA &prop)
+{
+  const PropertyRNA *found_prop = RNA_struct_find_property(&ptr, RNA_property_identifier(&prop));
+  return found_prop && found_prop != &prop;
+}
+
 static const char *rna_property_type_identifier(PropertyType prop_type)
 {
   switch (prop_type) {
@@ -7236,6 +7242,9 @@ std::string RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr)
     propname = RNA_property_identifier(prop);
 
     if (STREQ(propname, "rna_type")) {
+      continue;
+    }
+    if (RNA_property_is_shadowed(*ptr, *prop)) {
       continue;
     }
 

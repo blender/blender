@@ -50,6 +50,10 @@ enum [[host_shared]] gpLightType : uint32_t {
 #define GP_CORNER_TYPE_ROUND_BITS 0u
 #define GP_CORNER_TYPE_BEVEL_BITS 63u
 #define GP_CORNER_TYPE_MITER_NUMBER 62u
+/* Maximum representable noise scale, used to normalize for 16-bit packing. */
+#define GP_RANDOM_NOISE_SCALE_MAX 16.0f
+/* Scale applied to the normalized hashed seed to offset the noise pattern. */
+#define GP_RANDOM_SEED_OFFSET_SCALE 65536.0f
 
 /* Avoid compiler funkiness with enum types not being strongly typed in C. */
 #ifndef GPU_SHADER
@@ -83,6 +87,12 @@ struct [[host_shared]] gpMaterial {
   /** NOTE(@fclem): Needs floatBitsToUint(). */
 #  define _flag packed2.w
 #endif
+  /**
+   * .x: size and strength factors (2x16-bit unorm).
+   * .y: rotation, hue, saturation and value factors (4x8-bit unorm).
+   * .z: normalized noise scale and hashed seed (2x16-bit unorm).
+   * .w: unused.
+   */
   uint4 random_packed;
 };
 

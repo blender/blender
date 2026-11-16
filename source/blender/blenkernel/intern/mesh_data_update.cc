@@ -194,6 +194,31 @@ static void add_orco_mesh(
 }
 
 /**
+ * Modifiers that create new topology without original indices, like Ocean, Remesh, and Boolean,
+ * still copy the #EditMesh pointer along with the other parameters of their input mesh. However,
+ * keeping that pointer means the elements can be mapped back to the edit mesh (see
+ * #BKE_editmesh_eval_orig_map_available), so make sure it's cleared when there is no mapping.
+ * Alternatively these modifiers could avoid copying the pointer in the first place, but clearing
+ * it here is a more foolproof solution.
+ */
+static void clear_edit_mesh_if_unmapped(GeometrySet &geometry_set)
+{
+  const Mesh *mesh = geometry_set.get_mesh();
+  if (!mesh || !mesh->runtime->edit_mesh || mesh->runtime->wrapper_type != ME_WRAPPER_TYPE_MDATA) {
+    return;
+  }
+  const auto is_unmapped = [](const CustomData &data, const int size) {
+    return size > 0 && !CustomData_has_layer(&data, CD_ORIGINDEX);
+  };
+  if (is_unmapped(mesh->vert_data, mesh->verts_num) ||
+      is_unmapped(mesh->edge_data, mesh->edges_num) ||
+      is_unmapped(mesh->face_data, mesh->faces_num))
+  {
+    geometry_set.get_mesh_for_write()->runtime->edit_mesh.reset();
+  }
+}
+
+/**
  * Modifies the given mesh and geometry set. The mesh is not passed as part of the mesh component
  * in the \a geometry_set input, it is only passed in \a input_mesh and returned in the return
  * value.
@@ -236,6 +261,8 @@ static void modifier_modify_mesh_and_geometry_set(ModifierData *md,
     BKE_mesh_copy_parameters_for_eval(mesh, &input_mesh);
     geometry_set.replace_mesh(mesh);
   }
+
+  clear_edit_mesh_if_unmapped(geometry_set);
 }
 
 static void set_rest_position(Mesh &mesh)

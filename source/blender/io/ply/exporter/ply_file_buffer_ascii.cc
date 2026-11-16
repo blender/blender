@@ -25,6 +25,29 @@ void FileBufferAscii::write_data(float v)
   write_fstring(" {}", v);
 }
 
+void FileBufferAscii::write_data(const void *value, PlyDataTypes type)
+{
+  switch (type) {
+    case CHAR:
+      write_fstring(" {}", *static_cast<const int8_t *>(value));
+      break;
+    case UCHAR:
+      write_fstring(" {}", *static_cast<const uint8_t *>(value));
+      break;
+    case SHORT:
+      write_fstring(" {}", *static_cast<const int16_t *>(value));
+      break;
+    case INT:
+      write_fstring(" {}", *static_cast<const int32_t *>(value));
+      break;
+    case FLOAT:
+      write_data(*static_cast<const float *>(value));
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+}
+
 void FileBufferAscii::write_vertex_normal(float nx, float ny, float nz)
 {
   write_fstring(" {} {} {}", nx, ny, nz);

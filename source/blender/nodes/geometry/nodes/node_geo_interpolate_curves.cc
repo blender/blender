@@ -136,7 +136,8 @@ static void find_neighbor_guides(const Span<float3> positions,
       const int neighbors_to_find = max_neighbor_count + use_extra_neighbor;
 
       Vector<KDTree<float3>::Nearest, 16> nearest_n(neighbors_to_find);
-      const int num_neighbors = kdtree.find_nearest_n(position, nearest_n);
+      const int num_neighbors = kdtree.find_nearest_n(
+          position, std::numeric_limits<float>::max(), nearest_n);
       if (num_neighbors == 0) {
         r_all_neighbor_counts[child_curve_i] = 0;
         continue;

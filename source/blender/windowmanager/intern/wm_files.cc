@@ -546,6 +546,7 @@ static void wm_init_userdef(Main *bmain)
   const int64_t cache_limit = int64_t(U.memcachelimit) * 1024 * 1024;
   MEM_CacheLimiter_set_maximum(cache_limit);
   memory_cache::set_approximate_size_limit(cache_limit);
+  IMB_pixel_pool_set_limit(size_t(cache_limit / 6));
 
   BKE_sound_init(bmain);
 
@@ -707,6 +708,10 @@ static void wm_file_read_post(bContext *C,
   bool addons_loaded = false;
 
   if (use_data) {
+    /* At this point old file and any ImBufs from that is already cleared;
+     * we can clear the ImBuf pixel pool storage. */
+    IMB_pixel_pool_clear();
+
     if (!G.background) {
       /* Remove windows which failed to be added via #WM_check. */
       wm_window_ghostwindows_remove_invalid(C, wm);

@@ -952,13 +952,13 @@ struct CodegenContext : NodeErrorHandler {
 
     if (is_graphic) {
       Expr vert_fn = params.child_first();
-      if (!vert_fn.is_valid() || vert_fn.child_count() != 1) {
+      IdQualified vert_id = LocalVar(vert_fn.child_first()).identifier();
+      if (!vert_fn.is_valid() || vert_fn.child_count() != 1 || !vert_id.is_valid()) {
         error(params, Diag::ExpectedVertexShaderEntryPoint);
         return;
       }
       /* Resolve vertex function. */
-      auto &fn =
-          scope.lookup_function(table, LocalVar(vert_fn.child_first()).identifier()).unwrap(this);
+      auto &fn = scope.lookup_function(table, vert_id).unwrap(this);
       if (fn.entry_point_type != SymbolFunction::EntryPointType::VERT) {
         error(vert_fn, Diag::ExpectedVertexShaderEntryPoint);
         return;
@@ -968,13 +968,13 @@ struct CodegenContext : NodeErrorHandler {
       match_if(',');
 
       Expr frag_fn = vert_fn.next();
-      if (!frag_fn.is_valid() || frag_fn.child_count() != 1) {
+      IdQualified frag_id = LocalVar(frag_fn.child_first()).identifier();
+      if (!frag_fn.is_valid() || frag_fn.child_count() != 1 || !frag_id.is_valid()) {
         error(frag_fn, Diag::ExpectedFragmentShaderEntryPoint);
         return;
       }
       /* Resolve fragment function. */
-      auto &fn2 =
-          scope.lookup_function(table, LocalVar(frag_fn.child_first()).identifier()).unwrap(this);
+      auto &fn2 = scope.lookup_function(table, frag_id).unwrap(this);
       if (fn2.entry_point_type != SymbolFunction::EntryPointType::FRAG) {
         error(frag_fn, Diag::ExpectedFragmentShaderEntryPoint);
         return;
@@ -987,13 +987,13 @@ struct CodegenContext : NodeErrorHandler {
     }
     else {
       Expr comp_fn = params.child_first();
-      if (!comp_fn.is_valid() || comp_fn.child_count() != 1) {
+      IdQualified comp_id = LocalVar(comp_fn.child_first()).identifier();
+      if (!comp_fn.is_valid() || comp_fn.child_count() != 1 || !comp_id.is_valid()) {
         error(comp_fn, Diag::ExpectedComputeShaderEntryPoint);
         return;
       }
       /* Resolve compute function. */
-      auto &fn =
-          scope.lookup_function(table, LocalVar(comp_fn.child_first()).identifier()).unwrap(this);
+      auto &fn = scope.lookup_function(table, comp_id).unwrap(this);
       if (fn.entry_point_type != SymbolFunction::EntryPointType::COMP) {
         error(comp_fn, Diag::ExpectedComputeShaderEntryPoint);
         return;
@@ -1528,7 +1528,30 @@ struct CodegenContext : NodeErrorHandler {
     }
 
     /* Member functions. */
+    class_and_crtp_functions_prototypes(body, cls);
+    class_and_crtp_functions_decl(body, cls);
+  }
 
+  /* Call `fn` with the body and symbol of each class nested in `cls`, including anonymous ones. */
+  template<typename FnT>
+  void foreach_nested_class(LocalScope body, SymbolClass &cls, const FnT &fn)
+  {
+    int class_id = 0;
+    for (ClassDecl decl : body.children_of_type<ClassDecl>()) {
+      /* Enums count, the identifiers of anonymous classes are based on the declaration index. */
+      const int nested_id = class_id++;
+      if (decl.is_enum()) {
+        continue;
+      }
+      SymbolClass &nested = lookup_class(decl.identifier(), cls, nested_id);
+      if (!nested.is_error) {
+        fn(decl.body(), nested);
+      }
+    }
+  }
+
+  void class_and_crtp_functions_prototypes(LocalScope body, SymbolClass &cls)
+  {
     for (auto [id, base] : cls.base_classes) {
       if (base->is_crtp) {
         ClassDecl decl = base->template_data->decl.decl();
@@ -1537,7 +1560,10 @@ struct CodegenContext : NodeErrorHandler {
       }
     }
     class_functions_prototypes(body, cls);
+  }
 
+  void class_and_crtp_functions_decl(LocalScope body, SymbolClass &cls)
+  {
     for (auto [id, base] : cls.base_classes) {
       if (base->is_crtp) {
         ClassDecl decl = base->template_data->decl.decl();
@@ -1550,14 +1576,9 @@ struct CodegenContext : NodeErrorHandler {
 
   void class_functions_prototypes(LocalScope body, SymbolClass &cls)
   {
-    /* Nested classes. */
-    for (auto decl : body.children_of_type<ClassDecl>()) {
-      /* Don't process anonymous classes. */
-      if (decl.identifier().is_valid()) {
-        SymbolClass &nested = cls.lookup_class(table, decl.identifier()).unwrap(this);
-        class_functions_prototypes(decl.body(), nested);
-      }
-    }
+    foreach_nested_class(body, cls, [&](LocalScope nested_body, SymbolClass &nested) {
+      class_and_crtp_functions_prototypes(nested_body, nested);
+    });
 
     if (!body.child_first(NodeType::FuncDecl).is_valid() &&
         !body.child_first(NodeType::FuncForwardDecl).is_valid())
@@ -1581,14 +1602,9 @@ struct CodegenContext : NodeErrorHandler {
 
   void class_functions_decl(LocalScope body, SymbolClass &cls)
   {
-    /* Nested classes. */
-    for (auto decl : body.children_of_type<ClassDecl>()) {
-      /* Don't process anonymous classes. */
-      if (decl.identifier().is_valid()) {
-        SymbolClass &nested = cls.lookup_class(table, decl.identifier()).unwrap(this);
-        class_functions_decl(decl.body(), nested);
-      }
-    }
+    foreach_nested_class(body, cls, [&](LocalScope nested_body, SymbolClass &nested) {
+      class_and_crtp_functions_decl(nested_body, nested);
+    });
 
     /* Emit function members. */
     for (FuncDecl decl : body.children_of_type<FuncDecl>()) {
@@ -1951,12 +1967,18 @@ struct CodegenContext : NodeErrorHandler {
       if (member.array_dimensions > 0) {
         error(member.loc.tok, Diag::UnionArrayUnsupported);
       }
+      if (member_type.is_matrix()) {
+        error(member.loc.tok, Diag::UnionMatrixUnsupported);
+      }
       string to_var = "this_." +
                       union_data_access(member.offset, member_type.size, union_type.size);
       fn_body += "  " + to_var + " = " + member_to_float(member.type, "v") + ";\n";
     }
     else {
       for (const auto &var : member_type.get_all_members_flat().unwrap(this)) {
+        if (var.type->is_matrix()) {
+          error(member.loc.tok, Diag::UnionMatrixUnsupported);
+        }
         string to_var = "this_." +
                         union_data_access(var.absolute_offset, var.type->size, union_type.size);
         string access = "v." + var.path;
@@ -2179,8 +2201,18 @@ struct CodegenContext : NodeErrorHandler {
       return {nullptr, {}};
     }
 
-    if (fn.is_virtual && (fn.is_overridden() || fn.is_pure_virtual)) {
+    /* A qualified call like `A::f()` is not virtual, and inlining emits the body of `A::f`. */
+    const bool is_qualified = call.identifier().has_namespace();
+    if (fn.is_virtual && ((fn.is_overridden() && !is_qualified) || fn.is_pure_virtual)) {
       error(call, Diag::InvalidVirtualFunctionCall, fn.original);
+    }
+    else if (!fn.decl.is_valid()) {
+      error(call, Diag::InliningNoDefinition, fn.original);
+    }
+
+    /* There is no body to inline. Errors are only reported after code generation finished. */
+    if (!fn.decl.is_valid()) {
+      return {nullptr, {}};
     }
     return {&fn, call};
   }
@@ -2211,8 +2243,20 @@ struct CodegenContext : NodeErrorHandler {
       builder.ss << fn->return_type->identifier << " " << ret_val << ";\n";
     }
 
+    /* IMPORTANT: We only emit the `do {} while(false)` if inlined function has a return statement
+     * otherwise it can increase compile time drastically (see #166511). */
+    bool has_return_stmt = false;
+    for ([[maybe_unused]] auto stmt : fn->decl.descendants_of_type<ReturnStmt>()) {
+      has_return_stmt = true;
+      break;
+    }
+
     /* Create local scope. */
-    builder.ss << "do {\n";
+
+    if (has_return_stmt) {
+      builder.ss << "do ";
+    }
+    builder.ss << "{\n";
     jump_to(fn->decl.front());
 
     /* Declare argument copies. */
@@ -2251,8 +2295,13 @@ struct CodegenContext : NodeErrorHandler {
 
     local_scope(fn->decl.body(), *fn);
 
-    /* Create argument assignments. */
-    builder.ss << "} while (false);\n";
+    /* Close the local scope. */
+    if (has_return_stmt) {
+      builder.ss << "} while (false);\n";
+    }
+    else {
+      builder.ss << "}\n";
+    }
 
     inlining_stack.pop_back();
 

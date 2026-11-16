@@ -413,11 +413,28 @@ static void retiming_key_overlap(Scene *scene, Strip *strip)
 
 void retiming_reset(Scene *scene, Strip *strip)
 {
-  if (!retiming_is_allowed(strip)) {
+  if (!retiming_is_allowed(strip) || !retiming_has_keys(strip)) {
     return;
   }
 
+  /* Keep showing the same content, otherwise a cut strip is extended to its full content length.
+   * The left handle stays in place. */
+  const int left_handle = strip->left_handle();
+  const int right_handle = strip->right_handle(scene);
+  const float left_index = give_frame_index(scene, strip, left_handle);
+  /* The frame index is clamped to the last frame, so use the content length at the content end. */
+  const float right_index = right_handle < strip->content_end(scene) ?
+                                give_frame_index(scene, strip, right_handle) :
+                                strip->content_length();
+
   retiming_data_clear(strip);
+
+  if (!(strip->flag & SEQ_REVERSE_FRAMES)) {
+    const float rate = strip->media_playback_rate_factor(scene->frames_per_second());
+    strip->content_start_set(scene, round_fl_to_int(left_handle - left_index / rate));
+    const int new_right_handle = round_fl_to_int(left_handle + (right_index - left_index) / rate);
+    strip->handles_set(scene, left_handle, max_ii(new_right_handle, left_handle + 1));
+  }
 
   Span<Strip *> effects = lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
@@ -1087,7 +1104,7 @@ class RetimingRange {
   {
     for (int frame = start; frame <= end; frame++) {
       /* We need number actual number of frames here. */
-      const double normal_step = 1 / double(strip->content_length() - 1);
+      const double normal_step = 1 / double(max_ii(strip->content_length() - 1, 1));
 
       const int frame_index = frame - strip->content_start();
       /* Who needs calculus, when you can have slow code? */

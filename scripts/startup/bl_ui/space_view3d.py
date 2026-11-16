@@ -1882,7 +1882,10 @@ class VIEW3D_MT_select_pose(Menu):
         layout.separator()
 
         layout.menu("POSE_MT_selection_sets_select", text="Bone Selection Set")
-        layout.operator("pose.select_constraint_target", text="Constraint Target")
+        layout.operator("pose.select_constraint_target", text="Constraint Targets")
+        layout.operator("pose.select_constrained_by_selection", text="Constraint Owners")
+        layout.operator("pose.select_scaled", text="Scaled")
+        layout.operator("pose.select_deform", text="Deform")
 
 
 class VIEW3D_MT_select_particle(Menu):
@@ -2268,6 +2271,8 @@ class VIEW3D_MT_select_edit_armature(Menu):
         props = layout.operator("armature.select_hierarchy", text="Extend Child")
         props.extend = True
         props.direction = 'CHILD'
+
+        layout.operator("armature.select_deform", text="Deform")
 
 
 class VIEW3D_MT_select_paint_grease_pencil(Menu):

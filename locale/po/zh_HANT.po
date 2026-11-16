@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-10-23 06:12+0000\n"
 "Last-Translator: 游博凱 <augustus85918@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -3811,18 +3811,6 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "找不到色域、視圖或顯示，這可能意味著遺失了當初建立此 .blend 檔案時所使用的 OpenColorIO 配置"
 
 
-msgid "Project"
-msgstr "投影"
-
-
-msgid "Blender"
-msgstr "Blender"
-
-
-msgid "Fallback"
-msgstr "後備值"
-
-
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "此檔案中所有場景線性顏色，以及合成、著色器與幾何節點處理時所使用的色域"
 
@@ -3895,6 +3883,10 @@ msgstr "來源庫"
 
 msgid "Dirty"
 msgstr "髒亂"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "Path"
@@ -5602,24 +5594,8 @@ msgid "Factor used to mix vertex color to get final color"
 msgstr "這個係數用於混合頂點色彩以獲得最終色彩"
 
 
-msgid "Mode Type"
-msgstr "模式類型"
-
-
 msgid "Defines how vertex color affect to the strokes"
 msgstr "定義頂點色彩如何影響筆觸"
-
-
-msgid "Stroke"
-msgstr "筆觸"
-
-
-msgid "Fill"
-msgstr "填入"
-
-
-msgid "Both"
-msgstr "兩者"
 
 
 msgid "Byte Color Attribute Value"
@@ -8576,6 +8552,10 @@ msgid "Shrink the location to the nearest target surface"
 msgstr "將位置收縮至最近的目標表面"
 
 
+msgid "Project"
+msgstr "投影"
+
+
 msgid "Shrink the location to the nearest target surface along a given axis"
 msgstr "將位置沿給定的軸收縮至最近的目標表面"
 
@@ -9838,6 +9818,10 @@ msgstr "資料路徑"
 
 msgid "RNA Path (from ID-block) to property used"
 msgstr "RNA 路徑 (從 ID 塊) 至使用的屬性"
+
+
+msgid "Fallback"
+msgstr "後備值"
 
 
 msgid "ID-block that the specific property used can be found from (id_type property must be set first)"
@@ -13608,6 +13592,10 @@ msgid "Integer Vector"
 msgstr "整數向量"
 
 
+msgid "Dynamic"
+msgstr "動態"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle 線條集"
 
@@ -14166,10 +14154,6 @@ msgstr "使用衰減"
 
 msgid "Use Curve"
 msgstr "使用曲線"
-
-
-msgid "Dynamic"
-msgstr "動態"
 
 
 msgid "List"
@@ -26356,132 +26340,8 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Creative"
-msgstr "創意"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Math"
-msgstr "數學公式"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Mask Edit"
-msgstr "遮罩編輯"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂點群組鎖定"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
 msgid "Write"
 msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
-msgid "Gizmo"
-msgstr "操縱器"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
 
 
 msgid "Viewpoint"
@@ -26490,6 +26350,10 @@ msgstr "視點"
 
 msgid "Navigation"
 msgstr "導覽"
+
+
+msgid "Primitives"
+msgstr "原形"
 
 
 msgid "Align View"
@@ -26516,6 +26380,10 @@ msgid "Select Similar"
 msgstr "選取相似者"
 
 
+msgid "Utilities"
+msgstr "效用"
+
+
 msgid "Select All by Trait"
 msgstr "依特徵全選"
 
@@ -26532,16 +26400,36 @@ msgid "Select Loops"
 msgstr "選取迴圈"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
+msgid "Math"
+msgstr "數學公式"
 
 
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Stroke"
+msgstr "筆觸"
+
+
 msgid "Assign Material"
 msgstr "指派材質"
+
+
+msgid "Metaball"
+msgstr "變幻球"
 
 
 msgid "Light"
@@ -26576,6 +26464,14 @@ msgid "Quick Effects"
 msgstr "快速效果"
 
 
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
 msgid "Asset"
 msgstr "素材"
 
@@ -26592,16 +26488,20 @@ msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
 
 
-msgid "Hooks"
-msgstr "鉤"
-
-
 msgid "Linked"
 msgstr "已連結"
 
 
 msgid "Layout"
 msgstr "配置"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂點群組鎖定"
 
 
 msgid "Trim/Add"
@@ -26620,36 +26520,124 @@ msgid "Random Mask"
 msgstr "隨機遮罩"
 
 
-msgid "Clear Transform"
-msgstr "清除變換"
-
-
 msgid "Adjust"
 msgstr "調整"
+
+
+msgid "Clear Transform"
+msgstr "清除變換"
 
 
 msgid "In-Betweens"
 msgstr "內部之間"
 
 
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
 msgid "Keying"
 msgstr "鍵處理"
+
+
+msgid "Propagate"
+msgstr "增生"
 
 
 msgid "Tracking"
 msgstr "跟蹤"
 
 
+msgid "Bone Collections"
+msgstr "骨骼集盒"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Creative"
+msgstr "創意"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Set Face Strength"
+msgstr "設定面強度"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Mask Edit"
+msgstr "遮罩編輯"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Gizmo"
+msgstr "操縱器"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
 
 
 msgid "Keyframe Insert Pie"
@@ -29197,6 +29185,10 @@ msgstr "蠟筆色彩修改器"
 
 msgid "Stroke & Fill"
 msgstr "筆觸 & 填充"
+
+
+msgid "Fill"
+msgstr "填入"
 
 
 msgid "Color hue offset"
@@ -34705,6 +34697,10 @@ msgstr "設定曲線傾斜"
 
 msgid "Set Geometry Name"
 msgstr "設定幾何名稱"
+
+
+msgid "Both"
+msgstr "兩者"
 
 
 msgid "Depth Order"
@@ -45236,6 +45232,11 @@ msgid "Amount Start"
 msgstr "起始數量"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "選取連結的挑選"
+
+
 msgid "By Material"
 msgstr "依材質"
 
@@ -49721,26 +49722,14 @@ msgid "Value"
 msgstr "明度"
 
 
-msgid "Join Geometry Mode"
-msgstr "結合幾何模式"
-
-
 msgctxt "NodeTree"
 msgid "Intersect"
 msgstr "交集"
 
 
-msgid "Intersect Mode"
-msgstr "交集模式"
-
-
 msgctxt "NodeTree"
 msgid "Union"
 msgstr "聯集"
-
-
-msgid "Union Mode"
-msgstr "聯集模式"
 
 
 msgid "Add to End"
@@ -52680,11 +52669,6 @@ msgid "Select linked faces"
 msgstr "選取連結的面"
 
 
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "選取連結的挑選"
-
-
 msgid "Select linked faces under the cursor"
 msgstr "選取游標下連結的面"
 
@@ -53729,10 +53713,6 @@ msgstr "重設所選骨骼的縮放回預設值"
 msgctxt "Operator"
 msgid "Select Constraint Target"
 msgstr "選取約束目標"
-
-
-msgid "Select bones used as targets for the currently selected bones"
-msgstr "選取要作為目前所選骨骼目標的骨骼"
 
 
 msgid "Select all visible bones grouped by similar properties"
@@ -59299,14 +59279,6 @@ msgid "Set \"Fake User\" for appended items (except objects and collections)"
 msgstr "讓附加項目（物體和集盒除外）設定 “ 偽使用者 ”"
 
 
-msgid "Localize All"
-msgstr "全部翻譯"
-
-
-msgid "Localize all appended data, including those indirectly linked from other libraries"
-msgstr "翻譯所有附加的資料，包含那些間接從其他藏庫連結來的資料"
-
-
 msgid "Type of data to rename"
 msgstr "要重新命名的資料類型"
 
@@ -61168,54 +61140,6 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "View Lock"
-msgstr "視圖鎖定"
-
-
-msgid "Shadow Settings"
-msgstr "陰影設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 設定"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通道"
-
-
-msgid "Overlays"
-msgstr "疊層"
-
-
-msgid "Guides"
-msgstr "引導"
-
-
-msgid "Viewer Node"
-msgstr "檢視器節點"
-
-
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Mesh Edit Mode"
-msgstr "網格編輯模式"
-
-
-msgid "Measurement"
-msgstr "測量"
-
-
 msgid "Curve Edit Mode"
 msgstr "曲線編輯模式"
 
@@ -61234,6 +61158,10 @@ msgstr "筆觸放置"
 
 msgid "Drawing Plane"
 msgstr "描繪平面"
+
+
+msgid "Guides"
+msgstr "引導"
 
 
 msgid "Grease Pencil Options"
@@ -61264,14 +61192,6 @@ msgid "Viewport Debug"
 msgstr "視圖除錯"
 
 
-msgid "glTF Variants"
-msgstr "glTF 變體"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材質變體"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -61280,12 +61200,64 @@ msgid "VR Info"
 msgstr "VR 資訊"
 
 
+msgid "glTF Variants"
+msgstr "glTF 變體"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材質變體"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF 動畫"
+
+
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "View Lock"
+msgstr "視圖鎖定"
+
+
+msgid "Shadow Settings"
+msgstr "陰影設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 設定"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通道"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
+msgid "Mesh Edit Mode"
+msgstr "網格編輯模式"
+
+
+msgid "Measurement"
+msgstr "測量"
 
 
 msgid "Import Settings"
@@ -62311,6 +62283,10 @@ msgid "Text Rendering"
 msgstr "文字算繪"
 
 
+msgid "Font Style"
+msgstr "字型樣式"
+
+
 msgctxt "WindowManager"
 msgid "Language"
 msgstr "語言"
@@ -62474,10 +62450,6 @@ msgstr "刷動 / 標記"
 
 msgid "Toolbar / Sidebar"
 msgstr "工具列 / 側欄"
-
-
-msgid "Text Style"
-msgstr "文字樣式"
 
 
 msgid "User Interface"
@@ -64047,6 +64019,10 @@ msgstr "自動偏移間距"
 
 msgid "Auto-offset"
 msgstr "自動偏移"
+
+
+msgid "Noodle Curving"
+msgstr "連線彎曲度"
 
 
 msgid "Align Object To"
@@ -73516,6 +73492,10 @@ msgid "Active Theme Area"
 msgstr "作用中主題區域"
 
 
+msgid "Text Style"
+msgstr "文字樣式"
+
+
 msgid "Theme Bone Color Set"
 msgstr "主題骨骼色彩集"
 
@@ -73824,10 +73804,6 @@ msgid "Alternate Rows"
 msgstr "交替列"
 
 
-msgid "Font Style"
-msgstr "字型樣式"
-
-
 msgid "Theme settings for Font"
 msgstr "主題設定中的字型選項"
 
@@ -73838,34 +73814,6 @@ msgstr "字元權重"
 
 msgid "Font size in points"
 msgstr "字型大小 (點)"
-
-
-msgid "Shadow Size"
-msgstr "陰影大小"
-
-
-msgid "Shadow Alpha"
-msgstr "陰影 Alpha"
-
-
-msgid "Shadow X Offset"
-msgstr "陰影 X 偏移"
-
-
-msgid "Shadow offset in pixels"
-msgstr "陰影偏移，單位為像素"
-
-
-msgid "Shadow Y Offset"
-msgstr "陰影 Y 偏移"
-
-
-msgid "Shadow Brightness"
-msgstr "陰影亮度"
-
-
-msgid "Shadow color in gray value"
-msgstr "陰影色彩，灰階值"
 
 
 msgid "Theme Background Color"
@@ -74100,14 +74048,6 @@ msgid "Node Selected"
 msgstr "選取的節點"
 
 
-msgid "Noodle Curving"
-msgstr "連線彎曲度"
-
-
-msgid "Curving of the noodle"
-msgstr "麵條的彎曲"
-
-
 msgid "Repeat Zone"
 msgstr "重複區域"
 
@@ -74254,10 +74194,6 @@ msgstr "主題狀態列"
 
 msgid "Theme Strip Color"
 msgstr "片段色彩主題"
-
-
-msgid "Theme settings for style sets"
-msgstr "主題設定中的樣式設定"
 
 
 msgid "Panel Title Font"
@@ -74410,6 +74346,10 @@ msgstr "面板文字"
 
 msgid "Panel Title"
 msgstr "面板標題"
+
+
+msgid "Shadow offset in pixels"
+msgstr "陰影偏移，單位為像素"
 
 
 msgid "Primary Color"
@@ -78322,6 +78262,10 @@ msgstr "舊式附加元件"
 
 msgid "Legacy Add-on"
 msgstr "舊式附加元件"
+
+
+msgid "Close"
+msgstr "關閉"
 
 
 msgid "The dropped extension comes from an unknown repository."
@@ -84036,6 +83980,11 @@ msgid "Hinting"
 msgstr "字繪提示"
 
 
+msgctxt "Text"
+msgid "Weight"
+msgstr "權重"
+
+
 msgctxt "Preferences"
 msgid "Translate"
 msgstr "翻譯"
@@ -84232,15 +84181,6 @@ msgstr "B"
 
 msgid "View Align"
 msgstr "檢視對齊"
-
-
-msgctxt "Text"
-msgid "Weight"
-msgstr "權重"
-
-
-msgid "Shadow Offset X"
-msgstr "陰影 X 偏移"
 
 
 msgid "Temporary Files"
@@ -84510,11 +84450,6 @@ msgstr "選取樣式..."
 
 msgid "Bone Selection Set"
 msgstr "骨骼選取集"
-
-
-msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "約束目標"
 
 
 msgctxt "Operator"
@@ -88101,10 +88036,6 @@ msgid "Non-Keyboard Shortcut"
 msgstr "無快捷鍵"
 
 
-msgid "Search..."
-msgstr "搜尋..."
-
-
 msgid "Shift Left Mouse"
 msgstr "Shift+滑鼠左鍵"
 
@@ -89229,10 +89160,6 @@ msgid "No intersections found"
 msgstr "找不到交錯"
 
 
-msgid "Close"
-msgstr "關閉"
-
-
 msgid "Stop"
 msgstr "停止"
 
@@ -89383,14 +89310,6 @@ msgstr "無法在編輯模式中移除邊線"
 
 msgid "Cannot remove more edges than the mesh contains"
 msgstr "無法移除超過該網格所含的邊線數"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s 已鏡射，%d 失敗"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s 已鏡射"
 
 
 msgid "Cannot join while in edit mode"
@@ -92282,14 +92201,6 @@ msgid "Synchronization"
 msgstr "同步"
 
 
-msgid "fps: %.2f"
-msgstr "fps：%.2f"
-
-
-msgid "fps: %i"
-msgstr "fps：%i"
-
-
 msgid "Create object instance from object-data"
 msgstr "從物體資料建立物體實例"
 
@@ -92824,10 +92735,6 @@ msgstr "Freestyle：製作檢視映射"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle：算繪筆觸"
-
-
-msgid "Error writing frame"
-msgstr "寫入影格時發生錯誤"
 
 
 msgid "No valid formats found"

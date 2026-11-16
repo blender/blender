@@ -201,7 +201,7 @@ bool remove_all_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::
   return grease_pencil.remove_frames(layer, frames_to_remove.as_span());
 }
 
-static void select_frame(GreasePencilFrame &frame, const short select_mode)
+static void select_frame(GreasePencilFrame &frame, const eEditKeyframes_Select select_mode)
 {
   switch (select_mode) {
     case SELECT_ADD:
@@ -213,12 +213,17 @@ static void select_frame(GreasePencilFrame &frame, const short select_mode)
     case SELECT_INVERT:
       frame.flag ^= GP_FRAME_SELECTED;
       break;
+    case SELECT_REPLACE:
+    case SELECT_EXTEND_RANGE:
+    case SELECT_CHILDREN:
+      BLI_assert_unreachable();
+      break;
   }
 }
 
 bool select_frame_at(bke::greasepencil::Layer &layer,
                      const int frame_number,
-                     const short select_mode)
+                     const eEditKeyframes_Select select_mode)
 {
 
   GreasePencilFrame *frame = layer.frames_for_write().lookup_ptr(frame_number);
@@ -232,7 +237,7 @@ bool select_frame_at(bke::greasepencil::Layer &layer,
 
 void select_frames_at(bke::greasepencil::LayerGroup &layer_group,
                       const int frame_number,
-                      const short select_mode)
+                      const eEditKeyframes_Select select_mode)
 {
   for (GreasePencilLayerTreeNode &node_ : layer_group.children.items_reversed()) {
     bke::greasepencil::TreeNode &node = node_.wrap();
@@ -245,7 +250,7 @@ void select_frames_at(bke::greasepencil::LayerGroup &layer_group,
   }
 }
 
-void select_all_frames(bke::greasepencil::Layer &layer, const short select_mode)
+void select_all_frames(bke::greasepencil::Layer &layer, const eEditKeyframes_Select select_mode)
 {
   for (auto item : layer.frames_for_write().items()) {
     select_frame(item.value, select_mode);
@@ -265,8 +270,8 @@ bool has_any_frame_selected(const bke::greasepencil::Layer &layer)
 
 void select_frames_region(KeyframeEditData *ked,
                           bke::greasepencil::TreeNode &node,
-                          const short tool,
-                          const short select_mode)
+                          const eEditKeyframes_Validate tool,
+                          const eEditKeyframes_Select select_mode)
 {
   if (node.is_layer()) {
     for (auto [frame_number, frame] : node.as_layer().frames_for_write().items()) {
@@ -301,7 +306,7 @@ void select_frames_region(KeyframeEditData *ked,
 void select_frames_range(bke::greasepencil::TreeNode &node,
                          const float min,
                          const float max,
-                         const short select_mode)
+                         const eEditKeyframes_Select select_mode)
 {
   /* Only select those frames which are in bounds. */
   if (node.is_layer()) {

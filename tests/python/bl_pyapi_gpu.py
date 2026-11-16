@@ -155,6 +155,92 @@ class TestGpuStorageBuf(unittest.TestCase):
             self.assertEqual(item[4], weight + 1.0)
 
 
+class TestGpuTextureUpdate(unittest.TestCase):
+    @staticmethod
+    def _rgba8_payload(width, height):
+        return [(index * 17 + 31) & 0xFF for index in range(width * height * 4)]
+
+    def test_update_rgba8_ubyte_buffer(self):
+        gpu.init()
+
+        payload = self._rgba8_payload(2, 2)
+        tex = gpu.types.GPUTexture(size=(2, 2), format="RGBA8")
+
+        tex.update(gpu.types.Buffer("UBYTE", len(payload), payload), format="UBYTE")
+
+        self.assertEqual(memoryview(tex.read()).tobytes(), bytes(payload))
+
+    def test_update_uses_ubyte_default_format(self):
+        gpu.init()
+
+        payload = self._rgba8_payload(2, 2)
+        tex = gpu.types.GPUTexture(size=(2, 2), format="RGBA8")
+
+        tex.update(gpu.types.Buffer("UBYTE", len(payload), payload))
+
+        self.assertEqual(memoryview(tex.read()).tobytes(), bytes(payload))
+
+    def test_update_rejects_float_buffer(self):
+        gpu.init()
+
+        tex = gpu.types.GPUTexture(size=(2, 2), format="RGBA8")
+        data = gpu.types.Buffer("FLOAT", 16, [0.0] * 16)
+
+        with self.assertRaises(ValueError):
+            tex.update(data, format="UBYTE")
+
+    def test_update_rejects_non_ubyte_format(self):
+        gpu.init()
+
+        tex = gpu.types.GPUTexture(size=(2, 2), format="RGBA8")
+        data = gpu.types.Buffer("UBYTE", 16, [0] * 16)
+
+        with self.assertRaises(ValueError):
+            tex.update(data, format="FLOAT")
+
+    def test_update_rejects_non_rgba8_texture(self):
+        gpu.init()
+
+        tex = gpu.types.GPUTexture(size=(2, 2), format="RGBA32F")
+        data = gpu.types.Buffer("UBYTE", 16, [0] * 16)
+
+        with self.assertRaises(ValueError):
+            tex.update(data, format="UBYTE")
+
+    def test_update_rejects_wrong_byte_count(self):
+        gpu.init()
+
+        tex = gpu.types.GPUTexture(size=(2, 2), format="RGBA8")
+        data = gpu.types.Buffer("UBYTE", 15, [0] * 15)
+
+        with self.assertRaises(ValueError):
+            tex.update(data, format="UBYTE")
+
+    def test_update_rejects_non_2d_texture(self):
+        gpu.init()
+
+        data = gpu.types.Buffer("UBYTE", 16, [0] * 16)
+        for tex in (
+            gpu.types.GPUTexture(size=4, format="RGBA8"),
+            gpu.types.GPUTexture(size=(2, 2, 2), format="RGBA8"),
+        ):
+            with self.subTest(texture=repr(tex)):
+                with self.assertRaises(ValueError):
+                    tex.update(data, format="UBYTE")
+
+    def test_update_rejects_array_and_cube_texture(self):
+        gpu.init()
+
+        data = gpu.types.Buffer("UBYTE", 16, [0] * 16)
+        for tex in (
+            gpu.types.GPUTexture(size=(2, 2), layers=2, format="RGBA8"),
+            gpu.types.GPUTexture(size=2, is_cubemap=True, format="RGBA8"),
+        ):
+            with self.subTest(texture=repr(tex)):
+                with self.assertRaises(ValueError):
+                    tex.update(data, format="UBYTE")
+
+
 if __name__ == "__main__":
     import sys
 
