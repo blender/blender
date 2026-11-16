@@ -1,0 +1,97 @@
+==== Objects: 3
+- Obj 'Armature' ARMATURE data:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Camera' CAMERA data:'Camera' par:'Armature' par_type:BONE par_bone:'Bone'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 2.000, 3.000
+  - anim act:Transforms slot:OBCamera blend:REPLACE drivers:0
+- Obj 'Spot' LIGHT data:'Spot' par:'Armature' par_type:BONE par_bone:'Bone'
+  - pos 10.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 2.000, 3.000
+  - anim act:Transforms slot:OBSpot blend:REPLACE drivers:0
+
+==== Cameras: 1
+- Cam 'Camera' PERSP lens:50.0 MILLIMETERS near:0.100 far:1000.0 orthosize:1.0
+  - fov 0.691 (h 0.691 v 0.471)
+  - sensor 36.0x24.0 shift 0.000,0.000
+
+==== Lights: 1
+- Light 'Spot' SPOT col:(1.000, 1.000, 1.000) energy:10.000
+  - spot 0.785 blend 0.333
+
+==== Actions: 1
+- Action 'Transforms' curverange:(1.0 .. 25.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:2
+ - Channelbag slot 'OBCamera' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
+    - (1.000, 1.000) lh:(-7.000, 1.000 AUTO_CLAMPED) rh:(9.000, 1.000 AUTO_CLAMPED)
+    - (25.000, 1.000) lh:(17.000, 1.000 AUTO_CLAMPED) rh:(33.000, 1.000 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
+    - (1.000, 2.000) lh:(-7.000, 2.000 AUTO_CLAMPED) rh:(9.000, 2.000 AUTO_CLAMPED)
+    - (25.000, 2.000) lh:(17.000, 2.000 AUTO_CLAMPED) rh:(33.000, 2.000 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
+    - (1.000, 3.000) lh:(-7.000, 3.000 AUTO_CLAMPED) rh:(9.000, 3.000 AUTO_CLAMPED)
+    - (25.000, 6.000) lh:(17.000, 6.000 AUTO_CLAMPED) rh:(33.000, 6.000 AUTO_CLAMPED)
+ - Channelbag slot 'OBSpot' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
+    - (1.000, 10.000) lh:(-7.000, 10.000 AUTO_CLAMPED) rh:(9.000, 10.000 AUTO_CLAMPED)
+    - (25.000, 10.000) lh:(17.000, 10.000 AUTO_CLAMPED) rh:(33.000, 10.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.785) lh:(17.000, 0.785 AUTO_CLAMPED) rh:(33.000, 0.785 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
+    - (1.000, 1.000) lh:(-7.000, 1.000 AUTO_CLAMPED) rh:(9.000, 1.000 AUTO_CLAMPED)
+    - (25.000, 1.000) lh:(17.000, 1.000 AUTO_CLAMPED) rh:(33.000, 1.000 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
+    - (1.000, 2.000) lh:(-7.000, 2.000 AUTO_CLAMPED) rh:(9.000, 2.000 AUTO_CLAMPED)
+    - (25.000, 2.000) lh:(17.000, 2.000 AUTO_CLAMPED) rh:(33.000, 2.000 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
+    - (1.000, 3.000) lh:(-7.000, 3.000 AUTO_CLAMPED) rh:(9.000, 3.000 AUTO_CLAMPED)
+    - (25.000, 3.000) lh:(17.000, 3.000 AUTO_CLAMPED) rh:(33.000, 3.000 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'Armature' 2 bones
+  - bone 'Bone' h:(0.000, 0.000, 0.000) t:(0.000, 2.000, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'Tip' parent:'Bone' h:(2.000, -2.000, 0.000) t:(2.000, 0.000, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 2.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+

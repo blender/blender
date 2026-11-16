@@ -25,6 +25,9 @@ namespace io::fbx {
 
 const char *get_fbx_name(const ufbx_string &name, const char *def = "Untitled");
 
+ufbx_matrix camera_light_transform_to_matrix(const ufbx_transform &transform,
+                                             const ufbx_node &node);
+
 struct FbxElementMapping {
   Set<Object *> imported_objects;
   Map<const ufbx_element *, Object *> el_to_object;
