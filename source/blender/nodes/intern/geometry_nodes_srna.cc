@@ -72,7 +72,7 @@ static const ModifierData *find_modifier_data_from_system_property(const Pointer
   const Object *object = id_cast<const Object *>(ptr->owner_id);
   for (const ModifierData &md : object->modifiers) {
     bool found = false;
-    IDP_foreach_property(md.system_properties, 0, [&](IDProperty *id_prop) {
+    IDP_foreach_property(md.system_properties, {}, [&](IDProperty *id_prop) {
       if (id_prop == ptr->data) {
         found = true;
       }

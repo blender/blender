@@ -393,7 +393,7 @@ const SceneCompositorEffect *get_effect_from_property(const PointerRNA &property
   const Scene *scene = id_cast<const Scene *>(property_ptr.owner_id);
   for (SceneCompositorEffect &effect : scene->compositor_effects) {
     bool found = false;
-    IDP_foreach_property(effect.system_properties, 0, [&](IDProperty *id_property) {
+    IDP_foreach_property(effect.system_properties, {}, [&](IDProperty *id_property) {
       if (id_property == property_ptr.data) {
         found = true;
       }

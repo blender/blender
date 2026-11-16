@@ -718,7 +718,7 @@ static void blend_id_property(IDProperty &prop, const IDProperty &target, const 
  */
 static void blend_properties(IDProperty *copy_props, IDProperty *paste_props, const float factor)
 {
-  IDP_foreach_property(copy_props, 0, [&](IDProperty *copy_prop) {
+  IDP_foreach_property(copy_props, {}, [&](IDProperty *copy_prop) {
     IDProperty *paste_prop = IDP_GetPropertyFromGroup(paste_props, copy_prop->name);
     if (!paste_prop || copy_prop->type != paste_prop->type ||
         copy_prop->subtype != paste_prop->subtype)
