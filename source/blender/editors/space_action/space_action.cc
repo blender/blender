@@ -225,6 +225,10 @@ static void action_draw_pre(const bContext *C, ScrArea * /*area*/)
 
 static void action_on_show(ScrArea *area)
 {
+  if (!USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
+    return;
+  }
+
   SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
   if (saction->next && saction->next->spacetype == SPACE_GRAPH) {
     SpaceGraph *graph_editor = reinterpret_cast<SpaceGraph *>(saction->next);
