@@ -246,7 +246,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
   ED_paintcurve_undo_push_end(C);
   BKE_brush_tag_unsaved_changes(br);
 
-  WM_paint_cursor_tag_redraw(window, region);
+  WM_cursor_overlay_tag_redraw(window, region);
 }
 
 static wmOperatorStatus paintcurve_add_point_invoke(bContext *C,
@@ -360,7 +360,7 @@ static wmOperatorStatus paintcurve_delete_point_exec(bContext *C, wmOperator *op
   ED_paintcurve_undo_push_end(C);
   BKE_brush_tag_unsaved_changes(br);
 
-  WM_paint_cursor_tag_redraw(window, region);
+  WM_cursor_overlay_tag_redraw(window, region);
 
   return OPERATOR_FINISHED;
 }
@@ -478,7 +478,7 @@ static bool paintcurve_point_select(
 
   ED_paintcurve_undo_push_end(C);
 
-  WM_paint_cursor_tag_redraw(window, region);
+  WM_cursor_overlay_tag_redraw(window, region);
 
   return true;
 }
@@ -611,7 +611,7 @@ static wmOperatorStatus paintcurve_slide_invoke(bContext *C, wmOperator *op, con
     BKE_brush_tag_unsaved_changes(br);
 
     WM_event_add_modal_handler(C, op);
-    WM_paint_cursor_tag_redraw(window, region);
+    WM_cursor_overlay_tag_redraw(window, region);
     return OPERATOR_RUNNING_MODAL;
   }
 
@@ -651,7 +651,7 @@ static wmOperatorStatus paintcurve_slide_modal(bContext *C, wmOperator *op, cons
           add_v2_v2v2(psd->pcp->bez.vec[opposite], psd->pcp->bez.vec[1], diff);
         }
       }
-      WM_paint_cursor_tag_redraw(window, region);
+      WM_cursor_overlay_tag_redraw(window, region);
       break;
     }
     default:

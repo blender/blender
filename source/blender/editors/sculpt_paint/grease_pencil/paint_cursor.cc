@@ -47,7 +47,7 @@ static int project_brush_radius_grease_pencil(ViewContext *vc,
   return math::safe_divide(scale * radius, math::length(delta));
 }
 
-static void grease_pencil_eraser_draw(PaintCursorContext &pcontext)
+static void grease_pencil_eraser_draw(PaintCursorOverlayContext &pcontext)
 {
   float radius = float(pcontext.pixel_radius);
 
@@ -74,7 +74,7 @@ static void grease_pencil_eraser_draw(PaintCursorContext &pcontext)
   imm_draw_circle_wire_2d(pcontext.pos, pcontext.mval.x, pcontext.mval.y, radius, nsegments);
 }
 
-void grease_pencil_cursor_draw(PaintCursorContext &pcontext)
+void grease_pencil_cursor_draw(PaintCursorOverlayContext &pcontext)
 {
   if (pcontext.region &&
       !BLI_rcti_isect_pt(&pcontext.region->winrct, pcontext.mval.x, pcontext.mval.y))

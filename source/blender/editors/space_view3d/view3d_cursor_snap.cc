@@ -76,7 +76,7 @@ struct SnapCursorDataIntern {
   int snap_on;
 #endif
 
-  wmPaintCursor *handle;
+  wmCursorOverlay *handle;
 
   bool is_initiated;
 };
@@ -992,7 +992,7 @@ static void v3d_cursor_snap_activate()
       data_intern->is_initiated = true;
     }
 
-    wmPaintCursor *pc = WM_paint_cursor_activate(
+    wmCursorOverlay *pc = WM_cursor_overlay_activate(
         SPACE_VIEW3D, RGN_TYPE_WINDOW, v3d_cursor_snap_poll_fn, v3d_cursor_snap_draw_fn, nullptr);
     data_intern->handle = pc;
   }
@@ -1003,7 +1003,7 @@ static void v3d_cursor_snap_free()
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (data_intern->handle) {
     if (G_MAIN->wm.first_) {
-      WM_paint_cursor_end(data_intern->handle);
+      WM_cursor_overlay_end(data_intern->handle);
     }
     data_intern->handle = nullptr;
   }

@@ -709,7 +709,7 @@ void ED_region_activate_rna_prop(bContext *C,
 void ED_region_tag_redraw_cursor(ARegion *region)
 {
   if (region) {
-    region->runtime->do_draw_paintcursor = RGN_DRAW;
+    region->runtime->do_draw_cursor_overlay = RGN_DRAW;
   }
 }
 

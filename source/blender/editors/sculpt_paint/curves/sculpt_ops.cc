@@ -863,7 +863,7 @@ struct MinDistanceEditData {
   float initial_minimum_distance;
 
   /** The operator uses a new cursor, but the existing cursors should be restored afterwards. */
-  ListBaseT<wmPaintCursor> orig_paintcursors;
+  ListBaseT<wmCursorOverlay> orig_cursor_overlays;
   void *cursor;
 
   /** Store the viewport region in case the operator was called from the header. */
@@ -1089,11 +1089,11 @@ static wmOperatorStatus min_distance_edit_invoke(bContext *C, wmOperator *op, co
 
   /* Temporarily disable other paint cursors. */
   wmWindowManager *wm = CTX_wm_manager(C);
-  op_data->orig_paintcursors = wm->runtime->paintcursors;
-  wm->runtime->paintcursors.clear_no_delete();
+  op_data->orig_cursor_overlays = wm->runtime->cursor_overlays;
+  wm->runtime->cursor_overlays.clear_no_delete();
 
   /* Add minimum distance paint cursor. */
-  op_data->cursor = WM_paint_cursor_activate(
+  op_data->cursor = WM_cursor_overlay_activate(
       SPACE_TYPE_ANY, RGN_TYPE_ANY, op->type->poll, min_distance_edit_draw, op_data);
 
   op_data->region = CTX_wm_region(C);
@@ -1113,9 +1113,9 @@ static wmOperatorStatus min_distance_edit_modal(bContext *C, wmOperator *op, con
     wmWindowManager *wm = CTX_wm_manager(C);
 
     /* Remove cursor. */
-    WM_paint_cursor_end(static_cast<wmPaintCursor *>(op_data.cursor));
+    WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(op_data.cursor));
     /* Restore original paint cursors. */
-    wm->runtime->paintcursors = op_data.orig_paintcursors;
+    wm->runtime->cursor_overlays = op_data.orig_cursor_overlays;
 
     ED_region_tag_redraw(region);
     MEM_delete(&op_data);

@@ -454,7 +454,7 @@ static void toggle_paint_cursor(Scene &scene, bool enable)
   Paint &p = settings->imapaint.paint;
 
   if (p.runtime->paint_cursor && !enable) {
-    WM_paint_cursor_end(static_cast<wmPaintCursor *>(p.runtime->paint_cursor));
+    WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(p.runtime->paint_cursor));
     p.runtime->paint_cursor = nullptr;
     bke::paint::cursor_reinitialize_textures(p);
   }

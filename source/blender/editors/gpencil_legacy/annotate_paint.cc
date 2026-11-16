@@ -2027,16 +2027,16 @@ static void annotation_draw_toggle_eraser_cursor(tGPsdata *p, short enable)
 {
   if (p->erasercursor && !enable) {
     /* clear cursor */
-    WM_paint_cursor_end(static_cast<wmPaintCursor *>(p->erasercursor));
+    WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(p->erasercursor));
     p->erasercursor = nullptr;
   }
   else if (enable && !p->erasercursor) {
     /* enable cursor */
-    p->erasercursor = WM_paint_cursor_activate(SPACE_TYPE_ANY,
-                                               RGN_TYPE_ANY,
-                                               nullptr, /* XXX */
-                                               annotation_draw_eraser,
-                                               p);
+    p->erasercursor = WM_cursor_overlay_activate(SPACE_TYPE_ANY,
+                                                 RGN_TYPE_ANY,
+                                                 nullptr, /* XXX */
+                                                 annotation_draw_eraser,
+                                                 p);
   }
 }
 static void annotation_draw_stabilizer(bContext *C,
@@ -2094,12 +2094,12 @@ static void annotation_draw_toggle_stabilizer_cursor(tGPsdata *p, short enable)
 {
   if (p->stabilizer_cursor && !enable) {
     /* clear cursor */
-    WM_paint_cursor_end(static_cast<wmPaintCursor *>(p->stabilizer_cursor));
+    WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(p->stabilizer_cursor));
     p->stabilizer_cursor = nullptr;
   }
   else if (enable && !p->stabilizer_cursor) {
     /* enable cursor */
-    p->stabilizer_cursor = WM_paint_cursor_activate(
+    p->stabilizer_cursor = WM_cursor_overlay_activate(
         SPACE_TYPE_ANY, RGN_TYPE_ANY, nullptr, annotation_draw_stabilizer, p);
   }
 }

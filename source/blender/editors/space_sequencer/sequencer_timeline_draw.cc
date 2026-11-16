@@ -2356,14 +2356,14 @@ static void blade_paint_cursor_draw(bContext *C,
 static void blade_paint_cursor_free_fn(void *customdata)
 {
   if (G_MAIN->wm.first()) {
-    WM_paint_cursor_end(static_cast<wmPaintCursor *>(customdata));
+    WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(customdata));
   }
 }
 
 static void WIDGETGROUP_blade_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *region = CTX_wm_region(C);
-  gzgroup->customdata = WM_paint_cursor_activate(
+  gzgroup->customdata = WM_cursor_overlay_activate(
       SPACE_SEQ, RGN_TYPE_WINDOW, blade_paint_cursor_poll, blade_paint_cursor_draw, region);
   gzgroup->customdata_free = blade_paint_cursor_free_fn;
 }

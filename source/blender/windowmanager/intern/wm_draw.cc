@@ -111,18 +111,17 @@ static bool wm_window_grab_warp_region_is_set(const wmWindow *win)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Draw Paint Cursor
+/** \name Draw Cursor Overlay
  * \{ */
 
-static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
+static void wm_cursor_overlay_draw(bContext *C, ScrArea *area, ARegion *region)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   bScreen *screen = WM_window_get_active_screen(win);
 
-  /* Don't draw paint cursors with locked interface. Painting is not possible
-   * then, and cursor drawing can use scene data that another thread may be
-   * modifying. */
+  /* Don't draw custom cursor overlays with locked interface. Editing data is prohibited during it,
+   * and cursor drawing can use data that another thread may be in the process of modifying. */
   if (wm->runtime->is_interface_locked) {
     return;
   }
@@ -131,7 +130,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
     return;
   }
 
-  for (wmPaintCursor &pc : wm->runtime->paintcursors.items_mutable()) {
+  for (wmCursorOverlay &pc : wm->runtime->cursor_overlays.items_mutable()) {
     if ((pc.space_type != SPACE_TYPE_ANY) && (area->spacetype != pc.space_type)) {
       continue;
     }
@@ -1225,7 +1224,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view, const 
 #ifdef WITH_INPUT_IME
       wm_region_draw_ime(win, area, &region);
 #endif
-      const bool do_paint_cursor = (wm->runtime->paintcursors.first() &&
+      const bool do_paint_cursor = (wm->runtime->cursor_overlays.first() &&
                                     &region == screen->active_region);
       const bool do_draw_overlay = (region.runtime->type && region.runtime->type->draw_overlay);
       if (!(do_paint_cursor || do_draw_overlay)) {
@@ -1238,7 +1237,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view, const 
         wm_region_draw_overlay(C, area, &region);
       }
       if (do_paint_cursor) {
-        wm_paintcursor_draw(C, area, &region);
+        wm_cursor_overlay_draw(C, area, &region);
       }
       CTX_wm_region_set(C, nullptr);
       CTX_wm_area_set(C, nullptr);
@@ -1651,9 +1650,9 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
   bool do_draw = false;
 
   for (ARegion &region : screen->regionbase) {
-    if (region.runtime->do_draw_paintcursor) {
-      screen->do_draw_paintcursor = true;
-      region.runtime->do_draw_paintcursor = false;
+    if (region.runtime->do_draw_cursor_overlay) {
+      screen->do_draw_cursor_overlay = true;
+      region.runtime->do_draw_cursor_overlay = false;
     }
     if (region.runtime->visible && region.runtime->do_draw) {
       do_draw = true;
@@ -1687,7 +1686,7 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
   if (screen->do_draw_gesture) {
     return true;
   }
-  if (screen->do_draw_paintcursor) {
+  if (screen->do_draw_cursor_overlay) {
     return true;
   }
   if (screen->do_draw_drag) {
@@ -1730,15 +1729,15 @@ static void wm_draw_update_clear_window(bContext *C, wmWindow *win)
   }
 
   screen->do_draw_gesture = false;
-  screen->do_draw_paintcursor = false;
+  screen->do_draw_cursor_overlay = false;
   screen->do_draw_drag = false;
 }
 
-void WM_paint_cursor_tag_redraw(wmWindow *win, ARegion * /*region*/)
+void WM_cursor_overlay_tag_redraw(wmWindow *win, ARegion * /*region*/)
 {
   if (win) {
     bScreen *screen = WM_window_get_active_screen(win);
-    screen->do_draw_paintcursor = true;
+    screen->do_draw_cursor_overlay = true;
   }
 }
 

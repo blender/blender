@@ -3935,28 +3935,28 @@ static ARegion *region_event_inside(bContext *C, const int xy[2])
   return nullptr;
 }
 
-static void wm_paintcursor_tag(bContext *C, wmWindowManager *wm, ARegion *region)
+static void wm_cursor_overlay_tag(bContext *C, wmWindowManager *wm, ARegion *region)
 {
   if (region) {
-    for (wmPaintCursor &pc : wm->runtime->paintcursors.items_mutable()) {
+    for (wmCursorOverlay &pc : wm->runtime->cursor_overlays.items_mutable()) {
       if (pc.poll == nullptr || pc.poll(C)) {
         wmWindow *win = CTX_wm_window(C);
-        WM_paint_cursor_tag_redraw(win, region);
+        WM_cursor_overlay_tag_redraw(win, region);
       }
     }
   }
 }
 
 /**
- * Called on mouse-move, check updates for `wm->runtime->paintcursors`.
+ * Called on mouse-move, check updates for `wm->runtime->cursor_overlays`.
  *
  * \note Context was set on active area and region.
  */
-static void wm_paintcursor_test(bContext *C, const wmEvent *event)
+static void wm_cursor_overlay_test(bContext *C, const wmEvent *event)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  if (wm->runtime->paintcursors.first()) {
+  if (wm->runtime->cursor_overlays.first()) {
     const bScreen *screen = CTX_wm_screen(C);
     ARegion *region = screen ? screen->active_region : nullptr;
 
@@ -3964,7 +3964,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
       ARegion *prev_region = CTX_wm_region(C);
 
       CTX_wm_region_set(C, region);
-      wm_paintcursor_tag(C, wm, region);
+      wm_cursor_overlay_tag(C, wm, region);
       CTX_wm_region_set(C, prev_region);
     }
 
@@ -3976,7 +3976,7 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
       CTX_wm_area_set(C, area_event_inside(C, event->prev_xy));
       CTX_wm_region_set(C, region_event_inside(C, event->prev_xy));
 
-      wm_paintcursor_tag(C, wm, CTX_wm_region(C));
+      wm_cursor_overlay_tag(C, wm, CTX_wm_region(C));
 
       CTX_wm_area_set(C, prev_area);
       CTX_wm_region_set(C, prev_region);
@@ -4365,7 +4365,7 @@ void wm_event_do_handlers(bContext *C)
         }
       }
 
-      /* We let modal handlers get active area/region, also wm_paintcursor_test needs it. */
+      /* We let modal handlers get active area/region, also wm_cursor_overlay_test needs it. */
       CTX_wm_area_set(C, area_event_inside(C, event->xy));
       CTX_wm_region_set(C, region_event_inside(C, event->xy));
 
@@ -4405,12 +4405,12 @@ void wm_event_do_handlers(bContext *C)
            * Also used in `wm_draw.cc`, fails for modal handlers though. */
           ED_screen_set_active_region(C, &win, event->xy);
           /* For regions having custom cursors. */
-          wm_paintcursor_test(C, event);
+          wm_cursor_overlay_test(C, event);
         }
         else if (ISKEYMODIFIER(event->type)) {
           /* Paint cursors may change appearance based on modifier keys,
            * e.g. blade tool in the sequencer. */
-          wm_paintcursor_test(C, event);
+          wm_cursor_overlay_test(C, event);
         }
 #ifdef WITH_INPUT_NDOF
         else if (event->type == NDOF_MOTION) {

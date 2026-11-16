@@ -2560,17 +2560,17 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
  *
  * \{ */
 
-wmPaintCursor *WM_paint_cursor_activate(short space_type,
-                                        short region_type,
-                                        wmPaintCursorPoll poll,
-                                        wmPaintCursorDraw draw,
-                                        void *customdata)
+wmCursorOverlay *WM_cursor_overlay_activate(short space_type,
+                                            short region_type,
+                                            wmCursorOverlayPoll poll,
+                                            wmCursorOverlayDraw draw,
+                                            void *customdata)
 {
   wmWindowManager *wm = G_MAIN->wm.first();
 
-  wmPaintCursor *pc = MEM_new_zeroed<wmPaintCursor>("paint cursor");
+  wmCursorOverlay *pc = MEM_new_zeroed<wmCursorOverlay>(__func__);
 
-  BLI_addtail(&wm->runtime->paintcursors, pc);
+  BLI_addtail(&wm->runtime->cursor_overlays, pc);
 
   pc->customdata = customdata;
   pc->poll = poll;
@@ -2582,12 +2582,12 @@ wmPaintCursor *WM_paint_cursor_activate(short space_type,
   return pc;
 }
 
-bool WM_paint_cursor_end(wmPaintCursor *handle)
+bool WM_cursor_overlay_end(wmCursorOverlay *handle)
 {
   wmWindowManager *wm = G_MAIN->wm.first();
-  for (wmPaintCursor &pc : wm->runtime->paintcursors) {
+  for (wmCursorOverlay &pc : wm->runtime->cursor_overlays) {
     if (&pc == handle) {
-      BLI_remlink(&wm->runtime->paintcursors, &pc);
+      BLI_remlink(&wm->runtime->cursor_overlays, &pc);
       MEM_delete(&pc);
       return true;
     }
@@ -2595,16 +2595,16 @@ bool WM_paint_cursor_end(wmPaintCursor *handle)
   return false;
 }
 
-void WM_paint_cursor_remove_by_type(wmWindowManager *wm,
-                                    wmPaintCursorDraw draw_fn,
-                                    void (*free)(void *))
+void WM_cursor_overlay_remove_by_type(wmWindowManager *wm,
+                                      wmCursorOverlayDraw draw_fn,
+                                      void (*free)(void *))
 {
-  for (wmPaintCursor &pc : wm->runtime->paintcursors.items_mutable()) {
+  for (wmCursorOverlay &pc : wm->runtime->cursor_overlays.items_mutable()) {
     if (pc.draw == draw_fn) {
       if (free) {
         free(pc.customdata);
       }
-      BLI_remlink(&wm->runtime->paintcursors, &pc);
+      BLI_remlink(&wm->runtime->cursor_overlays, &pc);
       MEM_delete(&pc);
     }
   }
@@ -2648,7 +2648,7 @@ struct RadialControl {
   bool snap = false;
   Dial *dial = nullptr;
   gpu::Texture *texture = nullptr;
-  ListBaseT<wmPaintCursor> orig_paintcursors = {};
+  ListBaseT<wmCursorOverlay> orig_cursor_overlays = {};
   bool use_secondary_tex = false;
   void *cursor = nullptr;
   NumInput num_input = {};
@@ -3343,11 +3343,11 @@ static wmOperatorStatus radial_control_invoke(bContext *C, wmOperator *op, const
 
   /* Temporarily disable other paint cursors. */
   wmWindowManager *wm = CTX_wm_manager(C);
-  rc->orig_paintcursors = wm->runtime->paintcursors;
-  wm->runtime->paintcursors.clear_no_delete();
+  rc->orig_cursor_overlays = wm->runtime->cursor_overlays;
+  wm->runtime->cursor_overlays.clear_no_delete();
 
   /* Add radial control paint cursor. */
-  rc->cursor = WM_paint_cursor_activate(
+  rc->cursor = WM_cursor_overlay_activate(
       SPACE_TYPE_ANY, RGN_TYPE_ANY, op->type->poll, radial_control_paint_cursor, rc);
 
   WM_event_add_modal_handler(C, op);
@@ -3384,10 +3384,10 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
   ED_area_status_text(area, nullptr);
   ED_workspace_status_text(C, nullptr);
 
-  WM_paint_cursor_end(static_cast<wmPaintCursor *>(rc->cursor));
+  WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(rc->cursor));
 
   /* Restore original paint cursors. */
-  wm->runtime->paintcursors = rc->orig_paintcursors;
+  wm->runtime->cursor_overlays = rc->orig_cursor_overlays;
 
   /* Not sure if this is a good notifier to use;
    * intended purpose is to update the UI so that the

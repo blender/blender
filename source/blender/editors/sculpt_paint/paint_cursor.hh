@@ -26,7 +26,7 @@ enum class PaintCursorDrawingType {
   Cursor3D,
 };
 
-struct PaintCursorContext {
+struct PaintCursorOverlayContext {
   ARegion *region = nullptr;
   wmWindow *win = nullptr;
   wmWindowManager *wm = nullptr;
@@ -87,9 +87,9 @@ struct PaintCursorContext {
   int pixel_radius = 0;
 };
 
-void grease_pencil_cursor_draw(PaintCursorContext &pcontext);
+void grease_pencil_cursor_draw(PaintCursorOverlayContext &pcontext);
 
-void mesh_cursor_update_and_init(PaintCursorContext &pcontext);
-void mesh_cursor_active_draw(PaintCursorContext &pcontext);
-void mesh_cursor_inactive_draw(PaintCursorContext &pcontext);
+void mesh_cursor_update_and_init(PaintCursorOverlayContext &pcontext);
+void mesh_cursor_active_draw(PaintCursorOverlayContext &pcontext);
+void mesh_cursor_inactive_draw(PaintCursorOverlayContext &pcontext);
 }  // namespace blender::ed::sculpt_paint

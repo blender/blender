@@ -425,7 +425,7 @@ static wmOperatorStatus sample_color_exec(bContext *C, wmOperator *op)
   paint->flags &= ~PAINT_SHOW_BRUSH;
 
   /* force redraw without cursor */
-  WM_paint_cursor_tag_redraw(win, region);
+  WM_cursor_overlay_tag_redraw(win, region);
   WM_redraw_windows(C);
 
   int2 location;
@@ -482,7 +482,7 @@ static wmOperatorStatus sample_color_invoke(bContext *C, wmOperator *op, const w
   WM_event_add_modal_handler(C, op);
 
   /* force redraw without cursor */
-  WM_paint_cursor_tag_redraw(win, region);
+  WM_cursor_overlay_tag_redraw(win, region);
   WM_redraw_windows(C);
 
   RNA_int_set_array(op->ptr, "location", event->mval);

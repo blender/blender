@@ -35,7 +35,7 @@ WindowManagerRuntime::~WindowManagerRuntime()
     WM_operator_free(op);
   }
 
-  this->paintcursors.free_no_destruct();
+  this->cursor_overlays.free_no_destruct();
 
   /* NOTE(@ideasman42): typically timers are associated with windows and timers will have been
    * freed when the windows are removed. However timers can be created which don't have windows

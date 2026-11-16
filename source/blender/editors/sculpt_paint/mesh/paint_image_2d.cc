@@ -1779,7 +1779,7 @@ void paint_2d_redraw(const bContext *C, void *ps, bool final)
   }
 }
 
-void paint_2d_stroke_done(void *ps, wmPaintCursor *cursor)
+void paint_2d_stroke_done(void *ps, wmCursorOverlay *cursor)
 {
   ImagePaintState *s = static_cast<ImagePaintState *>(ps);
 
@@ -1792,7 +1792,7 @@ void paint_2d_stroke_done(void *ps, wmPaintCursor *cursor)
   paint_brush_exit_tex(s->brush);
 
   MEM_delete(s);
-  WM_paint_cursor_end(cursor);
+  WM_cursor_overlay_end(cursor);
 }
 
 static void paint_2d_fill_add_pixel_byte(const int x_px,

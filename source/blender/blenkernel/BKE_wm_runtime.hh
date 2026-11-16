@@ -29,7 +29,7 @@ struct wmIMEData;
 struct wmGesture;
 struct wmJob;
 struct wmDrag;
-struct wmPaintCursor;
+struct wmCursorOverlay;
 struct WindowDrawCB;
 
 enum eWM_JobType : uint8_t;
@@ -97,7 +97,7 @@ struct WindowManagerRuntime {
   ListBaseT<wmOperator> operators = {nullptr, nullptr};
 
   /** Extra overlay cursors to draw, like circles. */
-  ListBaseT<wmPaintCursor> paintcursors = {nullptr, nullptr};
+  ListBaseT<wmCursorOverlay> cursor_overlays = {nullptr, nullptr};
 
   /**
    * Known key configurations.

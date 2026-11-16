@@ -219,7 +219,7 @@ static void screen_blend_write(BlendWriter *writer, ID *id, const void *id_addre
         shallow_screen.do_draw = 0;
         shallow_screen.do_refresh = 0;
         shallow_screen.do_draw_gesture = 0;
-        shallow_screen.do_draw_paintcursor = 0;
+        shallow_screen.do_draw_cursor_overlay = 0;
         shallow_screen.do_draw_drag = 0;
         shallow_screen.skip_handling = 0;
         shallow_screen.scrubbing = 0;

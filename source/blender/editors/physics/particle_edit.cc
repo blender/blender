@@ -3401,11 +3401,11 @@ static void toggle_particle_cursor(Scene *scene, bool enable)
   ParticleEditSettings *pset = PE_settings(scene);
 
   if (pset->paintcursor && !enable) {
-    WM_paint_cursor_end(static_cast<wmPaintCursor *>(pset->paintcursor));
+    WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(pset->paintcursor));
     pset->paintcursor = nullptr;
   }
   else if (enable) {
-    pset->paintcursor = WM_paint_cursor_activate(
+    pset->paintcursor = WM_cursor_overlay_activate(
         SPACE_VIEW3D, RGN_TYPE_WINDOW, PE_poll_view3d, brush_drawcursor, nullptr);
   }
 }

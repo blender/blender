@@ -63,7 +63,8 @@ namespace blender {
  * outside the scope of what gizmos are meant to be used for, so keep this workaround localized
  * to this gizmo type unless this seems worth supporting for more typical use-cases.
  *
- * Longer term it may be better to use #wmPaintCursor instead of gizmos (as snapping preview does).
+ * Longer term it may be better to use #wmCursorOverlay instead of gizmos (as snapping preview
+ * does).
  */
 static bool gizmo_preselect_poll_for_draw(const bContext *C, wmGizmo *gz)
 {

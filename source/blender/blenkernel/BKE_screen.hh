@@ -682,7 +682,7 @@ struct ARegionRuntime {
   short do_draw = 0;
 
   /** Private, cached notifier events. */
-  short do_draw_paintcursor;
+  short do_draw_cursor_overlay;
 
   /** Tag for IME cursor position refresh on next draw. */
   bool do_ime = false;

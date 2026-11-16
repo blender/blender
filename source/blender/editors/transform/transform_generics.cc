@@ -772,7 +772,7 @@ void postTrans(bContext *C, TransInfo *t)
     ED_region_draw_cb_exit(t->region->runtime->type, t->draw_handle_pixel);
   }
   if (t->draw_handle_cursor) {
-    WM_paint_cursor_end(static_cast<wmPaintCursor *>(t->draw_handle_cursor));
+    WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(t->draw_handle_cursor));
   }
 
   if (t->flag & T_MODAL_CURSOR_SET) {
