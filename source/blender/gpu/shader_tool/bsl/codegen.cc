@@ -1528,7 +1528,30 @@ struct CodegenContext : NodeErrorHandler {
     }
 
     /* Member functions. */
+    class_and_crtp_functions_prototypes(body, cls);
+    class_and_crtp_functions_decl(body, cls);
+  }
 
+  /* Call `fn` with the body and symbol of each class nested in `cls`, including anonymous ones. */
+  template<typename FnT>
+  void foreach_nested_class(LocalScope body, SymbolClass &cls, const FnT &fn)
+  {
+    int class_id = 0;
+    for (ClassDecl decl : body.children_of_type<ClassDecl>()) {
+      /* Enums count, the identifiers of anonymous classes are based on the declaration index. */
+      const int nested_id = class_id++;
+      if (decl.is_enum()) {
+        continue;
+      }
+      SymbolClass &nested = lookup_class(decl.identifier(), cls, nested_id);
+      if (!nested.is_error) {
+        fn(decl.body(), nested);
+      }
+    }
+  }
+
+  void class_and_crtp_functions_prototypes(LocalScope body, SymbolClass &cls)
+  {
     for (auto [id, base] : cls.base_classes) {
       if (base->is_crtp) {
         ClassDecl decl = base->template_data->decl.decl();
@@ -1537,7 +1560,10 @@ struct CodegenContext : NodeErrorHandler {
       }
     }
     class_functions_prototypes(body, cls);
+  }
 
+  void class_and_crtp_functions_decl(LocalScope body, SymbolClass &cls)
+  {
     for (auto [id, base] : cls.base_classes) {
       if (base->is_crtp) {
         ClassDecl decl = base->template_data->decl.decl();
@@ -1550,14 +1576,9 @@ struct CodegenContext : NodeErrorHandler {
 
   void class_functions_prototypes(LocalScope body, SymbolClass &cls)
   {
-    /* Nested classes. */
-    for (auto decl : body.children_of_type<ClassDecl>()) {
-      /* Don't process anonymous classes. */
-      if (decl.identifier().is_valid()) {
-        SymbolClass &nested = cls.lookup_class(table, decl.identifier()).unwrap(this);
-        class_functions_prototypes(decl.body(), nested);
-      }
-    }
+    foreach_nested_class(body, cls, [&](LocalScope nested_body, SymbolClass &nested) {
+      class_and_crtp_functions_prototypes(nested_body, nested);
+    });
 
     if (!body.child_first(NodeType::FuncDecl).is_valid() &&
         !body.child_first(NodeType::FuncForwardDecl).is_valid())
@@ -1581,14 +1602,9 @@ struct CodegenContext : NodeErrorHandler {
 
   void class_functions_decl(LocalScope body, SymbolClass &cls)
   {
-    /* Nested classes. */
-    for (auto decl : body.children_of_type<ClassDecl>()) {
-      /* Don't process anonymous classes. */
-      if (decl.identifier().is_valid()) {
-        SymbolClass &nested = cls.lookup_class(table, decl.identifier()).unwrap(this);
-        class_functions_decl(decl.body(), nested);
-      }
-    }
+    foreach_nested_class(body, cls, [&](LocalScope nested_body, SymbolClass &nested) {
+      class_and_crtp_functions_decl(nested_body, nested);
+    });
 
     /* Emit function members. */
     for (FuncDecl decl : body.children_of_type<FuncDecl>()) {
