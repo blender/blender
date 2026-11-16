@@ -9,6 +9,7 @@ from ..utils.nodes import (
     nw_check,
     nw_check_selected,
     abs_node_location,
+    dpi_fac,
 )
 
 
@@ -39,6 +40,7 @@ class NODE_OT_center_selected(Operator, NWBase):
         nodes_y = []
         nodes_right = []
         nodes_bottom = []
+        dpi = dpi_fac()
         for n in nodes:
             loc_abs = abs_node_location(n)
             nodes_x.append(loc_abs.x)
@@ -51,7 +53,7 @@ class NODE_OT_center_selected(Operator, NWBase):
                 nodes_bottom.append(loc_abs.y)
             else:
                 nodes_right.append(loc_abs.x + n.width)
-                nodes_bottom.append(loc_abs.y - n.dimensions.y)
+                nodes_bottom.append(loc_abs.y - (n.dimensions.y / dpi))
         mid_x = (min(nodes_x) + max(nodes_right)) / 2
         mid_y = (max(nodes_y) + min(nodes_bottom)) / 2
 
