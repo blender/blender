@@ -1084,7 +1084,10 @@ float ANIM_nla_tweakedit_remap(bAnimListElem *ale, float cframe, eNlaTime_Conver
 void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, bool only_keys);
 
 /**
- * Same as above, but only if `ANIM_nla_mapping_allowed(ale)` returns `true`.
+ * This modifies the FCurve such that the FCurves are in Scene time according to their NLA strip.
+ *
+ * \deprecated Use `ANIM_nla_time_mapping_get` instead. That can also convert to/from Scene time,
+ * but doesn't require modifying the FCurve.
  */
 void ANIM_nla_mapping_apply_if_needed_fcurve(bAnimListElem *ale,
                                              FCurve *fcu,
@@ -1161,9 +1164,53 @@ struct UnitMapping {
 };
 
 /**
+ * Maps from FCurve to Scene time.
+ * This assumes that the mapping is linear, no curve time remapping allowed.
+ * `UnitMapping` is a subset of this and the structs can probably be merged.
+ * The function this represents comes from the NLA system.
+ */
+struct TimeMapping {
+  float offset = 0.0f;
+  float scale = 1.0f;
+  /* Used for the NLA where the scale is not done at 0, but at the start of the action. */
+  float scale_offset = 0.0f;
+
+  /**
+   * Solves the linear equation that this struct represents for y.
+   * E.g. if this represents a mapping from FCurve to Scene time, the passed value is expected to
+   * be in FCurve time and the result will be Scene time.
+   */
+  float map(const float x) const
+  {
+    /* y = (x-a) * b + c */
+    return (x - this->scale_offset) * this->scale + this->offset;
+  }
+
+  /**
+   * Solves the linear equation for x.
+   * E.g. if this represents a mapping from FCurve to Scene time, the passed value should be Scene
+   * time and the result will be FCurve time.
+   */
+  float unmap(const float y) const
+  {
+    /* x = (y-c) / b + a */
+    if (this->scale == 0.0f) {
+      return y;
+    }
+    return (y - this->offset) / this->scale + this->scale_offset;
+  }
+};
+
+/**
  * Get unit conversion factor for given ID + F-Curve.
  */
 UnitMapping ANIM_unit_mapping_get(Scene *scene, ID *id, FCurve *fcu, short flag);
+
+/**
+ * Returns the strip mapping for the given animfilter element.
+ * This should not be used for evaluation since it ignores the animated strip time.
+ */
+TimeMapping ANIM_nla_time_mapping_get(bAnimListElem &ale);
 
 /** \} */
 
