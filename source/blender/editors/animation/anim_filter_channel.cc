@@ -105,8 +105,8 @@ std::ostream &operator<<(std::ostream &stream, const ChannelTagType type)
     case ChannelTagType::BONE:
       stream << "BONE";
       break;
-    case ChannelTagType::ID:
-      stream << "ID";
+    case ChannelTagType::ANIMATED_ID:
+      stream << "ANIMATED_ID";
       break;
     case ChannelTagType::SHAPE_KEY:
       stream << "SHAPE_KEY";
@@ -1381,12 +1381,13 @@ static void change_fcurve_key_selection(FCurve &fcurve,
 /**
  * Return the icon of the animated property.
  *
- * The RNA path is resolved against the #ChannelTagType::ID tag's data.
+ * The RNA path is resolved against the #ChannelTagType::ANIMATED_ID tag's data.
  */
 static int animated_property_icon_from_id_tag(const ChannelTagSet &tags,
                                               const ParsedRNAPathRef rna_path)
 {
-  const PointerRNA &animated_id_ptr = tags.first_by_type(ChannelTagType::ID)->source_data();
+  const PointerRNA &animated_id_ptr =
+      tags.first_by_type(ChannelTagType::ANIMATED_ID)->source_data();
 
   PointerRNA ptr;
   PropertyRNA *prop;
@@ -1543,7 +1544,7 @@ void FCurveChannel::change_datapoint_selection(const SelectionMode mode, const B
 
 StringRefNull FCurveChannel::label() const
 {
-  const ID *animated_id = this->tags().data_of_first_tag<ID>(ChannelTagType::ID);
+  const ID *animated_id = this->tags().data_of_first_tag<ID>(ChannelTagType::ANIMATED_ID);
   if (!animated_id) {
     // TODO: getname_anim_fcurve_for_slot() can come to the rescue here.
     return this->label_;
@@ -1587,7 +1588,7 @@ DriverChannel::DriverChannel(const PointerRNA &driver_fcurve_ptr,
 
 StringRefNull DriverChannel::label() const
 {
-  const ID *animated_id = this->tags().data_of_first_tag<ID>(ChannelTagType::ID);
+  const ID *animated_id = this->tags().data_of_first_tag<ID>(ChannelTagType::ANIMATED_ID);
   if (!animated_id) {
     return this->label_;
   }

@@ -5211,7 +5211,7 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
             return;
           }
           ScrArea *area = CTX_wm_area(C);
-          ChannelTag *id_tag = channel.tags().first_by_type(ChannelTagType::ID);
+          ChannelTag *id_tag = channel.tags().first_by_type(ChannelTagType::ANIMATED_ID);
           ID *id = id_tag ? id_tag->source_data().owner_id : nullptr;
           std::optional<rctf> channel_bounds = get_channel_bounds(
               channel, area->spacedata.first(), CTX_data_scene(C), id);
@@ -5378,7 +5378,7 @@ static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
       return OPERATOR_CANCELLED;
     }
     ScrArea *area = CTX_wm_area(C);
-    ChannelTag *id_tag = channel_under_cursor->tags().first_by_type(ChannelTagType::ID);
+    ChannelTag *id_tag = channel_under_cursor->tags().first_by_type(ChannelTagType::ANIMATED_ID);
     ID *id = id_tag ? id_tag->source_data().owner_id : nullptr;
     std::optional<rctf> channel_bounds = get_channel_bounds(
         *channel_under_cursor, area->spacedata.first(), CTX_data_scene(C), id, range);

@@ -116,7 +116,7 @@ static PointerRNA pose_bone_for_fcurve(const FCurve &fcurve, const ChannelTagSta
   }
   /* Assuming here that we have an ID that this action is assigned to. We need the object to find
    * the pose bone. */
-  const ChannelTag *id_tag = tags.find_type(ChannelTagType::ID);
+  const ChannelTag *id_tag = tags.find_type(ChannelTagType::ANIMATED_ID);
   if (!id_tag || id_tag->source_data().type != RNA_Object) {
     return {};
   }
@@ -395,7 +395,7 @@ static void collect_channels_for_id(ID *animated_id,
     return;
   }
 
-  tags.push({ChannelTagType::ID, animated_id->name + 2, animated_id_ptr, embedded_property});
+  tags.push({ChannelTagType::ANIMATED_ID, animated_id->name + 2, animated_id_ptr, embedded_property});
 
   if (adt && !adt->drivers.is_empty()) {
     PointerRNA adt_ptr = RNA_pointer_create_with_parent(animated_id_ptr, RNA_AnimData, adt);
@@ -504,7 +504,7 @@ static void collect_channels_for_grease_pencil(GreasePencil &gp, ChannelArena &a
   assert_tag_count(tags);
 
   const PointerRNA gp_id_ptr = RNA_id_pointer_create(&gp.id);
-  tags.push({ChannelTagType::ID, gp.id.name + 2, gp_id_ptr, ParsedRNAPathRef()});
+  tags.push({ChannelTagType::ANIMATED_ID, gp.id.name + 2, gp_id_ptr, ParsedRNAPathRef()});
 
   Vector<rna_path::Item> layer_rna_path_items = {rna_path::Member{UString("layers")}};
   Vector<rna_path::Item> group_rna_path_items = {rna_path::Member{UString("layer_groups")}};
@@ -770,7 +770,7 @@ static void collect_action_channels(Main &bmain,
           else {
             slot_user = slot_users[0];
           }
-          tags.push({ChannelTagType::ID,
+          tags.push({ChannelTagType::ANIMATED_ID,
                      slot_user->name + 2,
                      RNA_id_pointer_create(slot_user),
                      ParsedRNAPathRef()});

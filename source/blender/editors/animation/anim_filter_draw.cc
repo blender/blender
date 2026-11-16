@@ -511,7 +511,7 @@ void ChannelItem::build_row(ui::Layout &layout)
     /* TODO: there's a lot of code duplication here with the code section
      * immediately above (fetching channel data, etc.). */
     DataChannel &data_channel = static_cast<DataChannel &>(channel_);
-    const ID *animated_id = data_channel.tags().data_of_first_tag<ID>(ChannelTagType::ID);
+    const ID *animated_id = data_channel.tags().data_of_first_tag<ID>(ChannelTagType::ANIMATED_ID);
     if (data_channel.source_type() == DataChannelType::FCURVE && animated_id != nullptr) {
       FCurve *fcurve = data_channel.get_source<FCurve>();
       PointerRNA id_ptr = RNA_id_pointer_create(const_cast<ID *>(animated_id));

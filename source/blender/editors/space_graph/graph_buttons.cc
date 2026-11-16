@@ -419,7 +419,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
     fcu = active_chan->source().data_as<FCurve>();
     fcurve_owner_id = active_chan->source().owner_id;
-    animated_id_ptr = active_chan->tags().first_by_type(ChannelTagType::ID)->source_data();
+    animated_id_ptr =
+        active_chan->tags().first_by_type(ChannelTagType::ANIMATED_ID)->source_data();
   }
   else {
     bAnimListElem *ale = nullptr;

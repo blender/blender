@@ -54,7 +54,7 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
 
   static const Array<ChannelTagType> default_tag_order = {
       ChannelTagType::ACTION,
-      ChannelTagType::ID,
+      ChannelTagType::ANIMATED_ID,
       ChannelTagType::GREASEPENCIL_GROUP,
       ChannelTagType::FCURVE_GROUP,
   };
@@ -64,7 +64,7 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
     case SACTCONT_TIMELINE: {
       static const Array<ChannelTagType> tag_order = {
           ChannelTagType::ACTION,
-          ChannelTagType::ID,
+          ChannelTagType::ANIMATED_ID,
           ChannelTagType::GREASEPENCIL_GROUP,
           ChannelTagType::FCURVE_GROUP,
       };
@@ -82,7 +82,7 @@ static Span<ed::animfilter::ChannelTagType> tag_order_for_dope_sheet_mode(
 
     case SACTCONT_GPENCIL: {
       static const Array<ChannelTagType> tag_order = {
-          ChannelTagType::ID,
+          ChannelTagType::ANIMATED_ID,
           ChannelTagType::GREASEPENCIL_GROUP,
           ChannelTagType::ACTION,
           ChannelTagType::FCURVE_GROUP,

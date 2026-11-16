@@ -54,7 +54,13 @@ enum class ChannelTagType {
   ACTION_SLOT,
   ACTION,
   BONE,
-  ID,
+  /**
+   * The ID animated by the channel that has this tag.
+   *
+   * For F-Curve and Driver channels, this is the ID that they animate. For Grease Pencil channels
+   * this also applies; by the nature of GP it is the GP datablock itself.
+   */
+  ANIMATED_ID,
   /* While this is technically an ID, it is embedded and thus can't be
    re-used so it can never be shared between meshes. */
   SHAPE_KEY,

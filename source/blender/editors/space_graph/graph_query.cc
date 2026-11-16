@@ -35,7 +35,7 @@ static Span<animfilter::ChannelTagType> get_tag_order()
 
   static const Array<ChannelTagType> default_tag_order = {
       ChannelTagType::ACTION,
-      ChannelTagType::ID,
+      ChannelTagType::ANIMATED_ID,
       ChannelTagType::FCURVE_GROUP,
   };
   return default_tag_order;

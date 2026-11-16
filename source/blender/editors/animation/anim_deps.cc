@@ -279,7 +279,7 @@ static void animchan_sync_group(const bContext &C,
   using namespace ed::animfilter;
   BLI_assert(channel.source_is_type(RNA_ActionGroup));
 
-  ID *animated_id = channel.tags().data_of_first_tag<ID>(ChannelTagType::ID);
+  ID *animated_id = channel.tags().data_of_first_tag<ID>(ChannelTagType::ANIMATED_ID);
 
   /* Syncing to pose bones is only possible when the animated ID is an Object. */
   if (!animated_id || animated_id->id_type() != ID_OB) {
@@ -326,7 +326,8 @@ static void animchan_sync_fcurve(ed::animfilter::AnimationChannel &channel)
   }
 
   /* Find the ID animated by this channel. */
-  ID *animated_id = channel.tags().data_of_first_tag<ID>(ed::animfilter::ChannelTagType::ID);
+  ID *animated_id = channel.tags().data_of_first_tag<ID>(
+      ed::animfilter::ChannelTagType::ANIMATED_ID);
   if (!animated_id) {
     return;
   }
