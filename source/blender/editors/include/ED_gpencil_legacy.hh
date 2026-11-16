@@ -9,6 +9,9 @@
 #pragma once
 
 #include "DNA_listBase.h"
+
+#include "ED_keyframes_edit.hh"
+
 struct Depsgraph;
 struct SnapObjectContext;
 namespace blender {
@@ -158,26 +161,29 @@ bool ED_gpencil_layer_frame_select_check(const bGPDlayer *gpl);
 /**
  * Set all/none/invert select.
  */
-void ED_gpencil_layer_frame_select_set(bGPDlayer *gpl, short mode);
+void ED_gpencil_layer_frame_select_set(bGPDlayer *gpl, eEditKeyframes_Select select_mode);
 /**
  * Select the frames in this layer that occur within the bounds specified.
  */
-void ED_gpencil_layer_frames_select_box(bGPDlayer *gpl, float min, float max, short select_mode);
+void ED_gpencil_layer_frames_select_box(bGPDlayer *gpl,
+                                        float min,
+                                        float max,
+                                        eEditKeyframes_Select select_mode);
 /**
  * Select the frames in this layer that occur within the lasso/circle region specified.
  */
 void ED_gpencil_layer_frames_select_region(KeyframeEditData *ked,
                                            bGPDlayer *gpl,
-                                           short tool,
-                                           short select_mode);
+                                           eEditKeyframes_Validate tool,
+                                           eEditKeyframes_Select select_mode);
 /**
  * Set all/none/invert select (like above, but with SELECT_* modes).
  */
-void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode);
+void ED_gpencil_select_frames(bGPDlayer *gpl, eEditKeyframes_Select select_mode);
 /**
  * Select the frame in this layer that occurs on this frame (there should only be one at most).
  */
-void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode);
+void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, eEditKeyframes_Select select_mode);
 
 /**
  * Set the layer's channel as active

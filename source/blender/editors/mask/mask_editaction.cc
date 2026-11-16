@@ -105,7 +105,8 @@ bool ED_masklayer_frame_select_check(const MaskLayer *mask_layer)
 }
 
 /* helper function - select mask-frame based on SELECT_* mode */
-static void mask_layer_shape_select(MaskLayerShape *mask_layer_shape, short select_mode)
+static void mask_layer_shape_select(MaskLayerShape *mask_layer_shape,
+                                    const eEditKeyframes_Select select_mode)
 {
   if (mask_layer_shape == nullptr) {
     return;
@@ -121,10 +122,15 @@ static void mask_layer_shape_select(MaskLayerShape *mask_layer_shape, short sele
     case SELECT_INVERT:
       mask_layer_shape->flag ^= MASK_SHAPE_SELECT;
       break;
+    case SELECT_REPLACE:
+    case SELECT_EXTEND_RANGE:
+    case SELECT_CHILDREN:
+      BLI_assert_unreachable();
+      break;
   }
 }
 
-void ED_mask_select_frames(MaskLayer *mask_layer, short select_mode)
+void ED_mask_select_frames(MaskLayer *mask_layer, const eEditKeyframes_Select select_mode)
 {
   /* error checking */
   if (mask_layer == nullptr) {
@@ -137,7 +143,7 @@ void ED_mask_select_frames(MaskLayer *mask_layer, short select_mode)
   }
 }
 
-void ED_masklayer_frame_select_set(MaskLayer *mask_layer, short mode)
+void ED_masklayer_frame_select_set(MaskLayer *mask_layer, const eEditKeyframes_Select select_mode)
 {
   /* error checking */
   if (mask_layer == nullptr) {
@@ -145,10 +151,10 @@ void ED_masklayer_frame_select_set(MaskLayer *mask_layer, short mode)
   }
 
   /* now call the standard function */
-  ED_mask_select_frames(mask_layer, mode);
+  ED_mask_select_frames(mask_layer, select_mode);
 }
 
-void ED_mask_select_frame(MaskLayer *mask_layer, int selx, short select_mode)
+void ED_mask_select_frame(MaskLayer *mask_layer, int selx, const eEditKeyframes_Select select_mode)
 {
   MaskLayerShape *mask_layer_shape;
 
@@ -163,7 +169,10 @@ void ED_mask_select_frame(MaskLayer *mask_layer, int selx, short select_mode)
   }
 }
 
-void ED_masklayer_frames_select_box(MaskLayer *mask_layer, float min, float max, short select_mode)
+void ED_masklayer_frames_select_box(MaskLayer *mask_layer,
+                                    const float min,
+                                    const float max,
+                                    const eEditKeyframes_Select select_mode)
 {
   if (mask_layer == nullptr) {
     return;
@@ -179,8 +188,8 @@ void ED_masklayer_frames_select_box(MaskLayer *mask_layer, float min, float max,
 
 void ED_masklayer_frames_select_region(KeyframeEditData *ked,
                                        MaskLayer *mask_layer,
-                                       short tool,
-                                       short select_mode)
+                                       const eEditKeyframes_Validate tool,
+                                       const eEditKeyframes_Select select_mode)
 {
   if (mask_layer == nullptr) {
     return;

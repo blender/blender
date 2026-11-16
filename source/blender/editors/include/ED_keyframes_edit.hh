@@ -35,8 +35,9 @@ struct bDopeSheet;
 
 /** bezt validation. */
 enum eEditKeyframes_Validate {
+  BEZT_NOT_OK = 0,
   /* Frame range */
-  BEZT_OK_FRAME = 1,
+  BEZT_OK_FRAME,
   BEZT_OK_FRAMERANGE,
   /* Selection status (any of f1, f2, f3)  */
   BEZT_OK_SELECTED,
@@ -63,14 +64,23 @@ enum eEditKeyframes_Validate {
 /* select modes */
 enum eEditKeyframes_Select {
   /* SELECT_SUBTRACT for all, followed by SELECT_ADD for some */
-  SELECT_REPLACE = (1 << 0),
+  SELECT_REPLACE = 0,
   /* add ok keyframes to selection */
-  SELECT_ADD = (1 << 1),
+  SELECT_ADD,
   /* remove ok keyframes from selection */
-  SELECT_SUBTRACT = (1 << 2),
+  SELECT_SUBTRACT,
   /* flip ok status of keyframes based on key status */
-  SELECT_INVERT = (1 << 3),
-  SELECT_EXTEND_RANGE = (1 << 4),
+  SELECT_INVERT,
+  /*
+   * Select all animation channels between the active channel and the last-clicked channel without
+   * deselecting the previous selection.
+   */
+  SELECT_EXTEND_RANGE,
+  /*
+   * Special case for ActionGroups only, which selects all of the channels underneath it only.
+   * TODO: Should this feature be extended to work with other channel types too?
+   */
+  SELECT_CHILDREN,
 };
 
 /* "selection map" building modes. */
@@ -145,6 +155,7 @@ enum eKeyframeVertOk {
 
 /* Flags for use during iteration */
 enum eKeyframeIterFlags {
+  KEYFRAME_ITER_NONE = 0,
   /* Consider handles in addition to key itself. Used in #keyframe_ok_checks, #select_bezier_add,
    * #select_bezier_subtract. If set, treat key and handles separately (e.g (de)select them
    * individually, and do additional visibility checks on the handles if necessary), otherwise
@@ -192,30 +203,30 @@ struct CfraElem {
 struct KeyframeEditData {
   /* generic properties/data access */
   /** temp list for storing custom list of data to check */
-  ListBaseT<CfraElem> cfra_elem_list;
-  ListBaseT<TimeMarker> time_marker_list;
+  ListBaseT<CfraElem> cfra_elem_list = {};
+  ListBaseT<TimeMarker> time_marker_list = {};
   /** pointer to current scene - many tools need access to cfra/etc. */
-  Scene *scene;
+  Scene *scene = nullptr;
   /** pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */
-  void *data;
+  void *data = nullptr;
   /** storage of times/values as 'decimals' */
-  float f1, f2;
+  float f1 = 0.0f, f2 = 0.0f;
   /** storage of times/values/flags as 'whole' numbers */
-  int i1, i2;
+  int i1 = 0, i2 = 0;
 
   /* current iteration data */
   /** F-Curve that is being iterated over */
-  FCurve *fcu;
+  FCurve *fcu = nullptr;
   /** index of current keyframe being iterated over */
-  int curIndex;
+  int curIndex = 0;
   /** Y-position of midpoint of the channel (for the dope-sheet). */
-  float channel_y;
+  float channel_y = 0.0f;
 
   /* flags */
   /** current flags for the keyframe we're reached in the iteration process */
-  eKeyframeVertOk curflags;
+  eKeyframeVertOk curflags = KEYFRAME_NONE;
   /** settings for iteration process */
-  eKeyframeIterFlags iterflags;
+  eKeyframeIterFlags iterflags = KEYFRAME_ITER_NONE;
 };
 
 /** \} */
@@ -349,7 +360,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac);
  * \{ */
 
 /* accessories */
-KeyframeEditFunc ANIM_editkeyframes_ok(short mode);
+KeyframeEditFunc ANIM_editkeyframes_ok(eEditKeyframes_Validate mode);
 
 /* edit */
 KeyframeEditFunc ANIM_editkeyframes_snap(short mode);

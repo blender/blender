@@ -2133,10 +2133,7 @@ static KeyframeEditData sum_selected_keyframes(bAnimContext *ac)
 {
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   int filter;
-  KeyframeEditData ked;
-
-  /* Init edit data. */
-  memset(&ked, 0, sizeof(KeyframeEditData));
+  KeyframeEditData ked{};
 
   /* Loop over action data, averaging values. */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
@@ -2146,13 +2143,11 @@ static KeyframeEditData sum_selected_keyframes(bAnimContext *ac)
 
   for (bAnimListElem &ale : anim_data) {
     short mapping_flag = ANIM_get_normalization_flags(ac->sl);
-    KeyframeEditData current_ked;
+    KeyframeEditData current_ked{};
     const UnitMapping unit_mapping = ANIM_unit_mapping_get(ac->scene,
                                                            ale.id,
                                                            static_cast<FCurve *>(ale.key_data),
                                                            mapping_flag | ANIM_UNITCONV_ONLYKEYS);
-
-    memset(&current_ked, 0, sizeof(current_ked));
 
     ANIM_nla_mapping_apply_if_needed_fcurve(
         &ale, static_cast<FCurve *>(ale.key_data), false, true);
@@ -2356,7 +2351,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
   int filter;
 
   SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(ac->sl);
-  KeyframeEditData ked;
+  KeyframeEditData ked{};
   KeyframeEditFunc edit_cb;
   float cursor_value = 0.0f;
 
@@ -2367,7 +2362,6 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Init custom data for iterating over keyframes. */
-  memset(&ked, 0, sizeof(KeyframeEditData));
   ked.scene = ac->scene;
   if (mode == GRAPHKEYS_SNAP_NEAREST_MARKER) {
     ked.time_marker_list.first_ = (ac->markers) ? ac->markers->first_ : nullptr;
@@ -2650,12 +2644,11 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
   int filter;
 
   SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(ac->sl);
-  KeyframeEditData ked;
+  KeyframeEditData ked{};
   KeyframeEditFunc edit_cb;
   float cursor_value = 0.0f;
 
   /* Init custom data for looping over keyframes. */
-  memset(&ked, 0, sizeof(KeyframeEditData));
   ked.scene = ac->scene;
 
   /* Store mode-specific custom data... */

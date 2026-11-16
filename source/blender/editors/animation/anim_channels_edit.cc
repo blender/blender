@@ -3951,8 +3951,7 @@ static void ANIM_OT_channels_rename(wmOperatorType *ot)
 
 /* Handle selection changes due to clicking on channels. Settings will get caught by UI code... */
 
-static int click_select_channel_scene(bAnimListElem *ale,
-                                      const short /* eEditKeyframes_Select or -1 */ selectmode)
+static int click_select_channel_scene(bAnimListElem *ale, const eEditKeyframes_Select selectmode)
 {
   Scene *sce = static_cast<Scene *>(ale->data);
   AnimData *adt = sce->adt;
@@ -4041,7 +4040,7 @@ static void animchannel_select_range(bAnimContext *ac, bAnimListElem *cursor_ele
 static int click_select_channel_object(bContext *C,
                                        bAnimContext *ac,
                                        bAnimListElem *ale,
-                                       const short /* eEditKeyframes_Select or -1 */ selectmode)
+                                       const eEditKeyframes_Select selectmode)
 {
   using namespace blender::ed;
   const Main *bmain = CTX_data_main(C);
@@ -4102,7 +4101,7 @@ static int click_select_channel_object(bContext *C,
 
 static int click_select_channel_dummy(bAnimContext *ac,
                                       bAnimListElem *ale,
-                                      const short /* eEditKeyframes_Select or -1 */ selectmode)
+                                      const eEditKeyframes_Select selectmode)
 {
   if (ale->adt == nullptr) {
     return 0;
@@ -4133,7 +4132,7 @@ static int click_select_channel_dummy(bAnimContext *ac,
 
 static int click_select_channel_group(bAnimContext *ac,
                                       bAnimListElem *ale,
-                                      const short /* eEditKeyframes_Select or -1 */ selectmode,
+                                      const eEditKeyframes_Select selectmode,
                                       const int filter)
 {
   bActionGroup *agrp = static_cast<bActionGroup *>(ale->data);
@@ -4174,7 +4173,7 @@ static int click_select_channel_group(bAnimContext *ac,
     ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_EXTEND_RANGE);
     animchannel_select_range(ac, ale);
   }
-  else if (selectmode == -1) {
+  else if (selectmode == SELECT_CHILDREN) {
     /* select all in group (and deselect everything else) */
     FCurve *fcu;
 
@@ -4234,7 +4233,7 @@ static int click_select_channel_group(bAnimContext *ac,
 
 static int click_select_channel_fcurve(bAnimContext *ac,
                                        bAnimListElem *ale,
-                                       const short /* eEditKeyframes_Select or -1 */ selectmode,
+                                       const eEditKeyframes_Select selectmode,
                                        const int filter)
 {
   FCurve *fcu = static_cast<FCurve *>(ale->data);
@@ -4269,7 +4268,7 @@ static int click_select_channel_fcurve(bAnimContext *ac,
 }
 static int click_select_channel_action_slot(bAnimContext *ac,
                                             bAnimListElem *ale,
-                                            short /* eEditKeyframes_Select or -1 */ selectmode)
+                                            eEditKeyframes_Select selectmode)
 {
   BLI_assert_msg(GS(ale->fcurve_owner_id->name) == ID_AC,
                  "fcurve_owner_id of an Action Slot should be an Action");
@@ -4296,6 +4295,7 @@ static int click_select_channel_action_slot(bAnimContext *ac,
       animchannel_select_range(ac, ale);
       break;
     case SELECT_INVERT:
+    case SELECT_CHILDREN:
       BLI_assert_unreachable();
       break;
   }
@@ -4306,7 +4306,7 @@ static int click_select_channel_action_slot(bAnimContext *ac,
 static int click_select_channel_shapekey(bContext *C,
                                          bAnimContext *ac,
                                          bAnimListElem *ale,
-                                         const short /* eEditKeyframes_Select or -1 */ selectmode)
+                                         const eEditKeyframes_Select selectmode)
 {
   KeyBlock *kb = static_cast<KeyBlock *>(ale->data);
   Key *key = reinterpret_cast<Key *>(ale->id);
@@ -4349,7 +4349,7 @@ static int click_select_channel_nlacontrols(bAnimListElem *ale)
 static int click_select_channel_gplayer(bContext *C,
                                         bAnimContext *ac,
                                         bAnimListElem *ale,
-                                        const short /* eEditKeyframes_Select or -1 */ selectmode,
+                                        const eEditKeyframes_Select selectmode,
                                         const int filter)
 {
   bGPdata *gpd = reinterpret_cast<bGPdata *>(ale->id);
@@ -4420,7 +4420,7 @@ static int click_select_channel_grease_pencil_layer_group(bContext *C, bAnimList
 static int click_select_channel_grease_pencil_layer(bContext *C,
                                                     bAnimContext *ac,
                                                     bAnimListElem *ale,
-                                                    const short selectmode,
+                                                    const eEditKeyframes_Select selectmode,
                                                     const int /*filter*/)
 {
   using namespace blender::bke::greasepencil;
@@ -4466,7 +4466,7 @@ static int click_select_channel_maskdatablock(bAnimListElem *ale)
 
 static int click_select_channel_masklayer(bAnimContext *ac,
                                           bAnimListElem *ale,
-                                          const short /* eEditKeyframes_Select or -1 */ selectmode)
+                                          const eEditKeyframes_Select selectmode)
 {
   MaskLayer *masklay = static_cast<MaskLayer *>(ale->data);
 
@@ -4487,7 +4487,7 @@ static int click_select_channel_masklayer(bAnimContext *ac,
 static int mouse_anim_channels(bContext *C,
                                bAnimContext *ac,
                                const int channel_index,
-                               short /* eEditKeyframes_Select or -1 */ selectmode)
+                               eEditKeyframes_Select selectmode)
 {
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
@@ -4517,10 +4517,9 @@ static int mouse_anim_channels(bContext *C,
     return 0;
   }
 
-  /* selectmode -1 is a special case for ActionGroups only,
+  /* SELECT_CHILDREN is a special case for ActionGroups only,
    * which selects all of the channels underneath it only. */
-  /* TODO: should this feature be extended to work with other channel types too? */
-  if ((selectmode == -1) && (ale->type != ANIMTYPE_GROUP)) {
+  if ((selectmode == SELECT_CHILDREN) && (ale->type != ANIMTYPE_GROUP)) {
     /* normal channels should not behave normally in this case */
     ANIM_animdata_freelist(&anim_data);
     return 0;
@@ -4632,7 +4631,7 @@ static wmOperatorStatus animchannels_mouseclick_invoke(bContext *C,
   View2D *v2d;
   int channel_index;
   int notifierFlags = 0;
-  short selectmode;
+  eEditKeyframes_Select selectmode;
   float x, y;
 
   /* get editor data */
@@ -4654,7 +4653,7 @@ static wmOperatorStatus animchannels_mouseclick_invoke(bContext *C,
   else if (RNA_boolean_get(op->ptr, "children_only")) {
     /* this is a bit of a special case for ActionGroups only...
      * should it be removed or extended to all instead? */
-    selectmode = -1;
+    selectmode = SELECT_CHILDREN;
   }
   else {
     selectmode = SELECT_REPLACE;

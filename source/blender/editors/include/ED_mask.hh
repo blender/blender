@@ -11,6 +11,8 @@
 #include "DNA_listBase.h"
 #include "DNA_mask_types.h"
 
+#include "ED_keyframes_edit.hh"
+
 namespace blender {
 
 struct ARegion;
@@ -166,29 +168,29 @@ bool ED_masklayer_frame_select_check(const MaskLayer *mask_layer);
 /**
  * Set all/none/invert select.
  */
-void ED_masklayer_frame_select_set(MaskLayer *mask_layer, short mode);
+void ED_masklayer_frame_select_set(MaskLayer *mask_layer, eEditKeyframes_Select select_mode);
 /**
  * Select the frames in this layer that occur within the bounds specified.
  */
 void ED_masklayer_frames_select_box(MaskLayer *mask_layer,
                                     float min,
                                     float max,
-                                    short select_mode);
+                                    eEditKeyframes_Select select_mode);
 /**
  * Select the frames in this layer that occur within the lasso/circle region specified.
  */
 void ED_masklayer_frames_select_region(KeyframeEditData *ked,
                                        MaskLayer *mask_layer,
-                                       short tool,
-                                       short select_mode);
+                                       eEditKeyframes_Validate tool,
+                                       eEditKeyframes_Select select_mode);
 /**
  * Set all/none/invert select (like above, but with SELECT_* modes).
  */
-void ED_mask_select_frames(MaskLayer *mask_layer, short select_mode);
+void ED_mask_select_frames(MaskLayer *mask_layer, eEditKeyframes_Select select_mode);
 /**
  * Select the frame in this layer that occurs on this frame (there should only be one at most).
  */
-void ED_mask_select_frame(MaskLayer *mask_layer, int selx, short select_mode);
+void ED_mask_select_frame(MaskLayer *mask_layer, int selx, eEditKeyframes_Select select_mode);
 
 /**
  * Delete selected frames.

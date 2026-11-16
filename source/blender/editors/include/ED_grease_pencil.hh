@@ -314,23 +314,23 @@ bool grease_pencil_paste_keyframes(bAnimContext *ac,
  */
 bool select_frame_at(bke::greasepencil::Layer &layer,
                      const int frame_number,
-                     const short select_mode);
+                     const eEditKeyframes_Select select_mode);
 
 void select_frames_at(bke::greasepencil::LayerGroup &layer_group,
                       const int frame_number,
-                      const short select_mode);
+                      const eEditKeyframes_Select select_mode);
 
-void select_all_frames(bke::greasepencil::Layer &layer, const short select_mode);
+void select_all_frames(bke::greasepencil::Layer &layer, const eEditKeyframes_Select select_mode);
 
 void select_frames_region(KeyframeEditData *ked,
                           bke::greasepencil::TreeNode &node,
-                          const short tool,
-                          const short select_mode);
+                          const eEditKeyframes_Validate tool,
+                          const eEditKeyframes_Select select_mode);
 
 void select_frames_range(bke::greasepencil::TreeNode &node,
                          const float min,
                          const float max,
-                         const short select_mode);
+                         const eEditKeyframes_Select select_mode);
 
 /**
  * Returns true if any frame of the \a layer is selected.

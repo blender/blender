@@ -357,7 +357,7 @@ void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, boo
   if (adt == nullptr || adt->nla_tracks.is_empty()) {
     return;
   }
-  KeyframeEditData ked = {{nullptr}};
+  KeyframeEditData ked{};
   KeyframeEditFunc map_cb;
 
   /* init edit data
