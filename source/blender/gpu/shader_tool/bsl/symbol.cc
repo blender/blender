@@ -1063,6 +1063,23 @@ struct SymbolParser : NodeErrorHandler {
     return temp_decl;
   }
 
+  /* Report a function template instance with the same arguments as a previous one. Linking it
+   * would create a cycle in the overload list. Return true if it is a duplicate. */
+  bool check_duplicate_function_instance(IdQualified id,
+                                         const SymbolFunction &fn,
+                                         const string &mangled)
+  {
+    auto it = fn.template_data->instances.find(mangled);
+    if (it == fn.template_data->instances.end()) {
+      return false;
+    }
+    const SymbolFunction &prev = *it->second;
+    ast::Node decl = prev.fwd.is_valid() ? prev.fwd.identifier() : prev.decl.identifier();
+    NOTE(decl, Diag::NotePreviousDefinition, id.str());
+    error(id, Diag::RedefinitionFunction, id.str());
+    return true;
+  }
+
   void parse_template_inst(SymbolScope &scope, TemplateInst temp, const std::string &prefix)
   {
     TemplateParamList tmp_params = temp.parameters();
@@ -1078,6 +1095,9 @@ struct SymbolParser : NodeErrorHandler {
       {
         auto mangled =
             table.mangle_identifier(temp_decl.arguments(), tmp_params, scope).unwrap(this);
+        if (check_duplicate_function_instance(id, fn, mangled.str)) {
+          return;
+        }
 
         SymbolScope *parent = &scope;
         if (fn.fn_type == SymbolFunction::MEMBER) {
@@ -1106,6 +1126,7 @@ struct SymbolParser : NodeErrorHandler {
         SymbolFunction *fn_inst = parse_func_decl(
             *parent, temp_decl.decl(), prefix, mangled.str, poi, temp.parameters());
         fn_inst->is_specialization = true;
+        fn_inst->fwd = decl;
         fn_inst->template_data = fn.template_data;
         /* For compatibility with previous version of BSL, do not mangle function names with
          * arguments if ADL is possible. */
@@ -1162,10 +1183,15 @@ struct SymbolParser : NodeErrorHandler {
       {
         auto mangled =
             table.mangle_identifier(temp_decl.arguments(), temp_params, scope).unwrap(this);
+        if (check_duplicate_function_instance(id, fn, mangled.str)) {
+          return;
+        }
+
         string full_id = string(decl.identifier().str()) + "<" + mangled.str_debug.substr(2) + ">";
         NOTE(decl.identifier(), Diag::NoteInstantiationFuncTemplateRequested, full_id);
         SymbolFunction *spec = parse_func_decl(scope, decl, prefix, mangled.str, poi);
         spec->is_specialization = true;
+        spec->fwd = decl;
         spec->template_data = fn.template_data;
         /* For compatibility with previous version of BSL, do not mangle function names with
          * arguments if ADL is possible. */
