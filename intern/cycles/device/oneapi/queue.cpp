@@ -70,8 +70,13 @@ void OneapiDeviceQueue::get_memory_info(size_t &total, size_t &free) const
   oneapi_device_->get_device_memory_info(total, free);
 }
 
-int OneapiDeviceQueue::num_sort_partitions(int max_num_paths, uint /*max_scene_shaders*/) const
+int OneapiDeviceQueue::num_sort_partitions(int max_num_paths, uint max_scene_shaders) const
 {
+  /* Sorting with partitions needs local memory for one counter per shader. */
+  if (size_t(max_scene_shaders) * sizeof(int) > oneapi_device_->get_local_mem_size()) {
+    return 1;
+  }
+
   int sort_partition_elements = (oneapi_device_->get_max_num_threads_per_multiprocessor() >= 128) ?
                                     32768 :
                                     8192;
