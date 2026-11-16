@@ -321,7 +321,10 @@ MaterialPool *gpencil_material_pool_create(Instance *inst,
       mat_data->random_packed.y |= (unit_float_to_uchar_clamp(gp_style->random_value_factor))
                                    << 24;
 
-      const uint hashed_seed = blender::BLI_hash_int(uint(gp_style->random_noise_seed));
+      /* For backwards compatibility use 0 as the default offset. */
+      const uint hashed_seed = gp_style->random_noise_seed == 0 ?
+                                   0 :
+                                   blender::BLI_hash_int(uint(gp_style->random_noise_seed));
       mat_data->random_packed.z = (unit_float_to_ushort_clamp(gp_style->random_noise_scale /
                                                               GP_RANDOM_NOISE_SCALE_MAX));
       mat_data->random_packed.z |= (hashed_seed & 0xFFFFu) << 16;
