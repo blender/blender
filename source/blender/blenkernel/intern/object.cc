@@ -4823,6 +4823,7 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
   }
 
   BKE_animdata_drivers_remove_for_rna_struct(key->id, *RNA_ShapeKey, kb);
+  DEG_relations_tag_update(bmain);
 
   kb_index = BLI_findindex(&key->block, kb);
   BLI_assert(kb_index != -1);
