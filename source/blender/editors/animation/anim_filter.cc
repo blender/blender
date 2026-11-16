@@ -4587,11 +4587,15 @@ void sync_runtime(const AnimfilterSpaceRuntime &from, AnimfilterSpaceRuntime &to
   /* We have to copy the last used too since it is compared to values baked into
    * `channel_states`.  */
   to.last_used = from.last_used;
+  to.active_channel_ident = from.active_channel_ident;
   if (to.channel_arena.has_value()) {
     ChannelArena &arena = to.channel_arena.value();
     for (SummaryChannel *summary : arena.summary_channels) {
       summary->ui_state_map_set(&to.channel_states);
     }
+    /* ChannelArena only takes the active channel identifier from the space on creation, and so if
+     * it already exists, it needs to be told about the new identifier. */
+    arena.active_channel_identifier_set(from.active_channel_ident);
   }
 }
 
