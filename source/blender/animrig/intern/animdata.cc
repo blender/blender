@@ -29,6 +29,7 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_world_types.h"
 
 #include "RNA_access.hh"
 
@@ -118,6 +119,15 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
         Material *mat = reinterpret_cast<Material *>(related_id);
         if (mat->nodetree && ID_REAL_USERS(&mat->nodetree->id) == 1) {
           related_ids.append_non_duplicates(&mat->nodetree->id);
+        }
+        break;
+      }
+
+      case ID_WO: {
+        /* Explicitly not relating worlds and scenes. */
+        World *world = reinterpret_cast<World *>(related_id);
+        if (world->nodetree) {
+          related_ids.append_non_duplicates(&world->nodetree->id);
         }
         break;
       }
