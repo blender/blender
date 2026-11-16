@@ -276,6 +276,11 @@ class ChannelTreeView : public ui::AbstractTreeView {
     return tree_settings_.show_channel_group_color_rect;
   }
 
+  bool show_property_sliders() const
+  {
+    return tree_settings_.show_property_sliders;
+  }
+
   AnimationChannel *active_channel() const
   {
     return arena_.active_channel();
@@ -506,6 +511,24 @@ void ChannelItem::build_row(ui::Layout &layout)
   }
 
   layout.label(channel_.label(), icon_from_rna_pointer(channel_.source()));
+  if (tree_view.show_property_sliders() && channel_.type() == AnimationChannelType::DATA) {
+    /* TODO: there's a lot of code duplication here with the code section
+     * immediately above (fetching channel data, etc.). */
+    DataChannel &data_channel = static_cast<DataChannel &>(channel_);
+    const ID *animated_id = find_animated_id_from_tags(data_channel.tags());
+    if (data_channel.source_type() == DataChannelType::FCURVE && animated_id != nullptr) {
+      FCurve *fcurve = data_channel.get_source<FCurve>();
+      PointerRNA id_ptr = RNA_id_pointer_create(const_cast<ID *>(animated_id));
+      PointerRNA ptr;
+      PropertyRNA *prop;
+      if (RNA_path_resolve_property(&id_ptr, fcurve->rna_path_parsed(), &ptr, &prop)) {
+        ui::Block *block = layout.block();
+        block_emboss_set(block, ui::EmbossType::Emboss);
+        layout.prop(&ptr, prop, fcurve->array_index, 0, UI_ITEM_NONE, "", ICON_NONE, std::nullopt);
+        block_emboss_set(block, ui::EmbossType::None);
+      }
+    }
+  }
   const ChannelSettings &settings = channel_.channel_settings();
   for (const int setting_int : IndexRange(int(ChannelSettingKey::_MAX))) {
     const ChannelSettingKey key = ChannelSettingKey(setting_int);

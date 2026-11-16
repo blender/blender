@@ -494,6 +494,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
     settings.show_channel_group_color_rect = U.animation_flag &
                                              USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
     settings.show_summary = false;
+    settings.show_property_sliders = sgraph->flag & SIPO_SLIDERS;
     std::unique_ptr<ui::AbstractTreeView> tree = build_channel_tree_view(channels, settings);
     draw_channel_tree(*C, std::move(tree));
     ED_time_scrub_channel_search_draw(C, region, sgraph->ads);

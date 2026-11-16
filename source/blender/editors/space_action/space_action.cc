@@ -466,6 +466,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
 
     ChannelTreeSettings settings(channels.filters);
     settings.show_summary = saction->ads.filterflag & ADS_FILTER_SUMMARY;
+    settings.show_property_sliders = saction->flag & SACTION_SLIDERS;
     settings.setting_blocklist = {ChannelSettingKey::VISIBLE_ANIM_EDITOR};
     std::unique_ptr<ui::AbstractTreeView> tree_view = build_channel_tree_view(channels, settings);
     draw_channel_tree(*C, std::move(tree_view));

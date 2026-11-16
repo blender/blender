@@ -1193,6 +1193,8 @@ struct ChannelTreeSettings {
    * as a small rectangle. */
   bool show_channel_group_color_rect = false;
   bool do_selection_syncing = false;
+  /* Draw property sliders for fcurve channels that resolve to a property. */
+  bool show_property_sliders = false;
 
   ChannelTreeSettings(const CollectionFilters &filters)
   {
