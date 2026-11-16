@@ -1632,13 +1632,14 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
 /* Add the given selection flags to the bone flags. */
 static void bone_selection_flags_add(bPoseChannel *pchan, const ePchan_Flag new_selection_flags)
 {
-  pchan->flag |= new_selection_flags;
+  pchan->flag |= (new_selection_flags & POSE_SELECTED_ALL);
 }
 
 /* Set the bone flags to the given selection flags. */
 static void bone_selection_flags_set(bPoseChannel *pchan, const ePchan_Flag new_selection_flags)
 {
-  pchan->flag = new_selection_flags;
+  pchan->flag &= ~(POSE_SELECTED_ALL);
+  pchan->flag |= (new_selection_flags & POSE_SELECTED_ALL);
 }
 
 /**
@@ -1668,10 +1669,10 @@ static wmOperatorStatus pose_select_mirror_exec(bContext *C, wmOperator *op)
     Map<bPoseChannel *, ePchan_Flag> old_selection_flags;
     for (bPoseChannel &pchan : ob->pose->chanbase) {
       /* Treat invisible bones as deselected. */
-      const int flags = animrig::bone_is_visible(arm, {&pchan, pchan.bone_get(*ob)}) ? pchan.flag :
-                                                                                       0;
-
-      old_selection_flags.add_new(&pchan, ePchan_Flag(flags));
+      const int selection_flags = animrig::bone_is_visible(arm, {&pchan, pchan.bone_get(*ob)}) ?
+                                      (pchan.flag & POSE_SELECTED_ALL) :
+                                      0;
+      old_selection_flags.add_new(&pchan, ePchan_Flag(selection_flags));
     }
 
     for (bPoseChannel &pchan : ob->pose->chanbase) {
@@ -1698,8 +1699,8 @@ static wmOperatorStatus pose_select_mirror_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      const ePchan_Flag flags_mirror = old_selection_flags.lookup(pchan_mirror);
-      set_bone_selection_flags(&pchan, flags_mirror);
+      const ePchan_Flag selection_flags_mirror = old_selection_flags.lookup(pchan_mirror);
+      set_bone_selection_flags(&pchan, selection_flags_mirror);
     }
 
     if (mirror_bone_act) {
