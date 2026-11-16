@@ -29,6 +29,8 @@
 #include "RNA_path.hh"
 #include "RNA_types.hh"
 
+#include "ED_anim_api.hh"
+
 namespace blender {
 
 struct bContext;
@@ -836,38 +838,6 @@ class DataChannel : public AnimationChannel {
   }
 
   template<typename T> T *get_source() const;
-};
-
-/**
- * Maps from FCurve to Scene time.
- * This assumes that the mapping is linear, no curve time remapping allowed.
- */
-struct TimeMapping {
-  float offset = 0;
-  float scale = 1.0;
-  /* Used for the NLA where the scale is not done at 0, but at the start of the action. */
-  float scale_offset = 0.0;
-
-  TimeMapping combine(float offset, float scale, float scale_offset) const
-  {
-    TimeMapping combined;
-    combined.offset = offset + this->offset;
-    combined.scale = scale * this->scale;
-    combined.scale_offset = scale_offset + this->scale_offset;
-    return combined;
-  }
-
-  float map(const float t) const
-  {
-    /* y = (x-a) * b + c */
-    return (t - this->scale_offset) * scale + offset;
-  }
-
-  float unmap(const float t) const
-  {
-    /* x = (y-c) / b + a */
-    return (t - this->offset) / this->scale + this->scale_offset;
-  }
 };
 
 class FCurveChannel : public DataChannel {

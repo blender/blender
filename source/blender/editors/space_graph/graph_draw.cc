@@ -1634,27 +1634,20 @@ struct FCurveDrawSettings {
 
 /* Draws the FCurve of a DRIVER or FCURVE channel. */
 static void draw_fcurve_of_channel(ed::animfilter::DataChannel &channel,
-                                   Scene & /* scene */,
-                                   const View2D & /* v2d */,
-                                   const FCurveDrawSettings & /* draw_settings */)
+                                   Scene &scene,
+                                   const View2D &v2d,
+                                   const FCurveDrawSettings &draw_settings)
 {
   using namespace ed::animfilter;
-  // FCurve *fcurve = channel.get_source<FCurve>();
+  FCurve *fcurve = channel.get_source<FCurve>();
   /* `animated_id` can be a nullptr. This will just not do any unit mapping. */
-  // const ID *animated_id = find_animated_id_from_tags(channel.tags());
+  const ID *animated_id = channel.tags().data_of_first_tag<ID>(ChannelTagType::ANIMATED_ID);
   TimeMapping time_mapping;
   if (channel.source_type() == DataChannelType::FCURVE) {
     FCurveChannel &fcurve_channel = static_cast<FCurveChannel &>(channel);
     time_mapping = fcurve_channel.get_time_mapping();
   }
-  /* Disabled until the refactor lands in main. */
-  /* draw_fcurve(
-      fcurve,
-      scene,
-      const_cast<ID *>(animated_id),
-      v2d,
-      time_mapping,
-      draw_settings); */
+  // draw_fcurve(*fcurve, scene, const_cast<ID *>(animated_id), v2d, time_mapping, draw_settings);
 }
 
 void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,

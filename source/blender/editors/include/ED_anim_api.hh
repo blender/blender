@@ -1209,6 +1209,15 @@ struct TimeMapping {
     }
     return (y - this->offset) / this->scale + this->scale_offset;
   }
+
+  TimeMapping combine(const float offset, const float scale, const float scale_offset) const
+  {
+    TimeMapping combined;
+    combined.offset = offset + this->offset;
+    combined.scale = scale * this->scale;
+    combined.scale_offset = scale_offset + this->scale_offset;
+    return combined;
+  }
 };
 
 /**

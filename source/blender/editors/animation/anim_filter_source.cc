@@ -47,6 +47,7 @@
 #include "ANIM_armature.hh"
 #include "ANIM_rna.hh"
 
+#include "ED_anim_api.hh"
 #include "ED_anim_filter.hh"
 #include "ED_space_action.hh"
 #include "ED_space_graph.hh"
