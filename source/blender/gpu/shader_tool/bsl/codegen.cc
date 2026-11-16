@@ -2201,7 +2201,9 @@ struct CodegenContext : NodeErrorHandler {
       return {nullptr, {}};
     }
 
-    if (fn.is_virtual && (fn.is_overridden() || fn.is_pure_virtual)) {
+    /* A qualified call like `A::f()` is not virtual, and inlining emits the body of `A::f`. */
+    const bool is_qualified = call.identifier().has_namespace();
+    if (fn.is_virtual && ((fn.is_overridden() && !is_qualified) || fn.is_pure_virtual)) {
       error(call, Diag::InvalidVirtualFunctionCall, fn.original);
     }
     else if (!fn.decl.is_valid()) {
