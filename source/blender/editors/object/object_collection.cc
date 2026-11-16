@@ -539,6 +539,14 @@ static Collection *collection_importer_add_ensure(bContext *C,
     return nullptr;
   }
 
+  if (!fh->collection_import_enabled) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "File handler '%s' does not support collection import",
+                name.c_str());
+    return nullptr;
+  }
+
   Collection *collection = CTX_data_collection(C);
   std::string reason;
   if (collection && collection->importer) {
@@ -763,6 +771,14 @@ static wmOperatorStatus collection_importer_import_exec(bContext *C, wmOperator 
   bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
   if (!fh) {
     BKE_reportf(op->reports, RPT_ERROR, "File handler '%s' not found", data->fh_idname);
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!fh->collection_import_enabled) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "File handler '%s' does not support collection import",
+                data->fh_idname);
     return OPERATOR_CANCELLED;
   }
 
