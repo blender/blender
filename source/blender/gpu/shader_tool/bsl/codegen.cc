@@ -2204,6 +2204,14 @@ struct CodegenContext : NodeErrorHandler {
     if (fn.is_virtual && (fn.is_overridden() || fn.is_pure_virtual)) {
       error(call, Diag::InvalidVirtualFunctionCall, fn.original);
     }
+    else if (!fn.decl.is_valid()) {
+      error(call, Diag::InliningNoDefinition, fn.original);
+    }
+
+    /* There is no body to inline. Errors are only reported after code generation finished. */
+    if (!fn.decl.is_valid()) {
+      return {nullptr, {}};
+    }
     return {&fn, call};
   }
 

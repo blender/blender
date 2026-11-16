@@ -191,6 +191,8 @@ enum class Diag {
 
   InitializerListRequiresExplicitType,
 
+  InliningNoDefinition,
+
   InvalidBinaryOperands,
   InvalidExprTypeChecker,
   InvalidExprTypeCodegen,
@@ -457,6 +459,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Implicit {} bytes padding before '{}', add manual padding";
     case Diag::InitializerListRequiresExplicitType:
       return "Initializer list requires explicit type";
+    case Diag::InliningNoDefinition:
+      return "Cannot inline function '{}' without a definition";
     case Diag::InliningRecursive:
       return "Cannot inline recursive call";
     case Diag::InvalidBinaryOperands:
