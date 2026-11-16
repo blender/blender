@@ -1951,7 +1951,7 @@ struct CodegenContext : NodeErrorHandler {
       if (member.array_dimensions > 0) {
         error(member.loc.tok, Diag::UnionArrayUnsupported);
       }
-      if (member.type.size > 16) {
+      if (member_type.is_matrix()) {
         error(member.loc.tok, Diag::UnionMatrixUnsupported);
       }
       string to_var = "this_." +
@@ -1960,6 +1960,9 @@ struct CodegenContext : NodeErrorHandler {
     }
     else {
       for (const auto &var : member_type.get_all_members_flat().unwrap(this)) {
+        if (var.type->is_matrix()) {
+          error(member.loc.tok, Diag::UnionMatrixUnsupported);
+        }
         string to_var = "this_." +
                         union_data_access(var.absolute_offset, var.type->size, union_type.size);
         string access = "v." + var.path;
