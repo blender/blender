@@ -26,8 +26,8 @@
 
 namespace blender::ed::animfilter {
 
-void foreach_base_in_view_layer(const bContext &C,
-                                FunctionRef<void(View3D *v3d, Base &base)> visit_fn)
+static void foreach_base_in_view_layer(const bContext &C,
+                                       FunctionRef<void(View3D *v3d, Base &base)> visit_fn)
 {
   const Main *bmain = CTX_data_main(&C);
   wmWindow *win = CTX_wm_window(&C);
