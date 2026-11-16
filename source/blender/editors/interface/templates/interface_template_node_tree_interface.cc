@@ -547,7 +547,8 @@ bool on_drop_interface_items(bContext *C,
     position = parent->item_position(*drag_item) + 1;
   }
 
-  interface.active_item_set(original_active);
+  /* Selection follows the moved sockets. The old active index may point to a selected socket. */
+  interface.active_item_set(original_active, false);
 
   /* General update */
   BKE_main_ensure_invariants(*CTX_data_main(C), ntree.id);
