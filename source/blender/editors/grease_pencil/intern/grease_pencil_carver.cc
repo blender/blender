@@ -167,15 +167,11 @@ static bool execute_carver_on_drawing(const Object &ob_eval,
   const IndexMask editable_shapes = bke::greasepencil::curves_mask_to_shapes(
       editable_strokes, shapes, memory);
 
-  boolean::CurveBooleanResult result = boolean::curve_boolean_with_planes(op_params,
-                                                                          input_curves,
-                                                                          project_fn,
-                                                                          shapes,
-                                                                          curve_planes,
-                                                                          editable_shapes,
-                                                                          clipping_shapes,
-                                                                          layer_to_world,
-                                                                          region);
+  boolean::CurveBooleanResult result = boolean::curve_boolean(
+      op_params, input_curves, project_fn, shapes, editable_shapes, clipping_shapes);
+
+  project_clipping_points_to_curve_planes(
+      result, curve_planes, layer_to_world, region, project_fn);
 
   const Span<float4x2> src_matrices = drawing.texture_matrices();
   const IndexMask changed_curve_mask = IndexMask::from_bools_inverse(result.unchanged_curves,
