@@ -134,6 +134,10 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   /* Free existing state, before state size estimation which takes into account free memory. */
   integrator_state_soa_.clear();
 
+  /* Clear all pointers to the memory freed above. The alloc_integrator_*() functions called after
+   * this one re-assign their own pointers every time, so the entire struct is rebuilt. */
+  memset(&integrator_state_gpu_, 0, sizeof(integrator_state_gpu_));
+
   /* Determine the number of path states. Deferring this for as long as possible allows the
    * back-end to make better decisions about memory availability. */
   const size_t single_state_size = estimate_single_state_size(
@@ -153,7 +157,6 @@ void PathTraceWorkGPU::alloc_integrator_soa()
    * TODO: store float3 in separate XYZ arrays. */
 #define KERNEL_STRUCT_BEGIN(name) for (int array_index = 0;; array_index++) {
 #define KERNEL_STRUCT_MEMBER(parent_struct, type, name, feature) \
-  integrator_state_gpu_.parent_struct.name = nullptr; \
   if (KernelFeatureRequest(feature).test(kernel_features)) { \
     string name_str = string_printf("%sintegrator_state_" #parent_struct "_" #name, \
                                     shadow ? "shadow_" : ""); \
@@ -182,7 +185,6 @@ void PathTraceWorkGPU::alloc_integrator_soa()
 #endif
 
 #define KERNEL_STRUCT_ARRAY_MEMBER(parent_struct, type, name, feature) \
-  integrator_state_gpu_.parent_struct[array_index].name = nullptr; \
   if (KernelFeatureRequest(feature).test(kernel_features)) { \
     string name_str = string_printf( \
         "%sintegrator_state_" #name "_%d", shadow ? "shadow_" : "", array_index); \
@@ -236,9 +238,9 @@ void PathTraceWorkGPU::alloc_integrator_queue()
     integrator_queue_counter_.alloc(1);
     integrator_queue_counter_.zero_to_device();
     integrator_queue_counter_.copy_from_device();
-    integrator_state_gpu_.queue_counter = (IntegratorQueueCounter *)
-                                              integrator_queue_counter_.device_pointer;
   }
+  integrator_state_gpu_.queue_counter = (IntegratorQueueCounter *)
+                                            integrator_queue_counter_.device_pointer;
 
   /* Allocate data for active path index arrays. */
   if (num_queued_paths_.size() == 0) {
@@ -304,19 +306,17 @@ void PathTraceWorkGPU::alloc_integrator_path_split()
   if (integrator_next_shadow_path_index_.size() == 0) {
     integrator_next_shadow_path_index_.alloc(1);
     integrator_next_shadow_path_index_.zero_to_device();
-
-    integrator_state_gpu_.next_shadow_path_index =
-        (int *)integrator_next_shadow_path_index_.device_pointer;
   }
+  integrator_state_gpu_.next_shadow_path_index =
+      (int *)integrator_next_shadow_path_index_.device_pointer;
 
   if (integrator_next_main_path_index_.size() == 0) {
     integrator_next_main_path_index_.alloc(1);
     integrator_next_shadow_path_index_.data()[0] = 0;
     integrator_next_main_path_index_.zero_to_device();
-
-    integrator_state_gpu_.next_main_path_index =
-        (int *)integrator_next_main_path_index_.device_pointer;
   }
+  integrator_state_gpu_.next_main_path_index = (int *)
+                                                   integrator_next_main_path_index_.device_pointer;
 }
 
 void PathTraceWorkGPU::alloc_work_memory()
