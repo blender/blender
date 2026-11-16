@@ -1631,6 +1631,9 @@ int pyrna_pydict_to_props(PointerRNA *ptr,
     if (STREQ(arg_name, "rna_type")) {
       continue;
     }
+    if (RNA_property_is_shadowed(*ptr, *prop)) {
+      continue;
+    }
 
     if (kw == nullptr) {
       PyErr_Format(

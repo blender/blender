@@ -210,6 +210,12 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, UString identifier);
 
 /**
+ * Sometimes there are shadowed properties (e.g. PropertyGroup has a built-in readonly "name"
+ * property that can be overridden from Python with an editable one).
+ */
+bool RNA_property_is_shadowed(PointerRNA &ptr, PropertyRNA &prop);
+
+/**
  * Same as `RNA_struct_find_property` but returns `nullptr` if the property type is no same to
  * `property_type_check`.
  */
