@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
-"PO-Revision-Date: 2026-02-16 18:12+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"PO-Revision-Date: 2026-11-14 15:13+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
 "Language: en_GB\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.15.2"
+"X-Generator: Weblate 2026.6.1"
 
 
 msgid "Shader AOV"
@@ -1502,6 +1502,10 @@ msgstr "Freehand curve defining part of a sketch"
 
 msgid "Display Mode"
 msgstr "Display Mode"
+
+
+msgid "Coordinate space that stroke is in"
+msgstr "Coordinate space that stroke is in"
 
 
 msgid "Stroke Points"
@@ -3848,18 +3852,6 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "A colour space, view or display was not found, which likely means the OpenColorIO config used to create this blend file is missing"
 
 
-msgid "Project"
-msgstr "Project"
-
-
-msgid "Blender"
-msgstr "Blender"
-
-
-msgid "Fallback"
-msgstr "Fallback"
-
-
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "Colour space used for all scene linear colours in this file, and for compositing, shader and geometry nodes processing"
 
@@ -4083,6 +4075,10 @@ msgstr "Collection of source libraries, i.e. blendfile paths"
 
 msgid "Dirty"
 msgstr "Dirty"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "Path"
@@ -6253,24 +6249,8 @@ msgid "Factor used to mix vertex color to get final color"
 msgstr "Factor used to mix vertex colour to get final colour"
 
 
-msgid "Mode Type"
-msgstr "Mode Type"
-
-
 msgid "Defines how vertex color affect to the strokes"
 msgstr "Defines how vertex colour affect to the strokes"
-
-
-msgid "Stroke"
-msgstr "Stroke"
-
-
-msgid "Fill"
-msgstr "Fill"
-
-
-msgid "Both"
-msgstr "Both"
 
 
 msgid "Byte Color Attribute Value"
@@ -9887,6 +9867,10 @@ msgid "Shrink the location to the nearest target surface"
 msgstr "Shrink the location to the nearest target surface"
 
 
+msgid "Project"
+msgstr "Project"
+
+
 msgid "Shrink the location to the nearest target surface along a given axis"
 msgstr "Shrink the location to the nearest target surface along a given axis"
 
@@ -11674,6 +11658,10 @@ msgstr "Data Path"
 
 msgid "RNA Path (from ID-block) to property used"
 msgstr "RNA Path (from ID-block) to property used"
+
+
+msgid "Fallback"
+msgstr "Fallback"
 
 
 msgid "The value to use if the data path cannot be resolved"
@@ -16641,6 +16629,10 @@ msgid "Integer Vector"
 msgstr "Integer Vector"
 
 
+msgid "Dynamic"
+msgstr "Dynamic"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle Line Set"
 
@@ -17335,10 +17327,6 @@ msgstr "Use curve to define primitive stroke thickness"
 
 msgid "Automatically detect a good structure type based on how the socket is used"
 msgstr "Automatically detect a good structure type based on how the socket is used"
-
-
-msgid "Dynamic"
-msgstr "Dynamic"
 
 
 msgid "Socket can work with different kinds of structures"
@@ -34674,136 +34662,8 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
-
-
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
-
-
-msgid "Creative"
-msgstr "Creative"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
 msgid "Write"
 msgstr "Write"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
 
 
 msgid "Viewpoint"
@@ -34812,6 +34672,10 @@ msgstr "Viewpoint"
 
 msgid "Navigation"
 msgstr "Navigation"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Align View"
@@ -34838,6 +34702,10 @@ msgid "Select Similar"
 msgstr "Select Similar"
 
 
+msgid "Utilities"
+msgstr "Utilities"
+
+
 msgid "Select All by Trait"
 msgstr "Select All by Trait"
 
@@ -34854,16 +34722,36 @@ msgid "Select Loops"
 msgstr "Select Loops"
 
 
-msgid "Render Preview"
-msgstr "Render Preview"
+msgid "Math"
+msgstr "Maths"
 
 
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Render Preview"
+msgstr "Render Preview"
+
+
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Stroke"
+msgstr "Stroke"
+
+
 msgid "Assign Material"
 msgstr "Assign Material"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -34898,6 +34786,14 @@ msgid "Quick Effects"
 msgstr "Quick Effects"
 
 
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
 msgid "Asset"
 msgstr "Asset"
 
@@ -34914,16 +34810,20 @@ msgid "Link/Transfer Data"
 msgstr "Link/Transfer Data"
 
 
-msgid "Hooks"
-msgstr "Hooks"
-
-
 msgid "Linked"
 msgstr "Linked"
 
 
 msgid "Layout"
 msgstr "Layout"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
 
 
 msgid "Trim/Add"
@@ -34942,36 +34842,128 @@ msgid "Random Mask"
 msgstr "Random Mask"
 
 
-msgid "Clear Transform"
-msgstr "Clear Transform"
-
-
 msgid "Adjust"
 msgstr "Adjust"
+
+
+msgid "Clear Transform"
+msgstr "Clear Transform"
 
 
 msgid "In-Betweens"
 msgstr "In-Betweens"
 
 
-msgid "Propagate"
-msgstr "Propagate"
-
-
-msgid "Bone Collections"
-msgstr "Bone Collections"
-
-
 msgid "Keying"
 msgstr "Keying"
+
+
+msgid "Propagate"
+msgstr "Propagate"
 
 
 msgid "Tracking"
 msgstr "Tracking"
 
 
+msgid "Bone Collections"
+msgstr "Bone Collections"
+
+
+msgid "Names"
+msgstr "Names"
+
+
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
+msgid "Creative"
+msgstr "Creative"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "Instances"
+msgstr "Instances"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
 
 
 msgid "Keyframe Insert Pie"
@@ -38836,6 +38828,10 @@ msgstr "Modify fill and stroke colours"
 
 msgid "Modify stroke color only"
 msgstr "Modify stroke colour only"
+
+
+msgid "Fill"
+msgstr "Fill"
 
 
 msgid "Modify fill color only"
@@ -48552,6 +48548,10 @@ msgstr "Set Grease Pencil Colour"
 
 msgid "Set color and opacity attributes on Grease Pencil geometry"
 msgstr "Set colour and opacity attributes on Grease Pencil geometry"
+
+
+msgid "Both"
+msgstr "Both"
 
 
 msgid "Set Grease Pencil Depth"
@@ -65755,6 +65755,11 @@ msgid "Select all curves in a fill"
 msgstr "Select all curves in a fill"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "Select Linked Pick"
+
+
 msgid "Selects random points from the current strokes selection"
 msgstr "Selects random points from the current strokes selection"
 
@@ -72422,30 +72427,14 @@ msgid "Join Geometry"
 msgstr "Join Geometry"
 
 
-msgid "Join Geometry Mode"
-msgstr "Join Geometry Mode"
-
-
 msgctxt "NodeTree"
 msgid "Intersect"
 msgstr "Intersect"
 
 
-msgid "Intersect Mode"
-msgstr "Intersect Mode"
-
-
 msgctxt "NodeTree"
 msgid "Union"
 msgstr "Union"
-
-
-msgid "Union Mode"
-msgstr "Union Mode"
-
-
-msgid "Difference Mode"
-msgstr "Difference Mode"
 
 
 msgid "Add to End"
@@ -77383,11 +77372,6 @@ msgid "Select linked faces"
 msgstr "Select linked faces"
 
 
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "Select Linked Pick"
-
-
 msgid "Select linked faces under the cursor"
 msgstr "Select linked faces under the cursor"
 
@@ -78925,10 +78909,6 @@ msgstr "Reset scaling of selected bones to their default values"
 msgctxt "Operator"
 msgid "Select Constraint Target"
 msgstr "Select Constraint Target"
-
-
-msgid "Select bones used as targets for the currently selected bones"
-msgstr "Select bones used as targets for the currently selected bones"
 
 
 msgid "Select all visible bones grouped by similar properties"
@@ -87467,14 +87447,6 @@ msgid "Set \"Fake User\" for appended items (except objects and collections)"
 msgstr "Set \"Fake User\" for appended items (except objects and collections)"
 
 
-msgid "Localize All"
-msgstr "Localise All"
-
-
-msgid "Localize all appended data, including those indirectly linked from other libraries"
-msgstr "Localise all appended data, including those indirectly linked from other libraries"
-
-
 msgid "Type of data to rename"
 msgstr "Type of data to rename"
 
@@ -90827,58 +90799,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
-
-
-msgid "Overlays"
-msgstr "Overlays"
-
-
-msgid "Guides"
-msgstr "Guides"
-
-
-msgid "Viewer Node"
-msgstr "Viewer Node"
-
-
-msgid "Motion Tracking"
-msgstr "Motion Tracking"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
-
-
-msgid "Measurement"
-msgstr "Measurement"
-
-
 msgid "Curve Edit Mode"
 msgstr "Curve Edit Mode"
 
@@ -90897,6 +90817,10 @@ msgstr "Stroke Placement"
 
 msgid "Drawing Plane"
 msgstr "Drawing Plane"
+
+
+msgid "Guides"
+msgstr "Guides"
 
 
 msgid "Grease Pencil Options"
@@ -90939,14 +90863,6 @@ msgid "Viewport Debug"
 msgstr "Viewport Debug"
 
 
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -90955,12 +90871,68 @@ msgid "VR Info"
 msgstr "VR Info"
 
 
+msgid "glTF Variants"
+msgstr "glTF Variants"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF Animations"
+
+
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
+
+
+msgid "Overlays"
+msgstr "Overlays"
+
+
+msgid "Viewer Node"
+msgstr "Viewer Node"
+
+
+msgid "Motion Tracking"
+msgstr "Motion Tracking"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
 
 
 msgid "Import Settings"
@@ -92051,6 +92023,10 @@ msgid "Text Rendering"
 msgstr "Text Rendering"
 
 
+msgid "Font Style"
+msgstr "Font Style"
+
+
 msgctxt "WindowManager"
 msgid "Language"
 msgstr "Language"
@@ -92214,10 +92190,6 @@ msgstr "Scrubbing / Markers"
 
 msgid "Toolbar / Sidebar"
 msgstr "Toolbar / Sidebar"
-
-
-msgid "Text Style"
-msgstr "Text Style"
 
 
 msgid "User Interface"
@@ -94111,6 +94083,10 @@ msgstr "Auto-offset"
 
 msgid "Automatically offset the following or previous nodes in a chain when inserting a new node"
 msgstr "Automatically offset the following or previous nodes in a chain when inserting a new node"
+
+
+msgid "Noodle Curving"
+msgstr "Noodle Curving"
 
 
 msgid "Align Object To"
@@ -108913,6 +108889,10 @@ msgid "Active Theme Area"
 msgstr "Active Theme Area"
 
 
+msgid "Text Style"
+msgstr "Text Style"
+
+
 msgid "Theme Bone Color Set"
 msgstr "Theme Bone Colour Set"
 
@@ -109345,10 +109325,6 @@ msgid "Overlay color on every other row"
 msgstr "Overlay colour on every other row"
 
 
-msgid "Font Style"
-msgstr "Font Style"
-
-
 msgid "Theme settings for Font"
 msgstr "Theme settings for Font"
 
@@ -109363,38 +109339,6 @@ msgstr "Weight of the characters. 100-900, 400 is normal."
 
 msgid "Font size in points"
 msgstr "Font size in points"
-
-
-msgid "Shadow Size"
-msgstr "Shadow Size"
-
-
-msgid "Shadow type (0 none, 3, 5 blur, 6 outline)"
-msgstr "Shadow type (0 none, 3, 5 blur, 6 outline)"
-
-
-msgid "Shadow Alpha"
-msgstr "Shadow Alpha"
-
-
-msgid "Shadow X Offset"
-msgstr "Shadow X Offset"
-
-
-msgid "Shadow offset in pixels"
-msgstr "Shadow offset in pixels"
-
-
-msgid "Shadow Y Offset"
-msgstr "Shadow Y Offset"
-
-
-msgid "Shadow Brightness"
-msgstr "Shadow Brightness"
-
-
-msgid "Shadow color in gray value"
-msgstr "Shadow colour in grey value"
 
 
 msgid "Theme Background Color"
@@ -109801,14 +109745,6 @@ msgid "Node Selected"
 msgstr "Node Selected"
 
 
-msgid "Noodle Curving"
-msgstr "Noodle Curving"
-
-
-msgid "Curving of the noodle"
-msgstr "Curving of the noodle"
-
-
 msgid "Repeat Zone"
 msgstr "Repeat Zone"
 
@@ -110003,10 +109939,6 @@ msgstr "Theme Strip Colour"
 
 msgid "Theme settings for strip colors"
 msgstr "Theme settings for strip colours"
-
-
-msgid "Theme settings for style sets"
-msgstr "Theme settings for style sets"
 
 
 msgid "Panel Title Font"
@@ -110235,6 +110167,10 @@ msgstr "Panel Text"
 
 msgid "Panel Title"
 msgstr "Panel Title"
+
+
+msgid "Shadow offset in pixels"
+msgstr "Shadow offset in pixels"
 
 
 msgid "Primary Color"
@@ -117426,6 +117362,10 @@ msgid "Legacy Add-on"
 msgstr "Legacy Add-on"
 
 
+msgid "Close"
+msgstr "Close"
+
+
 msgid "The dropped extension comes from an unknown repository."
 msgstr "The dropped extension comes from an unknown repository."
 
@@ -119987,6 +119927,10 @@ msgstr "Removed {:d} empty and/or fake-user only Actions"
 
 msgid "Removed {:d} of {:d} bone collections"
 msgstr "Removed {:d} of {:d} bone collections"
+
+
+msgid "Modified the animation of {:d} armatures"
+msgstr "Modified the animation of {:d} armatures"
 
 
 msgid "Nothing to bake"
@@ -125758,6 +125702,11 @@ msgid "Hinting"
 msgstr "Hinting"
 
 
+msgctxt "Text"
+msgid "Weight"
+msgstr "Weight"
+
+
 msgctxt "Preferences"
 msgid "Translate"
 msgstr "Translate"
@@ -125966,15 +125915,6 @@ msgstr "B"
 
 msgid "View Align"
 msgstr "View Align"
-
-
-msgctxt "Text"
-msgid "Weight"
-msgstr "Weight"
-
-
-msgid "Shadow Offset X"
-msgstr "Shadow Offset X"
 
 
 msgid "Temporary Files"
@@ -126320,11 +126260,6 @@ msgstr "Select Pattern..."
 
 msgid "Bone Selection Set"
 msgstr "Bone Selection Set"
-
-
-msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "Constraint Target"
 
 
 msgctxt "Operator"
@@ -131770,10 +131705,6 @@ msgid "There is no layer '%s'"
 msgstr "There is no layer '%s'"
 
 
-msgid "'%s' Layer is locked"
-msgstr "'%s' Layer is locked"
-
-
 msgid "Copied %d selected curve(s)"
 msgstr "Copied %d selected curve(s)"
 
@@ -133537,10 +133468,6 @@ msgid "No intersections found"
 msgstr "No intersections found"
 
 
-msgid "Close"
-msgstr "Close"
-
-
 msgid "Stop"
 msgstr "Stop"
 
@@ -133827,14 +133754,6 @@ msgstr "Cannot remove more polys than the mesh contains"
 
 msgid "Cannot add more than %i UV maps"
 msgstr "Cannot add more than %i UV maps"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s mirrored, %d failed"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s mirrored"
 
 
 msgid "Cannot join while in edit mode"
@@ -135825,6 +135744,10 @@ msgstr "Removed %d materials"
 
 msgid "Unable to remove material slot in edit mode"
 msgstr "Unable to remove material slot in edit mode"
+
+
+msgid "Clear Texture Cache?"
+msgstr "Clear Texture Cache?"
 
 
 msgid "Blender Render"
@@ -139843,14 +139766,6 @@ msgid "Synchronization"
 msgstr "Synchronization"
 
 
-msgid "fps: %.2f"
-msgstr "fps: %.2f"
-
-
-msgid "fps: %i"
-msgstr "fps: %i"
-
-
 msgid "Create object instance from object-data"
 msgstr "Create object instance from object-data"
 
@@ -140628,10 +140543,6 @@ msgid "Realized grease pencil has too many layers."
 msgstr "Realised grease pencil has too many layers."
 
 
-msgid "Error writing frame"
-msgstr "Error writing frame"
-
-
 msgid "No valid formats found"
 msgstr "No valid formats found"
 
@@ -141248,10 +141159,6 @@ msgstr "Linked data-blocks cannot be renamed"
 
 msgid "Built-in fonts cannot be renamed"
 msgstr "Built-in fonts cannot be renamed"
-
-
-msgid "Data-blocks not in global Main data-base cannot be renamed"
-msgstr "Data-blocks not in global Main data-base cannot be renamed"
 
 
 msgid "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition always runtime"
@@ -142331,14 +142238,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "Unable to move sockets in built-in node"
 
 
-msgid "Unable to locate item in node"
-msgstr "Unable to locate item in node"
-
-
-msgid "Unable to create item with this socket type"
-msgstr "Unable to create item with this socket type"
-
-
 msgid "Registering node tree class: '%s' is too long, maximum length is %d"
 msgstr "Registering node tree class: '%s' is too long, maximum length is %d"
 
@@ -142401,6 +142300,14 @@ msgstr "Cannot pair zone input node %s with %s because it does not have the same
 
 msgid "The output node %s is already paired with %s"
 msgstr "The output node %s is already paired with %s"
+
+
+msgid "Unable to locate item in node"
+msgstr "Unable to locate item in node"
+
+
+msgid "Unable to create item with this socket type"
+msgstr "Unable to create item with this socket type"
 
 
 msgid "Unable to locate item '%s' in node"
@@ -146633,6 +146540,14 @@ msgid "Implicit type conversion when evaluating closure"
 msgstr "Implicit type conversion when evaluating closure"
 
 
+msgid "Closure does not have output: \"{}\""
+msgstr "Closure does not have output: \"{}\""
+
+
+msgid "Closure does not have input: \"{}\""
+msgstr "Closure does not have input: \"{}\""
+
+
 msgid "Offset Scale"
 msgstr "Offset Scale"
 
@@ -148762,14 +148677,6 @@ msgstr "Manage"
 
 msgid "No named attributes used"
 msgstr "No named attributes used"
-
-
-msgid "Closure does not have input: \"{}\""
-msgstr "Closure does not have input: \"{}\""
-
-
-msgid "Closure does not have output: \"{}\""
-msgstr "Closure does not have output: \"{}\""
 
 
 msgid "Input geometry has no elements in the iteration domain."

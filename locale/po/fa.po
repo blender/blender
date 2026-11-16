@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2025-11-19 06:24+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -1444,10 +1444,6 @@ msgid "Saturation"
 msgstr "ﻉﺎﺒﺷﺍ"
 
 
-msgid "Both"
-msgstr "ﻭﺩ ﺮﻫ"
-
-
 msgctxt "File browser"
 msgid "Path"
 msgstr "ﺮﯿﺴﻣ"
@@ -2369,6 +2365,10 @@ msgid "Sound"
 msgstr "ﺍﺪﺻ"
 
 
+msgid "Dynamic"
+msgstr "ﺎﯾﻮﭘ"
+
+
 msgid "Visibility"
 msgstr "ﺪﯾﺩ"
 
@@ -2379,10 +2379,6 @@ msgstr "ﻪﻠﺻﺎﻓ"
 
 msgid "Radial"
 msgstr "ﯽﻋﺎﻌﺷ"
-
-
-msgid "Dynamic"
-msgstr "ﺎﯾﻮﭘ"
 
 
 msgid "Single"
@@ -3094,20 +3090,12 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
-msgid "Math"
-msgstr "ﯽﺿﺎﯾﺭ"
-
-
-msgid "Pivot Point"
-msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
-
-
 msgid "Import"
 msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
+
+
+msgid "Math"
+msgstr "ﯽﺿﺎﯾﺭ"
 
 
 msgid "UV"
@@ -3140,6 +3128,14 @@ msgstr "ﺡﺮﻃ"
 
 msgid "Tracking"
 msgstr "ﯽﺑﺎﯾﺩﺭ"
+
+
+msgid "Pivot Point"
+msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
+
+
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
 
 
 msgid "Key"
@@ -3509,6 +3505,10 @@ msgstr "ﯽﺷ ﺕﺎﻋﻼ﻿ﻃﺍ"
 
 msgid "Points to Curves"
 msgstr "ﺎﻫ‌ﯽﻨﺤﻨﻣ ﻪﺑ ﻁﺎﻘﻧ"
+
+
+msgid "Both"
+msgstr "ﻭﺩ ﺮﻫ"
 
 
 msgctxt "Volume"
@@ -4325,12 +4325,12 @@ msgid "Restrict"
 msgstr "ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
 
-msgid "Motion Tracking"
-msgstr "ﺖﮐﺮﺣ ﯽﺑﺎﯾﺩﺭ"
-
-
 msgid "Transform Orientations"
 msgstr "ﻞﮑﺷ ﺮﯿﯿﻐﺗ ﺖﻬﺟ"
+
+
+msgid "Motion Tracking"
+msgstr "ﺖﮐﺮﺣ ﯽﺑﺎﯾﺩﺭ"
 
 
 msgid "Bone Constraints"
@@ -5119,14 +5119,6 @@ msgstr "ﺩﺮﮐ ﻑﺬﺣ ﺍﺭ ﺩﺭﺍﺩ ﻢﺴﺟ ﻪﭽﻧﺁ ﺯﺍ �
 
 msgid "Cannot add more than %i UV maps"
 msgstr "ﺩﺮﮐ ﻪﻓﺎﺿﺍ UV ﻪﺸﻘﻧ %i‬‪ ﺯﺍ ﺶﯿﺑ ﻥﺍﻮﺗ‌ﯽﻤﻧ"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "‪%d‬ ‪%s‬ ﻩﺪﺷ ﺲﮑﻌﻨﻣ، ‪%d‬ ﻖﻓﻮﻣﺎﻧ"
-
-
-msgid "%d %s mirrored"
-msgstr "‪%d‬ ‪%s‬ ﻩﺪﺷ ﺲﮑﻌﻨﻣ"
 
 
 msgid "Cannot join while in edit mode"

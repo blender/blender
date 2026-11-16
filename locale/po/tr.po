@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -3447,18 +3447,6 @@ msgid "Collection of worlds"
 msgstr "Dünyalar koleksiyonu"
 
 
-msgid "Project"
-msgstr "Proje"
-
-
-msgid "Blender"
-msgstr "Karıştırıcı"
-
-
-msgid "Fallback"
-msgstr "Geri çekilmek"
-
-
 msgid "Linear BT.709 with illuminant D65 white point"
 msgstr "Aydınlatıcı D65 beyaz noktalı doğrusal BT.709"
 
@@ -3553,6 +3541,10 @@ msgstr "Kaynak kitaplıkların koleksiyonu, i.n. blend dosya yolları"
 
 msgid "Dirty"
 msgstr "Kirli"
+
+
+msgid "Blender"
+msgstr "Karıştırıcı"
 
 
 msgid "Path"
@@ -5520,24 +5512,8 @@ msgid "Factor used to mix vertex color to get final color"
 msgstr "Son rengi elde etmek için tepe noktası rengini karıştırmak için kullanılan faktör"
 
 
-msgid "Mode Type"
-msgstr "Kip Türü"
-
-
 msgid "Defines how vertex color affect to the strokes"
 msgstr "Tepe noktası renginin vuruşlara nasıl etki edeceğini tanımlar"
-
-
-msgid "Stroke"
-msgstr "Vuruş"
-
-
-msgid "Fill"
-msgstr "Doldur"
-
-
-msgid "Both"
-msgstr "İkisi de"
 
 
 msgid "Byte Color Attribute Value"
@@ -8107,6 +8083,10 @@ msgid "Shrink the location to the nearest target surface"
 msgstr "Konumu en yakın hedef yüzeye küçültün"
 
 
+msgid "Project"
+msgstr "Proje"
+
+
 msgid "Shrink the location to the nearest target vertex"
 msgstr "Konumu en yakın hedef köşeye küçült"
 
@@ -9378,6 +9358,10 @@ msgstr "Veri Yolu"
 
 msgid "RNA Path (from ID-block) to property used"
 msgstr "RNA Yolu (ID bloğundan) kullanılan özelliğe"
+
+
+msgid "Fallback"
+msgstr "Geri çekilmek"
 
 
 msgid "Type of ID-block that can be used"
@@ -13556,6 +13540,10 @@ msgid "Sound"
 msgstr "Ses"
 
 
+msgid "Dynamic"
+msgstr "Dinamik"
+
+
 msgid "Freestyle Line Set"
 msgstr "Serbest Stil Çizgi Seti"
 
@@ -14198,10 +14186,6 @@ msgstr "Eğriyi Kullan"
 
 msgid "Use curve to define primitive stroke thickness"
 msgstr "İlkel vuruş kalınlığını tanımlamak için eğriyi kullanın"
-
-
-msgid "Dynamic"
-msgstr "Dinamik"
 
 
 msgid "Single"
@@ -28707,128 +28691,8 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Face Data"
-msgstr "Yüz Verileri"
-
-
-msgid "Select by Face Strength"
-msgstr "Yüz Gücüne Göre Seç"
-
-
-msgid "Set Face Strength"
-msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
-msgid "Merge"
-msgstr "Birleştir"
-
-
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Metaball"
-msgstr "Metabol"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
-
-
-msgid "Read"
-msgstr "Okumak"
-
-
-msgid "Sample"
-msgstr "Örnek"
-
-
 msgid "Write"
 msgstr "Yazmak"
-
-
-msgid "Primitives"
-msgstr "İlkel"
-
-
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "Instances"
-msgstr "Örnekler"
-
-
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
-msgid "Local View"
-msgstr "Yerel Görünüm"
 
 
 msgid "Viewpoint"
@@ -28837,6 +28701,10 @@ msgstr "Bakış açısı"
 
 msgid "Navigation"
 msgstr "Navigasyon"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Align View"
@@ -28863,6 +28731,10 @@ msgid "Select Similar"
 msgstr "Benzerini Seç"
 
 
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
+
+
 msgid "Select All by Trait"
 msgstr "Özelliğe Göre Tümünü Seç"
 
@@ -28879,12 +28751,32 @@ msgid "Select Loops"
 msgstr "Döngüleri Seç"
 
 
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Read"
+msgstr "Okumak"
+
+
+msgid "Sample"
+msgstr "Örnek"
+
+
+msgid "Stroke"
+msgstr "Vuruş"
+
+
 msgid "Assign Material"
 msgstr "Malzeme Atamak"
+
+
+msgid "Metaball"
+msgstr "Metabol"
 
 
 msgid "Light"
@@ -28919,6 +28811,14 @@ msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
 
 
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
 msgid "Asset"
 msgstr "Varlık"
 
@@ -28935,16 +28835,20 @@ msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
 
-msgid "Hooks"
-msgstr "Kancalar"
-
-
 msgid "Linked"
 msgstr "Bağlantılı"
 
 
 msgid "Layout"
 msgstr "Yerleşim"
+
+
+msgid "Hooks"
+msgstr "Kancalar"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
 
 
 msgid "Trim/Add"
@@ -28963,36 +28867,120 @@ msgid "Random Mask"
 msgstr "Rastgele Maske"
 
 
-msgid "Clear Transform"
-msgstr "Temizle Dönüşüm"
-
-
 msgid "Adjust"
 msgstr "Ayarlamak"
+
+
+msgid "Clear Transform"
+msgstr "Temizle Dönüşüm"
 
 
 msgid "In-Betweens"
 msgstr "Arada Kalanlar"
 
 
-msgid "Propagate"
-msgstr "Yaymak"
-
-
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
 msgid "Keying"
 msgstr "Anahtarlama"
+
+
+msgid "Propagate"
+msgstr "Yaymak"
 
 
 msgid "Tracking"
 msgstr "Takip"
 
 
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
 msgid "Toggle Bone Options"
 msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Select by Face Strength"
+msgstr "Yüz Gücüne Göre Seç"
+
+
+msgid "Set Face Strength"
+msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "Merge"
+msgstr "Birleştir"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "Instances"
+msgstr "Örnekler"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
+msgid "Local View"
+msgstr "Yerel Görünüm"
 
 
 msgid "Keyframe Insert Pie"
@@ -32441,6 +32429,10 @@ msgstr "Dolgu ve kontur renklerini değiştirin"
 
 msgid "Modify stroke color only"
 msgstr "Yalnızca kontur rengini değiştir"
+
+
+msgid "Fill"
+msgstr "Doldur"
 
 
 msgid "Modify fill color only"
@@ -40090,6 +40082,10 @@ msgstr "Geometri Adını Ayarla"
 
 msgid "Set the name of a geometry for easier debugging"
 msgstr "Daha kolay hata ayıklama için bir geometrinin adını ayarlayın"
+
+
+msgid "Both"
+msgstr "İkisi de"
 
 
 msgid "Set ID"
@@ -54288,6 +54284,11 @@ msgid "Number of points to select from the start"
 msgstr "Başlangıçtan itibaren seçilecek puan sayısı"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "Bağlantılı Seçimi Seç"
+
+
 msgid "Selects random points from the current strokes selection"
 msgstr "Mevcut vuruş seçiminden rastgele noktalar seçer"
 
@@ -60014,14 +60015,6 @@ msgid "All possible blend types, boolean operations and math operations"
 msgstr "Tüm olası karışım türleri, Boole işlemleri ve matematik işlemleri"
 
 
-msgid "Intersect Mode"
-msgstr "Kesişim Modu"
-
-
-msgid "Difference Mode"
-msgstr "Fark Modu"
-
-
 msgid "Add to End"
 msgstr "Sona Ekle"
 
@@ -64245,11 +64238,6 @@ msgid "Select linked faces"
 msgstr "Bağlantılı yüzleri seç"
 
 
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "Bağlantılı Seçimi Seç"
-
-
 msgid "Select linked faces under the cursor"
 msgstr "İmlecin altındaki bağlantılı yüzleri seç"
 
@@ -65569,10 +65557,6 @@ msgstr "Seçili kemiklerin ölçeklendirmesini varsayılan değerlerine sıfırl
 msgctxt "Operator"
 msgid "Select Constraint Target"
 msgstr "Kısıtlama Hedefini Seçin"
-
-
-msgid "Select bones used as targets for the currently selected bones"
-msgstr "Şu anda seçili kemikler için hedef olarak kullanılan kemikleri seçin"
 
 
 msgid "Select all visible bones grouped by similar properties"
@@ -72807,14 +72791,6 @@ msgid "Set \"Fake User\" for appended items (except objects and collections)"
 msgstr "Eklenen öğeler için \"Sahte Kullanıcı\"yı ayarlayın (nesneler ve koleksiyonlar hariç)"
 
 
-msgid "Localize All"
-msgstr "Tümünü Yerelleştir"
-
-
-msgid "Localize all appended data, including those indirectly linked from other libraries"
-msgstr "Diğer kütüphanelerden dolaylı olarak bağlantılı olanlar da dahil olmak üzere eklenen tüm verileri yerelleştirin"
-
-
 msgid "Type of data to rename"
 msgstr "Yeniden adlandırılacak veri türü"
 
@@ -75343,58 +75319,6 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "Active Tool"
-msgstr "Etkin Araç"
-
-
-msgid "View Lock"
-msgstr "Görünüm Kilidi"
-
-
-msgid "Selectability & Visibility"
-msgstr "Seçilebilirlik ve Görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
-
-
-msgid "Cavity"
-msgstr "Boşluk"
-
-
-msgid "Render Pass"
-msgstr "Render Geçişi"
-
-
-msgid "Overlays"
-msgstr "Kaplamalar"
-
-
-msgid "Guides"
-msgstr "Rehberler"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Düzenleme Modu"
-
-
-msgid "Measurement"
-msgstr "Ölçüm"
-
-
 msgid "Curve Edit Mode"
 msgstr "Eğri Düzenleme Modu"
 
@@ -75409,6 +75333,10 @@ msgstr "İnme Yerleşimi"
 
 msgid "Drawing Plane"
 msgstr "Çizim düzlemi"
+
+
+msgid "Guides"
+msgstr "Rehberler"
 
 
 msgid "Quad View"
@@ -75447,6 +75375,14 @@ msgid "Viewport Debug"
 msgstr "Görüş Alanı Hata Ayıklaması"
 
 
+msgid "VR"
+msgstr "Sanal Gerçeklik"
+
+
+msgid "VR Info"
+msgstr "VR Bilgisi"
+
+
 msgid "glTF Variants"
 msgstr "glTF Çeşitleri"
 
@@ -75455,12 +75391,52 @@ msgid "glTF Material Variants"
 msgstr "glTF Malzeme Varyantları"
 
 
-msgid "VR"
-msgstr "Sanal Gerçeklik"
+msgid "Active Tool"
+msgstr "Etkin Araç"
 
 
-msgid "VR Info"
-msgstr "VR Bilgisi"
+msgid "View Lock"
+msgstr "Görünüm Kilidi"
+
+
+msgid "Selectability & Visibility"
+msgstr "Seçilebilirlik ve Görünürlük"
+
+
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
+
+
+msgid "Cavity"
+msgstr "Boşluk"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
+
+
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Düzenleme Modu"
+
+
+msgid "Measurement"
+msgstr "Ölçüm"
 
 
 msgid "Chain Scaling"
@@ -76410,6 +76386,10 @@ msgid "Text Rendering"
 msgstr "Metin İşleme"
 
 
+msgid "Font Style"
+msgstr "Yazı Tipi Stili"
+
+
 msgid "Preferences Navigation"
 msgstr "Tercihlerde Dolaşım"
 
@@ -76552,10 +76532,6 @@ msgstr "Tab"
 
 msgid "Toolbar Item"
 msgstr "Araç Çubuğu Ögesi"
-
-
-msgid "Text Style"
-msgstr "Metin Stili"
 
 
 msgid "User Interface"
@@ -78283,6 +78259,10 @@ msgstr "Düğüm Önizleme Çözümü"
 
 msgid "Auto-offset"
 msgstr "Auto-offset"
+
+
+msgid "Noodle Curving"
+msgstr "Erişte Eğriliği"
 
 
 msgid "Align Object To"
@@ -89951,6 +89931,10 @@ msgid "Active Theme Area"
 msgstr "Aktif Tema Alanı"
 
 
+msgid "Text Style"
+msgstr "Metin Stili"
+
+
 msgid "Theme Bone Color Set"
 msgstr "Tema Kemik Renk Seti"
 
@@ -90303,10 +90287,6 @@ msgid "Overlay color on every other row"
 msgstr "Her diğer satıra renk katmanı ekle"
 
 
-msgid "Font Style"
-msgstr "Yazı Tipi Stili"
-
-
 msgid "Theme settings for Font"
 msgstr "Font için tema ayarları"
 
@@ -90321,34 +90301,6 @@ msgstr "Karakterlerin ağırlığı 100-900 arasıdır, 400 normaldir."
 
 msgid "Font size in points"
 msgstr "Yazı tipi boyutu (punto)"
-
-
-msgid "Shadow Size"
-msgstr "Gölge Boyutu"
-
-
-msgid "Shadow Alpha"
-msgstr "Gölge Alfa"
-
-
-msgid "Shadow X Offset"
-msgstr "Gölge X Ofseti"
-
-
-msgid "Shadow offset in pixels"
-msgstr "Piksel cinsinden gölge ofseti"
-
-
-msgid "Shadow Y Offset"
-msgstr "Gölge Y Ofseti"
-
-
-msgid "Shadow Brightness"
-msgstr "Gölge Parlaklığı"
-
-
-msgid "Shadow color in gray value"
-msgstr "Gri değerdeki gölge rengi"
 
 
 msgid "Theme Background Color"
@@ -90739,14 +90691,6 @@ msgid "Node Selected"
 msgstr "Düğüm Seçildi"
 
 
-msgid "Noodle Curving"
-msgstr "Erişte Eğriliği"
-
-
-msgid "Curving of the noodle"
-msgstr "Eriştenin kıvrılması"
-
-
 msgid "Repeat Zone"
 msgstr "Tekrarlama Bölgesi"
 
@@ -90893,10 +90837,6 @@ msgstr "Tema Şeridi Rengi"
 
 msgid "Theme settings for strip colors"
 msgstr "Şerit renkleri için tema ayarları"
-
-
-msgid "Theme settings for style sets"
-msgstr "Stil setleri için tema ayarları"
 
 
 msgid "Panel Title Font"
@@ -91061,6 +91001,10 @@ msgstr "Panel ve alt panellerin köşelerinin yuvarlaklığı"
 
 msgid "Panel Title"
 msgstr "Panel Başlığı"
+
+
+msgid "Shadow offset in pixels"
+msgstr "Piksel cinsinden gölge ofseti"
 
 
 msgid "Primary Color"
@@ -97092,6 +97036,10 @@ msgstr "aksi takdirde kaçınılmalıdır."
 
 msgid "Legacy Add-ons"
 msgstr "Eski Eklentiler"
+
+
+msgid "Close"
+msgstr "Kapalı"
 
 
 msgid "The dropped extension comes from an unknown repository."
@@ -103878,10 +103826,6 @@ msgid "View Align"
 msgstr "Görünüm Hizala"
 
 
-msgid "Shadow Offset X"
-msgstr "Gölge Ofseti X"
-
-
 msgid "Temporary Files"
 msgstr "Geçici Dosyalar"
 
@@ -104167,11 +104111,6 @@ msgstr "Daha fazla/Daha az"
 msgctxt "Operator"
 msgid "Select Pattern..."
 msgstr "Desen Seç..."
-
-
-msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "Kısıtlama Hedefi"
 
 
 msgctxt "Operator"
@@ -108310,10 +108249,6 @@ msgid "There is no layer '%s'"
 msgstr "'%s' katmanı yok"
 
 
-msgid "'%s' Layer is locked"
-msgstr "'%s' Katmanı kilitli"
-
-
 msgid "Copied %d selected curve(s)"
 msgstr "%d seçili eğri kopyalandı"
 
@@ -109478,10 +109413,6 @@ msgid "No intersections found"
 msgstr "Hiçbir kavşak bulunamadı"
 
 
-msgid "Close"
-msgstr "Kapalı"
-
-
 msgid "Pan View"
 msgstr "Pan Görünümü"
 
@@ -109704,14 +109635,6 @@ msgstr "Ağın içerdiğinden daha fazla polis kaldırılamaz"
 
 msgid "Cannot add more than %i UV maps"
 msgstr "%i'den fazla UV haritası eklenemez"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s yansıtıldı, %d başarısız oldu"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s yansıtıldı"
 
 
 msgid "Cannot join while in edit mode"
@@ -113681,14 +113604,6 @@ msgid " (Viewer)"
 msgstr " (İzleyici)"
 
 
-msgid "fps: %.2f"
-msgstr "fps: %.2f"
-
-
-msgid "fps: %i"
-msgstr "fps: %i"
-
-
 msgid "Create object instance from object-data"
 msgstr "Nesne verilerinden nesne örneği oluştur"
 
@@ -114250,10 +114165,6 @@ msgstr "Freestyle: Harita oluşturmayı görüntüle"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Serbest Stil: Vuruş işleme"
-
-
-msgid "Error writing frame"
-msgstr "Çerçeve yazılırken hata oluştu"
 
 
 msgid "No valid formats found"
@@ -115383,14 +115294,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "Yerleşik düğümdeki soketler taşınamıyor"
 
 
-msgid "Unable to locate item in node"
-msgstr "Öğe düğümde bulunamadı"
-
-
-msgid "Unable to create item with this socket type"
-msgstr "Bu soket türüyle öğe oluşturulamıyor"
-
-
 msgid "Registering node tree class: '%s', bl_idname '%s' could not be unregistered"
 msgstr "Düğüm ağacı sınıfı kaydediliyor: '%s', bl_idname '%s' kaydı silinemedi"
 
@@ -115429,6 +115332,14 @@ msgstr "Düğümde '%s' soketi bulunamadı"
 
 msgid "The output node %s is already paired with %s"
 msgstr "Çıkış düğümü %s zaten %s ile eşleştirilmiş"
+
+
+msgid "Unable to locate item in node"
+msgstr "Öğe düğümde bulunamadı"
+
+
+msgid "Unable to create item with this socket type"
+msgstr "Bu soket türüyle öğe oluşturulamıyor"
 
 
 msgid "Unable to locate item '%s' in node"

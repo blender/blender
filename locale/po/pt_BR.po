@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-10-20 16:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -3013,10 +3013,6 @@ msgid "Collection of worlds"
 msgstr "Coleção de mundos"
 
 
-msgid "Project"
-msgstr "Projetar"
-
-
 msgctxt "ID"
 msgid "ID Type"
 msgstr "Tipo de identificador"
@@ -4139,18 +4135,6 @@ msgstr "Aparar Extremidades do Traço"
 
 msgid "UV Random"
 msgstr "UV Aleatório"
-
-
-msgid "Stroke"
-msgstr "Traços"
-
-
-msgid "Fill"
-msgstr "Preencher"
-
-
-msgid "Both"
-msgstr "Ambos"
 
 
 msgid "Path to the archive"
@@ -6613,6 +6597,10 @@ msgstr "Pontos mais próximos da superfície"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Encolhe a localização para as superfícies mais próximas do alvo."
+
+
+msgid "Project"
+msgstr "Projetar"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -10714,6 +10702,10 @@ msgid "Sound"
 msgstr "Som"
 
 
+msgid "Dynamic"
+msgstr "Dinâmico"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle - Conjuntos de linhas"
 
@@ -11196,10 +11188,6 @@ msgstr "A projeção dos traços será bloqueada no eixo Z do plano."
 
 msgid "Use Falloff"
 msgstr "Usar decaimento"
-
-
-msgid "Dynamic"
-msgstr "Dinâmico"
 
 
 msgid "Single"
@@ -21136,82 +21124,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
 msgid "Viewpoint"
 msgstr "Ponto de visualização"
 
@@ -21256,8 +21168,20 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Stroke"
+msgstr "Traços"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Light"
@@ -21292,6 +21216,14 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
@@ -21300,16 +21232,16 @@ msgid "Convert"
 msgstr "Converter"
 
 
-msgid "Hooks"
-msgstr "Ganchos"
-
-
 msgid "Linked"
 msgstr "Vinculando"
 
 
 msgid "Layout"
 msgstr "Organizar"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
 
 
 msgid "Random Mask"
@@ -21324,20 +21256,80 @@ msgid "In-Betweens"
 msgstr "Entre as continuidades"
 
 
-msgid "Propagate"
-msgstr "Propagar"
-
-
 msgid "Keying"
 msgstr "Inserção de chaves"
+
+
+msgid "Propagate"
+msgstr "Propagar"
 
 
 msgid "Tracking"
 msgstr "Rastreamento"
 
 
+msgid "Names"
+msgstr "Nomes"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
 
 
 msgid "Basic"
@@ -23459,6 +23451,10 @@ msgstr "Crescer"
 
 msgid "Stroke & Fill"
 msgstr "Contorno e Preenchimento"
+
+
+msgid "Fill"
+msgstr "Preencher"
 
 
 msgid "Hook Modifier"
@@ -27176,6 +27172,10 @@ msgstr "Informações de objetos"
 
 msgid "Repeat Output"
 msgstr "Repetir Resultado"
+
+
+msgid "Both"
+msgstr "Ambos"
 
 
 msgid "Tangent Space"
@@ -34934,6 +34934,11 @@ msgid "(De)select All Strokes"
 msgstr "(De)selecionar todos os traços"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "Selecionar por escolha de vínculo"
+
+
 msgid "Select all strokes with similar characteristics"
 msgstr "Seleciona todos os traços com características similares."
 
@@ -41398,11 +41403,6 @@ msgid "Select linked faces"
 msgstr "Seleciona as faces conectadas"
 
 
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "Selecionar por escolha de vínculo"
-
-
 msgid "Select linked faces under the cursor"
 msgstr "Seleciona as faces vinculadas abaixo do cursor."
 
@@ -42373,10 +42373,6 @@ msgstr "Redefine a escala dos ossos selecionados aos seus valores padrão."
 msgctxt "Operator"
 msgid "Select Constraint Target"
 msgstr "Selecionar o alvo da restrição"
-
-
-msgid "Select bones used as targets for the currently selected bones"
-msgstr "Seleciona os ossos usados como alvos para os ossos atualmente selecionados."
 
 
 msgid "Select all visible bones grouped by similar properties"
@@ -46586,14 +46582,6 @@ msgid "Link the objects or data-blocks rather than appending"
 msgstr "Vincula os objetos ou blocos de dados ao invés de anexar."
 
 
-msgid "Localize All"
-msgstr "Localizar todos(as)"
-
-
-msgid "Localize all appended data, including those indirectly linked from other libraries"
-msgstr "Localiza todos os dados anexados, incluindo aqueles que são vinculados indiretamente a partir de outras bibliotecas."
-
-
 msgctxt "Operator"
 msgid "Call Menu"
 msgstr "Chamada de menu"
@@ -47829,14 +47817,6 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
@@ -47847,6 +47827,14 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
 
 
 msgid "Bone Constraints"
@@ -48365,6 +48353,10 @@ msgid "Text Rendering"
 msgstr "Processamento de Texto"
 
 
+msgid "Font Style"
+msgstr "Estilo de fonte"
+
+
 msgid "Preferences Navigation"
 msgstr "Preferências de Navegação"
 
@@ -48403,10 +48395,6 @@ msgstr "Menus setorizados"
 
 msgid "Toolbar Item"
 msgstr "Item na Barra de Ferramentas"
-
-
-msgid "Text Style"
-msgstr "Estilo de texto"
 
 
 msgid "User Interface"
@@ -56522,6 +56510,10 @@ msgid "Active Theme Area"
 msgstr "Área de tema ativo"
 
 
+msgid "Text Style"
+msgstr "Estilo de texto"
+
+
 msgid "Theme Bone Color Set"
 msgstr "Tema de cor de conjunto de ossos"
 
@@ -56782,40 +56774,8 @@ msgid "Theme settings for the File Browser"
 msgstr "Configurações de tema para o navegador de arquivos."
 
 
-msgid "Font Style"
-msgstr "Estilo de fonte"
-
-
 msgid "Theme settings for Font"
 msgstr "Tema - Configurações para fontes"
-
-
-msgid "Shadow Size"
-msgstr "Sombras - Tamanho"
-
-
-msgid "Shadow Alpha"
-msgstr "Sombras - Alfa"
-
-
-msgid "Shadow X Offset"
-msgstr "Sombras - Deslocamento em X"
-
-
-msgid "Shadow offset in pixels"
-msgstr "O deslocamento das sombras em pixeis."
-
-
-msgid "Shadow Y Offset"
-msgstr "Sombras - Deslocamento em Y"
-
-
-msgid "Shadow Brightness"
-msgstr "Sombras - Brilho"
-
-
-msgid "Shadow color in gray value"
-msgstr "A cor das sombras em valores de cinza."
 
 
 msgid "Theme Background Color"
@@ -56982,10 +56942,6 @@ msgid "Node Selected"
 msgstr "Nós selecionados"
 
 
-msgid "Curving of the noodle"
-msgstr "Curvamento do nódulo."
-
-
 msgid "Script Node"
 msgstr "Nós de scripts"
 
@@ -57066,10 +57022,6 @@ msgid "Text Highlight"
 msgstr "Texto - Realce"
 
 
-msgid "Theme settings for style sets"
-msgstr "Configurações de tema para conjuntos de estilo."
-
-
 msgid "Panel Title Font"
 msgstr "Fonte de título do painel"
 
@@ -57132,6 +57084,10 @@ msgstr "Transparência dos ícones na interface, para reduzir contraste."
 
 msgid "Color of folders in the file browser"
 msgstr "Cor das pastas no navegador de arquivos"
+
+
+msgid "Shadow offset in pixels"
+msgstr "O deslocamento das sombras em pixeis."
 
 
 msgid "Primary Color"
@@ -61011,11 +60967,6 @@ msgstr "Selecionar padrão..."
 
 
 msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "Alvo de restrição"
-
-
-msgctxt "Operator"
 msgid "Roots"
 msgstr "Raízes"
 
@@ -63602,14 +63553,6 @@ msgid "Cannot remove more edges than the mesh contains"
 msgstr "Não é possível remover mais arestas do que a malha contém."
 
 
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s espelhados, %d falharam."
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s espelhados."
-
-
 msgid "Cannot join while in edit mode"
 msgstr "Não é possível juntar durante o modo de edição."
 
@@ -65575,14 +65518,6 @@ msgid " (Viewer)"
 msgstr " (Visualizador)"
 
 
-msgid "fps: %.2f"
-msgstr "Quadros/Seg: %.2f"
-
-
-msgid "fps: %i"
-msgstr "Quadros/Seg: %i"
-
-
 msgid "Cannot fly when the view offset is locked"
 msgstr "Não é possível voar quando o deslocamento de visão está bloqueado."
 
@@ -65958,10 +65893,6 @@ msgstr "Freestyle: Criação do mapa de visualização..."
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Renderização de traços..."
-
-
-msgid "Error writing frame"
-msgstr "Erro ao escrever quadro"
 
 
 msgid "No valid formats found"

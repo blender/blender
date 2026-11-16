@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-10-15 14:12+0000\n"
 "Last-Translator: Fadhul Rahim <fadhulrahim@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -4023,48 +4023,24 @@ msgid "File path or URI of the OpenColorIO configuration currently in use"
 msgstr "Jalur file atau URI konfigurasi OpenColorIO yang sedang digunakan saat ini"
 
 
-msgid "OpenColorIO Configuration Source"
-msgstr "Sumber Konfigurasi OpenColorIO"
-
-
 msgid "Where the OpenColorIO configuration came from"
 msgstr "Dimana Konfigurasi OpenColorIO berasal"
-
-
-msgid "BLENDER_OCIO environment variable"
-msgstr "Variabel lingkungan BLENDER_OCIO"
 
 
 msgid "The BLENDER_OCIO environment variable"
 msgstr "Variabel lingkungan BLENDER_OCIO"
 
 
-msgid "OCIO environment variable"
-msgstr "Variabel lingkungan OCIO"
-
-
 msgid "The OCIO environment variable"
 msgstr "Variabel lingkungan OCIO"
-
-
-msgid "Project"
-msgstr "Proyek"
 
 
 msgid "The active project's OpenColorIO configuration setting"
 msgstr "Pengaturan konfigurasi OpenColorIO pada proyek yang sedang aktif"
 
 
-msgid "Blender"
-msgstr "Blender"
-
-
 msgid "The OpenColorIO configuration bundled with Blender"
 msgstr "Konfigurasi OpenColorIO yang disertakan dalam Blender"
-
-
-msgid "Fallback"
-msgstr "Solusi Cadangan"
 
 
 msgid "The built-in fallback configuration, if loading other configurations failed"
@@ -4354,6 +4330,10 @@ msgstr "Nama proyek"
 
 msgid "OpenColorIO configuration to use for this project"
 msgstr "Konfigurasi OpenColorIO yang akan digunakan untuk proyek ini"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "The default Blender OpenColorIO configuration. Works with both ACES workflows and Blender specific views and color spaces"
@@ -6678,32 +6658,16 @@ msgid "Factor used to mix vertex color to get final color"
 msgstr "Faktor digunakan untuk mencampukan warna titik sudut agar mendapat warna akhir"
 
 
-msgid "Mode Type"
-msgstr "Tipe Mode"
-
-
 msgid "Defines how vertex color affect to the strokes"
 msgstr "Mendefinisikan bagaimana warna titik sudut mempengaruhi sapuan"
-
-
-msgid "Stroke"
-msgstr "Sapuan"
 
 
 msgid "Painting affects only strokes, not fills"
 msgstr "Pewarnaan hanya memengaruhi goresan, bukan area yang diisi"
 
 
-msgid "Fill"
-msgstr "Isi"
-
-
 msgid "Painting affects only fills, not strokes"
 msgstr "Pewarnaan hanya memengaruhi area terisi, bukan garis"
-
-
-msgid "Both"
-msgstr "Keduanya"
 
 
 msgid "Painting affects both strokes and fills"
@@ -9409,6 +9373,10 @@ msgid "Nearest Surface Point"
 msgstr "Titik Permukaan Terdekat"
 
 
+msgid "Project"
+msgstr "Proyek"
+
+
 msgid "Shrink the location to the nearest target surface along a given axis"
 msgstr "Kecilkan lokasi ke permukaan target terdekat di sepanjang sumbu tertentu"
 
@@ -10617,6 +10585,10 @@ msgstr "Jalur Data"
 
 msgid "RNA Path (from ID-block) to property used"
 msgstr "Jalur RNA (dari ID-blok) ke properti yang digunakan"
+
+
+msgid "Fallback"
+msgstr "Solusi Cadangan"
 
 
 msgid "Type of ID-block that can be used"
@@ -12690,6 +12662,10 @@ msgid "Integer Vector"
 msgstr "Vektor Integer"
 
 
+msgid "Dynamic"
+msgstr "Dinamik"
+
+
 msgid "A collection of objects based on which feature edges are selected"
 msgstr "Koleksi objek berdasasrkan dengan tepi fitur yang terseleksi"
 
@@ -13012,10 +12988,6 @@ msgstr "Gunakan Kurva"
 
 msgid "Use curve to define primitive stroke thickness"
 msgstr "Gunakan kurva untuk mendefinisikan ketebalan sapuan"
-
-
-msgid "Dynamic"
-msgstr "Dinamik"
 
 
 msgid "List"
@@ -17716,46 +17688,6 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Utilities"
-msgstr "Utilitas"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Sample"
-msgstr "Sampel"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Instances"
-msgstr "Contoh-contoh"
-
-
 msgid "Navigation"
 msgstr "Navigasi"
 
@@ -17764,16 +17696,36 @@ msgid "Import"
 msgstr "Impor"
 
 
+msgid "Utilities"
+msgstr "Utilitas"
+
+
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Sample"
+msgstr "Sampel"
+
+
+msgid "Stroke"
+msgstr "Sapuan"
+
+
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Light"
@@ -17800,10 +17752,6 @@ msgid "Asset"
 msgstr "Aset"
 
 
-msgid "Hooks"
-msgstr "Kait"
-
-
 msgid "Linked"
 msgstr "Terkoleksi"
 
@@ -17812,8 +17760,36 @@ msgid "Layout"
 msgstr "Tata Letak"
 
 
+msgid "Hooks"
+msgstr "Kait"
+
+
 msgid "Tracking"
 msgstr "Pelacakan"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Instances"
+msgstr "Contoh-contoh"
 
 
 msgid "Animals"
@@ -18555,6 +18531,10 @@ msgstr "Hilang"
 
 msgid "Stroke & Fill"
 msgstr "Sapuan & Isi"
+
+
+msgid "Fill"
+msgstr "Isi"
 
 
 msgid "Fills"
@@ -20598,6 +20578,10 @@ msgstr "Sampel Permukaan UV"
 
 msgid "Scale Instances"
 msgstr "Skala Contoh-contoh"
+
+
+msgid "Both"
+msgstr "Keduanya"
 
 
 msgid "Set Instance Transform"
@@ -22862,6 +22846,11 @@ msgid "Amount Start"
 msgstr "Awal Jumlah"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "Seleksi"
+
+
 msgid "By Material"
 msgstr "Oleh Material"
 
@@ -23971,10 +23960,6 @@ msgid "Option"
 msgstr "Opsi"
 
 
-msgid "Difference Mode"
-msgstr "Mode Perbedaan"
-
-
 msgid "TIFF"
 msgstr "TIFF"
 
@@ -24953,11 +24938,6 @@ msgstr "Jenis slot cat baru"
 msgctxt "Operator"
 msgid "Face Select Hide"
 msgstr "Modus Sunting"
-
-
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "Seleksi"
 
 
 msgctxt "Operator"
@@ -28000,10 +27980,6 @@ msgid "Toolbar / Sidebar"
 msgstr "Bar Alat/Bar Sisi"
 
 
-msgid "Text Style"
-msgstr "Style Teks"
-
-
 msgid "User Interface"
 msgstr "Antarmuka Pengguna"
 
@@ -29670,16 +29646,16 @@ msgid "Clip Editor"
 msgstr "Penyunting Grafik"
 
 
+msgid "Text Style"
+msgstr "Style Teks"
+
+
 msgid "Theme Clip Editor"
 msgstr "Penyunting Teks"
 
 
 msgid "Active Channel Group"
 msgstr "Kelompok Saluran Aktif"
-
-
-msgid "Shadow type (0 none, 3, 5 blur, 6 outline)"
-msgstr "Tipe bayangan (0 kosong, 3, 5 buram, 6 garis luar)"
 
 
 msgid "Theme Background Color"
@@ -30475,6 +30451,10 @@ msgstr "Pilihan Gizmo Generik"
 msgctxt "WindowManager"
 msgid "Generic Gizmo Tweak Modal Map"
 msgstr "Peta Modal Tweak Gizmo Generik"
+
+
+msgid "Close"
+msgstr "Tutup"
 
 
 msgid "Add-on \"{:s}\" is already installed!"
@@ -32861,11 +32841,6 @@ msgstr "Pilih Pola..."
 
 
 msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "Seleksi"
-
-
-msgctxt "Operator"
 msgid "Roots"
 msgstr "Akar"
 
@@ -33597,10 +33572,6 @@ msgid "Active object is not a selected Grease Pencil"
 msgstr "Benda aktif bukan Pensil Grease terseleksi"
 
 
-msgid "'%s' Layer is locked"
-msgstr "'%s' Lapisan terkunci"
-
-
 msgid "Active layer is locked or hidden"
 msgstr "Layer aktif terkunci atau tersembunyi"
 
@@ -34086,10 +34057,6 @@ msgid "No intersections found"
 msgstr "Persimpangan tidak ditemukan"
 
 
-msgid "Close"
-msgstr "Tutup"
-
-
 msgid "Selected faces required"
 msgstr "Wajah yang terseleksi diperlukan"
 
@@ -34180,14 +34147,6 @@ msgstr "Tidak dapat menghapus putar-putaran di mode edit"
 
 msgid "Cannot remove more loops than the mesh contains"
 msgstr "Tidak dapat menghapus lebih banyak putar-putaran daripada yang ada di dalam jaring 3D"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s dicerminkan, %d gagal"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s dicerminkan"
 
 
 msgid "Cannot join while in edit mode"

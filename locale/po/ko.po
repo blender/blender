@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-09-06 05:02+0000\n"
 "Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -3917,18 +3917,6 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "색상 공간, 뷰 또는 디스플레이 설정을 찾을 수 없습니다. 이는 이 blend 파일을 생성할 때 사용된 OpenColorIO 설정이 누락되었음을 의미합니다"
 
 
-msgid "Project"
-msgstr "투사"
-
-
-msgid "Blender"
-msgstr "Blender"
-
-
-msgid "Fallback"
-msgstr "폴백"
-
-
 msgctxt "Color Management"
 msgid "Working Space"
 msgstr "작업 공간"
@@ -4182,6 +4170,10 @@ msgstr "만일 프로젝트가 저장되지 않은 변화가 있는지"
 
 msgid "The project's name"
 msgstr "프로젝트 이름"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "Path"
@@ -6426,24 +6418,8 @@ msgid "Factor used to mix vertex color to get final color"
 msgstr "최종 색상을 만들기 위해 버텍스 색상을 혼합할 때 사용되는 팩터입니다"
 
 
-msgid "Mode Type"
-msgstr "모드 유형"
-
-
 msgid "Defines how vertex color affect to the strokes"
 msgstr "버텍스 색상이 스트로크에 어떤 방식으로 적용될지 정의합니다"
-
-
-msgid "Stroke"
-msgstr "스트로크"
-
-
-msgid "Fill"
-msgstr "채우기"
-
-
-msgid "Both"
-msgstr "양쪽"
 
 
 msgid "Byte Color Attribute Value"
@@ -10165,6 +10141,10 @@ msgid "Shrink the location to the nearest target surface"
 msgstr "가까운 타깃 표면에 위치를 수축"
 
 
+msgid "Project"
+msgstr "투사"
+
+
 msgid "Shrink the location to the nearest target surface along a given axis"
 msgstr "주어진 축을 따라 가까운 타깃 표면에 위치를 수축"
 
@@ -11952,6 +11932,10 @@ msgstr "데이터 경로"
 
 msgid "RNA Path (from ID-block) to property used"
 msgstr "사용하는 속성에 대한 RNA 경로 (ID 블럭에서)"
+
+
+msgid "Fallback"
+msgstr "폴백"
 
 
 msgid "The value to use if the data path cannot be resolved"
@@ -16919,6 +16903,10 @@ msgid "Integer Vector"
 msgstr "정수 벡터"
 
 
+msgid "Dynamic"
+msgstr "역학"
+
+
 msgid "Freestyle Line Set"
 msgstr "프리스타일 라인 설정"
 
@@ -17613,10 +17601,6 @@ msgstr "커브를 사용하여 기본 라인 두께를 정의"
 
 msgid "Automatically detect a good structure type based on how the socket is used"
 msgstr "소켓 사용 방식에 따라 적합한 구조 유형 자동 감지"
-
-
-msgid "Dynamic"
-msgstr "역학"
 
 
 msgid "Socket can work with different kinds of structures"
@@ -35011,136 +34995,8 @@ msgid "Editor menu containing buttons"
 msgstr "버튼이 포함된 에디터 메뉴"
 
 
-msgid "Enable Bone Options"
-msgstr "뼈대 옵션을 사용"
-
-
-msgid "Disable Bone Options"
-msgstr "뼈대 옵션을 사용 중지"
-
-
-msgid "Mesh Select Mode"
-msgstr "메시 선택 모드"
-
-
-msgid "Creative"
-msgstr "크리에이티브"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Names"
-msgstr "이름"
-
-
-msgid "Bone Roll"
-msgstr "뼈대 롤"
-
-
-msgid "Math"
-msgstr "수학"
-
-
-msgid "Utilities"
-msgstr "유틸리티"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
-msgid "Automasking"
-msgstr "오토마스킹"
-
-
-msgid "Face Sets Edit"
-msgstr "페이스 세트 편집"
-
-
-msgid "Vertex Group Locks"
-msgstr "버텍스 그룹 잠금"
-
-
-msgid "Read"
-msgstr "읽기"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
 msgid "Write"
 msgstr "쓰기"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
-
-
-msgid "Gizmo"
-msgstr "기즈모"
-
-
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "Instances"
-msgstr "인스턴스"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
 
 
 msgid "Viewpoint"
@@ -35149,6 +35005,10 @@ msgstr "뷰포트"
 
 msgid "Navigation"
 msgstr "네비게이션"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
 
 
 msgid "Align View"
@@ -35175,6 +35035,10 @@ msgid "Select Similar"
 msgstr "유사한 선택"
 
 
+msgid "Utilities"
+msgstr "유틸리티"
+
+
 msgid "Select All by Trait"
 msgstr "형질로 모두 선택"
 
@@ -35191,16 +35055,36 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
-msgid "Render Preview"
-msgstr "렌더링 미리보기"
+msgid "Math"
+msgstr "수학"
 
 
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Read"
+msgstr "읽기"
+
+
+msgid "Render Preview"
+msgstr "렌더링 미리보기"
+
+
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Stroke"
+msgstr "스트로크"
+
+
 msgid "Assign Material"
 msgstr "머티리얼을 할당"
+
+
+msgid "Metaball"
+msgstr "메타볼"
 
 
 msgid "Light"
@@ -35235,6 +35119,14 @@ msgid "Quick Effects"
 msgstr "빠른 이펙트"
 
 
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
 msgid "Asset"
 msgstr "에셋"
 
@@ -35251,16 +35143,20 @@ msgid "Link/Transfer Data"
 msgstr "데이터 연결/전송"
 
 
-msgid "Hooks"
-msgstr "후크"
-
-
 msgid "Linked"
 msgstr "연결됨"
 
 
 msgid "Layout"
 msgstr "레이아웃"
+
+
+msgid "Hooks"
+msgstr "후크"
+
+
+msgid "Vertex Group Locks"
+msgstr "버텍스 그룹 잠금"
 
 
 msgid "Trim/Add"
@@ -35279,36 +35175,128 @@ msgid "Random Mask"
 msgstr "랜덤 마스크"
 
 
-msgid "Clear Transform"
-msgstr "변환을 지우기"
-
-
 msgid "Adjust"
 msgstr "조정"
+
+
+msgid "Clear Transform"
+msgstr "변환을 지우기"
 
 
 msgid "In-Betweens"
 msgstr "사이에서"
 
 
-msgid "Propagate"
-msgstr "전파"
-
-
-msgid "Bone Collections"
-msgstr "뼈대 컬렉션"
-
-
 msgid "Keying"
 msgstr "키잉"
+
+
+msgid "Propagate"
+msgstr "전파"
 
 
 msgid "Tracking"
 msgstr "트래킹"
 
 
+msgid "Bone Collections"
+msgstr "뼈대 컬렉션"
+
+
+msgid "Names"
+msgstr "이름"
+
+
 msgid "Toggle Bone Options"
 msgstr "뼈대 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "뼈대 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "뼈대 옵션을 사용 중지"
+
+
+msgid "Creative"
+msgstr "크리에이티브"
+
+
+msgid "Mesh Select Mode"
+msgstr "메시 선택 모드"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Merge"
+msgstr "병합"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Bone Roll"
+msgstr "뼈대 롤"
+
+
+msgid "Pivot Point"
+msgstr "피벗 포인트"
+
+
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Automasking"
+msgstr "오토마스킹"
+
+
+msgid "Face Sets Edit"
+msgstr "페이스 세트 편집"
+
+
+msgid "Gizmo"
+msgstr "기즈모"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "Instances"
+msgstr "인스턴스"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
 
 
 msgid "Keyframe Insert Pie"
@@ -39161,6 +39149,10 @@ msgstr "채우기 및 스트로크 색상를 수정"
 
 msgid "Modify stroke color only"
 msgstr "스트로크 색상 만 수정"
+
+
+msgid "Fill"
+msgstr "채우기"
 
 
 msgid "Modify fill color only"
@@ -48810,6 +48802,10 @@ msgstr "그리스 펜슬 색상 설정"
 
 msgid "Set color and opacity attributes on Grease Pencil geometry"
 msgstr "그리스 펜슬 지오메트리에서 색상 및 불투명도 속성 설정하기"
+
+
+msgid "Both"
+msgstr "양쪽"
 
 
 msgid "Set Grease Pencil Depth"
@@ -65820,6 +65816,11 @@ msgid "Number of points to select from the start"
 msgstr "시작부터 선택할 수 있는 포인트 수"
 
 
+msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "연결된 선택을 선택"
+
+
 msgid "Selects random points from the current strokes selection"
 msgstr "현재 스트로크 선택에서 무작위 포인트 선택"
 
@@ -72317,30 +72318,14 @@ msgid "Join Geometry"
 msgstr "지오메트리 가입하기"
 
 
-msgid "Join Geometry Mode"
-msgstr "지오메트리 모드 가입"
-
-
 msgctxt "NodeTree"
 msgid "Intersect"
 msgstr "교차"
 
 
-msgid "Intersect Mode"
-msgstr "교차 모드"
-
-
 msgctxt "NodeTree"
 msgid "Union"
 msgstr "Union"
-
-
-msgid "Union Mode"
-msgstr "유니온 모드"
-
-
-msgid "Difference Mode"
-msgstr "차이 모드"
 
 
 msgid "Add to End"
@@ -77249,11 +77234,6 @@ msgid "Select linked faces"
 msgstr "연결된 페이스를 선택"
 
 
-msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "연결된 선택을 선택"
-
-
 msgid "Select linked faces under the cursor"
 msgstr "커서 아래에 연결된 페이스를 선택"
 
@@ -78791,10 +78771,6 @@ msgstr "선택한 뼈대의 스케일 조정을 기본 값으로 재설정"
 msgctxt "Operator"
 msgid "Select Constraint Target"
 msgstr "제약 대상을 선택"
-
-
-msgid "Select bones used as targets for the currently selected bones"
-msgstr "현재의 선택된 뼈대에 대해 대상으로 사용된 뼈대를 선택"
 
 
 msgid "Select all visible bones grouped by similar properties"
@@ -87163,14 +87139,6 @@ msgid "Set \"Fake User\" for appended items (except objects and collections)"
 msgstr "추가된 항목(개체 및 컬렉션 제외)에 대해 '가짜 사용자'를 설정"
 
 
-msgid "Localize All"
-msgstr "모두 로컬라이즈"
-
-
-msgid "Localize all appended data, including those indirectly linked from other libraries"
-msgstr "다른 라이브러리에서 간접적으로 연결된 데이터를 포함하여 추가된 모든 데이터를 로컬라이즈"
-
-
 msgid "Type of data to rename"
 msgstr "이름을 바꿀 데이터 유형"
 
@@ -90487,58 +90455,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Active Tool"
-msgstr "활성 도구"
-
-
-msgid "View Lock"
-msgstr "뷰 잠금"
-
-
-msgid "Selectability & Visibility"
-msgstr "선택성 및 가시성"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Cavity"
-msgstr "캐비티"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
-
-
-msgid "Overlays"
-msgstr "오버레이"
-
-
-msgid "Guides"
-msgstr "가이드"
-
-
-msgid "Viewer Node"
-msgstr "뷰어 노드"
-
-
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
-
-
-msgid "Mesh Edit Mode"
-msgstr "메시 에디트 모드"
-
-
-msgid "Measurement"
-msgstr "측정"
-
-
 msgid "Curve Edit Mode"
 msgstr "커브 에디트 모드"
 
@@ -90557,6 +90473,10 @@ msgstr "스트로크 배치"
 
 msgid "Drawing Plane"
 msgstr "드로잉 평면"
+
+
+msgid "Guides"
+msgstr "가이드"
 
 
 msgid "Grease Pencil Options"
@@ -90599,14 +90519,6 @@ msgid "Viewport Debug"
 msgstr "뷰포트 디버그"
 
 
-msgid "glTF Variants"
-msgstr "glTF 변형"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 머티리얼 배리언트"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -90615,12 +90527,68 @@ msgid "VR Info"
 msgstr "VR 정보"
 
 
+msgid "glTF Variants"
+msgstr "glTF 변형"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 머티리얼 배리언트"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF 애니메이션"
+
+
+msgid "Active Tool"
+msgstr "활성 도구"
+
+
+msgid "View Lock"
+msgstr "뷰 잠금"
+
+
+msgid "Selectability & Visibility"
+msgstr "선택성 및 가시성"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Cavity"
+msgstr "캐비티"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
+
+
+msgid "Overlays"
+msgstr "오버레이"
+
+
+msgid "Viewer Node"
+msgstr "뷰어 노드"
+
+
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
+
+
+msgid "Mesh Edit Mode"
+msgstr "메시 에디트 모드"
+
+
+msgid "Measurement"
+msgstr "측정"
 
 
 msgid "Import Settings"
@@ -91715,6 +91683,10 @@ msgid "Text Rendering"
 msgstr "텍스트 렌더링"
 
 
+msgid "Font Style"
+msgstr "폰트 스타일"
+
+
 msgctxt "WindowManager"
 msgid "Language"
 msgstr "언어"
@@ -91878,10 +91850,6 @@ msgstr "스크러빙 / 마커"
 
 msgid "Toolbar / Sidebar"
 msgstr "툴바 / 사이드바"
-
-
-msgid "Text Style"
-msgstr "텍스트 스타일"
 
 
 msgid "User Interface"
@@ -93771,6 +93739,10 @@ msgstr "자동-오프셋"
 
 msgid "Automatically offset the following or previous nodes in a chain when inserting a new node"
 msgstr "새로운 노드를 삽입할 때 체인에서 이전의 노드를 따라 자동으로 오프셋"
+
+
+msgid "Noodle Curving"
+msgstr "누들 커브"
 
 
 msgid "Align Object To"
@@ -108277,6 +108249,10 @@ msgid "Active Theme Area"
 msgstr "활성 테마 영역"
 
 
+msgid "Text Style"
+msgstr "텍스트 스타일"
+
+
 msgid "Theme Bone Color Set"
 msgstr "테마 뼈대 색상 설정"
 
@@ -108685,10 +108661,6 @@ msgid "Overlay color on every other row"
 msgstr "다른 모든 행에 색상를 오버레이"
 
 
-msgid "Font Style"
-msgstr "폰트 스타일"
-
-
 msgid "Theme settings for Font"
 msgstr "폰트에 대한 테마 설정"
 
@@ -108703,38 +108675,6 @@ msgstr "캐릭터의 무게. 100-900, 400이 정상함"
 
 msgid "Font size in points"
 msgstr "포인트 단위 글꼴 크기"
-
-
-msgid "Shadow Size"
-msgstr "섀도우 크기"
-
-
-msgid "Shadow type (0 none, 3, 5 blur, 6 outline)"
-msgstr "쉐도우 유형(0 없음, 3, 5 흐림, 6 윤곽선)"
-
-
-msgid "Shadow Alpha"
-msgstr "섀도우 알파"
-
-
-msgid "Shadow X Offset"
-msgstr "섀도우 X 오프셋"
-
-
-msgid "Shadow offset in pixels"
-msgstr "픽셀에서 섀도우 오프셋"
-
-
-msgid "Shadow Y Offset"
-msgstr "섀도우 Y 오프셋"
-
-
-msgid "Shadow Brightness"
-msgstr "섀도우 밝기"
-
-
-msgid "Shadow color in gray value"
-msgstr "그레이 값의 섀도우 색상"
 
 
 msgid "Theme Background Color"
@@ -109141,14 +109081,6 @@ msgid "Node Selected"
 msgstr "노드 선택됨"
 
 
-msgid "Noodle Curving"
-msgstr "누들 커브"
-
-
-msgid "Curving of the noodle"
-msgstr "노드 커브이 휘어지는 정도"
-
-
 msgid "Repeat Zone"
 msgstr "반복 영역"
 
@@ -109343,10 +109275,6 @@ msgstr "테마 스트립 색상"
 
 msgid "Theme settings for strip colors"
 msgstr "스트립 색상에 대한 테마 설정"
-
-
-msgid "Theme settings for style sets"
-msgstr "스타일 설정에 대한 테마 설정"
 
 
 msgid "Panel Title Font"
@@ -109575,6 +109503,10 @@ msgstr "패널 텍스트"
 
 msgid "Panel Title"
 msgstr "패널 타이틀"
+
+
+msgid "Shadow offset in pixels"
+msgstr "픽셀에서 섀도우 오프셋"
 
 
 msgid "Primary Color"
@@ -116729,6 +116661,10 @@ msgstr "레거시 애드온"
 
 msgid "Legacy Add-on"
 msgstr "레거시 애드온"
+
+
+msgid "Close"
+msgstr "닫기"
 
 
 msgid "The dropped extension comes from an unknown repository."
@@ -124714,6 +124650,11 @@ msgid "Hinting"
 msgstr "힌팅"
 
 
+msgctxt "Text"
+msgid "Weight"
+msgstr "무게"
+
+
 msgctxt "Preferences"
 msgid "Translate"
 msgstr "번역"
@@ -124922,15 +124863,6 @@ msgstr "B"
 
 msgid "View Align"
 msgstr "뷰 정렬"
-
-
-msgctxt "Text"
-msgid "Weight"
-msgstr "무게"
-
-
-msgid "Shadow Offset X"
-msgstr "섀도우 오프셋 X"
 
 
 msgid "Temporary Files"
@@ -125276,11 +125208,6 @@ msgstr "패턴을 선택..."
 
 msgid "Bone Selection Set"
 msgstr "뼈대 선택 세트"
-
-
-msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "대상 제약"
 
 
 msgctxt "Operator"
@@ -130584,10 +130511,6 @@ msgid "There is no layer '%s'"
 msgstr "'%s' 레이어가 없음"
 
 
-msgid "'%s' Layer is locked"
-msgstr "'%s' 레이어가 잠겼음"
-
-
 msgid "Copied %d selected curve(s)"
 msgstr "복사된 %d 선택된 커브(들)"
 
@@ -132243,10 +132166,6 @@ msgid "No intersections found"
 msgstr "교차점을 찾을 수 없습니다"
 
 
-msgid "Close"
-msgstr "닫기"
-
-
 msgid "Stop"
 msgstr "중지"
 
@@ -132533,14 +132452,6 @@ msgstr "메시에 포함된 것보다 많은 폴리를 제거 할 수 없습니�
 
 msgid "Cannot add more than %i UV maps"
 msgstr "%i UV 맵을 초과하여 추가할 수 없음"
-
-
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s 미러됨, %d 실패함"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s 미러됨"
 
 
 msgid "Cannot join while in edit mode"
@@ -138401,14 +138312,6 @@ msgid " (Viewer)"
 msgstr " (뷰어)"
 
 
-msgid "fps: %.2f"
-msgstr "fps: %.2f"
-
-
-msgid "fps: %i"
-msgstr "fps: %i"
-
-
 msgid "Create object instance from object-data"
 msgstr "오브젝트 데이터에서 오브젝트 인스턴스 만들기"
 
@@ -139154,10 +139057,6 @@ msgid "Realized grease pencil has too many layers."
 msgstr "그리스 연필의 레이어가 너무 많다는 것을 깨달았음"
 
 
-msgid "Error writing frame"
-msgstr "프레임 쓰는 중 오류"
-
-
 msgid "No valid formats found"
 msgstr "올바른 형식을 찾을 수 없음"
 
@@ -139742,10 +139641,6 @@ msgstr "연결된 데이터 블록은 이름을 변경할 수 없음"
 
 msgid "Built-in fonts cannot be renamed"
 msgstr "기본 제공 글꼴은 이름을 변경할 수 없음"
-
-
-msgid "Data-blocks not in global Main data-base cannot be renamed"
-msgstr "글로벌 주 데이터베이스에 없는 데이터 블록은 이름을 변경할 수 없음"
 
 
 msgid "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition always runtime"
@@ -140801,14 +140696,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "내장 노드 내에서 소켓을 이동할 수 없음."
 
 
-msgid "Unable to locate item in node"
-msgstr "노드 내에서 항목을 찾을 수 없음."
-
-
-msgid "Unable to create item with this socket type"
-msgstr "이 소켓 유형으로 항목을 생성할 수 없습니다"
-
-
 msgid "Registering node tree class: '%s' is too long, maximum length is %d"
 msgstr "노드 트리 클래스 등록: '%s'가 너무 길어 최대 길이 %d를 초과합니다"
 
@@ -140871,6 +140758,14 @@ msgstr "동일한 영역 유형이 아니므로 영역 입력 노드 '%s'를 '%s
 
 msgid "The output node %s is already paired with %s"
 msgstr "출력 노드 '%s'는 이미 '%s'와 짝지어져 있음"
+
+
+msgid "Unable to locate item in node"
+msgstr "노드 내에서 항목을 찾을 수 없음."
+
+
+msgid "Unable to create item with this socket type"
+msgstr "이 소켓 유형으로 항목을 생성할 수 없습니다"
 
 
 msgid "Unable to locate item '%s' in node"
@@ -144955,6 +144850,14 @@ msgid "Implicit type conversion when evaluating closure"
 msgstr "폐쇄 평가 시 암시적 타입 변환 발생"
 
 
+msgid "Closure does not have output: \"{}\""
+msgstr "출력: \"{}\"에서 폐쇄 출력 없음"
+
+
+msgid "Closure does not have input: \"{}\""
+msgstr "입력: \"{}\"에서 폐쇄 입력 없음"
+
+
 msgid "Offset Scale"
 msgstr "오프셋 스케일함"
 
@@ -146988,14 +146891,6 @@ msgstr "관리함"
 
 msgid "No named attributes used"
 msgstr "이름 지정된 속성 미사용"
-
-
-msgid "Closure does not have input: \"{}\""
-msgstr "입력: \"{}\"에서 폐쇄 입력 없음"
-
-
-msgid "Closure does not have output: \"{}\""
-msgstr "출력: \"{}\"에서 폐쇄 출력 없음"
 
 
 msgid "Input geometry has no elements in the iteration domain."

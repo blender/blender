@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -1420,10 +1420,6 @@ msgid "Window Managers"
 msgstr "ﺓﺬﻓﺎﻨﻟﺍ ءﺍﺭﺪﻣ"
 
 
-msgid "Project"
-msgstr "ﻂﻘﺳﺍ"
-
-
 msgid "Dirty"
 msgstr "ﺔﺨﺳﻭ"
 
@@ -2321,18 +2317,6 @@ msgstr "ﻱﺭﻭﺩ"
 
 msgid "Outline"
 msgstr "ﺭﺎﻃﺍ"
-
-
-msgid "Stroke"
-msgstr "ﺔﺒﻄﺷ"
-
-
-msgid "Fill"
-msgstr "ﺔﺌﺒﻌﺗ"
-
-
-msgid "Both"
-msgstr "ﺎﻤﻫﻼ﻿ﻛ"
 
 
 msgid "Background Image"
@@ -4551,6 +4535,10 @@ msgstr "ﺢﻄﺳ ﺔﻄﻘﻧ ﺏﺮﻗﺍ"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "ﻑﺪﻬﻠﻟ ﺢﻄﺳ ﺏﺮﻗﻻ﻿ ﻊﻗﻮﻤﻟﺍ ﺺﻠﻗ"
+
+
+msgid "Project"
+msgstr "ﻂﻘﺳﺍ"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -7870,6 +7858,10 @@ msgid "Sound"
 msgstr "ﺕﻮﺻ"
 
 
+msgid "Dynamic"
+msgstr "ﻙﺮﺤﺘﻣ"
+
+
 msgid "Freestyle Line Set"
 msgstr "ﻞﻳﺎﺘﺴﻳﺮﻓ ﻂﺧ ﺔﻋﻮﻤﺠﻣ"
 
@@ -8304,10 +8296,6 @@ msgstr "ﻲﻋﺎﻌﺷ"
 
 msgid "Grid"
 msgstr "ﺔﻜﺒﺷ"
-
-
-msgid "Dynamic"
-msgstr "ﻙﺮﺤﺘﻣ"
 
 
 msgid "Single"
@@ -15632,50 +15620,6 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
-
-
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
-
-
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
-
-
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
-
-
-msgid "Names"
-msgstr "ءﺎﻤﺳﺃ"
-
-
-msgid "Bone Roll"
-msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
-
-
-msgid "Math"
-msgstr "ﺏﺎﺴﺣ"
-
-
-msgid "Snap"
-msgstr "ﻱﺫﺎﺣ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
-
-
-msgid "UV Mapping"
-msgstr "UV ءﺎﺴﻛﺇ"
-
-
 msgid "Navigation"
 msgstr "ﺢﻔّﺼﺗ"
 
@@ -15708,8 +15652,20 @@ msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
+msgid "Math"
+msgstr "ﺏﺎﺴﺣ"
+
+
 msgid "UV"
 msgstr "ﺭﻭﺎﺤﻣ"
+
+
+msgid "Stroke"
+msgstr "ﺔﺒﻄﺷ"
+
+
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
 
 
 msgid "Light"
@@ -15740,28 +15696,64 @@ msgid "Make Single User"
 msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
 
 
-msgid "Hooks"
-msgstr "ﺕﺎﻓﺎﻄﺧ"
-
-
 msgid "Layout"
 msgstr "ﻖﻴﺴﻨﺗ"
+
+
+msgid "Hooks"
+msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
 msgid "In-Betweens"
 msgstr "ﻦﻴﺑ ﺎﻣ"
 
 
-msgid "Propagate"
-msgstr "ﻢﻤﻋ"
-
-
 msgid "Keying"
 msgstr "ﺺﺤﻔﻟﺍ"
 
 
+msgid "Propagate"
+msgstr "ﻢﻤﻋ"
+
+
 msgid "Tracking"
 msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
+
+
+msgid "Names"
+msgstr "ءﺎﻤﺳﺃ"
+
+
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
+
+
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+
+
+msgid "Bone Roll"
+msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
+
+
+msgid "Snap"
+msgstr "ﻱﺫﺎﺣ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
+
+
+msgid "UV Mapping"
+msgstr "UV ءﺎﺴﻛﺇ"
 
 
 msgctxt "MovieClip"
@@ -16835,6 +16827,10 @@ msgstr "ﺔﻋﺮﺴﻟﺍ ﻞﻣﺎﻌﻣ"
 
 msgid "Grow"
 msgstr "ﺮﺒّﻛ"
+
+
+msgid "Fill"
+msgstr "ﺔﺌﺒﻌﺗ"
 
 
 msgid "Hook Modifier"
@@ -18822,6 +18818,10 @@ msgstr "ﺔﺌﺒﻌﺘﻟﺍ ﻉﻮﻧ"
 
 msgid "Triangles"
 msgstr "ﺚﻠﺜﻣ ﻞﻜﺷ"
+
+
+msgid "Both"
+msgstr "ﺎﻤﻫﻼ﻿ﻛ"
 
 
 msgid "Tangent Space"
@@ -22247,6 +22247,11 @@ msgstr "ﺕﺎﺒﻄﺸﻟﺍ ﻞﻛ ﺮﺘﺨﺗ ﻻ﻿/ﺮﺘﺧﺇ"
 
 
 msgctxt "Operator"
+msgid "Select Linked Pick"
+msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺮﺘﺧﺇ"
+
+
+msgctxt "Operator"
 msgid "Select Mode"
 msgstr "ﺭﺎﻴﺘﺧﺍ ﻂﻤﻧ"
 
@@ -25176,11 +25181,6 @@ msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻪﺟﻭﻷ﻿ﺍ ﻒﺧﺃ"
 
 
 msgctxt "Operator"
-msgid "Select Linked Pick"
-msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺮﺘﺧﺇ"
-
-
-msgctxt "Operator"
 msgid "Grab Clone"
 msgstr "ﺔﺨﺴﻨﻟﺍ ﺮﺘﺧﺍ"
 
@@ -27656,16 +27656,16 @@ msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
 
 
+msgid "Transform Orientations"
+msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
+
+
 msgid "Render Pass"
 msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
 
 
 msgid "Motion Tracking"
 msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
-
-
-msgid "Transform Orientations"
-msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
 
 
 msgid "Bone Constraints"
@@ -27932,6 +27932,10 @@ msgid "Development"
 msgstr "ﺔﻴﻤﻨﺘﻟﺍ"
 
 
+msgid "Font Style"
+msgstr "ﻂﺨﻟﺍ ﺏﻮﻠﺳﺍ"
+
+
 msgid "Walk"
 msgstr "ﺶﻣﺇ"
 
@@ -27946,10 +27950,6 @@ msgstr "ﻂﻤﻨﻟﺍ ءﺎﻀﻓ"
 
 msgid "Shaded"
 msgstr "ﻞﻠﻈﻣ"
-
-
-msgid "Text Style"
-msgstr "ﻂﻤﻨﻟﺍ ﻊﺿ"
 
 
 msgid "Gradient Colors"
@@ -31955,6 +31955,10 @@ msgid "Clip Editor"
 msgstr "ﻢﻴﻠﻘﺘﻟﺍ ﺭﺮﺤﻣ"
 
 
+msgid "Text Style"
+msgstr "ﻂﻤﻨﻟﺍ ﻊﺿ"
+
+
 msgid "Color used for active bones"
 msgstr "ﺔﻟﺎﻌﻔﻟﺍ ﻡﺎﻈﻌﻠﻟ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻥﻮﻠﻟﺍ"
 
@@ -32099,22 +32103,6 @@ msgid "Theme settings for the File Browser"
 msgstr "ﺕﺎﻔﻠﻤﻟﺍ ﺢﻔﺼﺘﻤﻟ ﻂﻤﻨﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ"
 
 
-msgid "Font Style"
-msgstr "ﻂﺨﻟﺍ ﺏﻮﻠﺳﺍ"
-
-
-msgid "Shadow Size"
-msgstr "ﻞﻈﻟﺍ ﻢﺠﺣ"
-
-
-msgid "Shadow Brightness"
-msgstr "ﻞﻈﻟﺍ ﻉﻮﻄﺳ"
-
-
-msgid "Shadow color in gray value"
-msgstr "ﺔﻳﺩﺎﻣﺭ ﺔﻤﻴﻘﺑ ﻞﻈﻟﺍ ﻥﻮﻟ"
-
-
 msgid "Theme Background Color"
 msgstr "ﻂﻤﻨﻟﺍ ﺡﻮﻟ ﻥﻮﻟ"
 
@@ -32245,10 +32233,6 @@ msgstr "ﻂﻤﻨﻟﺍ ءﺎﻀﻓ ﺕﺍﺩﺍﺪﻋﺇ"
 
 msgid "Text Highlight"
 msgstr "ﺺﻨﻟﺍ ﻥﺎﻌﻤﻟ"
-
-
-msgid "Theme settings for style sets"
-msgstr "ﻂﻤﻨﻟﺍ ﺕﺎﻋﻮﻤﺠﻤﻟ ﻂﻤﻨﻟﺍ ﺕﺍﺩﺍﺪﻋﺍ"
 
 
 msgid "Theme settings for the Text Editor"
@@ -34409,11 +34393,6 @@ msgstr "ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﻂﻤﻧ"
 
 
 msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "ﺪﻴﻘﻟﺍ ﻑﺪﻫ"
-
-
-msgctxt "Operator"
 msgid "Roots"
 msgstr "ﺭﻭﺬﺟ"
 
@@ -36313,10 +36292,6 @@ msgstr "‬%s‪ ﻝﺪﺒﺘﺳﺇ"
 
 msgid "UV Vertex"
 msgstr "ﺔﻄﻘﻨﻟﺍ ﻡﺪﺨﺘﺳﺍ"
-
-
-msgid "Error writing frame"
-msgstr "ﺔﺌﻴﺑ ﺔﻄﻳﺮﺧ"
 
 
 msgid "No valid formats found"

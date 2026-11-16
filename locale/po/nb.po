@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-01-30 13:12+0000\n"
 "Last-Translator: Martin Hansen <martini-141@users.noreply.translate.blender.org>\n"
 "Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
@@ -3792,10 +3792,6 @@ msgid "A color space, view or display was not found, which likely means the Open
 msgstr "Fant ikke et fargerom, visning eller skjerm, noe som sannsynligvis betyr at OpenColorIO-oppsettet brukt til opprettelse av denne blend-fila mangler"
 
 
-msgid "Blender"
-msgstr "Blender"
-
-
 msgid "Color space used for all scene linear colors in this file, and for compositing, shader and geometry nodes processing"
 msgstr "Fargerom brukt for alle lineære scenefarger i denne fila, og for sammensetting, skyggelegging og behandling av geometrinoder"
 
@@ -4015,6 +4011,10 @@ msgstr "Blend-fil importsammenheng bibliotek"
 
 msgid "Collection of source libraries, i.e. blendfile paths"
 msgstr "Samling av kildebibliotek, f.eks. blend-fil-stier"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "Blender RNA"

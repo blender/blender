@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-03-19 19:12+0000\n"
 "Last-Translator: Tamás Máté <royalpython132@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -1124,10 +1124,6 @@ msgid "Collection of window managers"
 msgstr "Ablakkezelők gyűjteménye"
 
 
-msgid "Project"
-msgstr "Vetítés"
-
-
 msgid "Path"
 msgstr "Útvonal"
 
@@ -1293,10 +1289,6 @@ msgstr "Az ecsethez rendelt anyag megtartása"
 
 msgid "Outline"
 msgstr "Körvonal"
-
-
-msgid "Both"
-msgstr "Mindkettő"
 
 
 msgid "Stretch"
@@ -2636,6 +2628,10 @@ msgid "Shrink the location to the nearest target surface"
 msgstr "A helyzet simítása a legközelebbi célfelülethez"
 
 
+msgid "Project"
+msgstr "Vetítés"
+
+
 msgid "Shrink the location to the nearest target surface along a given axis"
 msgstr "A helyzet simítása a legközelebbi célfelülethez egy megadott tengely mentén"
 
@@ -3646,6 +3642,10 @@ msgid "Sound"
 msgstr "Hang"
 
 
+msgid "Dynamic"
+msgstr "Dinamikus"
+
+
 msgid "Freestyle Line Set"
 msgstr "Freestyle vonalkészlet"
 
@@ -3988,10 +3988,6 @@ msgstr "Rács"
 
 msgid "General properties for Grease Pencil stroke sculpting tools"
 msgstr "A zsírkréta vonású szobrászeszközök általános tulajdonságai"
-
-
-msgid "Dynamic"
-msgstr "Dinamikus"
 
 
 msgid "Window"
@@ -6586,30 +6582,6 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
-
-
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
-msgid "Metaball"
-msgstr "Meta test"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
 msgid "Navigation"
 msgstr "Navigáció"
 
@@ -6624,6 +6596,10 @@ msgstr "Importálás"
 
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Light"
@@ -6646,12 +6622,32 @@ msgid "Track"
 msgstr "Nyom"
 
 
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
 msgid "Keying"
 msgstr "Kulcsozás"
 
 
 msgid "Tracking"
 msgstr "Követés"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
 
 
 msgctxt "MovieClip"
@@ -9270,6 +9266,10 @@ msgstr "Objektum infó"
 
 msgid "Repeat Output"
 msgstr "Kimenet ismétlése"
+
+
+msgid "Both"
+msgstr "Mindkettő"
 
 
 msgid "Set Material"
@@ -12899,10 +12899,6 @@ msgid "Scroll Bar"
 msgstr "Görgetősáv"
 
 
-msgid "Text Style"
-msgstr "Szöveg stílus"
-
-
 msgid "User Interface"
 msgstr "Felhasználói felület"
 
@@ -14382,6 +14378,10 @@ msgid "Force Field"
 msgstr "Erőtér"
 
 
+msgid "Text Style"
+msgstr "Szöveg stílus"
+
+
 msgid "Color used for the surface of bones"
 msgstr "Csontok felületének színe"
 
@@ -14498,34 +14498,6 @@ msgid "Summary"
 msgstr "Összegzés"
 
 
-msgid "Shadow Size"
-msgstr "Árnyék méret"
-
-
-msgid "Shadow Alpha"
-msgstr "Árnyék alfa"
-
-
-msgid "Shadow X Offset"
-msgstr "Árnyék X eltolása"
-
-
-msgid "Shadow offset in pixels"
-msgstr "Árnyék eltolása pixelben"
-
-
-msgid "Shadow Y Offset"
-msgstr "Árnyék Y eltolása"
-
-
-msgid "Shadow Brightness"
-msgstr "Árnyék fényerő"
-
-
-msgid "Shadow color in gray value"
-msgstr "Árnyék színe szürkeértékben"
-
-
 msgid "Theme Background Color"
 msgstr "Ablak háttere"
 
@@ -14592,6 +14564,10 @@ msgstr "Ikonok átlátszósága a kezelőfelületen, a kontraszt csökkentéséh
 
 msgid "Panel Title"
 msgstr "Panel cím"
+
+
+msgid "Shadow offset in pixels"
+msgstr "Árnyék eltolása pixelben"
 
 
 msgid "Tooltip Colors"

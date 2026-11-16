@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2026-11-01 16:12+0000\n"
 "Last-Translator: Marios1Gr <mariosvas2@gmail.com>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -1749,14 +1749,6 @@ msgid "All"
 msgstr "Όλα"
 
 
-msgid "Fill"
-msgstr "Συμπλήρωμα"
-
-
-msgid "Both"
-msgstr "Both"
-
-
 msgid "Crop"
 msgstr "Περικοπή"
 
@@ -1953,16 +1945,16 @@ msgid "Sound"
 msgstr "Ήχος"
 
 
+msgid "Dynamic"
+msgstr "Δυναμικό"
+
+
 msgid "Border"
 msgstr "Πλαίσιο"
 
 
 msgid "Grid"
 msgstr "Πλέγμα"
-
-
-msgid "Dynamic"
-msgstr "Δυναμικό"
 
 
 msgid "Repeat"
@@ -2137,28 +2129,16 @@ msgid "Screen"
 msgstr "Οθόνη"
 
 
-msgid "Merge"
-msgstr "Συγχώνευση"
-
-
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
-
-
-msgid "Snap"
-msgstr "Προσκόλληση"
-
-
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
-
-
 msgid "Import"
 msgstr "Εισαγωγή"
 
 
 msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
+
+
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
 
 
 msgid "Light"
@@ -2183,6 +2163,18 @@ msgstr "Ορισμός Ενός Χρήστη"
 
 msgid "Linked"
 msgstr "Συνδεδεμένο/α"
+
+
+msgid "Merge"
+msgstr "Συγχώνευση"
+
+
+msgid "Snap"
+msgstr "Προσκόλληση"
+
+
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
 
 
 msgid "Cache"
@@ -2254,6 +2246,10 @@ msgid "New"
 msgstr "Νέο"
 
 
+msgid "Fill"
+msgstr "Συμπλήρωμα"
+
+
 msgid "World"
 msgstr "Κόσμος"
 
@@ -2280,6 +2276,10 @@ msgstr "Nor"
 
 msgid "Bake"
 msgstr "Φτιάξε"
+
+
+msgid "Both"
+msgstr "Both"
 
 
 msgid "Shadow"

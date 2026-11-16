@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -1051,10 +1051,6 @@ msgid "Window Managers"
 msgstr "Управљачи прозорима"
 
 
-msgid "Project"
-msgstr "Пројекција"
-
-
 msgid "Dirty"
 msgstr "Прљаво"
 
@@ -1556,18 +1552,6 @@ msgstr "Активни слој"
 
 msgid "Cyclic"
 msgstr "Кружно"
-
-
-msgid "Stroke"
-msgstr "Потез"
-
-
-msgid "Fill"
-msgstr "Испуна"
-
-
-msgid "Both"
-msgstr "Обе"
 
 
 msgid "Background Image"
@@ -2762,6 +2746,10 @@ msgstr "Удаљеност пројекције"
 
 msgid "Nearest Surface Point"
 msgstr "Најближа тачка на површи"
+
+
+msgid "Project"
+msgstr "Пројекција"
 
 
 msgid "Nearest Vertex"
@@ -4633,6 +4621,10 @@ msgid "Sound"
 msgstr "Звук"
 
 
+msgid "Dynamic"
+msgstr "Динамичко"
+
+
 msgid "Freestyle Line Set"
 msgstr "Збирка слободоручних линија"
 
@@ -4755,10 +4747,6 @@ msgstr "Радијално"
 
 msgid "Grid"
 msgstr "Мрежа"
-
-
-msgid "Dynamic"
-msgstr "Динамичко"
 
 
 msgid "Items"
@@ -8482,62 +8470,6 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
-
-
-msgid "Disable Bone Options"
-msgstr "Онемогући опције костију"
-
-
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
-
-
-msgid "Merge"
-msgstr "Сједини"
-
-
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
-
-
-msgid "Special Characters"
-msgstr "Специјални знаци"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
-
-
-msgid "Names"
-msgstr "Имена"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
 msgid "Navigation"
 msgstr "Навигација"
 
@@ -8554,8 +8486,20 @@ msgid "Select Linked"
 msgstr "Изабери повезано"
 
 
+msgid "Math"
+msgstr "Математика"
+
+
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Stroke"
+msgstr "Потез"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
 
 
 msgid "Light"
@@ -8582,12 +8526,16 @@ msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
-msgid "Hooks"
-msgstr "Удице"
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
 
 
 msgid "Linked"
 msgstr "Повезано"
+
+
+msgid "Hooks"
+msgstr "Удице"
 
 
 msgid "Clear Transform"
@@ -8598,20 +8546,64 @@ msgid "In-Betweens"
 msgstr "У међувремену"
 
 
-msgid "Propagate"
-msgstr "Пренеси"
-
-
 msgid "Keying"
 msgstr "Збирка тастера"
+
+
+msgid "Propagate"
+msgstr "Пренеси"
 
 
 msgid "Tracking"
 msgstr "Праћење"
 
 
+msgid "Names"
+msgstr "Имена"
+
+
 msgid "Toggle Bone Options"
 msgstr "Мање/више информација"
+
+
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Disable Bone Options"
+msgstr "Онемогући опције костију"
+
+
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Merge"
+msgstr "Сједини"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
 
 
 msgid "Basic"
@@ -9477,6 +9469,10 @@ msgstr "Кашњење"
 
 msgid "Grow"
 msgstr "Раст"
+
+
+msgid "Fill"
+msgstr "Испуна"
 
 
 msgid "Hook Modifier"
@@ -10760,6 +10756,10 @@ msgstr "Троугао"
 
 msgid "Object Info"
 msgstr "Информације о објекту"
+
+
+msgid "Both"
+msgstr "Обе"
 
 
 msgid "Tangent Space"
@@ -19016,12 +19016,12 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
-msgid "Motion Tracking"
-msgstr "Праћење покрета"
-
-
 msgid "Transform Orientations"
 msgstr "Трансформација оријентација"
+
+
+msgid "Motion Tracking"
+msgstr "Праћење покрета"
 
 
 msgid "Bone Constraints"
@@ -19230,6 +19230,10 @@ msgstr "Временска линија"
 
 msgid "Development"
 msgstr "Развој"
+
+
+msgid "Font Style"
+msgstr "Стил фонта"
 
 
 msgid "Walk"
@@ -21689,34 +21693,6 @@ msgid "Color of summary channel"
 msgstr "Боја канала резимеа"
 
 
-msgid "Font Style"
-msgstr "Стил фонта"
-
-
-msgid "Shadow Size"
-msgstr "Величина сенке"
-
-
-msgid "Shadow Alpha"
-msgstr "Провидност сенке"
-
-
-msgid "Shadow X Offset"
-msgstr "X одстојање сенке"
-
-
-msgid "Shadow offset in pixels"
-msgstr "Одстојање сенке у пикселима"
-
-
-msgid "Shadow Y Offset"
-msgstr "Y одстојање сенке"
-
-
-msgid "Shadow Brightness"
-msgstr "Светлина сенке"
-
-
 msgid "Theme Background Color"
 msgstr "Боја позадине теме"
 
@@ -21879,6 +21855,10 @@ msgstr "Тема корисничког окружења"
 
 msgid "Icon Alpha"
 msgstr "Провидност иконица"
+
+
+msgid "Shadow offset in pixels"
+msgstr "Одстојање сенке у пикселима"
 
 
 msgid "Menu Item Colors"
@@ -23316,11 +23296,6 @@ msgstr "Наставак"
 msgctxt "Operator"
 msgid "Select Pattern..."
 msgstr "Изабери мустру ..."
-
-
-msgctxt "Operator"
-msgid "Constraint Target"
-msgstr "Предмет ограничења"
 
 
 msgctxt "Operator"
@@ -24893,10 +24868,6 @@ msgstr "Препиши %s"
 
 msgid "UV Vertex"
 msgstr "UV теме"
-
-
-msgid "Error writing frame"
-msgstr "Грешка при упису кадра"
 
 
 msgid "No valid formats found"

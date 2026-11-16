@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2025-12-04 22:18+0000\n"
 "Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -729,14 +729,6 @@ msgstr "पुनरूक्तियाँ"
 
 msgid "Hue"
 msgstr "छटा"
-
-
-msgid "Fill"
-msgstr "भरण"
-
-
-msgid "Both"
-msgstr "दोनों"
 
 
 msgid "Background Image"
@@ -1553,6 +1545,10 @@ msgid "Sound"
 msgstr "ध्वनि"
 
 
+msgid "Dynamic"
+msgstr "गतिकी"
+
+
 msgid "Border"
 msgstr "सीमांत"
 
@@ -1571,10 +1567,6 @@ msgstr "रेखा खंड"
 
 msgid "Grid"
 msgstr "जालक"
-
-
-msgid "Dynamic"
-msgstr "गतिकी"
 
 
 msgid "Items"
@@ -2578,40 +2570,12 @@ msgid "Placement"
 msgstr "नियोजन"
 
 
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
+msgid "Import"
+msgstr "आयात करें"
 
 
 msgid "Math"
 msgstr "गणित"
-
-
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Import"
-msgstr "आयात करें"
 
 
 msgid "UV"
@@ -2638,6 +2602,10 @@ msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
 
 
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
@@ -2650,8 +2618,32 @@ msgid "Keying"
 msgstr "कुंजीयन"
 
 
+msgid "Names"
+msgstr "नाम"
+
+
 msgid "Toggle Bone Options"
 msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -2901,6 +2893,10 @@ msgid "Grow"
 msgstr "विस्तार"
 
 
+msgid "Fill"
+msgstr "भरण"
+
+
 msgctxt "Curve"
 msgid "Curve"
 msgstr "वक्र"
@@ -3049,6 +3045,10 @@ msgstr "बराबर"
 
 msgid "Bake"
 msgstr "भर्जन"
+
+
+msgid "Both"
+msgstr "दोनों"
 
 
 msgid "Warning"
@@ -4398,12 +4398,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Motion Tracking"
-msgstr "गति मार्गन"
-
-
 msgid "Transform Orientations"
 msgstr "दिक् विन्यास संरचनांतरण"
+
+
+msgid "Motion Tracking"
+msgstr "गति मार्गन"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -4484,10 +4484,6 @@ msgstr "हड्डी रंग समूह"
 
 msgid "Shaded"
 msgstr "छायांकित"
-
-
-msgid "Text Style"
-msgstr "पाठ शैली"
 
 
 msgctxt "Operator"
@@ -4867,6 +4863,10 @@ msgstr "अशुद्ध"
 
 msgid "Clip Editor"
 msgstr "छांटन संपादक"
+
+
+msgid "Text Style"
+msgstr "पाठ शैली"
 
 
 msgid "Theme Bone Color Set"
@@ -6310,10 +6310,6 @@ msgid "Size:"
 msgstr "आकार:"
 
 
-msgid "fps: %i"
-msgstr "एफपीएस: %i"
-
-
 msgid "(Sphere)"
 msgstr "(गोला)"
 
@@ -6361,10 +6357,6 @@ msgstr "रिक्त स्थान"
 
 msgid "Overwrite %s"
 msgstr "अधिलेखित करें %s"
-
-
-msgid "Error writing frame"
-msgstr "गठन लेखन में त्रुटि"
 
 
 msgid "No valid formats found"

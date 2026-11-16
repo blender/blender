@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.3.0 Release Candidate (b'f78a5e153839')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-09 09:34+0000\n"
+"POT-Creation-Date: 2026-11-16 11:03+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2644,10 +2644,6 @@ msgid "Collection of worlds"
 msgstr "Kolekce se slovy"
 
 
-msgid "Project"
-msgstr "Projekce"
-
-
 msgctxt "ID"
 msgid "ID Type"
 msgstr "ID typ"
@@ -3586,18 +3582,6 @@ msgstr "Použít Sílu Tlaku"
 
 msgid "Use tablet pressure for color strength"
 msgstr "Použít tlak tabletu pro sílu bravy"
-
-
-msgid "Stroke"
-msgstr "Tah"
-
-
-msgid "Fill"
-msgstr "Vyplnit"
-
-
-msgid "Both"
-msgstr "Oba"
 
 
 msgid "Object Path"
@@ -5576,6 +5560,10 @@ msgstr "Nejbližší Povrchový Bod"
 
 msgid "Shrink the location to the nearest target surface"
 msgstr "Odstranit označené Objekt(y)"
+
+
+msgid "Project"
+msgstr "Projekce"
 
 
 msgid "Shrink the location to the nearest target surface along a given axis"
@@ -8100,6 +8088,10 @@ msgid "Sound"
 msgstr "Zvuk"
 
 
+msgid "Dynamic"
+msgstr "Dynamický"
+
+
 msgid "Border"
 msgstr "Okraj"
 
@@ -8138,10 +8130,6 @@ msgstr "Mřížka"
 
 msgid "Use Snapping"
 msgstr "Použít Přychitávání"
-
-
-msgid "Dynamic"
-msgstr "Dynamický"
 
 
 msgid "Single"
@@ -13795,6 +13783,110 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
+msgid "Import"
+msgstr "Importovat"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
+
+
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Stroke"
+msgstr "Tah"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Linked"
+msgstr "Propojené"
+
+
+msgid "Layout"
+msgstr "Rozložení"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Tracking"
+msgstr "Sledování"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
@@ -13803,40 +13895,16 @@ msgid "Face Data"
 msgstr "Data Ploch"
 
 
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
 msgid "Merge"
 msgstr "Sloučit"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
 
 
 msgid "Special Characters"
 msgstr "Speciální Znaky"
 
 
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
 msgid "Bone Roll"
 msgstr "Kost"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
 
 
 msgid "Pivot Point"
@@ -13865,82 +13933,6 @@ msgstr "UV mapování"
 
 msgid "Local View"
 msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
-
-
-msgid "Import"
-msgstr "Importovat"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Linked"
-msgstr "Propojené"
-
-
-msgid "Layout"
-msgstr "Rozložení"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Keying"
-msgstr "Klíčovací sestava"
-
-
-msgid "Tracking"
-msgstr "Sledování"
 
 
 msgid "Basic"
@@ -15050,6 +15042,10 @@ msgstr "Načasování"
 
 msgid "Grow"
 msgstr "Skupina"
+
+
+msgid "Fill"
+msgstr "Vyplnit"
 
 
 msgid "Hook Modifier"
@@ -17086,6 +17082,10 @@ msgstr "Body na Objem"
 
 msgid "Target Geometry"
 msgstr "Cílová Geometrie"
+
+
+msgid "Both"
+msgstr "Oba"
 
 
 msgid "Tangent Space"
@@ -26775,10 +26775,6 @@ msgid "Select Constraint Target"
 msgstr "Vybrat cíl vazby"
 
 
-msgid "Select bones used as targets for the currently selected bones"
-msgstr "Přidat vazbu aktivní kosti"
-
-
 msgid "All bones affected by active Keying Set"
 msgstr "Odstranit aktivní klíčovací sestavu"
 
@@ -29547,10 +29543,6 @@ msgid "Select new objects"
 msgstr "Vybrat nové objekty"
 
 
-msgid "Localize All"
-msgstr "Lokalizovat Vše"
-
-
 msgid "Name of the menu"
 msgstr "Název nabídky"
 
@@ -30236,6 +30228,26 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Curve Edit Mode"
+msgstr "Editační Režim Křivky"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
+msgid "Guides"
+msgstr "Vodítka"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
+
+
 msgid "Active Tool"
 msgstr "Aktivní nástroj"
 
@@ -30260,10 +30272,6 @@ msgid "Overlays"
 msgstr "Překrytí"
 
 
-msgid "Guides"
-msgstr "Vodítka"
-
-
 msgid "Motion Tracking"
 msgstr "Sledování Pohybu"
 
@@ -30274,22 +30282,6 @@ msgstr "Editační Režim Sítě"
 
 msgid "Measurement"
 msgstr "Měření"
-
-
-msgid "Curve Edit Mode"
-msgstr "Editační Režim Křivky"
-
-
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"
@@ -30900,6 +30892,10 @@ msgid "Text Rendering"
 msgstr "Zobrazení Textu"
 
 
+msgid "Font Style"
+msgstr "Velikost fontu:   8"
+
+
 msgid "Fly & Walk"
 msgstr "Létání & Chůze"
 
@@ -30978,10 +30974,6 @@ msgstr "Tab"
 
 msgid "Toolbar Item"
 msgstr "Položka panelu nástrojů"
-
-
-msgid "Text Style"
-msgstr "Styl Textu"
 
 
 msgid "User Interface"
@@ -35409,6 +35401,10 @@ msgid "Active Theme Area"
 msgstr "Aktivní vrstva"
 
 
+msgid "Text Style"
+msgstr "Styl Textu"
+
+
 msgid "Theme Bone Color Set"
 msgstr "Barva "
 
@@ -35565,36 +35561,8 @@ msgid "Theme settings for the File Browser"
 msgstr "Skrýt skryté soubory"
 
 
-msgid "Font Style"
-msgstr "Velikost fontu:   8"
-
-
 msgid "Theme settings for Font"
 msgstr "Nastavení OpenEXR kodeku"
-
-
-msgid "Shadow Size"
-msgstr "Velikost stínu"
-
-
-msgid "Shadow Alpha"
-msgstr "Alfa Stínu"
-
-
-msgid "Shadow X Offset"
-msgstr "Stín Odsazení X"
-
-
-msgid "Shadow offset in pixels"
-msgstr "Vložit barvu z bufferu"
-
-
-msgid "Shadow Y Offset"
-msgstr "Stín Odsazení Y"
-
-
-msgid "Shadow Brightness"
-msgstr "Jas Stínu"
 
 
 msgid "Theme Background Color"
@@ -35749,10 +35717,6 @@ msgid "Node Selected"
 msgstr "Skrýt označené"
 
 
-msgid "Curving of the noodle"
-msgstr "Úhle hrany"
-
-
 msgid "Wires"
 msgstr "Drát"
 
@@ -35883,6 +35847,10 @@ msgstr "Určuje šírku vlny"
 
 msgid "Panel Title"
 msgstr "Název Panelu"
+
+
+msgid "Shadow offset in pixels"
+msgstr "Vložit barvu z bufferu"
 
 
 msgid "Box Backdrop Colors"
@@ -39042,10 +39010,6 @@ msgid "Axis X"
 msgstr "Osa X"
 
 
-msgid "Shadow Offset X"
-msgstr "Odsazení Stínu X"
-
-
 msgid "Timer (Minutes)"
 msgstr "Časovač (minuty)"
 
@@ -41056,14 +41020,6 @@ msgid "Cannot remove more loops than the mesh contains"
 msgstr "Nelze odebrat více smyček, než obsahuje síť"
 
 
-msgid "%d %s mirrored, %d failed"
-msgstr "%d %s zrcadlený, %d se nezdařilo"
-
-
-msgid "%d %s mirrored"
-msgstr "%d %s zrcadlený"
-
-
 msgid "Cannot join while in edit mode"
 msgstr "Přesunout modifikátor dolů v zásobníku modifikátorů"
 
@@ -42192,10 +42148,6 @@ msgstr "vlastní"
 
 msgid "UV Vertex"
 msgstr "Vrchol"
-
-
-msgid "Error writing frame"
-msgstr "Inkrementální"
 
 
 msgid "No valid formats found"
