@@ -515,7 +515,12 @@ void ChannelItem::build_row(ui::Layout &layout)
     /* TODO: there's a lot of code duplication here with the code section
      * immediately above (fetching channel data, etc.). */
     DataChannel &data_channel = static_cast<DataChannel &>(channel_);
-    const ID *animated_id = find_animated_id_from_tags(data_channel.tags());
+
+    /* Disabled while Sybren works on his refactor that removed `find_animated_id_from_tags()`.
+     * TODO: Restore getting the animated ID here. */
+    /* const ID *animated_id = find_animated_id_from_tags(data_channel.tags()); */
+    const ID *animated_id = nullptr;
+
     if (data_channel.source_type() == DataChannelType::FCURVE && animated_id != nullptr) {
       FCurve *fcurve = data_channel.get_source<FCurve>();
       PointerRNA id_ptr = RNA_id_pointer_create(const_cast<ID *>(animated_id));
