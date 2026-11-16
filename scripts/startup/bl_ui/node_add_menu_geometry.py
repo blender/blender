@@ -716,6 +716,8 @@ class NODE_MT_gn_utilities_sound_base(node_add_menu.NodeMenu):
         layout = self.layout
         self.node_operator(layout, "GeometryNodeSampleSoundFrequencies")
 
+        self.draw_assets_for_catalog(layout, self.menu_path)
+
 
 class NODE_MT_gn_texture_base(node_add_menu.NodeMenu):
     bl_label = "Texture"
