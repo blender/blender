@@ -218,8 +218,6 @@ class ChannelTreeView : public ui::AbstractTreeView {
     /* Create the tree item for the channel. */
     const ChannelIdentifier chan_ident = channel.identifier();
     ChannelItem &item = container.add_tree_item<ChannelItem>(channel);
-    /* TODO: maybe use the channelitem's UI state here already? */
-    item.uncollapse_by_default();
     item.select_on_click_set();
 
     /* Set the color based on the channel type. */
