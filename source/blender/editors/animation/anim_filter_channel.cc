@@ -757,6 +757,11 @@ void ChannelSettings::set_state(const ChannelSettingKey key, const bool value)
   this->states_[int(key)].value = value ? ChannelSettingValue::ON : ChannelSettingValue::OFF;
 }
 
+void ChannelSettings::set_enabled(const ChannelSettingKey key, const bool value)
+{
+  this->states_[int(key)].enabled = value;
+}
+
 ChannelTag::ChannelTag(const ChannelTagType type,
                        const StringRef label,
                        const PointerRNA &source_data,
@@ -1068,11 +1073,33 @@ void SummaryChannel::gather_channel_settings()
   for (AnimationChannel *child : this->children_) {
     this->channel_settings_.merge(child->channel_settings());
   }
+  /* Special case for GP groups. They override the visibility setting. */
+  if (this->source() && this->source().type == RNA_GreasePencilLayerGroup) {
+    bke::greasepencil::LayerGroup &group =
+        this->source().data_as<GreasePencilLayerTreeGroup>()->wrap();
+    this->channel_settings_.set_state(
+        ChannelSettingKey::VISIBLE_V3D,
+        !(group.base.flag & GreasePencilLayerTreeNodeFlag::GP_LAYER_TREE_NODE_HIDE));
+    if (group.as_node().parent_group()) {
+      this->channel_settings_.set_enabled(ChannelSettingKey::VISIBLE_V3D,
+                                          group.as_node().parent_group()->is_visible());
+    }
+  }
 }
 
 void SummaryChannel::set_setting(const ChannelSettingKey setting, const bool value)
 {
   this->flags_ |= ANIM_CHANNEL_DIRTY_SETTINGS;
+  if (setting == ChannelSettingKey::VISIBLE_V3D && this->source() &&
+      this->source().type == RNA_GreasePencilLayerGroup)
+  {
+    /* Special case for GP groups. They should not flush their visibility setting to children but
+     * instead set their own flag. */
+    flag_update(this->source().data_as<GreasePencilLayerTreeGroup>()->base.flag,
+                GreasePencilLayerTreeNodeFlag::GP_LAYER_TREE_NODE_HIDE,
+                !value);
+    return;
+  }
   for (AnimationChannel *child : this->children_) {
     /* Just flush the call down to children. */
     child->set_setting(setting, value);
@@ -1675,7 +1702,16 @@ void GreasePencilChannel::gather_channel_settings()
 {
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
   bke::greasepencil::Layer &layer = gp_layer->wrap();
-  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE_V3D, layer.is_visible());
+  /* Checking the flag explicitly since we need to separate the self visibility from the hierarchy
+   * visibility. */
+  bke::greasepencil::TreeNode &tree_node = layer.as_node();
+  this->channel_settings_.set_state(ChannelSettingKey::VISIBLE_V3D,
+                                    !(tree_node.flag & GP_LAYER_TREE_NODE_HIDE));
+  if (tree_node.parent_group()) {
+    this->channel_settings_.set_enabled(ChannelSettingKey::VISIBLE_V3D,
+                                        tree_node.parent_group()->is_visible());
+  }
+
   this->channel_settings_.set_state(ChannelSettingKey::LOCKED, layer.is_locked());
 }
 

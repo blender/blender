@@ -278,6 +278,8 @@ enum class ChannelSettingValue : uint8_t {
 
 struct ChannelSettingState {
   ChannelSettingValue value = ChannelSettingValue::UNDEFINED;
+  /* Set to false if the setting has no effect. */
+  bool enabled = true;
 
   bool is_defined() const
   {
@@ -295,6 +297,10 @@ class ChannelSettings {
   void merge(const ChannelSettings &other);
   ChannelSettingState get_state(ChannelSettingKey key) const;
   void set_state(ChannelSettingKey key, bool value);
+  /**
+   * See `ChannelSettingState::enabled`.
+   */
+  void set_enabled(ChannelSettingKey key, bool value);
 };
 
 class ChannelTagSet {

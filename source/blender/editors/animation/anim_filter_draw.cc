@@ -547,6 +547,9 @@ void ChannelItem::build_row(ui::Layout &layout)
                                        0,
                                        "");
     button_flag_enable(but, ui::BUT_DRAG_LOCK_X | ui::BUT_UNDO);
+    if (!state.enabled) {
+      button_flag_enable(but, ui::BUT_INACTIVE);
+    }
     /* Passing the int value as the void pointer. */
     button_func_set(but, setting_button_pushed, reinterpret_cast<void *>(setting_int), nullptr);
     button_func_pushed_state_set(
