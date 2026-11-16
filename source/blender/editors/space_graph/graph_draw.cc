@@ -69,6 +69,12 @@ struct TimeRange {
   }
 };
 
+struct FCurveDrawSettings {
+  bool draw_extrapolation = true;
+  bool draw_handles = true;
+  bool only_handles_of_selected_keys = false;
+};
+
 static void graph_draw_driver_debug(const FCurve &fcu,
                                     const View2D &v2d,
                                     const TimeMapping &fcu_to_scene_time,
@@ -488,18 +494,13 @@ static void draw_fcurve_vertices(const View2D &v2d,
 /** \name F-Curve Handles
  * \{ */
 
-static bool draw_fcurve_handles_check(const SpaceGraph *sipo, const FCurve *fcu)
+static bool draw_fcurve_handles_check(const FCurve *fcu, const FCurveDrawSettings &draw_settings)
 {
   /* don't draw handle lines if handles are not to be shown */
   if (/* handles shouldn't be shown anywhere */
-      (sipo->flag & SIPO_NOHANDLES) ||
+      !draw_settings.draw_handles ||
       /* keyframes aren't editable */
       (fcu->flag & FCURVE_PROTECTED) ||
-#if 0
-      /* handles can still be selected and handle types set, better draw - campbell */
-      /* editing the handles here will cause weird/incorrect interpolation issues */
-      (fcu->flag & FCURVE_INT_VALUES) ||
-#endif
       /* group that curve belongs to is not editable */
       ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)))
   {
@@ -510,10 +511,10 @@ static bool draw_fcurve_handles_check(const SpaceGraph *sipo, const FCurve *fcu)
 
 /* draw lines for F-Curve handles only (this is only done in EditMode)
  * NOTE: draw_fcurve_handles_check must be checked before running this. */
-static void draw_fcurve_handles(const SpaceGraph *sipo,
-                                const View2D &v2d,
+static void draw_fcurve_handles(const View2D &v2d,
                                 const FCurve &fcu,
-                                const TimeMapping &fcu_to_scene_time)
+                                const TimeMapping &fcu_to_scene_time,
+                                const FCurveDrawSettings &draw_settings)
 {
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
@@ -545,7 +546,7 @@ static void draw_fcurve_handles(const SpaceGraph *sipo,
       /* if only selected keyframes can get their handles shown,
        * check that keyframe is selected
        */
-      if (sipo->flag & SIPO_SELVHANDLESONLY) {
+      if (draw_settings.only_handles_of_selected_keys) {
         if (BEZT_ISSEL_ANY(bezt) == 0) {
           prevbezt = bezt;
           continue;
@@ -1177,10 +1178,9 @@ static void draw_fcurve_curve_keys(FCurve &fcu,
   immEnd();
 }
 
-static void draw_fcurve(bAnimContext *ac,
-                        const SpaceGraph *sipo,
+static void draw_fcurve(FCurve *fcu,
                         const View2D &v2d,
-                        FCurve *fcu,
+                        const FCurveDrawSettings &draw_settings,
                         const TimeMapping &fcu_to_scene_time,
                         const UnitMapping &fcu_to_scene_units)
 {
@@ -1248,22 +1248,26 @@ static void draw_fcurve(bAnimContext *ac,
       immUniformColor3fvAlpha(fcu->color, fcurve_display_alpha(*fcu));
     }
 
-    const bool draw_extrapolation = (sipo->flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
     /* draw F-Curve */
     if ((fcu->modifiers.first_) || (fcu->flag & FCURVE_INT_VALUES)) {
       /* Draw a curve affected by modifiers or only allowed to have integer values
        * by sampling it at various small-intervals over the visible region.
        */
-      draw_fcurve_curve(fcu, &v2d, shdr_pos, fcu_to_scene_time, draw_extrapolation);
+      draw_fcurve_curve(fcu, &v2d, shdr_pos, fcu_to_scene_time, draw_settings.draw_extrapolation);
     }
     else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
       /* just draw curve based on defined data (i.e. no modifiers) */
       if (fcu->bezt) {
-        draw_fcurve_curve_keys(
-            *fcu, v2d, fcu_to_scene_units, fcu_to_scene_time, shdr_pos, draw_extrapolation);
+        draw_fcurve_curve_keys(*fcu,
+                               v2d,
+                               fcu_to_scene_units,
+                               fcu_to_scene_time,
+                               shdr_pos,
+                               draw_settings.draw_extrapolation);
       }
       else if (fcu->fpt) {
-        draw_fcurve_curve_samples(*fcu, v2d, fcu_to_scene_time, shdr_pos, draw_extrapolation);
+        draw_fcurve_curve_samples(
+            *fcu, v2d, fcu_to_scene_time, shdr_pos, draw_settings.draw_extrapolation);
       }
     }
 
@@ -1302,15 +1306,15 @@ static void draw_fcurve(bAnimContext *ac,
       GPU_line_width(1.0);
 
       if (fcu->bezt) {
-        bool do_handles = draw_fcurve_handles_check(sipo, fcu);
+        const bool do_handles = draw_fcurve_handles_check(fcu, draw_settings);
 
         if (do_handles) {
           /* only draw handles/vertices on keyframes */
-          draw_fcurve_handles(sipo, v2d, *fcu, fcu_to_scene_time);
+          draw_fcurve_handles(v2d, *fcu, fcu_to_scene_time, draw_settings);
         }
 
         draw_fcurve_vertices(
-            v2d, *fcu, fcu_to_scene_time, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY));
+            v2d, *fcu, fcu_to_scene_time, do_handles, draw_settings.only_handles_of_selected_keys);
       }
       else {
         /* samples: only draw two indicators at either end as indicators */
@@ -1320,7 +1324,7 @@ static void draw_fcurve(bAnimContext *ac,
   }
 
   /* 3) draw driver debugging stuff */
-  if ((ac->datatype == ANIMCONT_DRIVERS) && (fcu->flag & FCURVE_ACTIVE)) {
+  if ((fcu->driver != nullptr) && (fcu->flag & FCURVE_ACTIVE)) {
     graph_draw_driver_debug(*fcu, v2d, fcu_to_scene_time, fcu_to_scene_units);
   }
 
@@ -1514,6 +1518,15 @@ void graph_draw_ghost_curves(Scene &scene, const SpaceGraph *sipo, const View2D 
   GPU_blend(GPU_BLEND_NONE);
 }
 
+static FCurveDrawSettings create_draw_settings_from_editor(const SpaceGraph &space_graph)
+{
+  FCurveDrawSettings draw_settings;
+  draw_settings.only_handles_of_selected_keys = space_graph.flag & SIPO_SELVHANDLESONLY;
+  draw_settings.draw_extrapolation = !(space_graph.flag & SIPO_NO_DRAW_EXTRAPOLATION);
+  draw_settings.draw_handles = !(space_graph.flag & SIPO_NOHANDLES);
+  return draw_settings;
+}
+
 void graph_draw_curves(bAnimContext *ac,
                        const SpaceGraph *sipo,
                        const View2D &v2d,
@@ -1533,6 +1546,7 @@ void graph_draw_curves(bAnimContext *ac,
    * the data will be layered correctly
    */
   bAnimListElem *ale_active_fcurve = nullptr;
+  const FCurveDrawSettings draw_settings = create_draw_settings_from_editor(*sipo);
   for (bAnimListElem &ale : anim_data) {
     FCurve *fcu = static_cast<FCurve *>(ale.key_data);
     if ((fcu->flag & FCURVE_ACTIVE) && !ale_active_fcurve) {
@@ -1542,7 +1556,7 @@ void graph_draw_curves(bAnimContext *ac,
     const TimeMapping fcu_to_scene_time = ANIM_nla_time_mapping_get(ale);
     const UnitMapping fcu_to_scene_units = ANIM_unit_mapping_get(
         ac->scene, ale.id, fcu, ANIM_get_normalization_flags(ac->sl));
-    draw_fcurve(ac, sipo, v2d, fcu, fcu_to_scene_time, fcu_to_scene_units);
+    draw_fcurve(fcu, v2d, draw_settings, fcu_to_scene_time, fcu_to_scene_units);
   }
 
   /* Draw the active FCurve last so that it (especially the active keyframe)
@@ -1552,7 +1566,7 @@ void graph_draw_curves(bAnimContext *ac,
     const TimeMapping fcu_to_scene_time = ANIM_nla_time_mapping_get(*ale_active_fcurve);
     const UnitMapping fcu_to_scene_units = ANIM_unit_mapping_get(
         ac->scene, ale_active_fcurve->id, fcu, ANIM_get_normalization_flags(ac->sl));
-    draw_fcurve(ac, sipo, v2d, fcu, fcu_to_scene_time, fcu_to_scene_units);
+    draw_fcurve(fcu, v2d, draw_settings, fcu_to_scene_time, fcu_to_scene_units);
   }
 
   /* free list of curves */
@@ -1624,30 +1638,26 @@ void graph_draw_channel_names(bContext *C,
 
 /** \} */
 
-struct FCurveDrawSettings {
-  bool draw_extrapolation = true;
-  bool draw_handles = true;
-  bool only_handles_of_selected_keys = false;
-  /* See ANIM_get_normalization_flags. */
-  short normalization_flags = 0;
-};
-
 /* Draws the FCurve of a DRIVER or FCURVE channel. */
 static void draw_fcurve_of_channel(ed::animfilter::DataChannel &channel,
                                    Scene &scene,
+                                   const SpaceGraph &space_graph,
                                    const View2D &v2d,
                                    const FCurveDrawSettings &draw_settings)
 {
   using namespace ed::animfilter;
   FCurve *fcurve = channel.get_source<FCurve>();
-  /* `animated_id` can be a nullptr. This will just not do any unit mapping. */
-  const ID *animated_id = channel.tags().data_of_first_tag<ID>(ChannelTagType::ANIMATED_ID);
-  TimeMapping time_mapping;
+
+  TimeMapping fcu_to_scene_time;
   if (channel.source_type() == DataChannelType::FCURVE) {
     FCurveChannel &fcurve_channel = static_cast<FCurveChannel &>(channel);
-    time_mapping = fcurve_channel.get_time_mapping();
+    fcu_to_scene_time = fcurve_channel.get_time_mapping();
   }
-  // draw_fcurve(*fcurve, scene, const_cast<ID *>(animated_id), v2d, time_mapping, draw_settings);
+  ID *animated_id = channel.tags().data_of_first_tag<ID>(ChannelTagType::ANIMATED_ID);
+  /* `animated_id` can be a nullptr. This will just not do any unit mapping. */
+  const UnitMapping fcu_to_scene_units = ANIM_unit_mapping_get(
+      &scene, animated_id, fcurve, ANIM_get_normalization_flags(&space_graph));
+  draw_fcurve(fcurve, v2d, draw_settings, fcu_to_scene_time, fcu_to_scene_units);
 }
 
 void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
@@ -1657,10 +1667,7 @@ void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
 {
   using namespace ed::animfilter;
   DataChannel *active_fcurve = nullptr;
-  FCurveDrawSettings draw_settings;
-  draw_settings.only_handles_of_selected_keys = space_graph.flag & SIPO_SELVHANDLESONLY;
-  draw_settings.draw_extrapolation = (space_graph.flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
-  draw_settings.normalization_flags = ANIM_get_normalization_flags(&space_graph);
+  const FCurveDrawSettings draw_settings = create_draw_settings_from_editor(space_graph);
   Vector<DataChannel *> selected_fcurves;
   selected_fcurves.reserve(data_channels.size());
 
@@ -1682,15 +1689,15 @@ void graph_draw_fcurves(const Span<ed::animfilter::DataChannel *> data_channels,
       selected_fcurves.append(data_channel);
       continue;
     }
-    draw_fcurve_of_channel(*data_channel, scene, v2d, draw_settings);
+    draw_fcurve_of_channel(*data_channel, scene, space_graph, v2d, draw_settings);
   }
 
   for (DataChannel *data_channel : selected_fcurves) {
-    draw_fcurve_of_channel(*data_channel, scene, v2d, draw_settings);
+    draw_fcurve_of_channel(*data_channel, scene, space_graph, v2d, draw_settings);
   }
 
   if (active_fcurve) {
-    draw_fcurve_of_channel(*active_fcurve, scene, v2d, draw_settings);
+    draw_fcurve_of_channel(*active_fcurve, scene, space_graph, v2d, draw_settings);
   }
 }
 
