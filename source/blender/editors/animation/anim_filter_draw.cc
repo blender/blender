@@ -473,10 +473,6 @@ void ChannelItem::build_row(ui::Layout &layout)
   const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
 
   /* TODO the layout creation code could move into the channel API. */
-  /* Having the visibility icon before the channel name is just how the legacy system behaved.
-   * Investigate if that is something to change. By putting it on the right side the icons could
-   * be aligned vertically. This would also make it consistent with Grease Pencil channels in the
-   * dope sheet where the hide icon is on the right. */
   if (channel_.type() == AnimationChannelType::DATA) {
     DataChannel &data_channel = static_cast<DataChannel &>(channel_);
     switch (data_channel.source_type()) {
