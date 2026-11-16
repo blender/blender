@@ -1135,6 +1135,10 @@ struct SymbolParser : NodeErrorHandler {
               0, fn_inst->identifier.size() - mangled.str.size());
         }
         fn.template_data->instances.emplace(mangled.str, fn_inst);
+        /* Unmangled instances can collide with overloads declared before them. */
+        if (fn.template_data->is_adl_possible() && !fn_inst->is_entry_point()) {
+          check_overload_validity(id, *fn_inst, scope);
+        }
         fn.add_overload(fn_inst);
       }
     }
@@ -1200,6 +1204,10 @@ struct SymbolParser : NodeErrorHandler {
                                                      spec->identifier.size() - mangled.str.size());
         }
         fn.template_data->instances.emplace(mangled.str, spec);
+        /* Unmangled instances can collide with overloads declared before them. */
+        if (fn.template_data->is_adl_possible() && !spec->is_entry_point()) {
+          check_overload_validity(id, *spec, scope);
+        }
         fn.add_overload(spec);
       }
     }

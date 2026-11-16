@@ -712,7 +712,16 @@ template<typename T> T f() { return T(0); }
 template float f<float>();
 template float f<float>();
 void f(int a) {}
-	)";
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "Redefinition of function 'f<float>'");
+  }
+  {
+    string input = R"(
+template<typename T> T f(T a) { return a; }
+float f(float a) { return a; }
+template float f<float>(float);
+)";
     auto [output, _, error] = process_test_string(input, shader::Language::BSL);
     EXPECT_EQ(error, "Redefinition of function 'f<float>'");
   }
