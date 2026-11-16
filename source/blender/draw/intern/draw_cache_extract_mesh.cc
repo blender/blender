@@ -173,7 +173,7 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
     }
   }
 
-  threading::parallel_for_each(ibos_to_create.index_range(), [&](const int i) {
+  auto extract_one_ibo = [&](const int i) {
     switch (ibos_to_create[i]) {
       case IBOType::Tris:
         created_ibos[i] = extract_tris(mr, mesh_render_data_faces_sorted_ensure(mr, mbc));
@@ -216,7 +216,17 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
         created_ibos[i] = extract_edituv_face_dots(mr);
         break;
     }
-  });
+  };
+
+  if (mr.bm) {
+    /* BMesh is not safe to iterate from multiple threads at once (see #166647). */
+    for (const int i : ibos_to_create.index_range()) {
+      extract_one_ibo(i);
+    }
+  }
+  else {
+    threading::parallel_for_each(ibos_to_create.index_range(), extract_one_ibo);
+  }
 
   Array<gpu::VertBufPtr, 16> created_vbos(vbos_to_create.size());
 
