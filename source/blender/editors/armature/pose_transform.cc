@@ -1318,7 +1318,6 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
                                                                              bPoseChannel *),
                                                           const char default_ksName[])
 {
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   bool changed_multi = false;
@@ -1336,8 +1335,6 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
   View3D *v3d = CTX_wm_view3d(C);
   FOREACH_OBJECT_IN_MODE_BEGIN (bmain, scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter)
   {
-    /* XXX: UGLY HACK (for auto-key + clear transforms). */
-    Object *ob_eval = DEG_get_evaluated(depsgraph, ob_iter);
     Vector<PointerRNA> sources;
     bool changed = false;
 
@@ -1350,11 +1347,6 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
       if (animrig::autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
         /* tag for autokeying later */
         animrig::relative_keyingset_add_source(sources, &ob_iter->id, RNA_PoseBone, pchan);
-
-#if 1 /* XXX: Ugly Hack - Run clearing function on evaluated copy of pchan */
-        bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
-        clear_func(ob_iter->pose, pchan_eval);
-#endif
       }
     }
     FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
@@ -1362,8 +1354,14 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
     if (changed) {
       changed_multi = true;
 
-      /* perform autokeying on the bones if needed */
+      /* Tag _before_ autokeying (see below). */
+      DEG_id_tag_update(&ob_iter->id, ID_RECALC_GEOMETRY);
+
+      /* Perform autokeying on the bones if needed */
       if (!sources.is_empty()) {
+        /* Needed to ensure #bPoseChannel.pose_mat are up to date. */
+        CTX_data_ensure_evaluated_depsgraph(C);
+
         /* get KeyingSet to use */
         KeyingSet *ks = animrig::get_keyingset_for_autokeying(scene, default_ksName);
 
@@ -1376,8 +1374,6 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
           ED_pose_recalculate_paths(C, scene, ob_iter);
         }
       }
-
-      DEG_id_tag_update(&ob_iter->id, ID_RECALC_GEOMETRY);
 
       /* NOTE: notifier might evolve. */
       WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob_iter);
