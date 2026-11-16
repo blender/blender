@@ -707,7 +707,7 @@ static void draw_fcurve_curve(const FCurve *fcu,
      */
     eval_time = std::min(eval_time, eval_end);
 
-    immVertex2f(pos, scene_time, unit_mapping.map(evaluate_fcurve(fcu, eval_time)));
+    immVertex2f(pos, scene_time, unit_mapping.map(evaluate_fcurve_only_curve(fcu, eval_time)));
   }
 
   /* Ensure we include end boundary point.
@@ -717,7 +717,7 @@ static void draw_fcurve_curve(const FCurve *fcu,
    * eval_start + total_samples * eval_freq < eval_end
    * due to floating point problems.
    */
-  immVertex2f(pos, end_time, unit_mapping.map(evaluate_fcurve(fcu, eval_end)));
+  immVertex2f(pos, end_time, unit_mapping.map(evaluate_fcurve_only_curve(fcu, eval_end)));
 
   immEnd();
 }
