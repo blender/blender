@@ -174,7 +174,7 @@ static bool graph_panel_fcurve_poll(const bContext *C, PanelType * /*pt*/)
   if (!graph_panel_context(C, nullptr, nullptr)) {
     return false;
   }
-  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
     ChannelArenaHandle arena = get_summary_tree_for_context(*C);
     const AnimationChannel *active_chan = arena->active_channel();
@@ -194,7 +194,7 @@ static void graph_panel_fcurve_properties(const bContext *C, Panel *panel)
   /* Only for the legacy code. */
   bAnimListElem *ale = nullptr;
 
-  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
 
     ChannelArenaHandle arena = get_summary_tree_for_context(*C);
@@ -410,7 +410,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   const int but_max_width = region->winx;
 
   PointerRNA animated_id_ptr;
-  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
     ChannelArenaHandle arena = get_summary_tree_for_context(*C);
     const AnimationChannel *active_chan = arena->active_channel();

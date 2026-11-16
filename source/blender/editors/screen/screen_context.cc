@@ -882,7 +882,7 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
                                                   const bool set_active_only,
                                                   const bool use_editable_only)
 {
-  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
 
     SpaceAction *saction = CTX_wm_space_action(C);
@@ -1098,7 +1098,7 @@ static eContextResult screen_ctx_selected_visible_fcurves(const bContext *C,
 static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
                                                         bContextDataResult *result)
 {
-  if USER_EXPERIMENTAL_TEST (&U, use_new_animfilter) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
 
     ChannelArenaHandle arena = get_summary_tree_for_context(*C);
