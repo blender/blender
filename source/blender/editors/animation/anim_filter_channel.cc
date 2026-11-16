@@ -1098,6 +1098,8 @@ void SummaryChannel::set_setting(const ChannelSettingKey setting, const bool val
     flag_update(this->source().data_as<GreasePencilLayerTreeGroup>()->base.flag,
                 GreasePencilLayerTreeNodeFlag::GP_LAYER_TREE_NODE_HIDE,
                 !value);
+    DEG_id_tag_update(this->source().owner_id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GPENCIL | NA_EDITED, this->source().owner_id);
     return;
   }
   for (AnimationChannel *child : this->children_) {
