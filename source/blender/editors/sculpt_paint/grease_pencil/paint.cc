@@ -304,7 +304,8 @@ struct PaintOperationExecutor {
       if (settings_->flag2 & GP_BRUSH_USE_STROKE) {
         vertex_color_ = color_base;
       }
-      if (settings_->flag2 & GP_BRUSH_USE_FILL) {
+      if (settings_->flag2 & GP_BRUSH_USE_FILL || (settings_->flag & GP_BRUSH_OUTLINE_STROKE) != 0)
+      {
         fill_color_ = color_base;
       }
     }
@@ -404,7 +405,9 @@ struct PaintOperationExecutor {
       self.drawing_->vertex_colors_for_write()[last_active_point] = vertex_color_;
       point_attributes_to_skip.add("vertex_color");
     }
-    if (use_fill || attributes.contains("fill_color")) {
+    if (use_fill || attributes.contains("fill_color") ||
+        (settings_->flag & GP_BRUSH_OUTLINE_STROKE) != 0)
+    {
       self.drawing_->fill_colors_for_write()[active_curve] = fill_color_;
       curve_attributes_to_skip.add("fill_color");
     }
