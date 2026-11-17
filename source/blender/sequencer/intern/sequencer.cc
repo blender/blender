@@ -1036,10 +1036,11 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
         BLO_read_struct_nonnull(reader, ColorMixVars, &strip->effectdata);
         break;
       case STRIP_TYPE_COMPOSITOR: {
-        BLO_read_struct_nonnull(reader, CompositorEffectVars, &strip->effectdata);
-        CompositorEffectVars *comp = static_cast<CompositorEffectVars *>(strip->effectdata);
-        BLO_read_struct(reader, IDProperty, &comp->system_properties);
-        IDP_BlendDataRead(reader, &comp->system_properties);
+        if (BLO_read_struct_nonnull(reader, CompositorEffectVars, &strip->effectdata)) {
+          CompositorEffectVars *comp = static_cast<CompositorEffectVars *>(strip->effectdata);
+          BLO_read_struct(reader, IDProperty, &comp->system_properties);
+          IDP_BlendDataRead(reader, &comp->system_properties);
+        }
         break;
       }
       default:
