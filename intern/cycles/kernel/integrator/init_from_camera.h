@@ -116,22 +116,24 @@ ccl_device bool integrator_init_from_camera(KernelGlobals kg,
   /* Write camera ray to state. */
   integrator_state_write_ray(state, &ray);
 
+  /* (Re-)initialize path state for path integration. */
+  path_state_init_integrator(kg, state, sample, rng_pixel, T);
+
+  /* Check for the volume feature should not strictly be needed, but is safer in case
+   * there is a bug updating cam.is_inside_volume when a volume is removed. */
+  const bool is_inside_volume = kernel_data.cam.is_inside_volume &&
+                                (kernel_data.kernel_features & KERNEL_FEATURE_VOLUME);
+
   if (tile == nullptr) {
-    /* Re-initialize path state for path integration. */
-    path_state_init_integrator(kg, state, sample, rng_pixel, T);
     integrator_path_next(state,
                          DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA,
-                         kernel_data.cam.is_inside_volume ?
-                             DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK :
-                             DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+                         is_inside_volume ? DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK :
+                                            DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
   }
   else {
-    /* Initialize path state for path integration. */
-    path_state_init_integrator(kg, state, sample, rng_pixel, T);
-
     /* Continue with intersect_closest kernel, optionally initializing volume
      * stack before that if the camera may be inside a volume. */
-    if (kernel_data.cam.is_inside_volume) {
+    if (is_inside_volume) {
       integrator_path_init(state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK);
     }
     else {

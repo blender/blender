@@ -156,7 +156,7 @@ void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
         if (shader->has_surface_link()) {
           attributes->add(ATTR_STD_GENERATED);
         }
-        if (shader->has_volume) {
+        if (shader->has_volume_connected) {
           attributes->add(ATTR_STD_GENERATED_TRANSFORM);
         }
       }

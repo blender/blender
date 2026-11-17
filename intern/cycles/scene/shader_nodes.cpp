@@ -3615,7 +3615,7 @@ PrincipledVolumeNode::PrincipledVolumeNode() : VolumeNode(get_node_type())
 
 void PrincipledVolumeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_volume) {
+  if (shader->has_volume_connected) {
 
     if (input("Density")->link || density > 0.0f) {
       attributes->add_name_or_standard(density_attribute);
@@ -4116,7 +4116,7 @@ void TextureCoordinateNode::attributes(Shader *shader, AttributeRequestSet *attr
     }
   }
 
-  if (shader->has_volume) {
+  if (shader->has_volume_connected) {
     if (!from_dupli) {
       if (!output("Generated")->links.empty()) {
         attributes->add(ATTR_STD_GENERATED_TRANSFORM);
@@ -5157,7 +5157,7 @@ VolumeInfoNode::VolumeInfoNode() : ShaderNode(get_node_type()) {}
  */
 void VolumeInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-  if (shader->has_volume) {
+  if (shader->has_volume_connected) {
     if (!output("Color")->links.empty()) {
       attributes->add(ATTR_STD_VOLUME_COLOR);
     }
@@ -6270,7 +6270,7 @@ void AttributeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
     attributes->add_name_or_standard(attribute);
   }
 
-  if (shader->has_volume) {
+  if (shader->has_volume_connected) {
     attributes->add(ATTR_STD_GENERATED_TRANSFORM);
   }
 

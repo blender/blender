@@ -574,6 +574,11 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       scene->volume_manager->tag_update({geom});
     }
 
+    if (geom->has_volume != prev_has_volume) {
+      /* Camera inside volume detection depends on which geometry has volumes. */
+      scene->camera->need_flags_update = true;
+    }
+
     if (geom->is_hair()) {
       Hair *hair = static_cast<Hair *>(geom);
 

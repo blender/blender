@@ -1371,6 +1371,11 @@ void ObjectManager::tag_update(Scene *scene, const uint32_t flag)
   if (flag & (OBJECT_ADDED | OBJECT_REMOVED | OBJECT_MODIFIED)) {
     scene->integrator->tag_update(scene, Integrator::OBJECT_MANAGER);
   }
+
+  if (flag & OBJECT_REMOVED) {
+    /* Camera inside volume detection depends on the objects in the scene. */
+    scene->camera->need_flags_update = true;
+  }
 }
 
 bool ObjectManager::need_update() const
