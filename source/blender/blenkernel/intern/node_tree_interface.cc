@@ -1446,8 +1446,8 @@ bNode *create_proxy_const_input_node(const eNodeSocketDatatype socket_type,
         case NTREE_COMPOSIT: {
           bNode *node = bke::node_add_node(&C, dst_tree, "CompositorNodeRGB"_ustr);
           bNodeSocket *socket = node->outputs.first();
-          *socket->default_value_typed<bNodeSocketValueFloat>() =
-              *static_cast<const bNodeSocketValueFloat *>(value);
+          *socket->default_value_typed<bNodeSocketValueRGBA>() =
+              *static_cast<const bNodeSocketValueRGBA *>(value);
           anim_basepaths.append(
               {src_property_path, get_socket_property_path(dst_tree, *socket, "default_value")});
           return node;
@@ -1455,8 +1455,8 @@ bNode *create_proxy_const_input_node(const eNodeSocketDatatype socket_type,
         case NTREE_SHADER: {
           bNode *node = bke::node_add_node(&C, dst_tree, "ShaderNodeRGB"_ustr);
           bNodeSocket *socket = node->outputs.first();
-          *socket->default_value_typed<bNodeSocketValueFloat>() =
-              *static_cast<const bNodeSocketValueFloat *>(value);
+          *socket->default_value_typed<bNodeSocketValueRGBA>() =
+              *static_cast<const bNodeSocketValueRGBA *>(value);
           anim_basepaths.append(
               {src_property_path, get_socket_property_path(dst_tree, *socket, "default_value")});
           return node;
