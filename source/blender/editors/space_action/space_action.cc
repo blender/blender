@@ -233,7 +233,6 @@ static void action_on_show(ScrArea *area)
   if (saction->next && saction->next->spacetype == SPACE_GRAPH) {
     SpaceGraph *graph_editor = reinterpret_cast<SpaceGraph *>(saction->next);
     BLI_assert(graph_editor->ads);
-    /* TODO call in higher level code. */
     ed::animfilter::sync_dopesheet(*graph_editor->ads, saction->ads);
     ed::animfilter::sync_runtime(graph_editor->runtime->animfilter_runtime,
                                  saction->runtime->animfilter_runtime);
@@ -316,7 +315,16 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
 
     ed::animfilter::draw_dopesheet_key_area(*channels.root(), *v2d, key_draw_settings);
 
-    /* TODO draw markers. */
+    ui::view2d_view_orthoSpecial(region, v2d, true);
+
+    const short marker_flag = (((markers != &scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
+                              DRAW_MARKERS_MARGIN;
+
+    if (ED_markers_region_visible(CTX_wm_area(C), region)) {
+      ED_markers_draw(C, marker_flag);
+    }
+
+    ui::view2d_view_ortho(v2d);
     ANIM_draw_previewrange(scene, v2d, 0);
     ANIM_draw_scene_strip_range(C, v2d);
 

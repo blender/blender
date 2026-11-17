@@ -2314,7 +2314,6 @@ static wmOperatorStatus actkeys_clickselect_exec(bContext *C, wmOperator *op)
 
   wmOperatorStatus ret_value;
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    /* TODO this could query the cached summary tree from the last draw call. */
     using namespace ed::animfilter;
     ChannelArena &channels = ed::action::get_summary_tree(*C);
     /* Using an enum to represent the mutually exclusive booleans in a single state. */
