@@ -53,6 +53,8 @@ static SeqResult do_multicam(const RenderData *context,
       context, state, timeline_frame, strip->multicam_source, channels, seqbasep);
   state->strips_in_progress.remove(strip);
 
+  out.is_opaque_before_transform = out.image && !out.image->can_contain_alpha();
+
   return out;
 }
 
