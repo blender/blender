@@ -456,7 +456,7 @@ ccl_device_forceinline void integrator_state_read_mnee_ray(ConstIntegratorState 
     ray->D = ls->P - ray->P;
     ray->D = safe_normalize_len(ray->D, &ray->tmax);
   }
-  ray->tmin = ((ls->shader & SHADER_CAST_SHADOW) == 0) ? FLT_MAX : 0.0f;
+  ray->tmin = ((ls->shader & SHADER_CAST_SHADOW) == 0) ? ray->tmax : 0.0f;
   ray->time = INTEGRATOR_STATE(state, ray, time);
   ray->dP = INTEGRATOR_STATE(shadow_state, shadow_ray, dP);
   ray->dD = INTEGRATOR_STATE(shadow_state, shadow_ray, dD);
