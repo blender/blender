@@ -284,9 +284,8 @@ ccl_device_inline void shadow_ray_setup(const ccl_private ShaderData *ccl_restri
   }
 
   if ((ls->shader & SHADER_CAST_SHADOW) == 0) {
-    /* Signal to not cast shadow ray.
-     * Relies on the intersection_ray_valid() rejecting the ray early on. */
-    ray->tmin = FLT_MAX;
+    /* Result in invalid shadow ray. */
+    ray->tmin = ray->tmax;
   }
 
   ray->dP = differential_make_compact(sd->dP);
