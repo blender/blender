@@ -11,6 +11,7 @@
 #include "BKE_context.hh"
 #include "BKE_cpp_types.hh"
 #include "BKE_global.hh"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
@@ -63,6 +64,7 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
   BKE_blender_globals_init();
 
   BKE_idtype_init();
+  IDP_struct_type_init();
   BKE_cpp_types_init();
   BKE_appdir_init();
   IMB_init();
@@ -102,6 +104,7 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
 
   BKE_tempdir_session_purge();
   BKE_appdir_exit();
+  IDP_struct_type_exit();
   CLG_exit();
 
   testing::Test::TearDownTestCase();

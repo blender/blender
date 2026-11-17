@@ -392,6 +392,12 @@ static bool rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
   PropertyRNA *prop;
   StructRNA *ptype = iter->builtin_parent.type;
 
+  /* Structs id properties are only exposed through RNA PointerProperty definitions (typically
+   * system IDProperties). */
+  if (IDP_struct_type_info(idprop->type)) {
+    return true;
+  }
+
   /* Function to skip any id properties that are already known by RNA,
    * for the second loop where we go over unknown id properties.
    *

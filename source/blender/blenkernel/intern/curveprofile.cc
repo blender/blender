@@ -20,6 +20,7 @@
 
 #include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
+#include "BKE_idprop.hh"
 
 #include "BLO_read_write.hh"
 
@@ -1179,6 +1180,84 @@ void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
 
   *x_out = interpf(profile->table[i].x, profile->table[i + 1].x, lerp_factor);
   *y_out = interpf(profile->table[i].y, profile->table[i + 1].y, lerp_factor);
+}
+
+static void *idp_struct_curveprofile_create()
+{
+  return BKE_curveprofile_add(PROF_PRESET_LINE);
+}
+
+static void *idp_struct_curveprofile_copy(const void *src, const int /*flag*/)
+{
+  return BKE_curveprofile_copy(static_cast<const CurveProfile *>(src));
+}
+
+static void idp_struct_curveprofile_free(void *data)
+{
+  BKE_curveprofile_free(static_cast<CurveProfile *>(data));
+}
+
+static void idp_struct_curveprofile_blend_write(BlendWriter *writer, const void *data)
+{
+  BKE_curveprofile_blend_write(writer, static_cast<const CurveProfile *>(data));
+}
+
+static void idp_struct_curveprofile_blend_read(BlendDataReader *reader, void **data_p)
+{
+  CurveProfile **profile = reinterpret_cast<CurveProfile **>(data_p);
+  BLO_read_struct(reader, CurveProfile, profile);
+  if (*profile) {
+    BKE_curveprofile_blend_read(reader, *profile);
+  }
+}
+
+bool BKE_curveprofile_equals(const CurveProfile *a_ptr, const CurveProfile *b_ptr)
+{
+  const CurveProfile &a = *a_ptr;
+  const CurveProfile &b = *b_ptr;
+  if (a.path_len != b.path_len || a.segments_len != b.segments_len || a.preset != b.preset ||
+      a.flag != b.flag)
+  {
+    return false;
+  }
+  for (const int i : IndexRange(a.path_len)) {
+    const CurveProfilePoint &a_point = a.path[i];
+    const CurveProfilePoint &b_point = b.path[i];
+    if (a_point.x != b_point.x || a_point.y != b_point.y || a_point.h1 != b_point.h1 ||
+        a_point.h2 != b_point.h2)
+    {
+      return false;
+    }
+    if (float2(a_point.h1_loc) != float2(b_point.h1_loc)) {
+      return false;
+    }
+    if (float2(a_point.h2_loc) != float2(b_point.h2_loc)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+static bool idp_struct_curveprofile_equals(const void *a, const void *b)
+{
+  return BKE_curveprofile_equals(static_cast<const CurveProfile *>(a),
+                                 static_cast<const CurveProfile *>(b));
+}
+
+static const IDPropertyStructTypeInfo idp_struct_type_curveprofile = {
+    .idp_type = IDP_CURVE_PROFILE,
+    .rna_identifier = "CurveProfile",
+    .create_default = idp_struct_curveprofile_create,
+    .copy = idp_struct_curveprofile_copy,
+    .free = idp_struct_curveprofile_free,
+    .blend_write = idp_struct_curveprofile_blend_write,
+    .blend_read = idp_struct_curveprofile_blend_read,
+    .equals = idp_struct_curveprofile_equals,
+};
+
+void BKE_curveprofile_idproperty_type_register()
+{
+  IDP_struct_type_register(idp_struct_type_curveprofile);
 }
 
 /** \} */

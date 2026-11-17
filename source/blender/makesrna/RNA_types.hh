@@ -1088,6 +1088,10 @@ enum StructFlag : int32_t {
    * checking for Struct or Property types, see: #161362.
    */
   STRUCT_RNA_DEFINITION = (1 << 12),
+  /** For example, operators don't support such properties. */
+  STRUCT_NO_DNASTRUCT_IDPROPERTIES = (1 << 13),
+  /** For PropertyGroup which contains struct IDProperties such as CurveMapping. */
+  STRUCT_CONTAINS_DNASTRUCT_IDPROPERTIES = (1 << 14),
 };
 ENUM_OPERATORS(StructFlag)
 

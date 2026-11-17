@@ -185,6 +185,17 @@ bool RNA_struct_system_idprops_check(StructRNA *srna);
  * there is no distinction for this between both kinds of storage.
  */
 bool RNA_struct_idprops_contains_datablock(const StructRNA *type);
+
+/**
+ * Checks whether the type allows dna-struct IDProperties (e.g. CurveMapping, ColorRamp, etc.).
+ */
+bool RNA_struct_idprops_struct_allowed(const StructRNA *type);
+
+/**
+ * Checks whether the type contains any dna-struct IDProperties (e.g. CurveMapping, ColorRamp,
+ * etc.).
+ */
+bool RNA_struct_idprops_contains_struct(const StructRNA *type);
 /**
  * Remove an id-property.
  */

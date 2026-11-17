@@ -20,6 +20,9 @@ enum eIconSizes {
   NUM_ICON_SIZES,
 };
 
+/** Offset struct types so that they are more obviously separate from the primitive types. */
+#define IDP_STRUCT_BASE 64
+
 /** #IDProperty.type */
 enum eIDPropertyType : char {
   IDP_STRING = 0,
@@ -36,8 +39,21 @@ enum eIDPropertyType : char {
    * be 0 or 1.
    */
   IDP_BOOLEAN = 10,
+  /** #IDPropertyData.pointer owns a #CurveMapping. */
+  IDP_CURVE_MAPPING = IDP_STRUCT_BASE + 0,
+  /** #IDPropertyData.pointer owns a #ColorBand. */
+  IDP_COLOR_BAND = IDP_STRUCT_BASE + 1,
+  /** #IDPropertyData.pointer owns a #CurveProfile. */
+  IDP_CURVE_PROFILE = IDP_STRUCT_BASE + 2,
 };
-#define IDP_NUMTYPES 11
+#define IDP_NUM_BASIC_TYPES 11
+#define IDP_NUM_STRUCT_TYPES 3
+
+/** Utility to use in switch statements. */
+#define IDP_ANY_STRUCT_TYPE_CASE \
+  case IDP_CURVE_MAPPING: \
+  case IDP_COLOR_BAND: \
+  case IDP_CURVE_PROFILE
 
 /** Used by some IDP utils, keep values in sync with type enum above. */
 enum eIDPropertyTypeFilter : int {

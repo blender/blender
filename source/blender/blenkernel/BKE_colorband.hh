@@ -27,7 +27,11 @@ void BKE_colorband_evaluate_table_rgba(const ColorBand *coba, float **array, int
 CBData *BKE_colorband_element_add(ColorBand *coba, float position);
 bool BKE_colorband_element_remove(ColorBand *coba, int index);
 void BKE_colorband_update_sort(ColorBand *coba);
+/** Checks if two color bands are equal. Ignores UI state. */
+bool BKE_colorband_equals(const ColorBand *a, const ColorBand *b);
 void BKE_colorband_foreach_working_space_color(ColorBand *coba,
                                                const IDTypeForeachColorFunctionCallback &fn);
+
+void BKE_colorband_idproperty_type_register();
 
 }  // namespace blender

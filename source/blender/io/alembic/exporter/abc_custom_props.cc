@@ -83,6 +83,7 @@ void CustomPropertiesExporter::write(const IDProperty *id_property)
       break;
     case IDP_GROUP:
     case IDP_ID:
+    IDP_ANY_STRUCT_TYPE_CASE:
       /* Not supported. */
       break;
   }

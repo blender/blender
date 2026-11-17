@@ -9,6 +9,7 @@
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -40,11 +41,13 @@ class TransformableTest : public testing::Test {
     /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
     CLG_init();
     BKE_idtype_init();
+    IDP_struct_type_init();
     RNA_init();
   }
 
   static void TearDownTestSuite()
   {
+    IDP_struct_type_exit();
     CLG_exit();
     RNA_exit();
   }

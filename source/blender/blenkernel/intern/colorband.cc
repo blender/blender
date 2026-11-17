@@ -13,12 +13,15 @@
 #include "BLI_math_vector_c.hh"
 #include "BLI_utildefines.hh"
 
-#include "DNA_key_types.h"
-#include "DNA_texture_types.h"
-
 #include "BKE_colorband.hh"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
+
+#include "BLO_read_write.hh"
+
+#include "DNA_color_types.h"
+#include "DNA_colorband_types.h"
 
 namespace blender {
 
@@ -652,12 +655,87 @@ bool BKE_colorband_element_remove(ColorBand *coba, int index)
   return true;
 }
 
+bool BKE_colorband_equals(const ColorBand *a_ptr, const ColorBand *b_ptr)
+{
+  const ColorBand &a = *a_ptr;
+  const ColorBand &b = *b_ptr;
+  if (a.tot != b.tot) {
+    return false;
+  }
+  if (a.ipotype != b.ipotype) {
+    return false;
+  }
+  if (a.ipotype_hue != b.ipotype_hue) {
+    return false;
+  }
+  if (a.color_mode != b.color_mode) {
+    return false;
+  }
+  for (const int i : IndexRange(a.tot)) {
+    const CBData &a_data = a.data[i];
+    const CBData &b_data = b.data[i];
+    if (a_data.r != b_data.r || a_data.g != b_data.g || a_data.b != b_data.b ||
+        a_data.a != b_data.a || a_data.pos != b_data.pos)
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 void BKE_colorband_foreach_working_space_color(ColorBand *coba,
                                                const IDTypeForeachColorFunctionCallback &fn)
 {
   for (int a = 0; a < coba->tot; a++) {
     fn.single(&coba->data[a].r);
   }
+}
+
+static void *idp_struct_colorband_create()
+{
+  return BKE_colorband_add(true);
+}
+
+static void *idp_struct_colorband_copy(const void *src, const int /*flag*/)
+{
+  return MEM_new<ColorBand>(__func__, *static_cast<const ColorBand *>(src));
+}
+
+static void idp_struct_colorband_free(void *data)
+{
+  MEM_delete(static_cast<ColorBand *>(data));
+}
+
+static void idp_struct_colorband_blend_write(BlendWriter *writer, const void *data)
+{
+  writer->write_struct(static_cast<const ColorBand *>(data));
+}
+
+static void idp_struct_colorband_blend_read(BlendDataReader *reader, void **data_p)
+{
+  BLO_read_struct(reader, ColorBand, data_p);
+}
+
+static bool idp_struct_colorband_equals(const void *a, const void *b)
+{
+  return BKE_colorband_equals(static_cast<const ColorBand *>(a),
+                              static_cast<const ColorBand *>(b));
+}
+
+static const IDPropertyStructTypeInfo idp_struct_type_colorband = {
+    .idp_type = IDP_COLOR_BAND,
+    .rna_identifier = "ColorRamp",
+    .create_default = idp_struct_colorband_create,
+    .copy = idp_struct_colorband_copy,
+    .free = idp_struct_colorband_free,
+    .blend_write = idp_struct_colorband_blend_write,
+    .blend_read = idp_struct_colorband_blend_read,
+    .equals = idp_struct_colorband_equals,
+};
+
+void BKE_colorband_idproperty_type_register()
+{
+  IDP_struct_type_register(idp_struct_type_colorband);
 }
 
 }  // namespace blender

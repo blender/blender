@@ -33,6 +33,7 @@
 
 #include "UI_interface.hh" /* For things like UI_PRECISION_FLOAT_MAX... */
 
+#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_types.hh"
 
@@ -1833,6 +1834,17 @@ void RNA_def_property_struct_runtime(StructOrFunctionRNA *cont, PropertyRNA *pro
         CLOG_ERROR(&LOG,
                    "\"%s.%s\", this struct type (probably an Operator, Keymap or UserPreference) "
                    "does not accept ID pointer properties.",
+                   CONTAINER_RNA_ID(cont),
+                   prop->identifier.c_str());
+        DefRNA.error = true;
+        return;
+      }
+      if (cont == srna && (srna->flag & STRUCT_NO_DNASTRUCT_IDPROPERTIES) != 0 &&
+          RNA_struct_idprops_contains_struct(type))
+      {
+        CLOG_ERROR(&LOG,
+                   "\"%s.%s\", this struct type (probably an Operator) "
+                   "does not accept struct properties (e.g. CurveMapping).",
                    CONTAINER_RNA_ID(cont),
                    prop->identifier.c_str());
         DefRNA.error = true;

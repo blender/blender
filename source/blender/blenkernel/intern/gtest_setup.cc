@@ -12,6 +12,7 @@
 #include "BKE_cpp_types.hh"
 #include "BKE_gtest_setup.hh"
 #include "BKE_icons.hh"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_material.hh"
 #include "BKE_modifier.hh"
@@ -54,6 +55,7 @@ void gtest_setup()
   BKE_cpp_types_init();
   fn::multi_function::register_common_functions();
   BKE_idtype_init();
+  IDP_struct_type_init();
   BKE_modifier_init();
   seq::modifiers_init();
   BKE_shaderfx_init();
@@ -95,6 +97,7 @@ void gtest_teardown()
   BKE_appdir_exit();
   IMB_cache_destruct();
   IMB_exit();
+  IDP_struct_type_exit();
   CLG_exit();
 }
 

@@ -37,6 +37,8 @@ void BKE_curveprofile_copy_data(struct CurveProfile *target, const struct CurveP
 
 struct CurveProfile *BKE_curveprofile_copy(const struct CurveProfile *profile);
 
+bool BKE_curveprofile_equals(const struct CurveProfile *a, const struct CurveProfile *b);
+
 /**
  * Move a point's handle, accounting for the alignment of handles with the #HD_ALIGN type.
  *
@@ -178,5 +180,7 @@ void BKE_curveprofile_blend_write(struct BlendWriter *writer, const struct Curve
  * Expects that the curve profile itself has been read already.
  */
 void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurveProfile *profile);
+
+void BKE_curveprofile_idproperty_type_register();
 
 }  // namespace blender

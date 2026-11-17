@@ -352,6 +352,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  script_pyapi_idprop_struct
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_idprop_struct.py
+)
+
+add_blender_test(
   script_pyapi_prop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop.py
 )

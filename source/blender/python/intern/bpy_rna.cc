@@ -8998,6 +8998,11 @@ bool pyrna_id_CheckPyObject(PyObject *obj)
          RNA_struct_is_ID((reinterpret_cast<BPy_StructRNA *>(obj))->ptr->type);
 }
 
+bool pyrna_struct_CheckPyObject(PyObject *obj)
+{
+  return BPy_StructRNA_Check(obj);
+}
+
 void BPY_rna_init()
 {
 #ifdef USE_MATHUTILS /* Register mathutils callbacks, ok to run more than once. */
@@ -9499,6 +9504,22 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
                        "bpy_struct \"%.200s\" registration error: "
                        "'%.200s' %.200s could not register because "
                        "this type doesn't support data-block properties",
+                       RNA_struct_identifier(srna),
+                       key_str,
+                       func_name);
+          return -1;
+        }
+      }
+    }
+    if (!RNA_struct_idprops_struct_allowed(srna)) {
+      PyCFunctionWithKeywords py_func_ref = *(
+          PyCFunctionWithKeywords)(void *)PyCFunction_GET_FUNCTION(py_func);
+      if (ELEM(py_func_ref, BPy_PointerProperty, BPy_CollectionProperty)) {
+        if (RNA_struct_idprops_contains_struct(type_srna)) {
+          PyErr_Format(PyExc_ValueError,
+                       "bpy_struct \"%.200s\" registration error: "
+                       "'%.200s' %.200s could not register because "
+                       "this type doesn't support struct properties (e.g. CurveMapping)",
                        RNA_struct_identifier(srna),
                        key_str,
                        func_name);

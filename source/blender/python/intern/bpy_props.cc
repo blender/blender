@@ -35,6 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_idprop.hh"
+
 #include "DNA_ID.h" /* MAX_IDPROP_NAME */
 
 #include "../generic/py_capi_rna.hh"
@@ -5513,9 +5515,12 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
   if (!ptype) {
     return nullptr;
   }
-  if (!RNA_struct_is_a(ptype, RNA_PropertyGroup) && !RNA_struct_is_ID(ptype)) {
+  if (!RNA_struct_is_a(ptype, RNA_PropertyGroup) && !RNA_struct_is_ID(ptype) &&
+      !IDP_struct_type_find_by_rna_identifier(RNA_struct_identifier(ptype)))
+  {
     PyErr_Format(PyExc_TypeError,
-                 "PointerProperty(...) expected an RNA type derived from %.200s or %.200s",
+                 "PointerProperty(...) expected an RNA type derived from %.200s or %.200s, "
+                 "or a supported struct type (e.g. CurveMapping, ColorRamp)",
                  RNA_struct_ui_name(RNA_ID),
                  RNA_struct_ui_name(RNA_PropertyGroup));
     return nullptr;
@@ -5549,6 +5554,11 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
   if (RNA_struct_idprops_contains_datablock(ptype)) {
     if (RNA_struct_is_a(srna, RNA_PropertyGroup)) {
       RNA_def_struct_flag(srna, STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES);
+    }
+  }
+  if (RNA_struct_idprops_contains_struct(ptype)) {
+    if (RNA_struct_is_a(srna, RNA_PropertyGroup)) {
+      RNA_def_struct_flag(srna, STRUCT_CONTAINS_DNASTRUCT_IDPROPERTIES);
     }
   }
   bpy_prop_callback_assign_update(prop, update_fn);
@@ -5695,6 +5705,11 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
   if (RNA_struct_idprops_contains_datablock(ptype)) {
     if (RNA_struct_is_a(srna, RNA_PropertyGroup)) {
       RNA_def_struct_flag(srna, STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES);
+    }
+  }
+  if (RNA_struct_idprops_contains_struct(ptype)) {
+    if (RNA_struct_is_a(srna, RNA_PropertyGroup)) {
+      RNA_def_struct_flag(srna, STRUCT_CONTAINS_DNASTRUCT_IDPROPERTIES);
     }
   }
   RNA_def_property_duplicate_pointers(srna, prop);

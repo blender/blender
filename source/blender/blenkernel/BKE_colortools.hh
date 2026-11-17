@@ -41,6 +41,8 @@ void BKE_curvemapping_copy_data_single(
     CurveMapping *target, const CurveMapping *cumap, int to_idx, int from_idx, bool make_copy);
 void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap);
 CurveMapping *BKE_curvemapping_copy(const CurveMapping *cumap);
+/** Checks if two curve mappings are equal. Ignores UI state. */
+bool BKE_curvemapping_equals(const CurveMapping *a, const CurveMapping *b);
 void BKE_curvemapping_set_black_white_ex(const float black[3],
                                          const float white[3],
                                          float r_bwmul[3]);
@@ -196,6 +198,8 @@ void BKE_curvemapping_curves_blend_write(BlendWriter *writer, const CurveMapping
  * \note `cumap` itself has been read already.
  */
 void BKE_curvemapping_blend_read(BlendDataReader *reader, CurveMapping *cumap);
+
+void BKE_curvemapping_idproperty_type_register();
 
 void BKE_histogram_update_sample_line(Histogram *hist,
                                       ImBuf *ibuf,
