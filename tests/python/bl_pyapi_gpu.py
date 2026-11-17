@@ -163,6 +163,12 @@ class TestGpuTextureUpdate(unittest.TestCase):
     def test_update_rgba8_ubyte_buffer(self):
         gpu.init()
 
+        # Metal ties command-buffer lifetime to a render boundary. A texture read submits a
+        # command buffer and asserts the boundary is open, which the cannot be guaranteed
+        # from Python.
+        if gpu.platform.backend_type_get() == "METAL":
+            self.skipTest("Texture read requires a render boundary on Metal")
+
         payload = self._rgba8_payload(2, 2)
         tex = gpu.types.GPUTexture(size=(2, 2), format="RGBA8")
 
@@ -172,6 +178,10 @@ class TestGpuTextureUpdate(unittest.TestCase):
 
     def test_update_uses_ubyte_default_format(self):
         gpu.init()
+
+        # See test_update_rgba8_ubyte_buffer: a texture read requires a render boundary on Metal.
+        if gpu.platform.backend_type_get() == "METAL":
+            self.skipTest("Texture read requires a render boundary on Metal")
 
         payload = self._rgba8_payload(2, 2)
         tex = gpu.types.GPUTexture(size=(2, 2), format="RGBA8")
