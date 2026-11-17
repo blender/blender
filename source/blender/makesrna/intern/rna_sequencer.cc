@@ -1325,6 +1325,11 @@ static void rna_Strip_input_set(PointerRNA *ptr,
       strip->input2 = input;
       break;
   }
+
+  Scene *scene = id_cast<Scene *>(ptr->owner_id);
+  if (Editing *ed = seq::editing_get(scene)) {
+    seq::strip_lookup_invalidate(ed);
+  }
 }
 
 static void rna_Strip_input_1_set(PointerRNA *ptr, PointerRNA ptr_value, ReportList *reports)
