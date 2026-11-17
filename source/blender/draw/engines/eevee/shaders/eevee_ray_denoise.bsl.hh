@@ -19,6 +19,7 @@
 #include "eevee_defines.hh"
 #include "eevee_filter.bsl.hh"
 #include "eevee_gbuffer_read.bsl.hh"
+#include "eevee_ray_data_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
 #include "eevee_uniform.bsl.hh"
@@ -56,7 +57,7 @@ struct DenoiseSpatial {
 
   [[sampler(3)]] sampler2DDepth depth_tx;
 
-  [[image(0, read, SFLOAT_16_16_16_16)]] image2D ray_data_img;
+  [[image(0, read, RAYTRACE_RAYDATA_FORMAT)]] uimage2D ray_data_img;
   [[image(1, read, RAYTRACE_RAYTIME_FORMAT)]] image2D ray_time_img;
   [[image(2, read, RAYTRACE_RADIANCE_FORMAT)]] image2D ray_radiance_img;
 
@@ -162,10 +163,11 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
         srt.sample_weight_get(reader, uni, view, center_N, center_P, texel_nearest + int2(1, 0)),
         srt.sample_weight_get(reader, uni, view, center_N, center_P, texel_nearest + int2(0, 0)));
 
-    float4 ray_pdf_inv = float4(imageLoad(srt.ray_data_img, texel_nearest + int2(0, 1)).w,
-                                imageLoad(srt.ray_data_img, texel_nearest + int2(1, 1)).w,
-                                imageLoad(srt.ray_data_img, texel_nearest + int2(1, 0)).w,
-                                imageLoad(srt.ray_data_img, texel_nearest + int2(0, 0)).w);
+    float4 ray_pdf_inv = float4(
+        ray_data_pdf_inv(imageLoad(srt.ray_data_img, texel_nearest + int2(0, 1))),
+        ray_data_pdf_inv(imageLoad(srt.ray_data_img, texel_nearest + int2(1, 1))),
+        ray_data_pdf_inv(imageLoad(srt.ray_data_img, texel_nearest + int2(1, 0))),
+        ray_data_pdf_inv(imageLoad(srt.ray_data_img, texel_nearest + int2(0, 0))));
     float4 ray_validity = float4(not(equal(ray_pdf_inv, float4(0.0f))));
 
     float4 ray_radiance0 = imageLoad(srt.ray_radiance_img, texel_nearest + int2(0, 1));
@@ -311,12 +313,12 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
 
     int2 sample_texel = center_sample_texel + offset;
 
-    float4 ray_data = imageLoad(srt.ray_data_img, sample_texel);
+    uint4 ray_data = imageLoad(srt.ray_data_img, sample_texel);
     float ray_time = imageLoad(srt.ray_time_img, sample_texel).r;
     float4 ray_radiance = imageLoad(srt.ray_radiance_img, sample_texel);
 
-    float3 ray_direction = ray_data.xyz;
-    float ray_pdf_inv = abs(ray_data.w);
+    float3 ray_direction = ray_data_direction(ray_data);
+    float ray_pdf_inv = abs(ray_data_pdf_inv(ray_data));
     /* Skip invalid pixels. */
     if (ray_pdf_inv == 0.0f) {
       continue;

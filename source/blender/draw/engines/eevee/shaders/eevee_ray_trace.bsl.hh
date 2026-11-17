@@ -10,6 +10,7 @@
 #include "eevee_gbuffer_read.bsl.hh"
 #include "eevee_lightprobe.bsl.hh"
 #include "eevee_lightprobe_plane.bsl.hh"
+#include "eevee_ray_data_lib.bsl.hh"
 #include "eevee_ray_trace_screen_lib.bsl.hh"
 #include "eevee_reverse_z_lib.bsl.hh"
 #include "eevee_sampling_lib.bsl.hh"
@@ -32,7 +33,7 @@ struct Resources {
   [[sampler(4)]] sampler2D hiz_front_tx;
   [[sampler(5)]] sampler2D hiz_back_tx;
 
-  [[image(0, read, SFLOAT_16_16_16_16)]] const image2D ray_data_img;
+  [[image(0, read, RAYTRACE_RAYDATA_FORMAT)]] const uimage2D ray_data_img;
   [[image(1, write, RAYTRACE_RAYTIME_FORMAT)]] image2D ray_time_img;
   [[image(2, write, RAYTRACE_RADIANCE_FORMAT)]] image2D ray_radiance_img;
 };
@@ -64,8 +65,8 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
-  float4 ray_data_im = imageLoadFast(srt.ray_data_img, texel);
-  float ray_pdf_inv = ray_data_im.w;
+  uint4 ray_data_im = imageLoadFast(srt.ray_data_img, texel);
+  float ray_pdf_inv = ray_data_pdf_inv(ray_data_im);
 
   if (ray_pdf_inv < 0.0f) {
     /* Ray destined to planar trace. */
@@ -95,7 +96,7 @@ void trace([[resource_table]] Resources &srt,
   float3 V = view.world_incident_vector(P);
   Ray ray;
   ray.origin = P;
-  ray.direction = ray_data_im.xyz;
+  ray.direction = ray_data_direction(ray_data_im);
 
   /* Only closure 0 can be a transmission closure. */
   if (srt.closure_index == 0) {
@@ -210,7 +211,7 @@ struct Resources {
 
   [[sampler(2)]] sampler2DDepth depth_tx;
 
-  [[image(0, read_write, SFLOAT_16_16_16_16)]] image2D ray_data_img;
+  [[image(0, read_write, RAYTRACE_RAYDATA_FORMAT)]] uimage2D ray_data_img;
   [[image(1, write, RAYTRACE_RAYTIME_FORMAT)]] image2D ray_time_img;
   [[image(2, write, RAYTRACE_RADIANCE_FORMAT)]] image2D ray_radiance_img;
 };
@@ -242,8 +243,8 @@ void trace([[resource_table]] Resources &srt,
     return;
   }
 
-  float4 ray_data_im = imageLoadFast(srt.ray_data_img, texel);
-  float ray_pdf_inv = ray_data_im.w;
+  uint4 ray_data_im = imageLoadFast(srt.ray_data_img, texel);
+  float ray_pdf_inv = ray_data_pdf_inv(ray_data_im);
 
   if (ray_pdf_inv == 0.0f) {
     /* Invalid ray or pixels without ray. Do not trace. */
@@ -275,7 +276,8 @@ void trace([[resource_table]] Resources &srt,
   float3 P = view.point_screen_to_world(float3(uv, depth));
   float3 V = view.world_incident_vector(P);
 
-  int planar_id = lightprobe_planes.select_probe(P, ray_data_im.xyz);
+  float3 ray_direction = ray_data_direction(ray_data_im);
+  int planar_id = lightprobe_planes.select_probe(P, ray_direction);
   if (planar_id == -1) {
     return;
   }
@@ -283,11 +285,11 @@ void trace([[resource_table]] Resources &srt,
   PlanarProbeData planar = lightprobe_planes.probe_planar_buf[planar_id];
 
   /* Tag the ray data so that screen trace will not try to evaluate it and override the result. */
-  imageStoreFast(srt.ray_data_img, texel, float4(ray_data_im.xyz, -ray_data_im.w));
+  imageStoreFast(srt.ray_data_img, texel, ray_data_pack(ray_direction, -ray_pdf_inv));
 
   Ray ray;
   ray.origin = P;
-  ray.direction = ray_data_im.xyz;
+  ray.direction = ray_direction;
 
   float3 radiance = float3(0.0f);
   float noise_offset = sampling.rng_1D_get(SAMPLING_RAYTRACE_W);
@@ -346,7 +348,7 @@ struct Resources {
 
   [[sampler(1)]] sampler2DDepth depth_tx;
 
-  [[image(0, read, SFLOAT_16_16_16_16)]] const image2D ray_data_img;
+  [[image(0, read, RAYTRACE_RAYDATA_FORMAT)]] const uimage2D ray_data_img;
   [[image(1, write, RAYTRACE_RAYTIME_FORMAT)]] image2D ray_time_img;
   [[image(2, write, RAYTRACE_RADIANCE_FORMAT)]] image2D ray_radiance_img;
 };
@@ -382,8 +384,8 @@ void trace([[resource_table]] Resources &srt,
   float depth = reverse_z::read(texelFetch(srt.depth_tx, texel_fullres, 0).r);
   float2 uv = (float2(texel_fullres) + 0.5f) * uni.raytrace_buf.full_resolution_inv;
 
-  float4 ray_data_im = imageLoadFast(srt.ray_data_img, texel);
-  float ray_pdf_inv = ray_data_im.w;
+  uint4 ray_data_im = imageLoadFast(srt.ray_data_img, texel);
+  float ray_pdf_inv = ray_data_pdf_inv(ray_data_im);
 
   if (ray_pdf_inv == 0.0f) {
     /* Invalid ray or pixels without ray. Do not trace. */
@@ -399,7 +401,7 @@ void trace([[resource_table]] Resources &srt,
 
   Ray ray;
   ray.origin = P;
-  ray.direction = ray_data_im.xyz;
+  ray.direction = ray_data_direction(ray_data_im);
 
   /* Only closure 0 can be a transmission closure. */
   if (srt.closure_index == 0) {

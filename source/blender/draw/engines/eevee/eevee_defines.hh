@@ -148,6 +148,7 @@
 [[maybe_unused]] static constexpr int RAYTRACE_GROUP_SIZE = 8;
 /* Keep this as a define to avoid shader variations. */
 #define RAYTRACE_RADIANCE_FORMAT UFLOAT_11_11_10
+#define RAYTRACE_RAYDATA_FORMAT UINT_16_16_16_16
 #define RAYTRACE_RAYTIME_FORMAT SFLOAT_32
 #define RAYTRACE_VARIANCE_FORMAT SFLOAT_16
 #define RAYTRACE_TILEMASK_FORMAT UINT_8
