@@ -430,6 +430,7 @@ static void graph_channel_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.scroll |= V2D_SCROLL_VERTICAL_HIDE;
 
   view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  region->v2d.tot.xmax = region->winx;
 
   /* own keymap */
   keymap = WM_keymap_ensure(
