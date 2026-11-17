@@ -284,7 +284,7 @@ static wmOperatorStatus wm_link_append_exec(bContext *C, wmOperator *op)
   /* Tag everything, all untagged data can be made local
    * its also generally useful to know what is new.
    *
-   * Take extra care `BKE_main_id_flag_all(bmain, ID_TAG_PRE_EXISTING, false)` is called after! */
+   * Take extra care `BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false)` is called after! */
   BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
 
   /* We define our working data...
@@ -623,7 +623,7 @@ static wmOperatorStatus wm_id_linked_relocate_exec(bContext *C, wmOperator *op)
 
   /* Tag everything, its generally useful to know what is new.
    *
-   * Take extra care `BKE_main_id_flag_all(bmain, ID_TAG_PRE_EXISTING, false)` is called after! */
+   * Take extra care `BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false)` is called after! */
   BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
 
   /* We define our working data...

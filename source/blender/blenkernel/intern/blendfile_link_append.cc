@@ -2414,7 +2414,7 @@ void BKE_blendfile_id_relocate(BlendfileLinkAppendContext &lapp_context, ReportL
 
   /* Tag everything, its generally useful to know what is new.
    *
-   * Take extra care `BKE_main_id_flag_all(bmain, ID_TAG_PRE_EXISTING, false)` is called after! */
+   * Take extra care `BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, false)` is called after! */
   BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
 
   /* XXX We'd need re-entrant locking on Main for this to work... */

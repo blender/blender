@@ -1313,7 +1313,7 @@ void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv)
   id->tag |= ID_TAG_NO_USER_REFCOUNT;
 }
 
-void BKE_main_id_tag_listbase(ListBaseT<ID> *lb, const int tag, const bool value)
+void BKE_main_id_tag_listbase(ListBaseT<ID> *lb, const eID_Tag tag, const bool value)
 {
   ID *id;
   if (value) {
@@ -1322,21 +1322,20 @@ void BKE_main_id_tag_listbase(ListBaseT<ID> *lb, const int tag, const bool value
     }
   }
   else {
-    const int ntag = ~tag;
     for (id = lb->first(); id; id = static_cast<ID *>(id->next)) {
-      id->tag &= ntag;
+      id->tag &= ~tag;
     }
   }
 }
 
-void BKE_main_id_tag_idcode(Main *mainvar, const short type, const int tag, const bool value)
+void BKE_main_id_tag_idcode(Main *mainvar, const short type, const eID_Tag tag, const bool value)
 {
   ListBaseT<ID> *lb = which_libbase(mainvar, type);
 
   BKE_main_id_tag_listbase(lb, tag, value);
 }
 
-void BKE_main_id_tag_all(Main *mainvar, const int tag, const bool value)
+void BKE_main_id_tag_all(Main *mainvar, eID_Tag tag, const bool value)
 {
   MainListsArray lbarray = BKE_main_lists_get(*mainvar);
   int a = lbarray.size();
@@ -1345,23 +1344,22 @@ void BKE_main_id_tag_all(Main *mainvar, const int tag, const bool value)
   }
 }
 
-void BKE_main_id_flag_listbase(ListBaseT<ID> *lb, const int flag, const bool value)
+void BKE_main_id_flag_listbase(ListBaseT<ID> *lb, const eID_Flag flag, const bool value)
 {
   ID *id;
   if (value) {
     for (id = lb->first(); id; id = static_cast<ID *>(id->next)) {
-      id->tag |= flag;
+      id->flag |= flag;
     }
   }
   else {
-    const int nflag = ~flag;
     for (id = lb->first(); id; id = static_cast<ID *>(id->next)) {
-      id->tag &= nflag;
+      id->flag &= ~flag;
     }
   }
 }
 
-void BKE_main_id_flag_all(Main *bmain, const int flag, const bool value)
+void BKE_main_id_flag_all(Main *bmain, eID_Flag flag, const bool value)
 {
   MainListsArray lbarray = BKE_main_lists_get(*bmain);
   int a = lbarray.size();

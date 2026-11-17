@@ -239,7 +239,7 @@ static void id_search_cb_objects_from_scene(const bContext *C,
     scene = CTX_data_scene(C);
   }
 
-  BKE_main_id_flag_listbase(lb, ID_TAG_DOIT, false);
+  BKE_main_id_tag_listbase(lb, ID_TAG_DOIT, false);
 
   FOREACH_SCENE_OBJECT_BEGIN (scene, ob_iter) {
     ob_iter->id.tag |= ID_TAG_DOIT;

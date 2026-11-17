@@ -612,7 +612,7 @@ bool BKE_workspace_owner_id_check(const WorkSpace *workspace, const char *owner_
   return BLI_findstring(&workspace->owner_ids, owner_id, offsetof(wmOwnerID, name)) != nullptr;
 }
 
-void BKE_workspace_id_tag_all_visible(Main *bmain, int tag)
+void BKE_workspace_id_tag_all_visible(Main *bmain, const eID_Tag tag)
 {
   BKE_main_id_tag_listbase(&bmain->workspaces.cast<ID>(), tag, false);
   wmWindowManager *wm = bmain->wm.first();

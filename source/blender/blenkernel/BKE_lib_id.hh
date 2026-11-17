@@ -951,24 +951,24 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, int flags);
  *
  * \note Affect whole Main database.
  */
-void BKE_main_id_tag_idcode(Main *mainvar, short type, int tag, bool value);
+void BKE_main_id_tag_idcode(Main *mainvar, short type, eID_Tag tag, bool value);
 /**
  * Clear or set given tags for all ids in listbase (runtime tags).
  */
-void BKE_main_id_tag_listbase(ListBaseT<ID> *lb, int tag, bool value);
+void BKE_main_id_tag_listbase(ListBaseT<ID> *lb, eID_Tag tag, bool value);
 /**
  * Clear or set given tags for all ids in bmain (runtime tags).
  */
-void BKE_main_id_tag_all(Main *mainvar, int tag, bool value);
+void BKE_main_id_tag_all(Main *mainvar, eID_Tag tag, bool value);
 
 /**
  * Clear or set given flags for all ids in listbase (persistent flags).
  */
-void BKE_main_id_flag_listbase(ListBaseT<ID> *lb, int flag, bool value);
+void BKE_main_id_flag_listbase(ListBaseT<ID> *lb, eID_Flag flag, bool value);
 /**
  * Clear or set given flags for all ids in bmain (persistent flags).
  */
-void BKE_main_id_flag_all(Main *bmain, int flag, bool value);
+void BKE_main_id_flag_all(Main *bmain, eID_Flag flag, bool value);
 
 /**
  * Next to indirect usage in `readfile.cc` / `writefile.cc` also in `editobject.c`, `scene.cc`.
