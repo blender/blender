@@ -259,12 +259,16 @@ namespace {
 /** Cached settings for faster paint blending. */
 struct PaintBlendSettings {
   explicit PaintBlendSettings(const Brush &brush)
-      : brush_alpha(brush.alpha), blend_mode(IMB_BlendMode(brush.blend))
+      : brush_alpha(brush.alpha),
+        blend_mode(IMB_BlendMode(brush.blend)),
+        lock_alpha((brush.flag & BRUSH_LOCK_ALPHA) &&
+                   !ELEM(blend_mode, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA))
   {
   }
 
   float brush_alpha;
   IMB_BlendMode blend_mode;
+  bool lock_alpha;
 };
 
 }  // namespace
@@ -274,6 +278,7 @@ BLI_INLINE float4 paint_blend_pixel(const float4 &brush_color,
                                     const float brush_alpha,
                                     const bool is_mix,
                                     const IMB_BlendMode blend_mode,
+                                    const bool lock_alpha,
                                     const float factor,
                                     const float4 color)
 {
@@ -286,6 +291,9 @@ BLI_INLINE float4 paint_blend_pixel(const float4 &brush_color,
   }
   else {
     IMB_blend_color_float(result, color, paint_color, blend_mode);
+  }
+  if (lock_alpha) {
+    result.w = color.w;
   }
   return result;
 }
@@ -345,8 +353,13 @@ BLI_NOINLINE static void paint_blend_pixels_color_managed(
 #ifdef DEBUG_PIXEL_NODES
     scene = paint_debug_color(scene, img_y);
 #endif
-    scene_linear_pixels[i] = paint_blend_pixel(
-        colors[i], settings.brush_alpha, is_mix, settings.blend_mode, factors[i], scene);
+    scene_linear_pixels[i] = paint_blend_pixel(colors[i],
+                                               settings.brush_alpha,
+                                               is_mix,
+                                               settings.blend_mode,
+                                               settings.lock_alpha,
+                                               factors[i],
+                                               scene);
   }
 
   /* Convert from scene linear to image colorspace. */
@@ -453,6 +466,7 @@ static void paint_blend_pixels(const PaintBlendSettings &settings,
   const float brush_alpha = settings.brush_alpha;
   const bool is_mix = settings.blend_mode == IMB_BLEND_MIX;
   const IMB_BlendMode blend_mode = settings.blend_mode;
+  const bool lock_alpha = settings.lock_alpha;
 
   if constexpr (is_float) {
     /* Scene linear float. */
@@ -462,7 +476,7 @@ static void paint_blend_pixels(const PaintBlendSettings &settings,
       scene = paint_debug_color(scene, img_y);
 #endif
       image_pixels[i] = paint_blend_pixel(
-          colors[i], brush_alpha, is_mix, blend_mode, factors[i], scene);
+          colors[i], brush_alpha, is_mix, blend_mode, lock_alpha, factors[i], scene);
     }
   }
   else {
@@ -476,7 +490,7 @@ static void paint_blend_pixels(const PaintBlendSettings &settings,
       scene = paint_debug_color(scene, img_y);
 #endif
       paint_pixels[i] = paint_blend_pixel(
-          colors[i], brush_alpha, is_mix, blend_mode, factors[i], scene);
+          colors[i], brush_alpha, is_mix, blend_mode, lock_alpha, factors[i], scene);
     }
 
     /* SIMD optimized write. */
