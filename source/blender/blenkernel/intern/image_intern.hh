@@ -15,22 +15,34 @@ namespace blender {
 struct Image;
 struct ImBuf;
 
-/** Cache key for an image buffer within an #Image datablock. */
-struct ImageCacheKey {
-  int index;
+enum class ImageUDIMTexture {
+  /** Not a UDIM aggregate. */
+  None = 0,
+  /** All tiles packed into a single 2D array texture. */
+  Atlas,
+  /** 1D-array lookup texture mapping tile number to atlas layer + UV offset/scale. */
+  TileMapping,
 };
 
-/* Index to indicate we don't store sequences in ibuf. */
 #define IMA_NO_INDEX 0x7FEFEFEF
-/* Index for UDIM aggregate textures. */
-#define IMA_INDEX_UDIM_ATLAS 0x7FEFEFE0
-#define IMA_INDEX_UDIM_TILE_MAPPING 0x7FEFEFE1
-/* Index for a missing multilayer layer, to cache a failed load. Fits in IMA_MAKE_INDEX. */
+#define IMA_NO_VIEW 0x7FEFEFEF
+/* Index for a missing multilayer layer, to cache a failed load. */
 #define IMA_INDEX_MISSING_LAYER ((1 << 10) - 1)
 
-/* Encode and decode animation frame in index. */
-#define IMA_MAKE_INDEX(entry, index) (((entry) << 10) + (index))
-#define IMA_INDEX_ENTRY(index) ((index) >> 10)
+struct ImageCacheKey {
+  /** UDIM buffer type. */
+  ImageUDIMTexture udim_type = ImageUDIMTexture::None;
+  /* UDIM tile number. */
+  int tile_number = 0;
+  /** Image sequence frame. */
+  int frame = 0;
+  /** Multiview. */
+  int view = IMA_NO_VIEW;
+  /** Multilayer. */
+  int multi_index = IMA_NO_INDEX;
+
+  friend bool operator==(const ImageCacheKey &a, const ImageCacheKey &b) = default;
+};
 
 /** Insert image buffer into image cache. */
 void imagecache_put(Image *image, ImageCacheKey key, ImBuf *ibuf);
