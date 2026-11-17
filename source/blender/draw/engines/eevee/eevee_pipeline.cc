@@ -987,12 +987,14 @@ void DeferredLayer::end_sync(bool is_first_pass,
                                  uint8_t(StencilBits::TRANSMISSION);
           sub.state_stencil(0x0u, i + 1, compare_mask);
           sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+          sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
           if (use_transmission) {
             /* Separate pass for transmission BSDF as their evaluation is quite costly. */
             set_specialization_constants(sub, sh, true);
             sub.shader_set(sh);
             sub.state_stencil(0x0u, (i + 1) | uint8_t(StencilBits::TRANSMISSION), compare_mask);
             sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+            sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
           }
         }
       }
