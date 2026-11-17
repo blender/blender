@@ -1338,6 +1338,7 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
 {
   SculptSession &ss = *object.runtime->sculpt_session;
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
   switch (brush->sculpt_brush_type) {
     case SCULPT_BRUSH_TYPE_MASK:
@@ -1351,7 +1352,8 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
     case SCULPT_BRUSH_TYPE_DRAW_FACE_SETS:
       if (ss.cache->toggle_settings.alt_smooth) {
         restore_position_from_undo_step(depsgraph, object);
-        bke::pbvh::update_normals(depsgraph, object, *bke::object::pbvh_get(object));
+        bke::pbvh::update_normals(depsgraph, object, pbvh);
+        pbvh.update_bounds(depsgraph, object);
       }
       else {
         restore_face_set_from_undo_step(object);
@@ -1359,7 +1361,8 @@ static void restore_from_undo_step(const Depsgraph &depsgraph, const Sculpt &sd,
       break;
     default:
       restore_position_from_undo_step(depsgraph, object);
-      bke::pbvh::update_normals(depsgraph, object, *bke::object::pbvh_get(object));
+      bke::pbvh::update_normals(depsgraph, object, pbvh);
+      pbvh.update_bounds(depsgraph, object);
       break;
   }
 }
