@@ -1326,23 +1326,6 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     layout.op("UI_OT_copy_python_command_button", std::nullopt, ICON_NONE);
   }
 
-  /* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
-  if (U.flag & USER_DEVELOPER_UI) {
-    if (!block_is_menu(but->block) || (but->block->handle && but->block->handle->can_refresh)) {
-      Layout &sub = layout.column(true);
-      if (but->block->handle) {
-        PointerRNA region_ptr = RNA_pointer_create_discrete(
-            id_cast<ID *>(CTX_wm_screen(C)), RNA_Region, but->block->handle->region);
-        sub.context_ptr_set("popup_region", &region_ptr);
-      }
-      sub.op("UI_OT_editsource",
-             std::nullopt,
-             ICON_NONE,
-             wm::OpCallContext::InvokeDefault,
-             UI_ITEM_NONE);
-    }
-  }
-
   /* Show header tools for header buttons. */
   if (block_is_popup_any(but->block) == false) {
     const ARegion *region = CTX_wm_region(C);
@@ -1381,6 +1364,25 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
   MenuType *mt = WM_menutype_find("UI_MT_button_context_menu", true);
   if (mt) {
     menutype_draw(C, mt, &layout.column(false));
+  }
+
+  /* Development tools are optional, they should be placed last. */
+  /* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
+  if (U.flag & USER_DEVELOPER_UI) {
+    if (!block_is_menu(but->block) || (but->block->handle && but->block->handle->can_refresh)) {
+      layout.separator();
+      Layout &sub = layout.column(true);
+      if (but->block->handle) {
+        PointerRNA region_ptr = RNA_pointer_create_discrete(
+            id_cast<ID *>(CTX_wm_screen(C)), RNA_Region, but->block->handle->region);
+        sub.context_ptr_set("popup_region", &region_ptr);
+      }
+      sub.op("UI_OT_editsource",
+             std::nullopt,
+             ICON_NONE,
+             wm::OpCallContext::InvokeDefault,
+             UI_ITEM_NONE);
+    }
   }
 
   if (but->context) {
