@@ -1334,6 +1334,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
       /* skip */
     }
     else if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+      layout.separator();
       layout.menu_fn(IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, nullptr);
     }
     else if (region->regiontype == RGN_TYPE_NAV_BAR) {
