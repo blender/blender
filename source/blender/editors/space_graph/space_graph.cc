@@ -272,7 +272,6 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   /* draw data */
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
     using namespace ed::animfilter;
-    /* TODO reimplement. */
     graph_draw_ghost_curves(*scene, sipo, region->v2d);
     AnimfilterSpaceRuntime &runtime = sipo->runtime->animfilter_runtime;
     BLI_assert_msg(runtime.channel_arena.has_value(),

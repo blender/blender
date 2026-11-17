@@ -470,7 +470,6 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
 
     /* The View2D's height needs to be set before calling view2d_view_ortho because the latter
      * uses the View2D's `cur` rect which might be modified when setting the height. */
-    /* TODO respect markers region. */
     ListBaseT<TimeMarker> *markers = ANIM_marker_list_from_context(*C);
     const bool has_markers = markers != nullptr && !markers->is_empty();
     set_v2d_height(v2d, channels.num_channels(), has_markers);
