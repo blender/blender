@@ -22,6 +22,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.hh"
 
+#include "BKE_scene.hh"
+
 #include "BLF_api.hh"
 
 #include "SEQ_animation.hh"
@@ -785,7 +787,9 @@ static int2 strip_source_size_get(const Scene *scene, const Strip *strip)
       if (strip->scene == nullptr || (strip->flag & SEQ_SCENE_STRIPS) != 0) {
         return parent_scene_size;
       }
-      return int2(strip->scene->r.xsch, strip->scene->r.ysch);
+      int width, height;
+      BKE_render_resolution(&strip->scene->r, false, &width, &height);
+      return int2(width, height);
     }
     case STRIP_TYPE_COLOR: {
       const SolidColorVars *cv = static_cast<const SolidColorVars *>(strip->effectdata);
