@@ -2413,7 +2413,7 @@ const IDPropertyStructTypeInfo *IDP_struct_type_info(const eIDPropertyType type)
 bool IDP_contains_struct_type(IDProperty *prop)
 {
   bool contains_struct = false;
-  IDP_foreach_property(prop, 0, [&](IDProperty *child) {
+  IDP_foreach_property(prop, eIDPropertyTypeFilter(0), [&](IDProperty *child) {
     if (is_idp_struct_type(eIDPropertyType(child->type))) {
       contains_struct = true;
     }
