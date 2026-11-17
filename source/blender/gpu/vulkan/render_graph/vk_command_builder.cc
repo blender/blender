@@ -735,6 +735,9 @@ void VKCommandBuilder::add_buffer_write_barriers(VKRenderGraph &render_graph,
                                                  VkPipelineStageFlags node_stages,
                                                  Barrier &r_barrier)
 {
+  /* State update per node: the first write link on a resource replaces the state left by the
+   * previous node, further write links of this node on the same resource accumulate. */
+  Vector<ResourceHandle> node_write_resources;
   for (const VKRenderGraphBuffer &link : render_graph.linked_buffers(node_handle)) {
     if (!link.has_write_access()) {
       continue;
@@ -744,12 +747,20 @@ void VKCommandBuilder::add_buffer_write_barriers(VKRenderGraph &render_graph,
         versioned_resource.handle);
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const VkAccessFlags wait_access = resource_state.vk_access;
+    const VkPipelineStageFlags wait_stages = resource_state.vk_pipeline_stages;
 
-    r_barrier.src_stage_mask |= resource_state.vk_pipeline_stages;
+    if (!node_write_resources.contains(versioned_resource.handle)) {
+      node_write_resources.append(versioned_resource.handle);
+      resource_state.vk_access = link.vk_access_flags;
+      resource_state.vk_pipeline_stages = node_stages;
+    }
+    else {
+      resource_state.vk_access |= link.vk_access_flags;
+      resource_state.vk_pipeline_stages |= node_stages;
+    }
+
+    r_barrier.src_stage_mask |= wait_stages;
     r_barrier.dst_stage_mask |= node_stages;
-
-    resource_state.vk_access = link.vk_access_flags;
-    resource_state.vk_pipeline_stages = node_stages;
 
     if (wait_access != VK_ACCESS_NONE) {
       add_buffer_barrier(resource.buffer.vk_buffer, r_barrier, wait_access, link.vk_access_flags);
@@ -896,7 +907,17 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
       /* Image tracker only tracks layout changes. Access flag synchronization is still needed
        * to avoid WRITE->READ hazards between rendering scopes. See #158501. */
       VkAccessFlags wait_access = resource_state.vk_access;
-      r_barrier.src_stage_mask |= resource_state.vk_pipeline_stages;
+      VkPipelineStageFlags wait_stages = resource_state.vk_pipeline_stages;
+      if (link.vk_image_aspect & VK_IMAGE_ASPECT_COLOR_BIT) {
+        wait_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        wait_stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+      }
+      else {
+        wait_access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        wait_stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                       VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+      }
+      r_barrier.src_stage_mask |= wait_stages;
       r_barrier.dst_stage_mask |= node_stages;
       if (is_first_read) {
         resource_state.vk_access = link.vk_access_flags;
@@ -956,6 +977,9 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                                                 ImageLinkFilter link_filter,
                                                 Barrier &r_barrier)
 {
+  /* State update per node: the first write link on a resource replaces the state left by the
+   * previous node, further write links of this node on the same resource accumulate. */
+  Vector<ResourceHandle> node_write_resources;
   for (const VKRenderGraphImage &link : render_graph.linked_images(node_handle)) {
     if (!link.has_write_access()) {
       continue;
@@ -968,6 +992,17 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
         versioned_resource.handle);
     VKResourceBarrierState &resource_state = resource.barrier_state;
     const VkAccessFlags wait_access = resource_state.vk_access;
+    const VkPipelineStageFlags wait_stages = resource_state.vk_pipeline_stages;
+
+    if (!node_write_resources.contains(versioned_resource.handle)) {
+      node_write_resources.append(versioned_resource.handle);
+      resource_state.vk_access = link.vk_access_flags;
+      resource_state.vk_pipeline_stages = node_stages;
+    }
+    else {
+      resource_state.vk_access |= link.vk_access_flags;
+      resource_state.vk_pipeline_stages |= node_stages;
+    }
 
     /* Check if this image is being tracked as layered color attachment. In that case we are not
      * allowed to update the resource state as it will be reverted by the image tracker. */
@@ -980,11 +1015,15 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                              r_barrier);
       }
       /* Image tracker only tracks layout changes. Access flag synchronization is still needed
-       * to avoid READ->WRITE hazards between rendering scopes. See #158501. */
-      r_barrier.src_stage_mask |= resource_state.vk_pipeline_stages;
+       * to avoid WRITE->READ hazards between rendering scopes. See #158501. */
+      if (link.vk_image_aspect & VK_IMAGE_ASPECT_COLOR_BIT) {
+        resource_state.vk_access |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+      }
+      else {
+        resource_state.vk_access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+      }
+      r_barrier.src_stage_mask |= wait_stages;
       r_barrier.dst_stage_mask |= node_stages;
-      resource_state.vk_access = link.vk_access_flags;
-      resource_state.vk_pipeline_stages = node_stages;
       if (wait_access != VK_ACCESS_NONE && (wait_access & ~link.vk_access_flags) != 0) {
         /* Memory-only barrier; see the comment in #add_image_read_barriers. */
         add_image_barrier(resource.image.vk_image,
@@ -999,11 +1038,8 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
       continue;
     }
 
-    r_barrier.src_stage_mask |= resource_state.vk_pipeline_stages;
+    r_barrier.src_stage_mask |= wait_stages;
     r_barrier.dst_stage_mask |= node_stages;
-
-    resource_state.vk_access = link.vk_access_flags;
-    resource_state.vk_pipeline_stages = node_stages;
 
     if (wait_access != VK_ACCESS_NONE || link.vk_image_layout != resource_state.image_layout) {
       add_image_barrier(resource.image.vk_image,

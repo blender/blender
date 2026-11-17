@@ -66,9 +66,9 @@ ENUM_OPERATORS(VKResourceType);
  * State being tracked for a resource.
  */
 struct VKResourceBarrierState {
-  /** Last used access flags. Will be reset by the last write. Reads will accumulate flags. */
+  /** Last used access flags. */
   VkAccessFlags vk_access = VK_ACCESS_NONE;
-  /* Last known pipeline stage. Will be reset by the last write. Reads will accumulate flags. */
+  /* Last known pipeline stage. */
   VkPipelineStageFlags vk_pipeline_stages = VK_PIPELINE_STAGE_NONE;
   /** Last known image layout of an image resource. */
   VkImageLayout image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
