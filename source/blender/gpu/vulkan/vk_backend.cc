@@ -614,6 +614,12 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.dynamic_rendering_local_read = false;
   }
 
+  /* AMD official driver can crash when using HWRT. Disabling for now, but investigation will still
+   * continue. (See #166550) */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    GCaps.ray_query_support = false;
+  }
+
   /* Disable vertex input dynamic state for Qualcomm devices (#153414).
    *
    * TODO: We should re-validate vertex input dynamic state as there are multiple vendors with
