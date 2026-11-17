@@ -877,8 +877,7 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
       accum /= totw;
     }
 
-    float4 col = color_vert_get(
-        faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
+    float4 col;
     blend_color_interpolate_float(col, ss.cache->paint_brush.prev_colors[vert], accum, factors[i]);
     color_vert_set(faces,
                    corner_verts,
