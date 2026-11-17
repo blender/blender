@@ -2278,10 +2278,24 @@ static std::optional<BladeSplit> blade_split_get(
     split_expand_strips(ed, strip, include, split.strips);
   }
 
-  if (split.strips.is_empty() && !all_channels) {
-    return std::nullopt;
+  if (!split.strips.is_empty() || all_channels) {
+    return split;
   }
-  return split;
+
+  /* Check to see if we are at a split point (where two strips directly neighbor one another).
+   * If so, then show the tooltip and preview frame even though it's technically not splittable. */
+  bool left_neighbor = false, right_neighbor = false;
+  for (Strip &strip : *ed->current_strips()) {
+    if (strip.channel == *channel && (!only_selected || (strip.flag & SEQ_SELECT))) {
+      left_neighbor |= strip.right_handle(scene) == split_frame;
+      right_neighbor |= strip.left_handle() == split_frame;
+    }
+  }
+  if (left_neighbor && right_neighbor) {
+    return split;
+  }
+
+  return std::nullopt;
 }
 
 static void blade_split_draw(Scene *scene, const ARegion *region, const BladeSplit &split)
