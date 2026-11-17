@@ -1347,6 +1347,10 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     else if (region->regiontype == RGN_TYPE_FOOTER) {
       layout.menu_fn(IFACE_("Footer"), ICON_NONE, ED_screens_footer_tools_menu_create, nullptr);
     }
+    else if (ELEM(region->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS)) {
+      layout.separator();
+      ED_screens_region_flip_menu_create(C, &layout, nullptr);
+    }
   }
 
   /* UI List item context menu. Scripts can add items to it, by default there's nothing shown. */
@@ -1448,6 +1452,8 @@ int popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   PointerRNA prefs_ptr = RNA_pointer_create_discrete(nullptr, RNA_PreferencesSystem, &U);
   layout.prop(
       &prefs_ptr, "show_panel_tabs_compact", UI_ITEM_NONE, IFACE_("Compact Tabs"), ICON_NONE);
+  layout.separator();
+  ED_screens_region_flip_menu_create(C, &layout, nullptr);
 
   popup_menu_end(C, pup);
   return WM_UI_HANDLER_BREAK;
