@@ -522,8 +522,11 @@ void ACTION_OT_select_all(wmOperatorType *ot)
 
 /* defines for box_select mode */
 enum {
+  /* Select all keys within the box. */
   ACTKEYS_BORDERSEL_ALLKEYS = 0,
+  /* Select keyframes on all channels that are in the horizontal extents of the box. */
   ACTKEYS_BORDERSEL_FRAMERANGE,
+  /* Select all keyframes on channels that are in the vertical extents of the box. */
   ACTKEYS_BORDERSEL_CHANNELS,
 } /*eActKeys_BoxSelect_Mode*/;
 
@@ -605,7 +608,7 @@ static void box_select_elem(
 }
 
 static void box_select_action(bAnimContext *ac,
-                              const rcti rect,
+                              const rctf rect,
                               short mode,
                               const eEditKeyframes_Select selectmode)
 {
@@ -723,16 +726,31 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
   }
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
-  /* get settings from operator */
+  rctf rect;
+  WM_operator_properties_border_to_rctf(op, &rect);
+  short mode = ACTKEYS_BORDERSEL_ALLKEYS;
+  /* selection 'mode' depends on whether box_select region only matters on one axis */
+  if (RNA_boolean_get(op->ptr, "axis_range")) {
+    /* Mode depends on which axis of the range is larger to determine which axis to use:
+     * - checking this in region-space is fine,
+     *   as it's fundamentally still going to be a different rect size.
+     * - the frame-range select option is favored over the channel one (x over y),
+     *   as frame-range one is often used for tweaking timing when "blocking",
+     *   while channels is not that useful...
+     */
+    if (BLI_rctf_size_x(&rect) >= BLI_rctf_size_y(&rect)) {
+      mode = ACTKEYS_BORDERSEL_FRAMERANGE;
+    }
+    else {
+      mode = ACTKEYS_BORDERSEL_CHANNELS;
+    }
+  }
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    rctf rect;
-    WM_operator_properties_border_to_rctf(op, &rect);
     /* Note that a lack of ANIM_UI_get_key_size padding to the rctf x-axis means that the box *has
      * to* overlap the frame of the key, not just the shape. That is consistent with the behavior
      * of the previous selection code. */
 
-    /* TODO this could query the cached summary tree from the last draw call. */
     using namespace ed::animfilter;
     ChannelArena &channels = ed::action::get_summary_tree(*C);
     if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -740,55 +758,39 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
     }
     SummaryChannel *root = channels.root();
     if (root) {
-      SelectionMode mode = SelectionMode::ADD;
+      SelectionMode selection_mode = SelectionMode::ADD;
       if (sel_op == SEL_OP_SUB) {
-        mode = SelectionMode::SUBTRACT;
+        selection_mode = SelectionMode::SUBTRACT;
       }
       View2D *v2d = &ac.region->v2d;
       rctf rectf;
-
       /* Convert mouse coordinates to frame ranges and channel
        * coordinates corrected for view pan/zoom. */
       ui::view2d_region_to_view_rctf(v2d, &rect, &rectf);
-      const float first_channel = ANIM_UI_get_first_channel_top(v2d);
-      const float channel_step = ANIM_UI_get_channel_step();
-      const bool visit_root = true;
-      foreach_expanded(*root, visit_root, [&](AnimationChannel &channel, const int row_index) {
-        const float row_top = first_channel - row_index * channel_step;
-        if (row_top > rectf.ymin && row_top - channel_step < rectf.ymax) {
-          channel.change_datapoint_selection(mode, {rectf.xmin, rectf.xmax});
+      if (mode == ACTKEYS_BORDERSEL_FRAMERANGE) {
+        root->change_datapoint_selection(selection_mode, {rectf.xmin, rectf.xmax});
+      }
+      else {
+        const float first_channel = ANIM_UI_get_first_channel_top(v2d);
+        const float channel_step = ANIM_UI_get_channel_step();
+        const bool visit_root = true;
+        Bounds<float> selection_bounds = {rectf.xmin, rectf.xmax};
+        if (mode == ACTKEYS_BORDERSEL_CHANNELS) {
+          selection_bounds = {-INFINITY, INFINITY};
         }
-      });
+        foreach_expanded(*root, visit_root, [&](AnimationChannel &channel, const int row_index) {
+          const float row_top = first_channel - row_index * channel_step;
+          if (row_top > rectf.ymin && row_top - channel_step < rectf.ymax) {
+            channel.change_datapoint_selection(selection_mode, selection_bounds);
+          }
+        });
+      }
     }
   }
   else {
-    rcti rect;
-    WM_operator_properties_border_to_rcti(op, &rect);
     const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
     if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
       deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
-    }
-
-    short mode = 0;
-    /* selection 'mode' depends on whether box_select region only matters on one axis */
-    /* TODO this special case isn't respected by the new animfilter selection code. */
-    if (RNA_boolean_get(op->ptr, "axis_range")) {
-      /* Mode depends on which axis of the range is larger to determine which axis to use:
-       * - checking this in region-space is fine,
-       *   as it's fundamentally still going to be a different rect size.
-       * - the frame-range select option is favored over the channel one (x over y),
-       *   as frame-range one is often used for tweaking timing when "blocking",
-       *   while channels is not that useful...
-       */
-      if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect)) {
-        mode = ACTKEYS_BORDERSEL_FRAMERANGE;
-      }
-      else {
-        mode = ACTKEYS_BORDERSEL_CHANNELS;
-      }
-    }
-    else {
-      mode = ACTKEYS_BORDERSEL_ALLKEYS;
     }
 
     /* apply box_select action */
