@@ -526,5 +526,6 @@ const unsigned char *get_color_ptr(const bTheme *btheme, int spacetype, int colo
 
 void make_axis_color(const unsigned char col[3], char axis, unsigned char r_col[3]);
 
+void color_blend_3ubv_3ubv(unsigned char col[3], const unsigned char col_state[3], float fac);
 }  // namespace ui::theme
 }  // namespace blender

@@ -153,15 +153,6 @@ static const WidgetStateInfo STATE_INFO_NULL = {0};
 /** \name Internal Color Utilities
  * \{ */
 
-static void color_blend_v3_v3(uchar cp[3], const uchar cpstate[3], const float fac)
-{
-  if (fac != 0.0f) {
-    cp[0] = int((1.0f - fac) * cp[0] + fac * cpstate[0]);
-    cp[1] = int((1.0f - fac) * cp[1] + fac * cpstate[1]);
-    cp[2] = int((1.0f - fac) * cp[2] + fac * cpstate[2]);
-  }
-}
-
 static void color_blend_v4_v4v4(uchar r_col[4],
                                 const uchar col1[4],
                                 const uchar col2[4],
@@ -3320,7 +3311,7 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     copy_v4_v4_uchar(wt->wcol.outline, wt->wcol.outline_sel);
     if (color_blend != nullptr) {
-      color_blend_v3_v3(wt->wcol.inner, color_blend, wcol_state->blend);
+      theme::color_blend_3ubv_3ubv(wt->wcol.inner, color_blend, wcol_state->blend);
     }
 
     copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
@@ -3334,7 +3325,7 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
       copy_v4_v4_uchar(wt->wcol.text, wt->wcol.text_sel);
     }
     if (color_blend != nullptr) {
-      color_blend_v3_v3(wt->wcol.inner, color_blend, wcol_state->blend);
+      theme::color_blend_3ubv_3ubv(wt->wcol.inner, color_blend, wcol_state->blend);
     }
 
     /* Add "hover" highlight. Ideally this could apply in all cases,
@@ -3354,12 +3345,12 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
 
     /* In regular widgets, tint the background and outline. */
     if (wt->draw && emboss != EmbossType::None) {
-      color_blend_v3_v3(wt->wcol.outline, red, red_alpha);
-      color_blend_v3_v3(wt->wcol.inner, red, red_alpha);
+      theme::color_blend_3ubv_3ubv(wt->wcol.outline, red, red_alpha);
+      theme::color_blend_3ubv_3ubv(wt->wcol.inner, red, red_alpha);
     }
     /* Text such as labels or widgets without emboss. Tint the text only. */
     else {
-      color_blend_v3_v3(wt->wcol.text, red, red_alpha);
+      theme::color_blend_3ubv_3ubv(wt->wcol.text, red, red_alpha);
     }
   }
 
@@ -3368,12 +3359,12 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     copy_v4_v4_uchar(wt->wcol.outline, wt->wcol.outline_sel);
     std::swap(wt->wcol.shadetop, wt->wcol.shadedown);
-    color_blend_v3_v3(wt->wcol.text, wt->wcol.text_sel, 0.85f);
+    theme::color_blend_3ubv_3ubv(wt->wcol.text, wt->wcol.text_sel, 0.85f);
   }
 
   if (state->but_flag & BUT_NODE_ACTIVE) {
     const uchar blue[4] = {86, 128, 194};
-    color_blend_v3_v3(wt->wcol.inner, blue, 0.3f);
+    theme::color_blend_3ubv_3ubv(wt->wcol.inner, blue, 0.3f);
   }
 }
 
@@ -3444,7 +3435,7 @@ static void widget_state_numslider(WidgetType *wt, const WidgetStateInfo *state,
      * De-saturate so the color of the slider doesn't conflict with the blend color,
      * which can make the color hard to see when the slider is set to full (see #66102). */
     wt->wcol.item[0] = wt->wcol.item[1] = wt->wcol.item[2] = srgb_to_grayscale_byte(wt->wcol.item);
-    color_blend_v3_v3(wt->wcol.item, color_blend, wcol_state->blend);
+    theme::color_blend_3ubv_3ubv(wt->wcol.item, color_blend, wcol_state->blend);
     color_ensure_contrast_v3(wt->wcol.item, wt->wcol.inner, 30);
   }
 
@@ -3496,8 +3487,8 @@ static void widget_state_pie_menu_item(WidgetType *wt,
   wt->wcol = *(wt->wcol_theme);
 
   if ((state->but_flag & BUT_DISABLED) && (state->but_flag & UI_HOVER)) {
-    color_blend_v3_v3(wt->wcol.text, wt->wcol.text_sel, 0.5f);
-    color_blend_v3_v3(wt->wcol.outline, wt->wcol.outline_sel, 0.5f);
+    theme::color_blend_3ubv_3ubv(wt->wcol.text, wt->wcol.text_sel, 0.5f);
+    theme::color_blend_3ubv_3ubv(wt->wcol.outline, wt->wcol.outline_sel, 0.5f);
     /* draw the backdrop at low alpha, helps navigating with keys
      * when disabled items are active */
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.item);
@@ -3511,7 +3502,7 @@ static void widget_state_pie_menu_item(WidgetType *wt,
     }
     else if (state->but_flag & (BUT_DISABLED | BUT_INACTIVE)) {
       /* regular disabled */
-      color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
+      theme::color_blend_3ubv_3ubv(wt->wcol.text, wt->wcol.inner, 0.5f);
     }
 
     if (state->but_flag & UI_SELECT) {
@@ -3520,7 +3511,7 @@ static void widget_state_pie_menu_item(WidgetType *wt,
     }
     else if (state->but_flag & UI_HOVER) {
       copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.item);
-      color_blend_v3_v3(wt->wcol.outline, wt->wcol.outline_sel, 0.5f);
+      theme::color_blend_3ubv_3ubv(wt->wcol.outline, wt->wcol.outline_sel, 0.5f);
     }
   }
 }
@@ -3535,7 +3526,7 @@ static void widget_state_menu_item(WidgetType *wt,
   if ((state->but_flag & BUT_DISABLED) && (state->but_flag & UI_HOVER)) {
     /* Hovering over disabled item. */
     wt->wcol.text[3] = 128;
-    color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.5f);
+    theme::color_blend_3ubv_3ubv(wt->wcol.inner, wt->wcol.text, 0.5f);
     wt->wcol.inner[3] = 64;
   }
   else if (state->but_flag & BUT_DISABLED) {
@@ -3545,11 +3536,11 @@ static void widget_state_menu_item(WidgetType *wt,
   else if (state->but_flag & BUT_INACTIVE) {
     /* Inactive. */
     if (state->but_flag & UI_HOVER) {
-      color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
+      theme::color_blend_3ubv_3ubv(wt->wcol.inner, wt->wcol.text, 0.2f);
       copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
       wt->wcol.inner[3] = 255;
     }
-    color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
+    theme::color_blend_3ubv_3ubv(wt->wcol.text, wt->wcol.inner, 0.5f);
   }
   else if (state->but_flag & (BUT_ACTIVE_DEFAULT | UI_SELECT_DRAW)) {
     /* Currently-selected item. */
@@ -3565,8 +3556,8 @@ static void widget_state_menu_item(WidgetType *wt,
   }
   else if (state->but_flag & UI_HOVER) {
     /* Regular hover. */
-    color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
-    color_blend_v3_v3(wt->wcol.outline, wt->wcol.outline_sel, 0.5f);
+    theme::color_blend_3ubv_3ubv(wt->wcol.inner, wt->wcol.text, 0.2f);
+    theme::color_blend_3ubv_3ubv(wt->wcol.outline, wt->wcol.outline_sel, 0.5f);
     copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
     wt->wcol.inner[3] = 255;
     wt->wcol.text[3] = 255;
@@ -5093,7 +5084,7 @@ static void widget_list_itembut(Button *but,
 
     if (!view_item.is_active() && view_item.is_selected()) {
       copy_v4_v4_uchar(wcol->inner, wcol->inner_sel);
-      color_blend_v3_v3(wcol->inner, wcol->outline, 0.5);
+      theme::color_blend_3ubv_3ubv(wcol->inner, wcol->outline, 0.5);
       is_selected = true;
     }
     if (item_but->draw_width > 0) {
@@ -5111,7 +5102,7 @@ static void widget_list_itembut(Button *but,
   round_box_edges(&wtb, CNR_ALL, &draw_rect, rad);
 
   if (state->but_flag & UI_HOVER) {
-    color_blend_v3_v3(wcol->inner, wcol->text, 0.2);
+    theme::color_blend_3ubv_3ubv(wcol->inner, wcol->text, 0.2);
     wcol->inner[3] = is_selected ? 255 : 20;
   }
 
@@ -5224,7 +5215,7 @@ static void widget_state_label(WidgetType *wt, const WidgetStateInfo *state, Emb
     /* Alert color's alpha is used to blend between the text and alert tint.
      * This ensures the text be always readable, lighter or darker depending on the theme. */
     float red_alpha = float(red[3]) / 255.0f;
-    color_blend_v3_v3(wt->wcol.text, red, red_alpha);
+    theme::color_blend_3ubv_3ubv(wt->wcol.text, red, red_alpha);
   }
 }
 
