@@ -329,6 +329,30 @@ static void add_region_padding(bContext *C, ARegion *region, rctf *bounds)
   BLI_rctf_pad_y(bounds, region->winy, pad_bottom, pad_top);
 }
 
+/**
+ * \returns all currently visible channels for the space of the given context or a std::nullopt if
+ * the space does not support animation channels.
+ */
+static std::optional<std::reference_wrapper<ed::animfilter::ChannelArena>> get_channels_from_space(
+    bContext &C)
+{
+  /* TODO this may not really be what we want, because we need the result after all filtering has
+   * been applied. The filtering by name may be applied by the tree view itself? */
+  ScrArea *area = CTX_wm_area(&C);
+  if (!area) {
+    return std::nullopt;
+  }
+  switch (area->spacetype) {
+    case SPACE_ACTION:
+      return ed::action::get_summary_tree(C);
+    case SPACE_GRAPH:
+      return ed::graph::get_summary_tree(C);
+  }
+  /* Space type not implemented for animation channels. */
+  BLI_assert_unreachable();
+  return std::nullopt;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2537,19 +2561,56 @@ static wmOperatorStatus animchannels_group_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
   char name[MAX_NAME];
+  /* get name for new group */
+  RNA_string_get(op->ptr, "name", name);
+
+  if (!name[0]) {
+    return OPERATOR_CANCELLED;
+  }
 
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    /* TODO */
-    return OPERATOR_CANCELLED;
+    using namespace ed::animfilter;
+    std::optional<std::reference_wrapper<ChannelArena>> opt_arena = get_channels_from_space(*C);
+    if (!opt_arena) {
+      return OPERATOR_CANCELLED;
+    }
+    ChannelArena &arena = opt_arena->get();
+    animrig::Channelbag *last_channelbag = nullptr;
+    bActionGroup *group = nullptr;
+    for (DataChannel *data_channel : arena.data_channels) {
+      if (data_channel->source_type() != DataChannelType::FCURVE) {
+        continue;
+      }
+      if (!data_channel->is_selected()) {
+        continue;
+      }
+      FCurve *fcu = data_channel->get_source<FCurve>();
+      ChannelTag *action_tag = data_channel->tags().first_by_type(ChannelTagType::ACTION);
+      ChannelTag *slot_tag = data_channel->tags().first_by_type(ChannelTagType::ACTION_SLOT);
+      if (!action_tag || !slot_tag) {
+        /* Could be an FCurve of the NLA. */
+        continue;
+      }
+      bAction *act = action_tag->source_data().data_as<bAction>();
+      ActionSlot *slot = slot_tag->source_data().data_as<ActionSlot>();
+      animrig::Channelbag *channelbag = channelbag_for_action_slot(act->wrap(), slot->handle);
+
+      if (channelbag != last_channelbag) {
+        last_channelbag = channelbag;
+        group = &channelbag->channel_group_create(name);
+      }
+
+      channelbag->fcurve_assign_to_channel_group(*fcu, *group);
+    }
+    WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
+
+    return OPERATOR_FINISHED;
   }
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
-
-  /* get name for new group */
-  RNA_string_get(op->ptr, "name", name);
 
   /* XXX: name for group should never be empty... */
   if (name[0]) {
@@ -3646,30 +3707,6 @@ static void ANIM_OT_channels_select_filter(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Select All Operator
  * \{ */
-
-/**
- * \returns all currently visible channels for the space of the given context or a std::nullopt if
- * the space does not support animation channels.
- */
-static std::optional<std::reference_wrapper<ed::animfilter::ChannelArena>> get_channels_from_space(
-    bContext &C)
-{
-  /* TODO this may not really be what we want, because we need the result after all filtering has
-   * been applied. The filtering by name may be applied by the tree view itself? */
-  ScrArea *area = CTX_wm_area(&C);
-  if (!area) {
-    return std::nullopt;
-  }
-  switch (area->spacetype) {
-    case SPACE_ACTION:
-      return ed::action::get_summary_tree(C);
-    case SPACE_GRAPH:
-      return ed::graph::get_summary_tree(C);
-  }
-  /* Space type not implemented for animation channels. */
-  BLI_assert_unreachable();
-  return std::nullopt;
-}
 
 static bDopeSheet *get_dopesheet_from_space(bContext &C)
 {
