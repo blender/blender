@@ -631,9 +631,9 @@ bool Matrix::can_connect(const bNodeSocket &socket) const
     return false;
   }
   if (this->in_out == SOCK_IN) {
-    return ELEM(socket.type, SOCK_MATRIX, SOCK_FLOAT, SOCK_VECTOR, SOCK_MATRIX);
+    return ELEM(socket.type, SOCK_MATRIX, SOCK_FLOAT, SOCK_VECTOR, SOCK_ROTATION);
   }
-  return ELEM(socket.type, SOCK_MATRIX, SOCK_VECTOR, SOCK_MATRIX);
+  return ELEM(socket.type, SOCK_MATRIX, SOCK_VECTOR, SOCK_ROTATION);
 }
 
 bNodeSocket &Matrix::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const
