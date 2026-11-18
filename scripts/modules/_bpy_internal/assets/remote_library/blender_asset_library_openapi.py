@@ -114,19 +114,18 @@ class FileV1:
     the "SHA256" hash type is supported.
     """
 
-    blender_version: str
-    """Version of Blender used to write this file.
-
-    Only contains the major and minor version, no patch version ("5.2",
-    "6.3", etc. but not "5.2.1").
-    """
-
     url: str | None = None
     """URL where the file can be downloaded.
 
     If the URL is relative, it is to be interpreted as relative to the
     library's root URL. If the URL is not given, or an empty string, it
     is assumed to be the same as 'path'.
+    """
+
+    blender_version: str | None = None
+    """Version of Blender used to write this file.
+
+    This is ommitted when this is not a blend file.
     """
 
 
