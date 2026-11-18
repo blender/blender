@@ -19,8 +19,6 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_ustring.hh"
-
-/** Workaround to forward-declare C++ type in C header. */
 #include "BLI_vector.hh"
 
 namespace blender {
