@@ -5571,10 +5571,7 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
   const bool bake_modifiers = RNA_boolean_get(op->ptr, "bake_modifiers");
   const float step = RNA_float_get(op->ptr, "step");
 
-  if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    /* TODO */
-  }
-  else {
+  {
     ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
     const int filter = (ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_DATA_VISIBLE |
                         ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FCURVESONLY);
@@ -5594,7 +5591,6 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
       bake_fcurve(
           fcu, nla_mapped_range, step, bake_modifiers, remove_existing, interpolation_type);
     }
-
     ANIM_animdata_freelist(&anim_data);
   }
 
