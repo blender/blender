@@ -733,9 +733,11 @@ static int sort_points_curvature(const void *in_a, const void *in_b)
   const CurvatureSortPoint *b = static_cast<const CurvatureSortPoint *>(in_b);
 
   if (a->point_curvature > b->point_curvature) {
-    return 0;
+    return -1;
   }
-
+  else if (a->point_curvature == b->point_curvature) {
+    return a->point_index < b->point_index ? -1 : 1;
+  }
   return 1;
 }
 
