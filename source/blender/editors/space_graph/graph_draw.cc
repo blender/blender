@@ -734,6 +734,10 @@ static void draw_fcurve_curve(const FCurve *fcu,
     float fcu_start = 0;
     float fcu_end = 0;
     BKE_fcurve_calc_range(fcu, &fcu_start, &fcu_end, false);
+    if (fcu_start > draw_range.end || fcu_end < draw_range.start) {
+      /* FCurve completely outside the drawing range. */
+      return;
+    }
     /* Clamp to graph editor rendering bounds. */
     draw_range.start = max_ff(draw_range.start, fcu_start);
     draw_range.end = min_ff(draw_range.end, fcu_end);
@@ -1145,7 +1149,7 @@ static void draw_fcurve_curve_keys(FCurve &fcu,
         curve_vertices.append(prevbezt->vec[1]);
         float current_frame = prevbezt->vec[1][0] + evaluation_step;
         while (current_frame < bezt->vec[1][0]) {
-          curve_vertices.append({current_frame, evaluate_fcurve(&fcu, current_frame)});
+          curve_vertices.append({current_frame, evaluate_fcurve_only_curve(&fcu, current_frame)});
           current_frame += evaluation_step;
         }
         break;
