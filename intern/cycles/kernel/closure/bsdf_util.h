@@ -495,16 +495,23 @@ ccl_device_inline float iridescence_airy_summation_channel(KernelGlobals kg,
   return R;
 }
 
+/* This is a temporary (local) fix for some compile time increases on Metal that can be backported
+ * to 5.3. An upcoming change will enable noinline globally on Metal. */
 template<bool conductive>
+#if defined(__KERNEL_METAL_APPLE__)
+ccl_device
+    __attribute__((noinline)) float fresnel_iridescence_channel(KernelGlobals kg,
+#else
 ccl_device float fresnel_iridescence_channel(KernelGlobals kg,
-                                             const int channel,
-                                             const float ambient_ior,
-                                             const FresnelThinFilm thin_film,
-                                             const float substrate_n,
-                                             const float substrate_k,
-                                             const float F82,
-                                             const float cos_theta_1,
-                                             ccl_private float *r_cos_theta_3)
+#endif
+                                                                const int channel,
+                                                                const float ambient_ior,
+                                                                const FresnelThinFilm thin_film,
+                                                                const float substrate_n,
+                                                                const float substrate_k,
+                                                                const float F82,
+                                                                const float cos_theta_1,
+                                                                ccl_private float *r_cos_theta_3)
 {
   /* For films below 1nm, the wave-optic-based Airy summation approach no longer applies,
    * so blend towards the case without coating. */
