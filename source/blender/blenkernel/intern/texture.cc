@@ -84,9 +84,7 @@ static void texture_copy_data(Main *bmain,
     texture_dst->ima = nullptr;
   }
 
-  if (texture_dst->coba) {
-    texture_dst->coba = MEM_dupalloc(texture_dst->coba);
-  }
+  texture_dst->coba = BKE_colorband_copy_or_null(texture_src->coba);
   if (texture_src->nodetree) {
     if (texture_src->nodetree->runtime->execdata) {
       ntreeTexEndExecTree(texture_src->nodetree->runtime->execdata);

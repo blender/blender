@@ -2804,7 +2804,7 @@ static void but_paste_text(bContext *C, Button *but, HandleButtonData *data, cha
 static void but_copy_colorband(Button *but)
 {
   if (but->poin != nullptr) {
-    memcpy(&but_copypaste_coba, but->poin, sizeof(ColorBand));
+    BKE_colorband_copy_data(&but_copypaste_coba, reinterpret_cast<const ColorBand *>(but->poin));
   }
 }
 
@@ -2812,7 +2812,7 @@ static void but_paste_colorband(bContext *C, Button *but, HandleButtonData *data
 {
   if (but_copypaste_coba.tot != 0 && but->poin != nullptr) {
     button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-    memcpy(data->coba, &but_copypaste_coba, sizeof(ColorBand));
+    BKE_colorband_copy_data(data->coba, &but_copypaste_coba);
     button_activate_state(C, but, BUTTON_STATE_EXIT);
   }
 }

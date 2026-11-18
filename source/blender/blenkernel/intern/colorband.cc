@@ -311,6 +311,20 @@ ColorBand *BKE_colorband_add(bool rangetype)
   return coba;
 }
 
+ColorBand *BKE_colorband_copy_or_null(const ColorBand *coba)
+{
+  if (!coba) {
+    return nullptr;
+  }
+  return MEM_new<ColorBand>(__func__, *coba);
+}
+
+void BKE_colorband_copy_data(ColorBand *dst, const ColorBand *src)
+{
+  static_assert(std::is_trivially_copyable_v<ColorBand>);
+  *dst = *src;
+}
+
 /* ------------------------------------------------------------------------- */
 
 static float colorband_hue_interp(
@@ -698,7 +712,7 @@ static void *idp_struct_colorband_create()
 
 static void *idp_struct_colorband_copy(const void *src, const int /*flag*/)
 {
-  return MEM_new<ColorBand>(__func__, *static_cast<const ColorBand *>(src));
+  return BKE_colorband_copy_or_null(static_cast<const ColorBand *>(src));
 }
 
 static void idp_struct_colorband_free(void *data)

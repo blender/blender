@@ -142,10 +142,8 @@ static void material_copy_data(Main *bmain,
     material_dst->gp_style = static_cast<MaterialGPencilStyle *>(
         MEM_dupalloc(material_src->gp_style));
 
-    if (material_src->gp_style->gradient != nullptr) {
-      material_dst->gp_style->gradient = static_cast<ColorBand *>(
-          MEM_dupalloc(material_src->gp_style->gradient));
-    }
+    material_dst->gp_style->gradient = BKE_colorband_copy_or_null(
+        material_src->gp_style->gradient);
 
     if (material_src->gp_style->stroke_iuser != nullptr) {
       material_dst->gp_style->stroke_iuser = static_cast<ImageUser *>(

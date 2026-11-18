@@ -22,6 +22,9 @@ void BKE_colorband_init_from_table_rgba(ColorBand *coba,
                                         int array_len,
                                         bool filter_samples);
 ColorBand *BKE_colorband_add(bool rangetype);
+/** Returns null if the input is null. */
+ColorBand *BKE_colorband_copy_or_null(const ColorBand *coba);
+void BKE_colorband_copy_data(ColorBand *dst, const ColorBand *src);
 bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4]);
 void BKE_colorband_evaluate_table_rgba(const ColorBand *coba, float **array, int *size);
 CBData *BKE_colorband_element_add(ColorBand *coba, float position);
