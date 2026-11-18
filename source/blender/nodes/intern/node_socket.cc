@@ -753,7 +753,7 @@ void ED_init_standard_node_socket_type(bke::bNodeSocketType *);
 static bke::bNodeSocketType *make_standard_socket_type(
     const eNodeSocketDatatype type, int subtype, std::optional<int> dimensions = std::nullopt)
 {
-  const StringRefNull socket_idname = *bke::node_static_socket_type(type, subtype, dimensions);
+  const UString socket_idname = *bke::node_static_socket_type(type, subtype, dimensions);
   const StringRefNull interface_idname = *bke::node_static_socket_interface_type_new(
       type, subtype, dimensions);
   const StringRefNull socket_label = *bke::node_static_socket_label(type, subtype);
@@ -763,7 +763,7 @@ static bke::bNodeSocketType *make_standard_socket_type(
 
   stype = MEM_new<bke::bNodeSocketType>(__func__);
   stype->free_self = [](bke::bNodeSocketType *type) { MEM_delete(type); };
-  stype->idname = UString(socket_idname);
+  stype->idname = socket_idname;
   stype->label = socket_label;
   stype->subtype_label = socket_subtype_label;
 

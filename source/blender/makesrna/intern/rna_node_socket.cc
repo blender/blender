@@ -210,7 +210,7 @@ static StructRNA *rna_NodeSocket_register(Main *bmain,
   }
 
   /* check if we have registered this socket type before */
-  st = bke::node_socket_type_find(dummy_st.idname.ref());
+  st = bke::node_socket_type_find(dummy_st.idname);
   if (!st) {
     /* create a new node socket type */
     st = MEM_new<bke::bNodeSocketType>(__func__, dummy_st);

@@ -289,87 +289,87 @@ static void socket_data_read_data(BlendDataReader *reader, bNodeTreeInterfaceSoc
 /** \name Get full socket type from socket data.
  * \{ */
 
-template<typename T> StringRefNull socket_type_from_data_impl(const T & /*data*/);
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueFloat &data)
+template<typename T> UString socket_type_from_data_impl(const T & /*data*/);
+template<> UString socket_type_from_data_impl(const bNodeSocketValueFloat &data)
 {
   return *bke::node_static_socket_type(SOCK_FLOAT, data.subtype);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueInt &data)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueInt &data)
 {
   return *bke::node_static_socket_type(SOCK_INT, data.subtype);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueBoolean & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueBoolean & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_BOOLEAN, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueRotation & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueRotation & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_ROTATION, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueVector &data)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueVector &data)
 {
   return *bke::node_static_socket_type(SOCK_VECTOR, data.subtype, data.dimensions);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueRGBA & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueRGBA & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_RGBA, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueString &data)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueString &data)
 {
   return *bke::node_static_socket_type(SOCK_STRING, data.subtype);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueObject & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueObject & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_OBJECT, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueImage & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueImage & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_IMAGE, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueCollection & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueCollection & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_COLLECTION, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueTexture & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueTexture & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_TEXTURE, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueMaterial & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueMaterial & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_MATERIAL, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueFont & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueFont & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_FONT, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueScene & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueScene & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_SCENE, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueText & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueText & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_TEXT_ID, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueMask & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueMask & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_MASK, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueSound & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueSound & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_SOUND, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueMenu & /*data*/)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueMenu & /*data*/)
 {
   return *bke::node_static_socket_type(SOCK_MENU, PROP_NONE);
 }
-template<> StringRefNull socket_type_from_data_impl(const bNodeSocketValueIntVector &data)
+template<> UString socket_type_from_data_impl(const bNodeSocketValueIntVector &data)
 {
   return *bke::node_static_socket_type(SOCK_INT_VECTOR, data.subtype, data.dimensions);
 }
 
-static StringRefNull socket_type_from_data(const bNodeTreeInterfaceSocket &socket)
+static UString socket_type_from_data(const bNodeTreeInterfaceSocket &socket)
 {
-  StringRefNull socket_type;
+  UString socket_type;
   socket_data_to_static_type(socket.socket_type, [&]<typename SocketDataType>() {
     socket_type = socket_type_from_data_impl(get_socket_data_as<SocketDataType>(socket));
   });
@@ -854,8 +854,8 @@ bool bNodeTreeInterfaceSocket::set_socket_type(const StringRef new_socket_type)
   return true;
 }
 
-[[maybe_unused]] static bool is_same_socket_base_type(const StringRef socket_type_a,
-                                                      const StringRef socket_type_b)
+[[maybe_unused]] static bool is_same_socket_base_type(const UString socket_type_a,
+                                                      const UString socket_type_b)
 {
   const bke::bNodeSocketType *typeinfo_a = bke::node_socket_type_find(socket_type_a);
   const bke::bNodeSocketType *typeinfo_b = bke::node_socket_type_find(socket_type_b);
@@ -873,8 +873,8 @@ bool bNodeTreeInterfaceSocket::set_socket_type(const StringRef new_socket_type)
 
 void bNodeTreeInterfaceSocket::update_socket_type()
 {
-  const StringRefNull new_socket_type = socket_types::socket_type_from_data(*this);
-  BLI_assert_msg(is_same_socket_base_type(this->socket_type, new_socket_type),
+  const UString new_socket_type = socket_types::socket_type_from_data(*this);
+  BLI_assert_msg(is_same_socket_base_type(UString(this->socket_type), new_socket_type),
                  "Cannot change socket base type without replacing socket data");
 
   if (new_socket_type != this->socket_type) {
