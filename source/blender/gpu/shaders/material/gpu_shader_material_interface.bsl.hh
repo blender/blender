@@ -356,7 +356,7 @@ float ambient_occlusion_eval(const KernelGlobals & /*kg*/,
   return 0.0f;
 }
 
-/* Attribute node occlusion node. */
+/* Attribute node. */
 
 float4 attr_load_color_post(KernelGlobals & /*kg*/, float4 attr)
 {
