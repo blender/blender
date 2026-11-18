@@ -99,6 +99,32 @@ static int icon_from_rna_pointer(const PointerRNA &ptr)
   return ICON_NONE;
 }
 
+/**
+ * Returns the AnimfilterSpaceRuntime of the ScrArea in this bContext or a nullptr if the area
+ * doesn't have it.
+ */
+static AnimfilterSpaceRuntime *get_animfilter_runtime_from_context(bContext &C)
+{
+  ScrArea *area = CTX_wm_area(&C);
+  if (!area) {
+    return nullptr;
+  }
+  switch (area->spacetype) {
+    case SPACE_ACTION: {
+      SpaceAction *space_action = area->spacedata.first_as<SpaceAction>();
+      return &space_action->runtime->animfilter_runtime;
+    }
+    case SPACE_GRAPH: {
+      SpaceGraph *space_graph = area->spacedata.first_as<SpaceGraph>();
+      return &space_graph->runtime->animfilter_runtime;
+    }
+    default:
+      break;
+  }
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
 class ChannelItem : public ui::AbstractTreeViewItem {
   /* Keeping a reference to the short-lived AnimationChannel is fine, because the ChannelItem is
    * short-lived as well. Only specific properties are carried over between draw calls (see
@@ -124,25 +150,15 @@ class ChannelItem : public ui::AbstractTreeViewItem {
 
   void on_collapse_change(bContext &C, const bool is_collapsed) override
   {
-    SpaceAction *saction = CTX_wm_space_action(&C);
-    SpaceGraph *space_graph = CTX_wm_space_graph(&C);
-    if (saction) {
-      AnimationChannelUIState &channel_state =
-          saction->runtime->animfilter_runtime.channel_state_for_update(channel_.identifier());
-      /* Store the expanded/collapsed state. */
-      channel_state.is_collapsed = is_collapsed;
-    }
-    else if (space_graph) {
-      AnimationChannelUIState &channel_state =
-          space_graph->runtime->animfilter_runtime.channel_state_for_update(channel_.identifier());
-      /* Store the expanded/collapsed state. */
-      channel_state.is_collapsed = is_collapsed;
-    }
-    else {
-      /* TODO find a better way to support different editors. */
-      BLI_assert_unreachable();
+    AnimfilterSpaceRuntime *animfilter_runtime = get_animfilter_runtime_from_context(C);
+    if (!animfilter_runtime) {
+      /* The getter already asserts but we shouldn't crash in a release build. */
       return;
     }
+    AnimationChannelUIState &channel_state = animfilter_runtime->channel_state_for_update(
+        channel_.identifier());
+    /* Store the expanded/collapsed state. */
+    channel_state.is_collapsed = is_collapsed;
 
     /* Store the UI change on the channel itself, as it can be long-lived and will only read the
      * space-data once. */

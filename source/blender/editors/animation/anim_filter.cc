@@ -4577,7 +4577,6 @@ void sync_dopesheet(const bDopeSheet &from, bDopeSheet &to)
   to.flag = from.flag;
   to.filter_grp = from.filter_grp;
   STRNCPY(to.searchstr, from.searchstr);
-  /* TODO copy pins. */
 }
 
 void sync_runtime(const AnimfilterSpaceRuntime &from, AnimfilterSpaceRuntime &to)
@@ -4621,16 +4620,8 @@ void sync_region_sizes(const ListBaseT<ARegion> &from, ListBaseT<ARegion> &to)
     to_channel_region->sizey = from_channel_region->sizey;
   }
 
-  /* TODO this doesn't work for setting the N-panel size, would be great though to make switching
-   * between Graph Editor and Dope Sheet less flickery. */
-  /* const ARegion *from_n_panel = find_region_type(from, RGN_TYPE_UI);
-  ARegion *to_n_panel = find_region_type(from, RGN_TYPE_UI);
-  if (from_n_panel && to_n_panel) {
-    to_n_panel->winx = from_n_panel->winx;
-    to_n_panel->winy = from_n_panel->winy;
-    to_n_panel->sizex = from_n_panel->sizex;
-    to_n_panel->sizey = from_n_panel->sizey;
-  } */
+  /* The same logic as above doesn't work for copying the N-panel size, would be great though to
+   * make switching between Graph Editor and Dope Sheet less flickery. */
 }
 
 }  // namespace ed::animfilter
