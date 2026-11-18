@@ -57,6 +57,7 @@
 #include "RNA_prototypes.hh"
 #include "RNA_types.hh"
 
+#include "UI_interface_c.hh"
 #include "UI_resources.hh"
 
 #include "WM_api.hh"
@@ -1703,6 +1704,8 @@ void RNA_property_float_ui_range(PointerRNA *ptr,
 
   *softmin = fprop->softmin;
   *softmax = fprop->softmax;
+  *step = fprop->step;
+  *precision = float(fprop->precision);
 
   if (fprop->range) {
     hardmin = -FLT_MAX;
@@ -1723,8 +1726,14 @@ void RNA_property_float_ui_range(PointerRNA *ptr,
     *softmax = min_ff(*softmax, hardmax);
   }
 
-  *step = fprop->step;
-  *precision = float(fprop->precision);
+  if (fprop->precision_fn) {
+    fprop->precision_fn(ptr, step, precision);
+  }
+
+  *step = std::clamp(*step,
+                     UI_PRECISION_FLOAT_STEP_MIN / UI_PRECISION_FLOAT_SCALE,
+                     UI_PRECISION_FLOAT_STEP_MAX / UI_PRECISION_FLOAT_SCALE);
+  *precision = std::clamp(*precision, -1.0f, 6.0f);
 }
 
 int RNA_property_float_clamp(PointerRNA *ptr, PropertyRNA *prop, float *value)

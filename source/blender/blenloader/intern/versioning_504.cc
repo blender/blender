@@ -39,6 +39,50 @@ void do_versions_after_linking_504(FileData * /*fd*/, Main * /*bmain*/)
    */
 }
 
+static void version_float_socket_value_precision(bNodeSocketValueFloat &value)
+{
+  /* Zero is an invalid value. This makes the versioning idempotent. */
+  if (value.step == 0.0f) {
+    value.step = 0.1f;
+    value.precision = 3;
+  }
+}
+
+static void version_float_socket_precision(Main &bmain)
+{
+  FOREACH_NODETREE_BEGIN (&bmain, ntree, id) {
+    for (bNode &node : ntree->nodes) {
+      for (bNodeSocket &socket : node.inputs) {
+        if (socket.type == SOCK_FLOAT && socket.default_value) {
+          version_float_socket_value_precision(
+              *static_cast<bNodeSocketValueFloat *>(socket.default_value));
+        }
+      }
+      for (bNodeSocket &socket : node.outputs) {
+        if (socket.type == SOCK_FLOAT && socket.default_value) {
+          version_float_socket_value_precision(
+              *static_cast<bNodeSocketValueFloat *>(socket.default_value));
+        }
+      }
+    }
+    ntree->tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
+      if (item.item_type == NodeTreeInterfaceItemType::Socket) {
+        if (bNodeTreeInterfaceSocket *socket =
+                bke::node_interface::get_item_as<bNodeTreeInterfaceSocket>(&item))
+        {
+          const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
+          if (typeinfo && typeinfo->type == SOCK_FLOAT && socket->socket_data) {
+            version_float_socket_value_precision(
+                *static_cast<bNodeSocketValueFloat *>(socket->socket_data));
+          }
+        }
+      }
+      return true;
+    });
+  }
+  FOREACH_NODETREE_END;
+}
+
 void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 {
   /* Disable "Set Background Value" input to keep old behavior of Deactivate Voxels node. */
@@ -104,6 +148,10 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     for (Scene &scene : bmain->scenes) {
       scene.r.compositor_proxy_preview_scale = 50;
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 7)) {
+    version_float_socket_precision(*bmain);
   }
 
   /**

@@ -286,7 +286,9 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
                     .subtype(PropertySubType(value.subtype))
                     .default_value(value.value)
                     .min(value.min)
-                    .max(value.max);
+                    .max(value.max)
+                    .step(value.step)
+                    .precision(value.precision);
         break;
       }
       case SOCK_VECTOR: {

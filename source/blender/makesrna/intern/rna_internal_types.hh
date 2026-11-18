@@ -107,6 +107,7 @@ using PropFloatArrayGetFunc = void (*)(PointerRNA *ptr, float *values);
 using PropFloatArraySetFunc = void (*)(PointerRNA *ptr, const float *values);
 using PropFloatRangeFunc =
     void (*)(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax);
+using PropFloatPrecisionFunc = void (*)(PointerRNA *ptr, float *step, float *precision);
 using PropStringGetFunc = void (*)(PointerRNA *ptr, char *value);
 using PropStringLengthFunc = int (*)(PointerRNA *ptr);
 using PropStringSetFunc = void (*)(PointerRNA *ptr, const char *value);
@@ -556,6 +557,7 @@ struct FloatPropertyRNA : public PropertyRNA {
   PropFloatArrayGetFunc getarray;
   PropFloatArraySetFunc setarray;
   PropFloatRangeFunc range;
+  PropFloatPrecisionFunc precision_fn;
 
   PropFloatGetFuncEx get_ex;
   PropFloatSetFuncEx set_ex;

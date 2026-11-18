@@ -573,7 +573,8 @@ void RNA_def_property_int_funcs(PropertyRNA *prop,
 void RNA_def_property_float_funcs(PropertyRNA *prop,
                                   const char *get,
                                   const char *set,
-                                  const char *range);
+                                  const char *range,
+                                  const char *precision = nullptr);
 void RNA_def_property_enum_funcs(PropertyRNA *prop,
                                  const char *get,
                                  const char *set,

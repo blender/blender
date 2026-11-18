@@ -106,6 +106,8 @@ bNodeSocket &Float::build(bNodeTree &ntree, bNode &node) const
   bNodeSocketValueFloat &value = *static_cast<bNodeSocketValueFloat *>(socket.default_value);
   value.min = this->soft_min_value;
   value.max = this->soft_max_value;
+  value.step = this->step;
+  value.precision = this->precision;
   value.value = this->default_value;
   return socket;
 }
@@ -126,6 +128,12 @@ bool Float::matches(const bNodeSocket &socket) const
     return false;
   }
   if (value.max != this->soft_max_value) {
+    return false;
+  }
+  if (value.step != this->step) {
+    return false;
+  }
+  if (value.precision != this->precision) {
     return false;
   }
   return true;
@@ -156,6 +164,8 @@ bNodeSocket &Float::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &
   value.min = this->soft_min_value;
   value.max = this->soft_max_value;
   value.subtype = this->subtype;
+  value.precision = this->precision;
+  value.step = this->step;
   return socket;
 }
 
@@ -166,6 +176,8 @@ FloatBuilder &FloatBuilder::try_copy_ui_data(const SocketDeclaration &other_decl
     this->decl_->soft_min_value = other->soft_min_value;
     this->decl_->soft_max_value = other->soft_max_value;
     this->decl_->subtype = other->subtype;
+    this->decl_->step = other->step;
+    this->decl_->precision = other->precision;
   }
   return *this;
 }

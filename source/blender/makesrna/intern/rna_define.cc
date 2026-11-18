@@ -3314,10 +3314,8 @@ void RNA_def_property_int_array_funcs_runtime(PropertyRNA *prop,
 }
 
 #ifndef RNA_RUNTIME
-void RNA_def_property_float_funcs(PropertyRNA *prop,
-                                  const char *get,
-                                  const char *set,
-                                  const char *range)
+void RNA_def_property_float_funcs(
+    PropertyRNA *prop, const char *get, const char *set, const char *range, const char *precision)
 {
   StructRNA *srna = DefRNA.laststruct;
 
@@ -3343,6 +3341,10 @@ void RNA_def_property_float_funcs(PropertyRNA *prop,
       }
       if (range) {
         fprop->range = reinterpret_cast<PropFloatRangeFunc>(const_cast<char *>(range));
+      }
+      if (precision) {
+        fprop->precision_fn = reinterpret_cast<PropFloatPrecisionFunc>(
+            const_cast<char *>(precision));
       }
       break;
     }

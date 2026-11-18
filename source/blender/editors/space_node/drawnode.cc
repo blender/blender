@@ -1546,6 +1546,9 @@ static void std_node_socket_interface_draw(ID *id,
       ui::Layout *sub = &col->column(true);
       sub->prop(&ptr, "min_value", DEFAULT_FLAGS, IFACE_("Min"), ICON_NONE);
       sub->prop(&ptr, "max_value", DEFAULT_FLAGS, IFACE_("Max"), ICON_NONE);
+      sub = &col->column(true);
+      sub->prop(&ptr, "step", DEFAULT_FLAGS, IFACE_("Step"), ICON_NONE);
+      sub->prop(&ptr, "precision", DEFAULT_FLAGS, IFACE_("Precision"), ICON_NONE);
       break;
     }
     case SOCK_INT: {

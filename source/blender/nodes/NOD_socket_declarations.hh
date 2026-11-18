@@ -40,6 +40,10 @@ class Float : public SocketDeclaration {
   float soft_min_value = -FLT_MAX;
   float soft_max_value = FLT_MAX;
   PropertySubType subtype = PROP_NONE;
+  /** Increment of the UI slider. */
+  float step = 0.1f;
+  /** Number of decimal places for the UI. */
+  int precision = 3;
 
   friend FloatBuilder;
 
@@ -57,6 +61,8 @@ class FloatBuilder : public SocketDeclarationBuilder<Float> {
   FloatBuilder &max(float value);
   FloatBuilder &default_value(float value);
   FloatBuilder &subtype(PropertySubType subtype);
+  FloatBuilder &step(float value);
+  FloatBuilder &precision(int value);
   FloatBuilder &try_copy_ui_data(const SocketDeclaration &other_decl) override;
 };
 
@@ -593,6 +599,18 @@ inline FloatBuilder &FloatBuilder::default_value(const float value)
 inline FloatBuilder &FloatBuilder::subtype(PropertySubType subtype)
 {
   decl_->subtype = subtype;
+  return *this;
+}
+
+inline FloatBuilder &FloatBuilder::step(const float value)
+{
+  decl_->step = value;
+  return *this;
+}
+
+inline FloatBuilder &FloatBuilder::precision(const int value)
+{
+  decl_->precision = value;
   return *this;
 }
 
