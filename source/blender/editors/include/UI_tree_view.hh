@@ -224,8 +224,9 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   float row_scale_y() const;
   /* The height for each row without padding between rows. */
   int unpadded_item_height() const;
-  /* The height for each row with padding applied. The padding doubles up for 2 consecutive items
-   * (TODO check this is true). */
+  /**
+   * The height for each row with padding applied.
+   */
   int padded_item_height() const;
 
   TreeViewSortOrder invert_sort_type_get() const;
