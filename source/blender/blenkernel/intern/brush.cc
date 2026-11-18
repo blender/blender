@@ -970,7 +970,7 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
 
 const MTex *BKE_brush_mask_texture_get(const Brush *brush, const PaintMode paint_mode)
 {
-  if (ELEM(paint_mode, PaintMode::Sculpt, PaintMode::Vertex)) {
+  if (ELEM(paint_mode, PaintMode::Sculpt)) {
     return &brush->mtex;
   }
   return &brush->mask_mtex;
@@ -978,7 +978,7 @@ const MTex *BKE_brush_mask_texture_get(const Brush *brush, const PaintMode paint
 
 const MTex *BKE_brush_color_texture_get(const Brush *brush, const PaintMode paint_mode)
 {
-  if (ELEM(paint_mode, PaintMode::Sculpt, PaintMode::Vertex)) {
+  if (ELEM(paint_mode, PaintMode::Sculpt)) {
     return &brush->mask_mtex;
   }
   return &brush->mtex;
