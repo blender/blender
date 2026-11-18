@@ -2272,7 +2272,8 @@ void apply_brush_texture(const PaintMode paint_mode,
 
   if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
     /* Get strength by feeding the vertex location directly into a texture. */
-    *r_value = BKE_brush_sample_tex_3d(cache.paint, &brush, mtex, point, r_rgba, 0, ss.tex_pool);
+    *r_value = BKE_brush_sample_tex_3d(
+        cache.paint, &brush, mtex, point, r_rgba, thread_id, ss.tex_pool);
   }
   else {
     /* If the active area is being applied for symmetry, flip it
@@ -2311,7 +2312,7 @@ void apply_brush_texture(const PaintMode paint_mode,
           cache.vc->region, symm_point, cache.projection_mat);
       const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
       *r_value = BKE_brush_sample_tex_3d(
-          cache.paint, &brush, mtex, point_3d, r_rgba, 0, ss.tex_pool);
+          cache.paint, &brush, mtex, point_3d, r_rgba, thread_id, ss.tex_pool);
     }
   }
 }
