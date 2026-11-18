@@ -35,8 +35,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_idprop.hh"
-
 #include "DNA_ID.h" /* MAX_IDPROP_NAME */
 
 #include "../generic/py_capi_rna.hh"
@@ -5516,7 +5514,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
     return nullptr;
   }
   if (!RNA_struct_is_a(ptype, RNA_PropertyGroup) && !RNA_struct_is_ID(ptype) &&
-      !IDP_struct_type_find_by_rna_identifier(RNA_struct_identifier(ptype)))
+      !RNA_struct_is_idprops_struct(ptype))
   {
     PyErr_Format(PyExc_TypeError,
                  "PointerProperty(...) expected an RNA type derived from %.200s or %.200s, "

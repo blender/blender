@@ -192,6 +192,12 @@ bool RNA_struct_idprops_contains_datablock(const StructRNA *type);
 bool RNA_struct_idprops_struct_allowed(const StructRNA *type);
 
 /**
+ * Checks whether the type is a built-in dna-struct stored as IDProperty (e.g. CurveMapping,
+ * ColorRamp, etc.).
+ */
+bool RNA_struct_is_idprops_struct(const StructRNA *type);
+
+/**
  * Checks whether the type contains any dna-struct IDProperties (e.g. CurveMapping, ColorRamp,
  * etc.).
  */
