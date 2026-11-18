@@ -2198,18 +2198,6 @@ static void blendfile_relocate_postprocess_cleanup(BlendfileLinkAppendContext &l
     ids_to_delete.clear();
   }
 
-  /* Some datablocks can get reloaded/replaced 'silently' because they are not linkable
-   * (shape keys e.g.), so we need another loop here to clear old ones if possible. */
-  FOREACH_MAIN_ID_BEGIN (&bmain, id_iter) {
-    /* XXX That check may be a bit to generic/permissive? */
-    if (id_iter->lib && (id_iter->flag & ID_TAG_PRE_EXISTING) && id_iter->us == 0) {
-      ids_to_delete.add(id_iter);
-    }
-  }
-  FOREACH_MAIN_ID_END;
-  BKE_id_multi_delete(&bmain, ids_to_delete);
-  ids_to_delete.clear();
-
   /* Get rid of no more used libraries... */
   ListBaseT<ID> *libraries = which_libbase(&bmain, ID_LI);
   for (ID &id_iter : *libraries) {
