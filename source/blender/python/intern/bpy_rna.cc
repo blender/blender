@@ -10585,8 +10585,8 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
     return nullptr;
   }
 
-  if (PyDict_GetItem((reinterpret_cast<PyTypeObject *>(py_class))->tp_dict, bpy_intern_str_bl_rna))
-  {
+  PyObject *py_class_dict = reinterpret_cast<PyTypeObject *>(py_class)->tp_dict;
+  if (py_class_dict && PyDict_GetItem(py_class_dict, bpy_intern_str_bl_rna)) {
     PyErr_Format(PyExc_ValueError,
                  "%s already registered as a subclass '%.200s'",
                  error_prefix,
