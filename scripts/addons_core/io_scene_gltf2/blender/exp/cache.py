@@ -28,6 +28,7 @@ def cached_by_key(key):
 
         def reset_cache():
             func.__cache = {}
+            func.__export_settings = None
 
         _reset_functions.append(reset_cache)
 
