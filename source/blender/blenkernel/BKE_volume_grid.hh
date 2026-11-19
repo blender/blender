@@ -141,10 +141,18 @@ class VolumeGridData : public ImplicitSharingMixin {
 
   friend class VolumeTreeAccessToken;
 
-  /** Private default constructor for internal purposes. */
-  VolumeGridData();
+  /**
+   * Only constructible by #VolumeGridData itself, so the constructor taking it can be public
+   * (allowing it to be used with #MEM_new) while still only being usable internally.
+   */
+  struct PrivateTag {
+    explicit PrivateTag() = default;
+  };
 
  public:
+  /** Constructs a grid without any data, for internal purposes. */
+  explicit VolumeGridData(PrivateTag);
+
   /**
    * Constructs a new volume grid of the given type where all voxels are inactive and the
    * background value is the default value (generally zero).

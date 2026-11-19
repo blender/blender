@@ -31,7 +31,7 @@ namespace blender::bke::volume_grid {
 
 #ifdef WITH_OPENVDB
 
-VolumeGridData::VolumeGridData()
+VolumeGridData::VolumeGridData(PrivateTag /*tag*/)
 {
   tree_access_token_ = std::make_shared<AccessToken>(*this);
 }
@@ -316,9 +316,7 @@ GVolumeGrid VolumeGridData::copy() const
 {
   std::lock_guard lock{mutex_};
   this->ensure_grid_loaded();
-  /* Can't use #MEM_new because the default constructor is private. */
-  VolumeGridData *new_copy = new (MEM_new_uninitialized(sizeof(VolumeGridData), __func__))
-      VolumeGridData();
+  VolumeGridData *new_copy = MEM_new<VolumeGridData>(__func__, PrivateTag());
   /* Makes a deep copy of the meta-data but shares the tree. */
   new_copy->grid_ = grid_->copyGrid();
   new_copy->tree_sharing_info_ = tree_sharing_info_;
