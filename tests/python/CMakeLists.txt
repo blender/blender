@@ -1816,6 +1816,16 @@ if(WITH_UI_TESTS)
     test_sculpt.mask_gestures
     test_sculpt.trim_gestures
     test_sculpt.primitive_tool_add
+    test_brush_stroke.spacing_on_press
+    # Disabled until #163212 lands, this test currently fails.
+    # test_brush_stroke.spacing_on_small_drag
+    test_brush_stroke.anchored
+    test_brush_stroke.dots
+    test_brush_stroke.drag_dot
+    test_brush_stroke.move_onto_mesh
+    test_brush_stroke.line
+    test_brush_stroke.airbrush
+    test_brush_stroke.smooth_stroke
     test_tools.sculpt_mode_toolbar
     test_mesh_edit_draw.view3d_mesh_edit_draw_modifiers
     test_edit_mesh_select.view3d_mesh_edit_box_select_vertex_mode
