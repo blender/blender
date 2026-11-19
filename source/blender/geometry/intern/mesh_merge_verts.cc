@@ -1327,6 +1327,11 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(
     const bool only_loose_edges,
     const bke::AttributeFilter &attribute_filter)
 {
+  /* The distance is squared below, so a negative distance would otherwise still merge. */
+  if (merge_distance < 0.0f) {
+    return std::nullopt;
+  }
+
   const Span<float3> positions = mesh.vert_positions();
   const Span<int2> edges = mesh.edges();
 
