@@ -717,13 +717,15 @@ class PrimitiveCreator:
             all_uvmaps = {}
             for tex in material_info['udim_info'].keys():
                 if material_info['uv_info'][tex]['type'] == "Render":
-                    index_uvmap = self.blender_mesh.uv_layers.active_render_index
+                    active_render_index = self.blender_mesh.uv_layers.active_render_index
+                    index_uvmap = active_render_index if active_render_index >= 0 else 0
                     uvmap_name = "TEXCOORD_" + str(index_uvmap)
                 elif material_info['uv_info'][tex]['type'] == "Fixed":
                     index_uvmap = self.blender_mesh.uv_layers.find(material_info['uv_info'][tex]['value'])
                     if index_uvmap < 0:
                         # Using render index
-                        index_uvmap = self.blender_mesh.uv_layers.active_render_index
+                        active_render_index = self.blender_mesh.uv_layers.active_render_index
+                        index_uvmap = active_render_index if active_render_index >= 0 else 0
                     uvmap_name = "TEXCOORD_" + str(index_uvmap)
                 else:  # Attribute
                     # This can be a regular UVMap, or a custom attribute
