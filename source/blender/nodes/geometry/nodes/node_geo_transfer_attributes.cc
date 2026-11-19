@@ -201,19 +201,8 @@ static void transfer_attributes(
     dst_evaluator.evaluate();
     const VArraySpan<int> dst_ids = dst_evaluator.get_evaluated<int>(0);
 
-    Map<int, int> src_index_by_id;
-    for (const int i : IndexRange(src_size)) {
-      const int id = src_ids[i];
-      src_index_by_id.add(id, i);
-    }
     ids.src_by_dst_index.reinitialize(dst_size);
-    threading::parallel_for(IndexRange(dst_size), 2048, [&](const IndexRange range) {
-      for (const int dst_i : range) {
-        const int dst_id = dst_ids[dst_i];
-        const int src_i = src_index_by_id.lookup_default(dst_id, -1);
-        ids.src_by_dst_index[dst_i] = src_i;
-      }
-    });
+    array_utils::map_ids_to_indices(src_ids, dst_ids, ids.src_by_dst_index);
     ids.gather_mask = array_utils::indices_non_negative(
         IndexMask(dst_size), ids.src_by_dst_index, scope.allocator());
     ids.default_mask = ids.gather_mask.complement(IndexMask(dst_size), scope.allocator());

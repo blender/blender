@@ -2,10 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <limits>
+
 #include "testing/testing.h"
 
 #include "BLI_array_utils.hh"
 #include "BLI_array_utils_c.hh"
+#include "BLI_map.hh"
 #include "BLI_utildefines.hh"
 #include "BLI_utildefines_stack.hh"
 #include "BLI_vector_set.hh"
@@ -386,6 +389,81 @@ TEST(array_utils, GroupIdsToIndicesLarge)
   group_ids_to_indices_test(dense_ids, mask);
   group_ids_to_indices_test(sparse_ids, IndexMask(sparse_ids.size()));
   group_ids_to_indices_test(sparse_ids, mask);
+}
+
+static void map_ids_to_indices_test(const Span<int> src_ids, const Span<int> dst_ids)
+{
+  /* Compare with a simple #Map implementation. */
+  Map<int, int> expected_map;
+  for (const int i : src_ids.index_range()) {
+    expected_map.add(src_ids[i], i);
+  }
+  Array<int> expected(dst_ids.size());
+  for (const int i : dst_ids.index_range()) {
+    expected[i] = expected_map.lookup_default(dst_ids[i], -1);
+  }
+
+  Array<int> result(dst_ids.size(), -999);
+  array_utils::map_ids_to_indices(src_ids, dst_ids, result);
+  EXPECT_EQ(result.as_span(), expected.as_span());
+}
+
+TEST(array_utils, MapIdsToIndicesEmpty)
+{
+  map_ids_to_indices_test({}, {});
+  const std::array ids{0, 1, 2};
+  map_ids_to_indices_test({}, ids);
+  map_ids_to_indices_test(ids, {});
+}
+
+TEST(array_utils, MapIdsToIndicesDense)
+{
+  const std::array src_dup{0, 0, 1};
+  const std::array dst_dup{0, 1, 2, -1};
+  map_ids_to_indices_test(src_dup, dst_dup);
+
+  const std::array src{5, 3, 5, -2, -1, 3, 0, -2};
+  const std::array dst{-10, -2, -1, 0, 1, 2, 3, 4, 5, 10};
+  map_ids_to_indices_test(src, dst);
+}
+
+TEST(array_utils, MapIdsToIndicesSparse)
+{
+  const int min_i = std::numeric_limits<int>::min();
+  const int max_i = std::numeric_limits<int>::max();
+  const std::array src{1000000, -1, 1000000, -2, min_i, max_i, -2, 7};
+  const std::array dst{min_i, -2, -1, 0, 7, 42, 1000000, max_i};
+  map_ids_to_indices_test(src, dst);
+}
+
+TEST(array_utils, MapIdsToIndicesExtremeDense)
+{
+  const int min_i = std::numeric_limits<int>::min();
+  const int max_i = std::numeric_limits<int>::max();
+  const std::array src_min{min_i + 2, min_i, min_i + 2, min_i + 1};
+  const std::array dst_min{min_i, min_i + 1, min_i + 2, min_i + 3, max_i};
+  map_ids_to_indices_test(src_min, dst_min);
+
+  const std::array src_max{max_i, max_i - 2, max_i, max_i - 1};
+  const std::array dst_max{min_i, max_i - 3, max_i - 2, max_i - 1, max_i};
+  map_ids_to_indices_test(src_max, dst_max);
+}
+
+TEST(array_utils, MapIdsToIndicesLarge)
+{
+  /* Large enough to exercise the 4096 parallel grain size while staying fast in debug builds. */
+  Array<int> dense_src(12000);
+  Array<int> dense_dst(12000);
+  Array<int> sparse_src(12000);
+  Array<int> sparse_dst(12000);
+  for (const int i : dense_src.index_range()) {
+    dense_src[i] = (i * 7919) % 4001;
+    dense_dst[i] = (i * 10007) % 5000 - 500;
+    sparse_src[i] = ((i * 7919) % 4001) * 30011;
+    sparse_dst[i] = ((i * 10007) % 5000) * 30011;
+  }
+  map_ids_to_indices_test(dense_src, dense_dst);
+  map_ids_to_indices_test(sparse_src, sparse_dst);
 }
 
 }  // namespace blender
