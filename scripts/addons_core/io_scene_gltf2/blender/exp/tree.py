@@ -718,7 +718,7 @@ class VExportTree:
         self.filter_selectability = self.export_settings['gltf_selected']
         self.filter_renderability = self.export_settings['gltf_renderable']
 
-    def recursive_filter_tag(self, uuid, parent_status, in_instance=False):
+    def recursive_filter_tag(self, uuid, parent_status, in_instance=False, instance_filtered=False):
         # in_instance is True when the node is inside a collection instance (at any depth)
 
         # Inside an instance collection,
@@ -736,6 +736,8 @@ class VExportTree:
             self.nodes[uuid].flag_status.is_selected = parent_status.is_selected
             self.nodes[uuid].flag_status.is_visible = parent_status.is_visible
             self.nodes[uuid].flag_status.is_rendered = parent_status.is_rendered
+            # Keep the filtered status from the upper instance
+            self.nodes[uuid].flag_status.is_filtered = instance_filtered
 
         self.node_filter_not_inheritable_is_kept(uuid) or self.node_filter_inheritable_is_kept(uuid, in_instance)
 
@@ -755,11 +757,12 @@ class VExportTree:
             if self.nodes[uuid].blender_type == VExportNode.INST_COLLECTION or self.nodes[uuid].is_instancer:
                 # We need to split children into 2 categories: real children, and objects inside the collection
                 if self.nodes[uuid].children_type[child] == VExportNode.CHILDREN_IS_IN_COLLECTION:
-                    self.recursive_filter_tag(child, self.nodes[uuid].flag_status, True)
+                    new_instance_filtered = instance_filtered if in_instance else self.nodes[uuid].flag_status.is_filtered
+                    self.recursive_filter_tag(child, self.nodes[uuid].flag_status, True, new_instance_filtered)
                 else:
-                    self.recursive_filter_tag(child, self.nodes[uuid].flag_status, in_instance)
+                    self.recursive_filter_tag(child, self.nodes[uuid].flag_status, in_instance, instance_filtered)
             else:
-                self.recursive_filter_tag(child, self.nodes[uuid].flag_status, in_instance)
+                self.recursive_filter_tag(child, self.nodes[uuid].flag_status, in_instance, instance_filtered)
 
         # When coming from collection instance, we can have some collection here
         # There were kept to be able to manage the visibility/renderability recursive propagation
@@ -876,8 +879,9 @@ class VExportTree:
         if all([c.hide_render for c in self.nodes[uuid].blender_object.users_collection]):
             self.nodes[uuid].flag_status.is_rendered = False
 
-        # If we are given a collection, use all objects from it
-        if self.export_settings['gltf_collection']:
+        # If we are in an instance collection, the filter already applied
+        # So this check is only needed if we are not in an instance collection.
+        if in_instance is False and self.export_settings['gltf_collection']:
             local_collection = bpy.data.collections.get((self.export_settings['gltf_collection'], None))
             if not local_collection:
                 self.nodes[uuid].flag_status.is_filtered = True
@@ -886,7 +890,7 @@ class VExportTree:
             if not found:
                 self.nodes[uuid].flag_status.is_filtered = True
                 return
-        else:
+        elif in_instance is False:
             if self.export_settings['gltf_active_collection'] and not self.export_settings['gltf_active_collection_with_nested']:
                 found = any(x == self.nodes[uuid].blender_object for x in bpy.context.collection.objects)
                 if not found:
