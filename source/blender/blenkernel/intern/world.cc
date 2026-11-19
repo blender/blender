@@ -208,6 +208,7 @@ IDTypeInfo IDType_ID_WO = {
     .foreach_working_space_color = world_foreach_working_space_color,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = bke::node_tree_foreach_embedded_id,
 
     .blend_write = world_blend_write,
     .blend_read_data = world_blend_read_data,

@@ -1107,22 +1107,25 @@ ID *RNA_find_real_ID_and_path(ID *id, const char **r_path)
     return id;
   }
 
-  if (r_path) {
-    switch (id->id_type()) {
-      case ID_NT:
-        *r_path = "node_tree";
-        break;
-      case ID_GR:
-        *r_path = "collection";
-        break;
-      default:
-        BLI_assert_msg(0, "Missing handling of embedded id type.");
-    }
-  }
-
   ID *owner_id = BKE_id_owner_get(id);
   BLI_assert_msg(owner_id != nullptr, "Missing handling of embedded id type.");
-  return (owner_id != nullptr) ? owner_id : id;
+  if (owner_id == nullptr) {
+    return id;
+  }
+
+  if (r_path) {
+    /* Property of the owner that holds the embedded ID. */
+    BKE_idtype_id_foreach_embedded_id_p(
+        owner_id,
+        [&](ID **embedded_id_p, const ID_Type /*id_type*/, StringRefNull rna_identifier) {
+          if (*embedded_id_p == id) {
+            *r_path = rna_identifier.c_str();
+          }
+        });
+    BLI_assert_msg((*r_path)[0] != '\0', "Missing handling of embedded id type.");
+  }
+
+  return owner_id;
 }
 
 static std::optional<std::string> rna_prepend_real_ID_path(ID *id,

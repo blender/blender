@@ -15,6 +15,7 @@
 #include "BLI_color_types.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_implicit_sharing_ptr.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.hh"
 
 #include "DNA_ID.h"
@@ -137,6 +138,16 @@ using IDTypeForeachAssetWeakReferenceFunction =
  * copying an ID and all of its embedded data.
  */
 using IDTypeEmbeddedOwnerPointerGetFunction = ID **(*)(ID * id, bool debug_relationship_assert);
+
+/**
+ * Callback for an embedded ID owned by an ID. \a embedded_id_p points to the embedded ID, which
+ * may be null. \a id_type is the type of embedded ID, and \a rna_identifier the property of the
+ * owner to access it in RNA.
+ */
+using IDTypeForeachEmbeddedIDFunctionCallback =
+    FunctionRef<void(ID **embedded_id_p, ID_Type id_type, StringRefNull rna_identifier)>;
+using IDTypeForeachEmbeddedIDFunction = void (*)(ID *id,
+                                                 IDTypeForeachEmbeddedIDFunctionCallback fn);
 
 using IDTypeBlendWriteFunction = void (*)(BlendWriter *writer, ID *id, const void *id_address);
 using IDTypeBlendReadDataFunction = void (*)(BlendDataReader *reader, ID *id);
@@ -263,6 +274,12 @@ struct IDTypeInfo {
    */
   IDTypeEmbeddedOwnerPointerGetFunction owner_pointer_get =
       InvalidPointer<IDTypeEmbeddedOwnerPointerGetFunction>();
+
+  /**
+   * Iterator over the embedded IDs owned by this ID, see #ID_FLAG_EMBEDDED_DATA.
+   */
+  IDTypeForeachEmbeddedIDFunction foreach_embedded_id =
+      InvalidPointer<IDTypeForeachEmbeddedIDFunction>();
 
   /* ********** Callbacks for reading and writing .blend files. ********** */
 
@@ -492,5 +509,17 @@ short BKE_idtype_idcode_iter_step(int *idtype_index);
 void BKE_idtype_id_foreach_cache(ID *id,
                                  IDTypeForeachCacheFunctionCallback function_callback,
                                  void *user_data);
+
+/**
+ * Wrappers around #IDTypeInfo foreach_embedded_id. The first variant includes null pointers, the
+ * second only existing embedded IDs.
+ */
+void BKE_idtype_id_foreach_embedded_id_p(ID *id, IDTypeForeachEmbeddedIDFunctionCallback fn);
+void BKE_idtype_id_foreach_embedded_id(ID *id, FunctionRef<void(ID &embedded_id)> fn);
+/**
+ * Call \a fn with the pointers to matching embedded IDs of two IDs of the same type.
+ */
+void BKE_idtype_id_foreach_embedded_id_pair(
+    ID *id_a, ID *id_b, FunctionRef<void(ID **embedded_a_p, ID **embedded_b_p)> fn);
 
 }  // namespace blender

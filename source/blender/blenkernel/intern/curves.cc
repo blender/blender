@@ -166,6 +166,7 @@ IDTypeInfo IDType_ID_CV = {
     .foreach_working_space_color = curves_foreach_working_space_color,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = curves_blend_write,
     .blend_read_data = curves_blend_read_data,

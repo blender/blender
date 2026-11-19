@@ -18,17 +18,15 @@
 
 #include "BLI_linklist.hh"
 
-#include "DNA_collection_types.h"
 #include "DNA_key_types.h"
-#include "DNA_node_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
-#include "BKE_node.hh"
 #include "BKE_report.hh"
 
 #include "BLO_blend_validate.hh"
@@ -225,22 +223,10 @@ void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList * /*reports
 {
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-    bNodeTree *node_tree = bke::node_tree_from_id(id_iter);
-    if (node_tree) {
-      if (node_tree->id.flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE) {
-        if (!ID_IS_OVERRIDE_LIBRARY(id_iter)) {
-          node_tree->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
-        }
-      }
-    }
-
-    if (id_iter->id_type() == ID_SCE) {
-      Scene *scene = reinterpret_cast<Scene *>(id_iter);
-      if (scene->master_collection &&
-          (scene->master_collection->id.flag & ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE))
-      {
-        scene->master_collection->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
-      }
+    if (!ID_IS_OVERRIDE_LIBRARY(id_iter)) {
+      BKE_idtype_id_foreach_embedded_id(id_iter, [](ID &embedded_id) {
+        embedded_id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
+      });
     }
   }
   FOREACH_MAIN_ID_END;
@@ -256,27 +242,15 @@ void BLO_main_validate_embedded_flag(Main *bmain, ReportList * /*reports*/)
       id_iter->flag &= ~ID_FLAG_EMBEDDED_DATA;
     }
 
-    bNodeTree *node_tree = bke::node_tree_from_id(id_iter);
-    if (node_tree) {
-      if ((node_tree->id.flag & ID_FLAG_EMBEDDED_DATA) == 0) {
+    BKE_idtype_id_foreach_embedded_id(id_iter, [&](ID &embedded_id) {
+      if ((embedded_id.flag & ID_FLAG_EMBEDDED_DATA) == 0) {
         CLOG_ERROR(&LOG,
-                   "ID %s has an embedded nodetree which is not flagged as embedded",
-                   id_iter->name);
-        node_tree->id.flag |= ID_FLAG_EMBEDDED_DATA;
+                   "ID %s has an embedded %s which is not flagged as embedded",
+                   id_iter->name,
+                   BKE_idtype_idcode_to_name(embedded_id.id_type()));
+        embedded_id.flag |= ID_FLAG_EMBEDDED_DATA;
       }
-    }
-
-    if (id_iter->id_type() == ID_SCE) {
-      Scene *scene = reinterpret_cast<Scene *>(id_iter);
-      if (scene->master_collection &&
-          (scene->master_collection->id.flag & ID_FLAG_EMBEDDED_DATA) == 0)
-      {
-        CLOG_ERROR(&LOG,
-                   "ID %s has an embedded Collection which is not flagged as embedded",
-                   id_iter->name);
-        scene->master_collection->id.flag |= ID_FLAG_EMBEDDED_DATA;
-      }
-    }
+    });
   }
   FOREACH_MAIN_ID_END;
 }

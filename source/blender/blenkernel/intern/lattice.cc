@@ -186,6 +186,7 @@ IDTypeInfo IDType_ID_LT = {
     .foreach_working_space_color = nullptr,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = lattice_blend_write,
     .blend_read_data = lattice_blend_read_data,

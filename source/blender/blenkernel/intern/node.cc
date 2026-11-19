@@ -2528,6 +2528,7 @@ IDTypeInfo IDType_ID_NT = {
     .foreach_working_space_color = bke::node_foreach_working_space_color,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = bke::node_owner_pointer_get,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = bke::ntree_blend_write,
     .blend_read_data = bke::ntree_blend_read_data,
@@ -5326,6 +5327,15 @@ bNodeTree *node_tree_from_id(ID *id)
 {
   bNodeTree **nodetree = node_tree_ptr_from_id(id);
   return (nodetree != nullptr) ? *nodetree : nullptr;
+}
+
+void node_tree_foreach_embedded_id(
+    ID *id,
+    FunctionRef<void(ID **embedded_id_p, ID_Type id_type, StringRefNull rna_identifier)> fn)
+{
+  bNodeTree **nodetree = node_tree_ptr_from_id(id);
+  BLI_assert(nodetree != nullptr);
+  fn(reinterpret_cast<ID **>(nodetree), ID_NT, "node_tree");
 }
 
 void node_tree_node_flag_set(bNodeTree &ntree, const eNode_Flag flag, const bool enable)

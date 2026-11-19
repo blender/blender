@@ -195,6 +195,7 @@ IDTypeInfo IDType_ID_KE = {
     /* A bit weird, due to shape-keys not being strictly speaking embedded data... But they also
      * share a lot with those (non linkable, only ever used by one owner ID, etc.). */
     .owner_pointer_get = shapekey_owner_pointer_get,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = shapekey_blend_write,
     .blend_read_data = shapekey_blend_read_data,

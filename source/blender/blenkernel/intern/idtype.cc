@@ -11,15 +11,11 @@
 
 #include "BLI_ghash.hh"
 #include "BLI_utildefines.hh"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
 
 #include "DNA_ID.h"
-#include "DNA_collection_types.h"
-#include "DNA_node_types.h"
-#include "DNA_scene_types.h"
-
-#include "BKE_node.hh"
 
 #include "BKE_idtype.hh"
 
@@ -105,6 +101,9 @@ static bool id_type_is_valid(const IDTypeInfo &id_type)
   }
   if (id_type.owner_pointer_get == id_type.InvalidPointer<IDTypeEmbeddedOwnerPointerGetFunction>())
   {
+    return false;
+  }
+  if (id_type.foreach_embedded_id == id_type.InvalidPointer<IDTypeForeachEmbeddedIDFunction>()) {
     return false;
   }
   if (id_type.blend_write == id_type.InvalidPointer<IDTypeBlendWriteFunction>()) {
@@ -495,29 +494,55 @@ void BKE_idtype_id_foreach_cache(ID *id,
     type_info->foreach_cache(id, function_callback, user_data);
   }
 
-  /* Handle 'private IDs'. */
-  bNodeTree *nodetree = bke::node_tree_from_id(id);
-  if (nodetree != nullptr) {
-    type_info = BKE_idtype_get_info_from_id(&nodetree->id);
-    if (type_info == nullptr) {
-      /* Very old .blend file seem to have empty names for their embedded node trees, see
-       * `blo_do_versions_250()`. Assume those are node-trees then. */
-      type_info = BKE_idtype_get_info_from_idcode(ID_NT);
-    }
-    if (type_info->foreach_cache != nullptr) {
-      type_info->foreach_cache(&nodetree->id, function_callback, user_data);
-    }
-  }
+  /* Handle 'private IDs'. Use the expected type, since very old .blend files seem to have empty
+   * names for their embedded node trees, see `blo_do_versions_250()`. */
+  BKE_idtype_id_foreach_embedded_id_p(
+      id, [&](ID **embedded_id_p, const ID_Type id_type, StringRefNull /*rna_identifier*/) {
+        if (*embedded_id_p == nullptr) {
+          return;
+        }
+        const IDTypeInfo *embedded_type_info = BKE_idtype_get_info_from_idcode(id_type);
+        if (embedded_type_info->foreach_cache != nullptr) {
+          embedded_type_info->foreach_cache(*embedded_id_p, function_callback, user_data);
+        }
+      });
+}
 
-  if (GS(id->name) == ID_SCE) {
-    Scene *scene = id_cast<Scene *>(id);
-    if (scene->master_collection != nullptr) {
-      type_info = BKE_idtype_get_info_from_id(&scene->master_collection->id);
-      if (type_info->foreach_cache != nullptr) {
-        type_info->foreach_cache(&scene->master_collection->id, function_callback, user_data);
-      }
-    }
+void BKE_idtype_id_foreach_embedded_id_p(ID *id, IDTypeForeachEmbeddedIDFunctionCallback fn)
+{
+  const IDTypeInfo *type_info = BKE_idtype_get_info_from_id(id);
+  if (type_info != nullptr && type_info->foreach_embedded_id != nullptr) {
+    type_info->foreach_embedded_id(id, fn);
   }
+}
+
+void BKE_idtype_id_foreach_embedded_id(ID *id, FunctionRef<void(ID &embedded_id)> fn)
+{
+  BKE_idtype_id_foreach_embedded_id_p(
+      id, [&](ID **embedded_id_p, const ID_Type /*id_type*/, StringRefNull /*rna_identifier*/) {
+        if (*embedded_id_p != nullptr) {
+          fn(**embedded_id_p);
+        }
+      });
+}
+
+void BKE_idtype_id_foreach_embedded_id_pair(
+    ID *id_a, ID *id_b, FunctionRef<void(ID **embedded_a_p, ID **embedded_b_p)> fn)
+{
+  BLI_assert(GS(id_a->name) == GS(id_b->name));
+
+  /* Slots are in the same order for IDs of the same type. */
+  Vector<ID **> embedded_a_ps;
+  BKE_idtype_id_foreach_embedded_id_p(
+      id_a, [&](ID **embedded_id_p, const ID_Type /*id_type*/, StringRefNull /*rna_identifier*/) {
+        embedded_a_ps.append(embedded_id_p);
+      });
+
+  int index = 0;
+  BKE_idtype_id_foreach_embedded_id_p(
+      id_b, [&](ID **embedded_id_p, const ID_Type /*id_type*/, StringRefNull /*rna_identifier*/) {
+        fn(embedded_a_ps[index++], embedded_id_p);
+      });
 }
 
 }  // namespace blender

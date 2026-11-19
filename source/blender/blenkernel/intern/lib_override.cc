@@ -4251,17 +4251,8 @@ void BKE_lib_override_library_make_local(Main *bmain, ID *id)
     shape_key->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
   }
 
-  bNodeTree *node_tree = bke::node_tree_from_id(id);
-  if (node_tree != nullptr) {
-    node_tree->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
-  }
-
-  if (id->id_type() == ID_SCE) {
-    Collection *master_collection = reinterpret_cast<Scene *>(id)->master_collection;
-    if (master_collection != nullptr) {
-      master_collection->id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
-    }
-  }
+  BKE_idtype_id_foreach_embedded_id(
+      id, [](ID &embedded_id) { embedded_id.flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE; });
 
   /* Need to mark all types of sub-data that can be mixed (from linked data/local to the override)
    * as local now. */
@@ -5130,20 +5121,12 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
         id->tag |= ID_TAG_LIBOVERRIDE_AUTOREFRESH;
       }
     }
-    if (bNodeTree *ntree = bke::node_tree_from_id(id)) {
-      if (ntree->id.tag & ID_TAG_LIBOVERRIDE_AUTOREFRESH) {
-        ntree->id.tag &= ~ID_TAG_LIBOVERRIDE_AUTOREFRESH;
+    BKE_idtype_id_foreach_embedded_id(id, [&](ID &embedded_id) {
+      if (embedded_id.tag & ID_TAG_LIBOVERRIDE_AUTOREFRESH) {
+        embedded_id.tag &= ~ID_TAG_LIBOVERRIDE_AUTOREFRESH;
         id->tag |= ID_TAG_LIBOVERRIDE_AUTOREFRESH;
       }
-    }
-    if (id->id_type() == ID_SCE) {
-      if (Collection *scene_collection = reinterpret_cast<Scene *>(id)->master_collection) {
-        if (scene_collection->id.tag & ID_TAG_LIBOVERRIDE_AUTOREFRESH) {
-          scene_collection->id.tag &= ~ID_TAG_LIBOVERRIDE_AUTOREFRESH;
-          id->tag |= ID_TAG_LIBOVERRIDE_AUTOREFRESH;
-        }
-      }
-    }
+    });
 
     if (force_auto || (id->tag & ID_TAG_LIBOVERRIDE_AUTOREFRESH)) {
       /* Usual issue with pose, it's quiet rare but sometimes they may not be up to date when this

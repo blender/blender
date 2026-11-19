@@ -25,9 +25,7 @@
 /* all types are needed here, in order to do memory operations */
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
-#include "DNA_collection_types.h"
 #include "DNA_key_types.h"
-#include "DNA_node_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BLI_listbase.hh"
@@ -60,7 +58,6 @@
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
-#include "BKE_node.hh"
 #include "BKE_rigidbody.h"
 
 #include "DEG_depsgraph.hh"
@@ -316,16 +313,7 @@ static void propagate_status_to_embedded_ids(ID &id)
     embedded_id.runtime->owner_bmain = id.runtime->owner_bmain;
   };
 
-  bNodeTree *ntree = bke::node_tree_from_id(&id);
-  if (ntree) {
-    propagate_status_fn(ntree->id);
-  }
-  if (id.id_type() == ID_SCE) {
-    Collection *master_collection = id_cast<Scene &>(id).master_collection;
-    if (master_collection) {
-      propagate_status_fn(master_collection->id);
-    }
-  }
+  BKE_idtype_id_foreach_embedded_id(&id, propagate_status_fn);
 }
 
 void id_lib_extern(ID *id, const bool enforce_fix)
@@ -505,31 +493,14 @@ void BKE_id_newptr_and_tag_clear(ID *id)
   if (key != nullptr) {
     BKE_id_newptr_and_tag_clear(&key->id);
   }
-  bNodeTree *ntree = bke::node_tree_from_id(id);
-  if (ntree != nullptr) {
-    BKE_id_newptr_and_tag_clear(&ntree->id);
-  }
-  if (id->id_type() == ID_SCE) {
-    Collection *master_collection = (id_cast<Scene *>(id))->master_collection;
-    if (master_collection != nullptr) {
-      BKE_id_newptr_and_tag_clear(&master_collection->id);
-    }
-  }
+  BKE_idtype_id_foreach_embedded_id(
+      id, [](ID &embedded_id) { BKE_id_newptr_and_tag_clear(&embedded_id); });
 }
 
 void bke::id::id_lib_set(ID &id, Library *lib)
 {
   id.lib = lib;
-  bNodeTree *ntree = node_tree_from_id(&id);
-  if (ntree) {
-    ntree->id.lib = lib;
-  }
-  if (GS(id.name) == ID_SCE) {
-    Scene &scene = reinterpret_cast<Scene &>(id);
-    if (scene.master_collection) {
-      scene.master_collection->id.lib = lib;
-    }
-  }
+  BKE_idtype_id_foreach_embedded_id(&id, [&](ID &embedded_id) { embedded_id.lib = lib; });
 }
 
 static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
@@ -667,17 +638,11 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
       if (key && key_new) {
         ID_NEW_SET(key, key_new);
       }
-      bNodeTree *ntree = bke::node_tree_from_id(id), *ntree_new = bke::node_tree_from_id(id_new);
-      if (ntree && ntree_new) {
-        ID_NEW_SET(ntree, ntree_new);
-      }
-      if (id->id_type() == ID_SCE) {
-        Collection *master_collection = (id_cast<Scene *>(id))->master_collection,
-                   *master_collection_new = (id_cast<Scene *>(id_new))->master_collection;
-        if (master_collection && master_collection_new) {
-          ID_NEW_SET(master_collection, master_collection_new);
+      BKE_idtype_id_foreach_embedded_id_pair(id, id_new, [](ID **embedded_p, ID **embedded_new_p) {
+        if (*embedded_p && *embedded_new_p) {
+          ID_NEW_SET(*embedded_p, *embedded_new_p);
         }
-      }
+      });
 
       const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
       if (!lib_local) {
@@ -1056,22 +1021,9 @@ static void id_swap(Main *bmain,
     id_b->recalc = id_a_back.recalc;
   }
 
-  id_embedded_swap(bmain,
-                   reinterpret_cast<ID **>(bke::node_tree_ptr_from_id(id_a)),
-                   reinterpret_cast<ID **>(bke::node_tree_ptr_from_id(id_b)),
-                   do_full_id,
-                   remapper_id_a,
-                   remapper_id_b);
-  if (id_a->id_type() == ID_SCE) {
-    Scene *scene_a = id_cast<Scene *>(id_a);
-    Scene *scene_b = id_cast<Scene *>(id_b);
-    id_embedded_swap(bmain,
-                     reinterpret_cast<ID **>(&scene_a->master_collection),
-                     reinterpret_cast<ID **>(&scene_b->master_collection),
-                     do_full_id,
-                     remapper_id_a,
-                     remapper_id_b);
-  }
+  BKE_idtype_id_foreach_embedded_id_pair(id_a, id_b, [&](ID **embedded_a_p, ID **embedded_b_p) {
+    id_embedded_swap(bmain, embedded_a_p, embedded_b_p, do_full_id, remapper_id_a, remapper_id_b);
+  });
 
   if (remapper_id_a != nullptr) {
     remapper_id_a->add(id_b, id_a);
@@ -1445,16 +1397,8 @@ void BKE_libblock_owner_bmain_set(ID &id, Main *bmain, const bool assert_contain
   }
 
   /* Update owner-id on embedded IDs too. */
-  bNodeTree *ntree = bke::node_tree_from_id(&id);
-  if (ntree != nullptr) {
-    BKE_libblock_owner_bmain_set(ntree->id, bmain, false);
-  }
-  if (id.id_type() == ID_SCE) {
-    Collection *master_collection = id_cast<Scene &>(id).master_collection;
-    if (master_collection != nullptr) {
-      BKE_libblock_owner_bmain_set(master_collection->id, bmain, false);
-    }
-  }
+  BKE_idtype_id_foreach_embedded_id(
+      &id, [&](ID &embedded_id) { BKE_libblock_owner_bmain_set(embedded_id, bmain, false); });
 }
 
 const Main *ID::owner_bmain() const
@@ -2510,12 +2454,9 @@ void BKE_library_make_local(Main *bmain,
     const bool do_skip = (id && !BKE_idtype_idcode_is_linkable(id->id_type()));
 
     for (; id; id = static_cast<ID *>(id->next)) {
-      ID *ntree = id_cast<ID *>(bke::node_tree_from_id(id));
-
       id->tag &= ~ID_TAG_DOIT;
-      if (ntree != nullptr) {
-        ntree->tag &= ~ID_TAG_DOIT;
-      }
+      BKE_idtype_id_foreach_embedded_id(id,
+                                        [](ID &embedded_id) { embedded_id.tag &= ~ID_TAG_DOIT; });
 
       if (!ID_IS_LINKED(id)) {
         id->tag &= ~(ID_TAG_EXTERN | ID_TAG_INDIRECT | ID_TAG_NEW);
@@ -2536,7 +2477,7 @@ void BKE_library_make_local(Main *bmain,
        * Also, never ever make proxified objects local, would not make any sense. */
       /* Some more notes:
        *   - Shape-keys are never tagged here (since they are not linkable).
-       *   - Node-trees used in materials etc. have to be tagged manually,
+       *   - Embedded IDs like node-trees used in materials have to be tagged manually,
        *     since they do not exist in Main (!).
        * This is ok-ish on 'make local' side of things
        * (since those are handled by their 'owner' IDs),
@@ -2548,12 +2489,11 @@ void BKE_library_make_local(Main *bmain,
         BLI_linklist_prepend_arena(&todo_ids, id, linklist_mem);
         id->tag |= ID_TAG_DOIT;
 
-        /* Tag those nasty non-ID node-trees,
-         * but do not add them to todo list, making them local is handled by 'owner' ID.
-         * This is needed for library_make_local_copying_check() to work OK at step 2. */
-        if (ntree != nullptr) {
-          ntree->tag |= ID_TAG_DOIT;
-        }
+        /* Tag embedded IDs, but do not add them to todo list, making them local is handled by
+         * 'owner' ID. This is needed for library_make_local_copying_check() to work OK at
+         * step 2. */
+        BKE_idtype_id_foreach_embedded_id(id,
+                                          [](ID &embedded_id) { embedded_id.tag |= ID_TAG_DOIT; });
       }
       else {
         /* Linked ID that we won't be making local (needed info for step 2, see below). */

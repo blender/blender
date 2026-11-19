@@ -443,6 +443,7 @@ IDTypeInfo IDType_ID_GP = {
     .foreach_working_space_color = grease_pencil_foreach_working_space_color,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = grease_pencil_blend_write,
     .blend_read_data = grease_pencil_blend_read_data,

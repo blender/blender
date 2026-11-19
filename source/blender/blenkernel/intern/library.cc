@@ -236,6 +236,7 @@ IDTypeInfo IDType_ID_LI = {
     .foreach_working_space_color = nullptr,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = library_blend_write_data,
     .blend_read_data = library_blend_read_data,

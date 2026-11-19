@@ -14,18 +14,16 @@
 #include "BLI_listbase.hh"
 
 #include "DNA_ID.h"
-#include "DNA_collection_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_blender_undo.hh"
 #include "BKE_compositor.hh"
 #include "BKE_context.hh"
+#include "BKE_idtype.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_node.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_scene.hh"
 #include "BKE_scene_runtime.hh"
@@ -259,28 +257,15 @@ static void memfile_undosys_step_decode(
         DEG_id_tag_update_ex(bmain, id, recalc_flags);
       }
 
-      bNodeTree *nodetree = bke::node_tree_from_id(id);
-      if (nodetree != nullptr) {
-        recalc_flags = nodetree->id.recalc;
-        if (id->tag & ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
-          recalc_flags |= ID_RECALC_SYNC_TO_EVAL;
+      BKE_idtype_id_foreach_embedded_id(id, [&](ID &embedded_id) {
+        const uint embedded_recalc_flags = embedded_id.recalc |
+                                           ((id->tag & ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) ?
+                                                ID_RECALC_SYNC_TO_EVAL :
+                                                IDRecalcFlag(0));
+        if (embedded_recalc_flags != 0) {
+          DEG_id_tag_update_ex(bmain, &embedded_id, embedded_recalc_flags);
         }
-        if (recalc_flags != 0) {
-          DEG_id_tag_update_ex(bmain, &nodetree->id, recalc_flags);
-        }
-      }
-      if (id->id_type() == ID_SCE) {
-        Scene *scene = id_cast<Scene *>(id);
-        if (scene->master_collection != nullptr) {
-          recalc_flags = scene->master_collection->id.recalc;
-          if (id->tag & ID_TAG_UNDO_OLD_ID_REREAD_IN_PLACE) {
-            recalc_flags |= ID_RECALC_SYNC_TO_EVAL;
-          }
-          if (recalc_flags != 0) {
-            DEG_id_tag_update_ex(bmain, &scene->master_collection->id, recalc_flags);
-          }
-        }
-      }
+      });
     }
     FOREACH_MAIN_ID_END;
 
@@ -293,16 +278,8 @@ static void memfile_undosys_step_decode(
        * are already part of the current undo state. This is done in a second
        * loop because DEG_id_tag_update may set tags on other datablocks. */
       id->recalc_after_undo_push = 0;
-      bNodeTree *nodetree = bke::node_tree_from_id(id);
-      if (nodetree != nullptr) {
-        nodetree->id.recalc_after_undo_push = 0;
-      }
-      if (id->id_type() == ID_SCE) {
-        Scene *scene = id_cast<Scene *>(id);
-        if (scene->master_collection != nullptr) {
-          scene->master_collection->id.recalc_after_undo_push = 0;
-        }
-      }
+      BKE_idtype_id_foreach_embedded_id(
+          id, [](ID &embedded_id) { embedded_id.recalc_after_undo_push = 0; });
     }
     FOREACH_MAIN_ID_END;
   }

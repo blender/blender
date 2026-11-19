@@ -11,6 +11,7 @@
 #include <optional>
 
 #include "BLI_compiler_compat.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_span.hh"
 
 #include "BKE_node_socket_value_fwd.hh"
@@ -659,6 +660,13 @@ bNodeTree **node_tree_ptr_from_id(ID *id);
  * Returns the private NodeTree object of the data-block, if it has one.
  */
 bNodeTree *node_tree_from_id(ID *id);
+
+/**
+ * #IDTypeInfo.foreach_embedded_id for data-blocks that only embed a node tree.
+ */
+void node_tree_foreach_embedded_id(
+    ID *id,
+    FunctionRef<void(ID **embedded_id_p, ID_Type id_type, StringRefNull rna_identifier)> fn);
 
 /**
  * Check recursively if a node tree contains another.

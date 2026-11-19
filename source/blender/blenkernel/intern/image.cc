@@ -518,6 +518,7 @@ IDTypeInfo IDType_ID_IM = {
     .foreach_working_space_color = nullptr,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = image_blend_write,
     .blend_read_data = image_blend_read_data,

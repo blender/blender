@@ -866,6 +866,17 @@ static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
   return true;
 }
 
+static void scene_foreach_embedded_id(ID *id, IDTypeForeachEmbeddedIDFunctionCallback fn)
+{
+  Scene *scene = id_cast<Scene *>(id);
+  /* Only used in files. When there is a compositing node group, the node tree was written for
+   * forward compatibility only and is ignored, see #scene_blend_read_data. */
+  if (scene->compositing_node_group == nullptr) {
+    fn(reinterpret_cast<ID **>(&scene->nodetree), ID_NT, "node_tree");
+  }
+  fn(reinterpret_cast<ID **>(&scene->master_collection), ID_GR, "collection");
+}
+
 static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Scene *scene = reinterpret_cast<Scene *>(id);
@@ -1365,6 +1376,13 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Scene *sce = id_cast<Scene *>(id);
 
+  if (sce->compositing_node_group) {
+    /* The blend file was created by a version that wrote the compositing node group as its own
+     * ID data-block. Since `scene->nodetree` was written for forward compatibility only, it was
+     * not read and can be ignored. */
+    sce->nodetree = nullptr;
+  }
+
   sce->depsgraph_hash = nullptr;
   sce->fps_info = nullptr;
 
@@ -1668,6 +1686,7 @@ IDTypeInfo IDType_ID_SCE = {
     .foreach_working_space_color = scene_foreach_working_space_color,
     .foreach_asset_weak_reference = scene_foreach_asset_weak_reference,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = scene_foreach_embedded_id,
 
     .blend_write = scene_blend_write,
     .blend_read_data = scene_blend_read_data,

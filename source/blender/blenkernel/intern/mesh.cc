@@ -530,6 +530,7 @@ IDTypeInfo IDType_ID_ME = {
     .foreach_working_space_color = mesh_foreach_working_space_color,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = mesh_blend_write,
     .blend_read_data = mesh_blend_read_data,

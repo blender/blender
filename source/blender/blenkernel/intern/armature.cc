@@ -601,6 +601,7 @@ IDTypeInfo IDType_ID_AR = {
     .foreach_working_space_color = nullptr,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = armature_blend_write,
     .blend_read_data = armature_blend_read_data,

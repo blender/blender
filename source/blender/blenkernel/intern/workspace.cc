@@ -246,6 +246,7 @@ IDTypeInfo IDType_ID_WS = {
     .foreach_working_space_color = nullptr,
     .foreach_asset_weak_reference = nullptr,
     .owner_pointer_get = nullptr,
+    .foreach_embedded_id = nullptr,
 
     .blend_write = workspace_blend_write,
     .blend_read_data = workspace_blend_read_data,

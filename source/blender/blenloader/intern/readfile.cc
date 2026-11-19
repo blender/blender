@@ -2094,46 +2094,26 @@ static void after_liblink_id_process(BlendLibReader *reader, ID *id);
 
 static void after_liblink_id_embedded_id_process(BlendLibReader *reader, ID *id)
 {
-
   /* Handle 'private IDs'. */
-  bNodeTree *nodetree = bke::node_tree_from_id(id);
-  if (nodetree != nullptr) {
-    after_liblink_id_process(reader, &nodetree->id);
+  BKE_idtype_id_foreach_embedded_id(id, [&](ID &embedded_id) {
+    after_liblink_id_process(reader, &embedded_id);
 
-    if (nodetree->owner_id == nullptr) {
+    const IDTypeInfo *type_info = BKE_idtype_get_info_from_id(&embedded_id);
+    ID **owner_id_p = type_info->owner_pointer_get(&embedded_id, false);
+    if (*owner_id_p == nullptr) {
       CLOG_WARN(&LOG,
-                "NULL owner_id pointer for embedded NodeTree of %s, should never happen",
+                "NULL owner_id pointer for embedded %s of %s, should never happen",
+                type_info->name,
                 id->name);
-      nodetree->owner_id = id;
     }
-    else if (nodetree->owner_id != id) {
+    else if (*owner_id_p != id) {
       CLOG_WARN(&LOG,
-                "Inconsistent owner_id pointer for embedded NodeTree of %s, should never happen",
+                "Inconsistent owner_id pointer for embedded %s of %s, should never happen",
+                type_info->name,
                 id->name);
-      nodetree->owner_id = id;
     }
-  }
-
-  if (id->id_type() == ID_SCE) {
-    Scene *scene = id_cast<Scene *>(id);
-    if (scene->master_collection != nullptr) {
-      after_liblink_id_process(reader, &scene->master_collection->id);
-
-      if (scene->master_collection->owner_id == nullptr) {
-        CLOG_WARN(&LOG,
-                  "NULL owner_id pointer for embedded Scene Collection of %s, should never happen",
-                  id->name);
-        scene->master_collection->owner_id = id;
-      }
-      else if (scene->master_collection->owner_id != id) {
-        CLOG_WARN(&LOG,
-                  "Inconsistent owner_id pointer for embedded Scene Collection of %s, should "
-                  "never happen",
-                  id->name);
-        scene->master_collection->owner_id = id;
-      }
-    }
-  }
+    *owner_id_p = id;
+  });
 }
 
 static void after_liblink_id_process(BlendLibReader *reader, ID *id)
@@ -2218,69 +2198,47 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                                        ID *id,
                                        ID *id_old)
 {
-  /* Handle 'private IDs'. */
-  if (id->id_type() == ID_SCE) {
-    Scene *scene = id_cast<Scene *>(id);
-    if (scene->compositing_node_group) {
-      /* If `scene->compositing_node_group != nullptr`, then this means the blend file was created
-       * by a version that wrote the compositing_node_group as its own ID datablock. Since
-       * `scene->nodetree` was written for forward compatibility reasons only, we can ignore it. */
-      scene->nodetree = nullptr;
-    }
-  }
-  bNodeTree **nodetree = bke::node_tree_ptr_from_id(id);
-  if (nodetree != nullptr && *nodetree != nullptr) {
-    BLO_read_struct(reader, bNodeTree, nodetree);
-    if (!*nodetree || !BKE_idtype_idcode_is_valid((*nodetree)->id.id_type())) {
-      BLO_reportf_wrap(
-          reader->fd->reports,
-          RPT_ERROR,
-          RPT_("Data-block '%s' had an invalid embedded node group, which has not been read"),
-          id->name);
-      MEM_SAFE_DELETE(*nodetree);
-    }
-    else {
-      direct_link_id_common(reader,
-                            current_library,
-                            id_cast<ID *>(*nodetree),
-                            id_old != nullptr ? id_cast<ID *>(bke::node_tree_from_id(id_old)) :
-                                                nullptr,
-                            {},
-                            ID_Readfile_Data::Tags{});
-      const IDTypeInfo &type_info = *BKE_idtype_get_info_from_idcode(ID_NT);
-      type_info.blend_read_data(reader, &(*nodetree)->id);
-      direct_link_id_embedded_id_owner(reader, type_info, id, &(*nodetree)->id);
-    }
+  /* Embedded IDs of the old ID, in the same order. */
+  Vector<ID *> embedded_ids_old;
+  if (id_old != nullptr) {
+    BKE_idtype_id_foreach_embedded_id_p(
+        id_old,
+        [&](ID **embedded_id_p, const ID_Type /*id_type*/, StringRefNull /*rna_identifier*/) {
+          embedded_ids_old.append(*embedded_id_p);
+        });
   }
 
-  if (id->id_type() == ID_SCE) {
-    Scene *scene = id_cast<Scene *>(id);
-    if (scene->master_collection != nullptr) {
-      BLO_read_struct(reader, Collection, &scene->master_collection);
-      if (!scene->master_collection ||
-          !BKE_idtype_idcode_is_valid(scene->master_collection->id.id_type()))
-      {
-        BLO_reportf_wrap(
-            reader->fd->reports,
-            RPT_ERROR,
-            RPT_("Scene '%s' had an invalid root collection, which has not been read"),
-            BKE_id_name(*id));
-        MEM_SAFE_DELETE(scene->master_collection);
-      }
-      else {
+  /* Handle 'private IDs'. */
+  int index = 0;
+  BKE_idtype_id_foreach_embedded_id_p(
+      id, [&](ID **embedded_id_p, const ID_Type id_type, StringRefNull /*rna_identifier*/) {
+        ID *embedded_id_old = embedded_ids_old.is_empty() ? nullptr : embedded_ids_old[index];
+        index++;
+        if (*embedded_id_p == nullptr) {
+          return;
+        }
+
+        const IDTypeInfo *type_info = BKE_idtype_get_info_from_idcode(id_type);
+        *embedded_id_p = static_cast<ID *>(
+            blo_read_struct_impl(reader, *embedded_id_p, type_info->struct_size));
+        ID *embedded_id = *embedded_id_p;
+        if (embedded_id == nullptr || !BKE_idtype_idcode_is_valid(embedded_id->id_type())) {
+          BLO_reportf_wrap(reader->fd->reports,
+                           RPT_ERROR,
+                           RPT_("Data-block '%s' had an invalid embedded %s, which has not been "
+                                "read"),
+                           BKE_id_name(*id),
+                           type_info->name);
+          MEM_delete_void(static_cast<void *>(*embedded_id_p));
+          *embedded_id_p = nullptr;
+          return;
+        }
+
         direct_link_id_common(
-            reader,
-            current_library,
-            &scene->master_collection->id,
-            id_old != nullptr ? &(id_cast<Scene *>(id_old))->master_collection->id : nullptr,
-            {},
-            ID_Readfile_Data::Tags{});
-        const IDTypeInfo &type_info = *BKE_idtype_get_info_from_idcode(ID_GR);
-        type_info.blend_read_data(reader, &scene->master_collection->id);
-        direct_link_id_embedded_id_owner(reader, type_info, id, &scene->master_collection->id);
-      }
-    }
-  }
+            reader, current_library, embedded_id, embedded_id_old, {}, ID_Readfile_Data::Tags{});
+        type_info->blend_read_data(reader, embedded_id);
+        direct_link_id_embedded_id_owner(reader, *type_info, id, embedded_id);
+      });
 }
 
 static int direct_link_id_restore_recalc_exceptions(const ID *id_current)
@@ -2377,17 +2335,8 @@ void BLO_readfile_id_runtime_data_free_all(Main &bmain)
     BLO_readfile_id_runtime_data_free(*id);
 
     /* Handle its embedded IDs, because they do not get referenced by bmain. */
-    if (id->id_type() == ID_SCE) {
-      Collection *collection = reinterpret_cast<Scene *>(id)->master_collection;
-      if (collection) {
-        BLO_readfile_id_runtime_data_free(collection->id);
-      }
-    }
-
-    bNodeTree *node_tree = bke::node_tree_from_id(id);
-    if (node_tree) {
-      BLO_readfile_id_runtime_data_free(node_tree->id);
-    }
+    BKE_idtype_id_foreach_embedded_id(
+        id, [](ID &embedded_id) { BLO_readfile_id_runtime_data_free(embedded_id); });
   }
   FOREACH_MAIN_ID_END;
 }
