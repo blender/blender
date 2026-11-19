@@ -672,9 +672,11 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
   AbstractViewItem *hovered_abstract_item = region_views_find_item_at(
       *region, win->runtime->eventstate->xy);
 
-  auto *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(hovered_abstract_item);
-  BLI_assert(hovered_item != nullptr);
+  if (!hovered_abstract_item) {
+    return;
+  }
 
+  auto *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(hovered_abstract_item);
   hovered_item->toggle_collapsed_from_view(*C);
   /* When collapsing an item with an active child, make this collapsed item active instead so the
    * active item stays visible. */
