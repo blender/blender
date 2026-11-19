@@ -286,6 +286,12 @@ class GHOST_ContextVK : public GHOST_Context {
   VkSurfaceFormatKHR surface_format_;
   bool use_hdr_swapchain_;
 
+  /* Image usages the surface supports on its swapchain images.
+   *
+   * HDR capable swapchains require support of storage usage.
+   */
+  VkImageUsageFlags supported_swapchain_usage_ = 0;
+
   std::optional<uint32_t> acquired_swapchain_image_index_;
 
   std::function<void(const GHOST_VulkanSwapChainData *, bool)> swap_buffer_draw_callback_;
