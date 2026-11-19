@@ -1702,7 +1702,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
     if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_MDEFORMVERT] >= 0) {
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
-      if (ob_dst) {
+      if (ob_dst && BKE_object_supports_vertex_groups(ob_dst)) {
         const bDeformGroup *dg;
         int i;
 
@@ -1725,7 +1725,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
     if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_UV] >= 0) {
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
-      if (ob_dst && ob_dst->data) {
+      if (ob_dst && ob_dst->type == OB_MESH && ob_dst->data) {
         Mesh *me_dst = id_cast<Mesh *>(ob_dst->data);
         const VectorSet<StringRefNull> uv_map_names = me_dst->uv_map_names();
         const int num_data = uv_map_names.size();
@@ -1751,7 +1751,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
     if (dtmd->layers_select_src[multilayer_index] >= 0) {
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
-      if (ob_dst && ob_dst->data) {
+      if (ob_dst && ob_dst->type == OB_MESH && ob_dst->data) {
         const Mesh *me_dst = id_cast<const Mesh *>(ob_dst->data);
         const bke::AttrDomain domain = STREQ(RNA_property_identifier(prop),
                                              "layers_vcol_vert_select_dst") ?
