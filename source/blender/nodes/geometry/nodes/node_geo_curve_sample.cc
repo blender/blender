@@ -342,8 +342,9 @@ class SampleCurveFunction : public mf::MultiFunction {
         }
         if (!sampled_values.is_empty()) {
           BUFFER_FOR_CPP_TYPE_VALUE(source_data_->type(), value);
-          source_data_->get(points_by_curve[curve_i].first(), value);
+          source_data_->get_to_uninitialized(points_by_curve[curve_i].first(), value);
           source_data_->type().fill_construct_indices(value, sampled_values.data(), mask);
+          source_data_->type().destruct(value);
         }
         return;
       }
