@@ -4047,10 +4047,11 @@ def km_grease_pencil_selection(params):
         # Select All
         *_template_items_select_actions(params, "grease_pencil.select_all"),
         # Select fill
-        ("grease_pencil.select_fill", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("grease_pencil.select_fill", {"type": 'L', "value": 'PRESS', "alt": True}, None),
         # Select linked
-        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS'}, None),
-        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS', "shift": True},
+        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("grease_pencil.select_linked_pick", {"type": 'L', "value": 'PRESS'}, None),
+        ("grease_pencil.select_linked_pick", {"type": 'L', "value": 'PRESS', "shift": True},
          {"properties": [("deselect", True)]}),
         # Select more/less
         ("grease_pencil.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),

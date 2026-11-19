@@ -67,6 +67,7 @@ OPERATOR_IGNORE = (
     "gizmogroup.gizmo_tweak",
     "gpencil.draw",  # Interactive drawing.
     "gpencil.select_lasso",
+    "gpencil.select_linked_pick",
     "gpencil.vertex_paint",
     "gpencil.weight_paint",
     "graph.click_insert",
