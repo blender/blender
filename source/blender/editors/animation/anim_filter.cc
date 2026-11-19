@@ -4506,7 +4506,7 @@ void group_channels(ChannelArena &arena)
 
 static int foreach_expanded_recursive(AnimationChannel &channel,
                                       int row_index,
-                                      ForEachChannelCallback callback)
+                                      ForEachChannelIndexCallback callback)
 {
   callback(channel, row_index);
   row_index++;
@@ -4526,7 +4526,7 @@ static int foreach_expanded_recursive(AnimationChannel &channel,
 
 int foreach_expanded(AnimationChannel &root,
                      const bool visit_root,
-                     const ForEachChannelCallback callback)
+                     const ForEachChannelIndexCallback callback)
 {
   if (visit_root) {
     return foreach_expanded_recursive(root, 0, callback);
@@ -4545,26 +4545,23 @@ int foreach_expanded(AnimationChannel &root,
   return row_index;
 }
 
-static int foreach_channel_recursive(AnimationChannel &channel,
-                                     int row_index,
-                                     const ForEachChannelCallback callback)
+static void foreach_channel_recursive(AnimationChannel &channel,
+                                      const ForEachChannelCallback callback)
 {
-  callback(channel, row_index);
-  row_index++;
+  callback(channel);
   if (channel.type() != AnimationChannelType::SUMMARY) {
-    return row_index;
+    return;
   }
 
   SummaryChannel &summary = static_cast<SummaryChannel &>(channel);
   for (AnimationChannel *child : summary.children()) {
-    row_index = foreach_channel_recursive(*child, row_index, callback);
+    foreach_channel_recursive(*child, callback);
   }
-  return row_index;
 }
 
 void foreach_channel(SummaryChannel &root, const ForEachChannelCallback callback)
 {
-  foreach_channel_recursive(root, 0, callback);
+  foreach_channel_recursive(root, callback);
 }
 
 void sync_dopesheet(const bDopeSheet &from, bDopeSheet &to)

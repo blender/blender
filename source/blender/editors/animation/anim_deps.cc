@@ -415,7 +415,7 @@ void ANIM_sync_data_to_animchannels(const bContext *C)
         channels->filters);
 
     bool has_set_active_group = false;
-    foreach_channel(*channels->root(), [&](AnimationChannel &channel, int /*row_index*/) {
+    foreach_channel(*channels->root(), [&](AnimationChannel &channel) {
       if (channel.source_is_type(RNA_ActionGroup)) {
         animchan_sync_group(*C, channel, has_set_active_group, do_pose_bone_selection_sync);
       }

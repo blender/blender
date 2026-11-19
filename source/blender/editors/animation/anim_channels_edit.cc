@@ -299,7 +299,7 @@ static std::optional<rctf> get_channel_bounds(ed::animfilter::AnimationChannel &
 
   if (channel.type() == AnimationChannelType::SUMMARY) {
     SummaryChannel &summary_channel = static_cast<SummaryChannel &>(channel);
-    foreach_channel(summary_channel, [&](AnimationChannel &child, const int /* row_index */) {
+    foreach_channel(summary_channel, [&](AnimationChannel &child) {
       if (child.type() == AnimationChannelType::DATA) {
         DataChannel &data_channel = static_cast<DataChannel &>(child);
         if (data_channel.source_type() == DataChannelType::FCURVE) {
@@ -5205,9 +5205,7 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
              * combined bounds. No need to visit them again. */
             SummaryChannel &summary_channel = static_cast<SummaryChannel &>(channel);
             foreach_channel(summary_channel,
-                            [&](AnimationChannel &child, const int /* row_index */) {
-                              visited_channels.add(&child);
-                            });
+                            [&](AnimationChannel &child) { visited_channels.add(&child); });
           }
         });
   }

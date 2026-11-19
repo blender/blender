@@ -1209,7 +1209,8 @@ void draw_dopesheet_key_area(SummaryChannel &root,
                              const KeyDrawSettings &key_draw_settings);
 
 /* The row_index is the depth first number of the row accounting for child channels. */
-using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel, int row_index)>;
+using ForEachChannelIndexCallback = FunctionRef<void(AnimationChannel &channel, int row_index)>;
+using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel)>;
 
 /**
  * Iterate all expanded channels and their children.
@@ -1219,7 +1220,9 @@ using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel, int r
  *
  * \returns the amount of rows visited
  */
-int foreach_expanded(AnimationChannel &root, bool visit_root, ForEachChannelCallback callback);
+int foreach_expanded(AnimationChannel &root,
+                     bool visit_root,
+                     ForEachChannelIndexCallback callback);
 
 struct AnimfilterSpaceRuntime {
   /* Store the UI states of channels so it is remembered across recreations of
