@@ -133,6 +133,9 @@ static void mix_attributes(bke::MutableAttributeAccessor attributes_a,
       continue;
     }
     const bke::GAttributeReader attribute_b = b_attributes.lookup(name, attribute_a.domain, type);
+    if (!attribute_b) {
+      continue;
+    }
     if (sharing_info_equal(attribute_a.sharing_info, attribute_b.sharing_info)) {
       continue;
     }
