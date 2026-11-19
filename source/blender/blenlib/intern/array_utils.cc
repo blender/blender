@@ -637,7 +637,7 @@ void map_ids_to_indices(const Span<int> src_ids,
                         MutableSpan<int> r_src_by_dst_indices)
 {
   PRF_scope(ProfileCategory::Default);
-  BLI_assert(r_src_indices.size() == dst_ids.size());
+  BLI_assert(r_src_by_dst_indices.size() == dst_ids.size());
   if (dst_ids.is_empty()) {
     return;
   }
