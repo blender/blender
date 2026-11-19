@@ -120,7 +120,7 @@ static void rna_Main_ID_remove(Main *bmain,
                                bool do_ui_user)
 {
   ID *id = static_cast<ID *>(id_ptr->data);
-  if (id->tag & ID_TAG_NO_MAIN) {
+  if ((id->tag & ID_TAG_NO_MAIN) || (id->flag & ID_FLAG_EMBEDDED_DATA)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is outside of main database and cannot be removed from it",
