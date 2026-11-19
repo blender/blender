@@ -2551,9 +2551,9 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const char *profile_path,
                                  const ListBaseT<XrUserPath> *user_paths,
                                  const ListBaseT<XrComponentPath> *component_paths,
-                                 const float *float_thresholds,
-                                 const eXrAxisFlag *axis_flags,
-                                 const wmXrPose *poses);
+                                 const float float_threshold,
+                                 const eXrAxisFlag axis_flag,
+                                 const wmXrPose pose);
 void WM_xr_action_binding_destroy(wmXrData *xr,
                                   const char *action_set_name,
                                   const char *action_name,
