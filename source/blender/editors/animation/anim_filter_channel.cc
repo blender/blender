@@ -1513,6 +1513,7 @@ void FCurveChannel::set_setting(const ChannelSettingKey setting, const bool valu
 {
   this->flags_ |= ANIM_CHANNEL_DIRTY_SETTINGS;
   FCurve *fcurve = this->get_source<FCurve>();
+
   switch (setting) {
     case ChannelSettingKey::VISIBLE_ANIM_EDITOR: {
       flag_update(fcurve->flag, FCURVE_VISIBLE, value);
@@ -1532,6 +1533,13 @@ void FCurveChannel::set_setting(const ChannelSettingKey setting, const bool valu
     }
     default:
       break;
+  }
+
+  ChannelTag *action_tag = this->tags().first_by_type(ChannelTagType::ACTION);
+  if (action_tag) {
+    ID *action_id = action_tag->source_data().owner_id;
+    /* Action has to be updated for the EVALUATE flag to take effect. */
+    DEG_id_tag_update(action_id, ID_RECALC_ANIMATION);
   }
 }
 
