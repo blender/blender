@@ -23,6 +23,7 @@
 namespace blender {
 
 class WriteWrap;
+struct IDNameLib_Map;
 
 struct WriteDataStableAddressIDs {
   /**
@@ -86,6 +87,8 @@ struct WriteData {
    * an ID* for writing a pointer value to a blend file. Do not actually use ID pointers obtained
    * this way for accessing actual data. */
   Main *bmain;
+  /** Lazily created by #BlendWriter::idmap, shared by all writers of this #WriteData. */
+  IDNameLib_Map *idmap = nullptr;
 
   std::ostream *debug_dst = nullptr;
 

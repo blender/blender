@@ -131,14 +131,9 @@ using BlendStructWriterTypedFn =
           nullptr)
 
 struct BlendWriter {
- private:
-  IDNameLib_Map *idmap_ = nullptr;
-
- public:
   WriteData *wd = nullptr;
 
   explicit BlendWriter(WriteData *wd);
-  ~BlendWriter();
 
   /**
    * Sometimes different data is written depending on whether the file is saved to disk or used for

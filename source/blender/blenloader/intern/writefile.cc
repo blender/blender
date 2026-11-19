@@ -503,6 +503,9 @@ static void writedata_free(WriteData *wd)
   if (wd->buffer.buf) {
     MEM_delete(wd->buffer.buf);
   }
+  if (wd->idmap) {
+    BKE_main_idmap_destroy(wd->idmap);
+  }
   MEM_delete(wd);
 }
 
@@ -2223,13 +2226,6 @@ bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, const
 
 BlendWriter::BlendWriter(WriteData *wd) : wd(wd) {}
 
-BlendWriter::~BlendWriter()
-{
-  if (this->idmap_) {
-    BKE_main_idmap_destroy(this->idmap_);
-  }
-}
-
 bool BlendWriter::is_undo() const
 {
   return this->wd->use_memfile;
@@ -2415,13 +2411,13 @@ IDNameLib_Map *BlendWriter::idmap()
   if (!this->wd->bmain) {
     return nullptr;
   }
-  if (!this->idmap_) {
-    this->idmap_ = BKE_main_idmap_create(this->wd->bmain,
-                                         /*create_valid_ids_set=*/false,
-                                         /*old_bmain=*/nullptr,
-                                         MAIN_IDMAP_TYPE_UID);
+  if (!this->wd->idmap) {
+    this->wd->idmap = BKE_main_idmap_create(this->wd->bmain,
+                                            /*create_valid_ids_set=*/false,
+                                            /*old_bmain=*/nullptr,
+                                            MAIN_IDMAP_TYPE_UID);
   }
-  return this->idmap_;
+  return this->wd->idmap;
 }
 
 StringRefNull BlendWriter::filepath() const
