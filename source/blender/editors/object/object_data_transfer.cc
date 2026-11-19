@@ -14,6 +14,8 @@
 #include "BLI_string.hh"
 #include "BLI_utildefines.hh"
 
+#include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
@@ -89,7 +91,8 @@ static const EnumPropertyItem DT_layer_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void dt_add_vcol_layers(const CustomData *cdata,
+static void dt_add_vcol_layers(const Mesh &mesh,
+                               const bke::AttrDomain domain,
                                eCustomDataMask mask,
                                EnumPropertyItem **r_item,
                                int *r_totitem)
@@ -103,16 +106,19 @@ static void dt_add_vcol_layers(const CustomData *cdata,
       continue;
     }
 
-    int data_num = CustomData_number_of_layers(cdata, type);
+    const bke::AttrType attr_type = *bke::custom_data_type_to_attr_type(type);
 
     RNA_enum_item_add_separator(r_item, r_totitem);
 
-    for (int j = 0; j < data_num; j++) {
+    mesh.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (iter.domain != domain || iter.data_type != attr_type) {
+        return;
+      }
       EnumPropertyItem tmp_item = {0};
       tmp_item.value = idx++;
-      tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(cdata, type, j);
+      tmp_item.identifier = tmp_item.name = iter.name.c_str();
       RNA_enum_item_add(r_item, r_totitem, &tmp_item);
-    }
+    });
   }
 }
 /* NOTE: #rna_enum_dt_layers_select_src_items enum is from rna_modifier.cc. */
@@ -212,10 +218,10 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     }
 
     if (data_type & (DT_TYPE_MLOOPCOL_VERT | DT_TYPE_MPROPCOL_VERT)) {
-      dt_add_vcol_layers(&mesh_eval->vert_data, cddata_masks.vmask, &item, &totitem);
+      dt_add_vcol_layers(*mesh_eval, bke::AttrDomain::Point, cddata_masks.vmask, &item, &totitem);
     }
     if (data_type & (DT_TYPE_MLOOPCOL_LOOP | DT_TYPE_MPROPCOL_LOOP)) {
-      dt_add_vcol_layers(&mesh_eval->corner_data, cddata_masks.lmask, &item, &totitem);
+      dt_add_vcol_layers(*mesh_eval, bke::AttrDomain::Corner, cddata_masks.lmask, &item, &totitem);
     }
   }
 
