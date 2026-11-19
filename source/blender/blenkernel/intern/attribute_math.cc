@@ -268,6 +268,9 @@ void float4x4Mixer::finalize(const IndexMask &mask)
 
 float4x4 mix_indices(const Span<float4x4> src, const Span<int> indices)
 {
+  if (indices.is_empty()) {
+    return float4x4::identity();
+  }
   float3 location_accum(0);
   float3 expmap_accum(0);
   float3 scale_accum(0);
@@ -281,7 +284,7 @@ float4x4 mix_indices(const Span<float4x4> src, const Span<int> indices)
     scale_accum += scale;
   }
 
-  const float weight_inv = math::safe_rcp(float(indices.size()));
+  const float weight_inv = math::rcp(float(indices.size()));
   return math::from_loc_rot_scale<float4x4>(location_accum * weight_inv,
                                             math::Quaternion::expmap(expmap_accum * weight_inv),
                                             scale_accum * weight_inv);
@@ -318,7 +321,10 @@ float4x4 mix_indices(const Span<float4x4> src, const Span<int> indices, const Sp
     total_weight += weight;
   }
 
-  const float weight_inv = math::safe_rcp(total_weight);
+  if (total_weight == 0.0f) {
+    return float4x4::identity();
+  }
+  const float weight_inv = math::rcp(total_weight);
   return math::from_loc_rot_scale<float4x4>(location_accum * weight_inv,
                                             math::Quaternion::expmap(expmap_accum * weight_inv),
                                             scale_accum * weight_inv);
