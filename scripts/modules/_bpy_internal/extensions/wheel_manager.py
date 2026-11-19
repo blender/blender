@@ -17,6 +17,7 @@ import contextlib
 import os
 import re
 import shutil
+import stat
 import zipfile
 
 from collections.abc import (
@@ -330,6 +331,25 @@ def _wheel_zipfile_normalize(
 # -----------------------------------------------------------------------------
 # Generic ZIP File Extractions
 
+MODE_EXEC_ALL = stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+MODE_RWX_ALL = stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO
+
+
+def _current_umask() -> int:
+    mask = os.umask(0)
+    os.umask(mask)
+    return mask
+
+
+def _set_extracted_file_to_default_mode_plus_executable(filepath: str) -> None:
+    os.chmod(filepath, (MODE_RWX_ALL & ~_current_umask()) | MODE_EXEC_ALL)
+
+
+def _zip_item_is_executable(member: zipfile.ZipInfo) -> bool:
+    mode = member.external_attr >> 16
+    return bool(mode and stat.S_ISREG(mode) and (mode & MODE_EXEC_ALL))
+
+
 def _zipfile_extractall_safe(
         zip_fh: zipfile.ZipFile,
         path: str,
@@ -404,6 +424,10 @@ def _zipfile_extractall_safe(
                     fh.write(data_transform)
             else:
                 zip_fh.extract(member, path_restrict)
+                # `ZipFile.extract` doesn't preserve permissions, set the executable bit (as `pip` does).
+                if os.name != "nt":
+                    if _zip_item_is_executable(member):
+                        _set_extracted_file_to_default_mode_plus_executable(filepath_native)
         except Exception as ex:
             error_fn(ex)
 
