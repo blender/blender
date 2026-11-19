@@ -131,6 +131,11 @@ class GHOST_ContextMTL : public GHOST_Context {
   MTLDevice *metalDevice();
 
   /**
+   * Create the Metal Layer, static function also used by the WindowCocoa constructor.
+   */
+  static CAMetalLayer *createMetalLayer(id<MTLDevice> metalDevice, GHOST_TVSyncModes vsync);
+
+  /**
    * Callback registration.
    */
   void metalRegisterPresentCallback(void (*callback)(
