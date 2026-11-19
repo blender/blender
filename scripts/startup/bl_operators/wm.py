@@ -2212,6 +2212,17 @@ class WM_OT_properties_context_change(Operator):
     )
 
     def execute(self, context):
+        from bl_ui.space_properties import tabs_attr_infos
+
+        show_properties_attr_name = next(
+            (attr_name for attr_name, _, context_name in tabs_attr_infos
+             if context_name == self.context),
+            None,
+        )
+
+        if show_properties_attr_name:
+            setattr(context.space_data, show_properties_attr_name, True)
+
         context.space_data.context = self.context
         return {'FINISHED'}
 
