@@ -453,7 +453,6 @@ bool BKE_collection_validate(Collection *collection);
  */
 void BKE_collection_blend_write_prepare_nolib(BlendWriter *writer, Collection *collection);
 void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection);
-void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collection, ID *owner_id);
 
 /* Iteration callbacks. */
 

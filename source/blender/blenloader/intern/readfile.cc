@@ -2175,6 +2175,44 @@ static void direct_link_id_common(BlendDataReader *reader,
                                   eID_Tag id_tag,
                                   ID_Readfile_Data::Tags id_read_tags);
 
+/**
+ * Set the owner of an embedded ID after reading its data, and ensure it is flagged as embedded.
+ */
+static void direct_link_id_embedded_id_owner(BlendDataReader *reader,
+                                             const IDTypeInfo &type_info,
+                                             ID *owner_id,
+                                             ID *embedded_id)
+{
+  /* Special case for the owner pointer, do not rely on regular `lib_link` process here. Avoids
+   * needs for do_versioning, and ensures coherence of data in any case.
+   *
+   * NOTE: Old versions are very often 'broken' here, just fix it silently in these cases.
+   */
+  if (BLO_read_fileversion_get(reader) > 300) {
+    BLI_assert((embedded_id->flag & ID_FLAG_EMBEDDED_DATA) != 0);
+  }
+  BLI_assert(owner_id->lib == embedded_id->lib);
+  if ((embedded_id->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
+    /* This is unfortunate, but currently a lot of existing files (including startup ones) have
+     * missing `ID_FLAG_EMBEDDED_DATA` flag.
+     *
+     * NOTE: Using do_version is not a solution here, since this code will be called before any
+     * do_version takes place. Keeping it here also ensures future (or unknown existing) similar
+     * bugs won't go easily unnoticed. */
+    if (BLO_read_fileversion_get(reader) > 300) {
+      CLOG_WARN(&LOG,
+                "Fixing embedded %s '%s' owned by '%s' missing EMBEDDED tag, please consider "
+                "re-saving your (startup) file",
+                type_info.name,
+                embedded_id->name,
+                owner_id->name);
+    }
+    embedded_id->flag |= ID_FLAG_EMBEDDED_DATA;
+  }
+
+  *type_info.owner_pointer_get(embedded_id, false) = owner_id;
+}
+
 static void direct_link_id_embedded_id(BlendDataReader *reader,
                                        Library *current_library,
                                        ID *id,
@@ -2209,7 +2247,9 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                                                 nullptr,
                             {},
                             ID_Readfile_Data::Tags{});
-      bke::node_tree_blend_read_data(reader, id, *nodetree);
+      const IDTypeInfo &type_info = *BKE_idtype_get_info_from_idcode(ID_NT);
+      type_info.blend_read_data(reader, &(*nodetree)->id);
+      direct_link_id_embedded_id_owner(reader, type_info, id, &(*nodetree)->id);
     }
   }
 
@@ -2235,7 +2275,9 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
             id_old != nullptr ? &(id_cast<Scene *>(id_old))->master_collection->id : nullptr,
             {},
             ID_Readfile_Data::Tags{});
-        BKE_collection_blend_read_data(reader, scene->master_collection, &scene->id);
+        const IDTypeInfo &type_info = *BKE_idtype_get_info_from_idcode(ID_GR);
+        type_info.blend_read_data(reader, &scene->master_collection->id);
+        direct_link_id_embedded_id_owner(reader, type_info, id, &scene->master_collection->id);
       }
     }
   }

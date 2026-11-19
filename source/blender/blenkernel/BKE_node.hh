@@ -1008,7 +1008,7 @@ void node_tree_node_flag_set(bNodeTree &ntree, eNode_Flag flag, bool enable);
 /**
  * \note `ntree` itself has been read!
  */
-void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree);
+void node_tree_blend_read_data(BlendDataReader *reader, bNodeTree *ntree);
 
 bool node_is_static_socket_type(const bNodeSocketType &stype);
 

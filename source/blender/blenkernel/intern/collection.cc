@@ -343,41 +343,15 @@ static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_a
   BKE_collection_blend_write_nolib(writer, collection);
 }
 
-void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collection, ID *owner_id)
+static void collection_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  /* Special case for this pointer, do not rely on regular `lib_link` process here. Avoids needs
-   * for do_versioning, and ensures coherence of data in any case.
-   *
-   * NOTE: Old versions are very often 'broken' here, just fix it silently in these cases.
-   */
-  if (BLO_read_fileversion_get(reader) > 300) {
-    BLI_assert((collection->id.flag & ID_FLAG_EMBEDDED_DATA) != 0 || owner_id == nullptr);
-  }
-  BLI_assert(owner_id == nullptr || owner_id->lib == collection->id.lib);
-  if (owner_id != nullptr && (collection->id.flag & ID_FLAG_EMBEDDED_DATA) == 0) {
-    /* This is unfortunate, but currently a lot of existing files (including startup ones) have
-     * missing `ID_FLAG_EMBEDDED_DATA` flag.
-     *
-     * NOTE: Using do_version is not a solution here, since this code will be called before any
-     * do_version takes place. Keeping it here also ensures future (or unknown existing) similar
-     * bugs won't go easily unnoticed. */
-    if (BLO_read_fileversion_get(reader) > 300) {
-      CLOG_WARN(&LOG,
-                "Fixing root node tree '%s' owned by '%s' missing EMBEDDED tag, please consider "
-                "re-saving your (startup) file",
-                collection->id.name,
-                owner_id->name);
-    }
-    collection->id.flag |= ID_FLAG_EMBEDDED_DATA;
-  }
+  Collection *collection = id_cast<Collection *>(id);
 
   collection->runtime = MEM_new<bke::CollectionRuntime>(__func__);
   collection->flag &= ~COLLECTION_FLAG_ALL_RUNTIME;
 
-  collection->owner_id = owner_id;
-  if (owner_id != nullptr) {
-    BKE_libblock_owner_bmain_set(collection->id, owner_id->owner_bmain_for_write(), false);
-  }
+  /* Set for the embedded root collection after reading, by the owner scene. */
+  collection->owner_id = nullptr;
 
   BLO_read_struct_list(reader, CollectionObject, &collection->gobject);
   BLO_read_struct_list(reader, CollectionChild, &collection->children);
@@ -403,12 +377,6 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
 
   BLO_read_struct(reader, PreviewImage, &collection->preview);
   BKE_previewimg_blend_read(reader, collection->preview);
-}
-
-static void collection_blend_read_data(BlendDataReader *reader, ID *id)
-{
-  Collection *collection = id_cast<Collection *>(id);
-  BKE_collection_blend_read_data(reader, collection, nullptr);
 }
 
 static void collection_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
