@@ -234,7 +234,10 @@ static void screen_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BKE_previewimg_blend_write(writer, screen->preview);
 
   /* direct data */
-  BKE_screen_area_map_blend_write(writer, AREAMAP_FROM_SCREEN(screen));
+  /* Track the resources allocated by the sub-ID-data writers, so that their pointers are never
+   * reused within the scope of this bScreen ID. */
+  ResourceScope scope;
+  BKE_screen_area_map_blend_write(writer, scope, AREAMAP_FROM_SCREEN(screen));
 }
 
 bool BKE_screen_blend_read_data(BlendDataReader *reader, bScreen *screen)
@@ -1570,11 +1573,10 @@ static void write_area(ScreenBlendWriteData &screen_writer, ScrArea *area)
   }
 }
 
-void BKE_screen_area_map_blend_write(BlendWriter *writer, ScrAreaMap *area_map)
+void BKE_screen_area_map_blend_write(BlendWriter *writer,
+                                     ResourceScope &scope,
+                                     ScrAreaMap *area_map)
 {
-  /* Track the resources allocated by the sub-ID-data writers, so that their pointers are never
-   * reused within the scope of this bScreen ID. */
-  ResourceScope scope;
   ScreenBlendWriteData screen_writer{writer, scope};
 
   writer->write_struct_list(&area_map->vertbase);

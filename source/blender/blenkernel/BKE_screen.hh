@@ -1121,7 +1121,13 @@ void BKE_screen_header_alignment_reset(bScreen *screen);
 void BKE_screen_view3d_shading_blend_write(BlendWriter *writer, View3DShading *shading);
 void BKE_screen_view3d_shading_blend_read_data(BlendDataReader *reader, View3DShading *shading);
 
-void BKE_screen_area_map_blend_write(BlendWriter *writer, ScrAreaMap *area_map);
+/**
+ * \param scope: Must outlive the writing of the whole owning ID, as pointers allocated in it have
+ * to be unique within that ID (e.g. all global area maps of a window-manager share one scope).
+ */
+void BKE_screen_area_map_blend_write(BlendWriter *writer,
+                                     ResourceScope &scope,
+                                     ScrAreaMap *area_map);
 /**
  * \return false on error.
  */
