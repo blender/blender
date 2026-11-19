@@ -117,12 +117,6 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
       return "gpu_shader_sequencer_scope_resolve";
     case GPU_SHADER_SEQUENCER_ZEBRA:
       return "gpu_shader_sequencer_zebra";
-    case GPU_SHADER_INDEXBUF_POINTS:
-      return "gpu_shader_index_2d_array_points";
-    case GPU_SHADER_INDEXBUF_LINES:
-      return "gpu_shader_index_2d_array_lines";
-    case GPU_SHADER_INDEXBUF_TRIS:
-      return "gpu_shader_index_2d_array_tris";
 
     case GPU_SHADER_2D_UPDATE_MIPMAPS_UNORM_8:
       return "gpu_shader_2D_update_mipmaps_unorm_8";

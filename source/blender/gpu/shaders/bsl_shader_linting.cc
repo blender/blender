@@ -13,7 +13,6 @@
 #include "gpu_shader_display_fallback.bsl.hh"                /* IWYU pragma: export */
 #include "gpu_shader_icon.bsl.hh"                            /* IWYU pragma: export */
 #include "gpu_shader_image.bsl.hh"                           /* IWYU pragma: export */
-#include "gpu_shader_index_gen.bsl.hh"                       /* IWYU pragma: export */
 #include "gpu_shader_keyframe_shape.bsl.hh"                  /* IWYU pragma: export */
 #include "gpu_shader_node_socket.bsl.hh"                     /* IWYU pragma: export */
 #include "gpu_shader_nodelink.bsl.hh"                        /* IWYU pragma: export */

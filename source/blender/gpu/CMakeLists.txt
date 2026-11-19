@@ -747,7 +747,6 @@ set(GLSL_SRC
 
   shaders/gpu_shader_display_fallback.bsl.hh
 
-  shaders/gpu_shader_index_gen.bsl.hh
 
   shaders/compat/gpu_shader_compat_glsl.glsl
   shaders/compat/gpu_shader_glsl_extension.glsl
