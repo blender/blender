@@ -850,9 +850,9 @@ static bool rna_XrSessionState_action_binding_create(bContext *C,
   const bool is_float_action = ELEM(ami->type, XR_FLOAT_INPUT, XR_VECTOR2F_INPUT);
   const bool is_button_action = (is_float_action || ami->type == XR_BOOLEAN_INPUT);
   const bool is_pose_action = (ami->type == XR_POSE_INPUT);
-  float float_threshold;
-  eXrAxisFlag axis_flag;
-  wmXrPose pose;
+  float float_threshold = 0.0f;
+  eXrAxisFlag axis_flag = eXrAxisFlag(0);
+  wmXrPose pose = {};
 
   if (is_float_action) {
     float_threshold = amb->float_threshold;
