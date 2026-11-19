@@ -2447,6 +2447,10 @@ def km_node_editor(params):
          {"properties": [("data_path", 'tool_settings.use_snap_node')]}),
         ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
          {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
+        *([] if params.context_menu_event["type"] != 'RIGHTMOUSE' else (
+            ("node.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
+             {"properties": [("select_passthrough", True)]}),
+        )),
         *_template_items_context_menu("NODE_MT_context_menu", params.context_menu_event),
         # Viewer shortcuts.
         *(
