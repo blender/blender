@@ -201,13 +201,14 @@ struct DensityAddOperationExecutor {
       }
     });
 
-    /* Find new points that are too close to other new points. */
-    const KDTree<float3> new_positions_kdtree(new_positions_cu);
+    /* Find new points that are too close to other new points. Points that were already rejected
+     * are left out, so that they don't cause their neighbors to be rejected as well. */
+    IndexMaskMemory memory;
+    const IndexMask remaining_points = IndexMask::from_bools_inverse(new_curve_skipped, memory);
+    const KDTree<float3> new_positions_kdtree(new_positions_cu, remaining_points);
     Array<int> duplicates(new_positions_cu.size(), -1);
-    kdtree::calc_duplicates(new_positions_kdtree,
-                            brush_settings_->minimum_distance,
-                            IndexMask(new_positions_cu.size()),
-                            duplicates);
+    kdtree::calc_duplicates(
+        new_positions_kdtree, brush_settings_->minimum_distance, remaining_points, duplicates);
     for (const int new_i : new_positions_cu.index_range()) {
       /* A point that other points were merged into uses its own index; only an actual merge
        * target (a different index) means this point should be removed. */
