@@ -833,8 +833,13 @@ std::optional<AttrDomain> EvaluateOnDomainInput::preferred_domain(
 }
 
 NativeFieldDomain EvaluateOnDomainInput::native_domain_info(
-    const GeometryComponent & /*component*/) const
+    const GeometryComponent &component) const
 {
+  /* The domain may not exist on this geometry, like the instance domain on a mesh. */
+  const std::optional<AttributeAccessor> attributes = component.attributes();
+  if (!attributes || !attributes->domain_supported(src_domain_)) {
+    return NativeFieldDomain::None();
+  }
   return bke::NativeFieldDomain::Domain{src_domain_};
 }
 
@@ -877,6 +882,10 @@ NativeFieldDomain NormalFieldInput::native_domain_info(const GeometryComponent &
 {
   switch (component.type()) {
     case GeometryComponent::Type::Mesh: {
+      /* These evaluate to face normals on the face corner domain. */
+      if (legacy_corner_normals_ || true_normals_) {
+        return bke::NativeFieldDomain::Domain{AttrDomain::Face};
+      }
       if (const Mesh *mesh = static_cast<const MeshComponent &>(component).get()) {
         switch (mesh->normals_domain()) {
           case MeshNormalDomain::Face:
@@ -1216,6 +1225,7 @@ std::optional<AttrDomain> try_detect_native_field_domain(const GeometryComponent
       if (const auto *value = std::get_if<NativeFieldDomain::Domain>(&domain_info.variant)) {
         domains.add(value->domain);
       }
+      continue;
     }
     if (component.type() == GeometryComponent::Type::Mesh) {
       if (const Mesh *mesh = static_cast<const MeshComponent &>(component).get()) {
@@ -1227,9 +1237,11 @@ std::optional<AttrDomain> try_detect_native_field_domain(const GeometryComponent
           if (const auto *value = std::get_if<NativeFieldDomain::Domain>(&domain_info.variant)) {
             domains.add(value->domain);
           }
+          continue;
         }
       }
     }
+    /* Unknown input type that may depend on the domain order, like the index. */
     return std::nullopt;
   }
   if (domains.size() != 1) {
