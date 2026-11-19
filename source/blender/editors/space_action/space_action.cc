@@ -196,8 +196,6 @@ static void action_free(SpaceLink *sl)
 static void action_init(wmWindowManager * /*wm*/, ScrArea *area)
 {
   SpaceAction *saction = area->spacedata.first_as<SpaceAction>();
-  /* TODO this should maybe be moved to `on_show` because `init` is also called when scaling
-   * regions. */
   saction->runtime->flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 }
 
