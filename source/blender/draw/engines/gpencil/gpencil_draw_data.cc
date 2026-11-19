@@ -382,8 +382,8 @@ MaterialPool *gpencil_material_pool_create(Instance *inst,
                                gp_style->texture_angle,
                                reinterpret_cast<float (*)[2]>(&mat_data->fill_uv_rot_scale),
                                mat_data->fill_uv_offset);
-
-      mat_data->fill_texture_mix = 1.0f;
+      copy_v4_v4(mat_data->fill_color, gp_style->fill_rgba);
+      mat_data->fill_texture_mix = 1.0f - gp_style->mix_factor;
     }
     else /* if (gp_style->fill_style == GP_MATERIAL_FILL_STYLE_SOLID) */ {
       pool->tex_fill[mat_id] = nullptr;
