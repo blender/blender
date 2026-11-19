@@ -1720,19 +1720,31 @@ class XpbdSolverStep {
             constraints_.rod_stretch_shear_constraints[constraint_usage.constraint_i];
         geo_data.attributes.remove(constraint.lambda_pos_attr);
         geo_data.attributes.remove(constraint.lambda_rot_attr);
-        if (bke::SpanAttributeWriter<float3> lambda_pos_attr =
-                this->get_output_attribute_writer<float3>(
-                    data_key_i, constraint.lambda_pos_attr, geo_data.domain))
-        {
-          lambda_pos_attr.span.copy_from(constraint_usage.lambdas_pos);
-          lambda_pos_attr.finish();
+        if (!constraint.lambda_pos_attr.empty()) {
+          if (bke::SpanAttributeWriter<float3> lambda_pos_attr =
+                  this->get_output_attribute_writer<float3>(
+                      data_key_i, constraint.lambda_pos_attr, geo_data.domain))
+          {
+            lambda_pos_attr.span.copy_from(constraint_usage.lambdas_pos);
+            lambda_pos_attr.finish();
+          }
+          else {
+            this->report_attribute_write_error(
+                constraint.lambda_pos_attr, geo_data.domain, bke::AttrType::Float3);
+          }
         }
-        if (bke::SpanAttributeWriter<float3> lambda_rot_attr =
-                this->get_output_attribute_writer<float3>(
-                    data_key_i, constraint.lambda_rot_attr, geo_data.domain))
-        {
-          lambda_rot_attr.span.copy_from(constraint_usage.lambdas_rot);
-          lambda_rot_attr.finish();
+        if (!constraint.lambda_rot_attr.empty()) {
+          if (bke::SpanAttributeWriter<float3> lambda_rot_attr =
+                  this->get_output_attribute_writer<float3>(
+                      data_key_i, constraint.lambda_rot_attr, geo_data.domain))
+          {
+            lambda_rot_attr.span.copy_from(constraint_usage.lambdas_rot);
+            lambda_rot_attr.finish();
+          }
+          else {
+            this->report_attribute_write_error(
+                constraint.lambda_rot_attr, geo_data.domain, bke::AttrType::Float3);
+          }
         }
       }
     }
@@ -3317,6 +3329,21 @@ class XpbdSolverStep {
   {
     std::lock_guard<Mutex> lock(warnings_mutex_);
     warnings_.add({type, std::move(warning)});
+  }
+
+  void report_attribute_write_error(StringRefNull attribute, AttrDomain domain, bke::AttrType type)
+  {
+    const char *domain_name = nullptr;
+    RNA_enum_name_from_value(rna_enum_attribute_domain_items, int(domain), &domain_name);
+    const char *type_name = nullptr;
+    RNA_enum_name_from_value(rna_enum_attrtype_items, int(type), &type_name);
+    this->report(
+        NodeWarningType::Error,
+        fmt::format(fmt::runtime(RPT_(
+                        "Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\"")),
+                    attribute,
+                    RPT_(domain_name),
+                    RPT_(type_name)));
   }
 };
 
