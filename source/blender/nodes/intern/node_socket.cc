@@ -2230,7 +2230,7 @@ static bke::bNodeSocketType *make_socket_type_sound()
                                                 nodes::GeneratedTreeSrnaData &r_generated) {
     PropertyRNA *prop = RNA_def_pointer_runtime(
         &srna, "value", RNA_Sound, socket.name().c_str(), socket.description().c_str());
-    const auto *default_value = reinterpret_cast<const bNodeSocketValueObject *>(
+    const auto *default_value = reinterpret_cast<const bNodeSocketValueSound *>(
         socket.socket_data);
     if (default_value->value) {
       RNA_def_property_pointer_default_runtime(prop, default_value->value->id.session_uid);
