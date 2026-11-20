@@ -202,7 +202,8 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     if (!prop) {
       return false;
     }
-    /* TODO: call RNA_property_editable_info() and show the 'disabled' message somewhere. */
+    /* The UX on this could be improved by calling RNA_property_editable_info() and showing the
+     * 'disabled' message somewhere. */
     return RNA_property_editable(&this->source_, prop);
   }
 

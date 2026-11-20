@@ -372,8 +372,8 @@ static void animchan_sync_annotation_layer(ed::animfilter::AnimationChannel &cha
    * Assume that we only really do this when the active status changes.
    * (NOTE: This may prove annoying if it means selection is always lost)
    *
-   * TODO: move this away from the anim sync code, and into the GreasePencil/Annotation code for
-   * setting the selection state.
+   * This matches legacy behavior and could be improved by moving this away from the anim sync
+   * code, and into the GreasePencil/Annotation code for setting the selection state.
    */
   flag_update(gpl->flag, GP_LAYER_SELECT, gpl->flag & GP_LAYER_ACTIVE);
 }
@@ -382,8 +382,7 @@ static void animchan_sync_greasepencil_layer(ed::animfilter::AnimationChannel &c
 {
   using namespace blender::bke::greasepencil;
 
-  /* TODO: move this away from the anim sync code, and into the GreasePencil/Annotation code for
-   * setting the selection state. */
+  /* This matches legacy behavior. Can be improved just like `animchan_sync_annotation_layer`. */
 
   GreasePencil *grease_pencil = id_cast<GreasePencil *>(channel.source().owner_id);
   Layer *layer = channel.source().data_as<Layer>();
