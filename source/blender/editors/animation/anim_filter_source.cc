@@ -396,7 +396,8 @@ static void collect_channels_for_id(ID *animated_id,
     return;
   }
 
-  tags.push({ChannelTagType::ANIMATED_ID, animated_id->name + 2, animated_id_ptr, embedded_property});
+  tags.push(
+      {ChannelTagType::ANIMATED_ID, animated_id->name + 2, animated_id_ptr, embedded_property});
 
   if (adt && !adt->drivers.is_empty()) {
     PointerRNA adt_ptr = RNA_pointer_create_with_parent(animated_id_ptr, RNA_AnimData, adt);
