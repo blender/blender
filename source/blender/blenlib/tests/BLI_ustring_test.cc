@@ -111,6 +111,17 @@ TEST(ustring, Empty)
   EXPECT_EQ(default_constructed, from_literal);
 }
 
+TEST(ustring, Find)
+{
+  /* Finding a missing string must not add it. */
+  EXPECT_FALSE(UString::find("ustring_find_test_missing").has_value());
+  EXPECT_FALSE(UString::find("ustring_find_test_missing").has_value());
+
+  const UString a("ustring_find_test");
+  EXPECT_TRUE(UString::find("ustring_find_test") == a);
+  EXPECT_TRUE(UString::find("") == UString());
+}
+
 TEST(ustring, LongString)
 {
   const std::string long_a(500, 'a');

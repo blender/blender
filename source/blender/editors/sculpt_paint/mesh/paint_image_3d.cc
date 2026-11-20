@@ -41,6 +41,7 @@
 #include "BKE_brush.hh"
 #include "BKE_image_wrappers.hh"
 #include "BKE_object_types.hh"
+#include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_paint_bvh_pixels.hh"
 
@@ -1679,6 +1680,27 @@ static void paint_constant_color(const Depsgraph &depsgraph,
   finish_paint_step(ob, image_data, nodes, pixel_nodes, node_mask);
 }
 
+static float4 brush_paint_color_get(const Paint &paint,
+                                    const Brush &brush,
+                                    const StrokeCache &cache)
+{
+  if (cache.toggle_settings.invert) {
+    return float4(BKE_brush_secondary_color_get(&paint, &brush), 1.0f);
+  }
+  const float3 color = BKE_brush_color_get(&paint, &brush);
+  const std::optional<BrushColorJitterSettings> color_jitter_settings =
+      BKE_brush_color_jitter_get_settings(&paint, &brush);
+  if (!color_jitter_settings) {
+    return float4(color, 1.0f);
+  }
+  return float4(BKE_paint_randomize_color(*color_jitter_settings,
+                                          *cache.initial_hsv_jitter,
+                                          cache.stroke_distance,
+                                          cache.pressure,
+                                          color),
+                1.0f);
+}
+
 void do_3d_image_paint_brush(const Depsgraph &depsgraph,
                              const ImagePaintSettings &paint_settings,
                              const Brush &brush,
@@ -1687,11 +1709,8 @@ void do_3d_image_paint_brush(const Depsgraph &depsgraph,
                              ImageData *mask_data,
                              const IndexMask &node_mask)
 {
-  const bool is_inverted = ob.runtime->sculpt_session->cache->toggle_settings.invert;
-  const float4 brush_color(is_inverted ?
-                               BKE_brush_secondary_color_get(&paint_settings.paint, &brush) :
-                               BKE_brush_color_get(&paint_settings.paint, &brush),
-                           1.0f);
+  const float4 brush_color = brush_paint_color_get(
+      paint_settings.paint, brush, *ob.runtime->sculpt_session->cache);
   const MTex *color_mtex = BKE_brush_color_texture_get(&brush, PaintMode::Texture3D);
   if (color_mtex && color_mtex->tex) {
     paint_source_texture_color(depsgraph,

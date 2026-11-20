@@ -536,12 +536,12 @@ class ShaderModule {
   StaticShader extra_shape = shader_selectable("overlay_extra");
   StaticShader extra_point = shader_selectable("overlay_extra_point");
   StaticShader extra_wire = shader_selectable("overlay_extra_wire");
-  StaticShader extra_wire_object = shader_selectable("overlay_extra_wire_object");
   StaticShader extra_loose_points = shader_selectable("overlay_extra_loose_point");
   StaticShader extra_grid = shader_selectable("overlay_extra_grid");
   StaticShader extra_ground_line = shader_selectable("overlay_extra_groundline");
   StaticShader image_plane = shader_selectable("overlay_image");
   StaticShader image_plane_depth_bias = shader_selectable("overlay_image_depth_bias");
+  StaticShader lattice = shader_selectable("overlay_lattice");
   StaticShader particle_dot = shader_selectable("overlay_particle_point_dot");
   StaticShader particle_shape = shader_selectable("overlay_particle_shape");
   StaticShader particle_hair = shader_selectable("overlay_particle_strand");
@@ -713,7 +713,6 @@ struct Resources : public select::SelectMap {
     shaders->extra_loose_points.ensure_compile_async();
     shaders->extra_point.ensure_compile_async();
     shaders->extra_shape.ensure_compile_async();
-    shaders->extra_wire_object.ensure_compile_async();
     shaders->extra_wire.ensure_compile_async();
     shaders->fluid_grid_lines_flags.ensure_compile_async();
     shaders->fluid_grid_lines_flat.ensure_compile_async();
@@ -724,6 +723,7 @@ struct Resources : public select::SelectMap {
     shaders->grid.ensure_compile_async();
     shaders->gsplat_points.ensure_compile_async();
     shaders->image_plane_depth_bias.ensure_compile_async();
+    shaders->lattice.ensure_compile_async();
     shaders->lattice_points.ensure_compile_async();
     shaders->lattice_wire.ensure_compile_async();
     shaders->legacy_curve_edit_handles.ensure_compile_async();

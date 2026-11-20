@@ -1651,6 +1651,23 @@ static void rna_Object_constraints_remove(Object *object,
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, object);
 }
 
+static void rna_Object_constraints_remove_constraints(Object *object,
+                                                      Main *bmain,
+                                                      ReportList *reports,
+                                                      const int *indices_ptr,
+                                                      const int indices_num)
+{
+  ListBaseT<bConstraint> *constraints = &object->constraints;
+
+  if (!indices_ptr || indices_num == 0) {
+    ed::object::constraint_remove_all(bmain, object, constraints);
+    return;
+  }
+
+  Span<int> indices(indices_ptr, indices_num);
+  ed::object::constraint_remove(bmain, object, constraints, reports, indices);
+}
+
 static void rna_Object_constraints_clear(Object *object, Main *bmain)
 {
   BKE_constraints_free(&object->constraints);
@@ -2528,6 +2545,23 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "remove_constraints", "rna_Object_constraints_remove_constraints");
+  RNA_def_function_ui_description(func,
+                                  "Remove multiple constraints from this object specified by "
+                                  "indices. If no indices are provided, remove all constraints.");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  parm = RNA_def_int_array(func,
+                           "indices",
+                           1,
+                           nullptr,
+                           INT_MIN,
+                           INT_MAX,
+                           "Indices",
+                           "The indices of the constraints to remove",
+                           0,
+                           INT_MAX);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
 
   func = RNA_def_function(srna, "clear", "rna_Object_constraints_clear");
   RNA_def_function_flag(func, FUNC_USE_MAIN);

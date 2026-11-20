@@ -1413,6 +1413,74 @@ void constraint_copy_for_pose(Main *bmain, Object *ob_dst, bPoseChannel *pchan, 
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, ob_dst);
 }
 
+void constraint_remove_all(Main *bmain, Object *ob, ListBaseT<bConstraint> *constraints)
+{
+  bool is_any_ik = false;
+
+  for (bConstraint &con : constraints->items_mutable()) {
+    is_any_ik |= ELEM(con.type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
+    BKE_constraint_remove_ex(constraints, ob, &con);
+  }
+
+  if (is_any_ik) {
+    /* This is only relevant when handling bone constraints. */
+    BIK_clear_data(ob->pose);
+  }
+
+  constraint_update(bmain, ob);
+  DEG_relations_tag_update(bmain);
+
+  WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
+}
+
+void constraint_remove(Main *bmain,
+                       Object *ob,
+                       ListBaseT<bConstraint> *constraints,
+                       ReportList *reports,
+                       Span<int> indices)
+{
+  bool is_any_ik = false;
+
+  blender::Vector<int> sorted(indices);
+  std::sort(sorted.begin(), sorted.end());
+  /* Make all indices unique, and resize the vector to the new index count. */
+  sorted.resize(std::unique(sorted.begin(), sorted.end()) - sorted.begin());
+
+  indices = sorted.as_span();
+
+  if (indices.first() < 0 || indices.last() >= constraints->count()) {
+    BKE_report(reports, RPT_ERROR_INVALID_INPUT, "Indices must be in range");
+    return;
+  }
+
+  /* Construct a list of constraints to remove, visiting each constraint only once. */
+  Vector<bConstraint *> to_be_removed;
+  for (const auto &[index, constraint] : constraints->enumerate()) {
+    if (indices.is_empty()) {
+      break;
+    }
+    if (index != indices[0]) {
+      continue;
+    }
+    to_be_removed.append(&constraint);
+    indices = indices.drop_front(1);
+  }
+  /* Remove the listed constraints. */
+  for (bConstraint *constraint : to_be_removed) {
+    is_any_ik |= ELEM(constraint->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
+    BKE_constraint_remove_ex(constraints, ob, constraint);
+  }
+
+  if (is_any_ik) {
+    BIK_clear_data(ob->pose);
+  }
+
+  constraint_update(bmain, ob);
+  DEG_relations_tag_update(bmain);
+
+  WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------- */

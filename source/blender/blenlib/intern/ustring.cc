@@ -53,4 +53,15 @@ const blender::detail::UStringEntry &ustring_ensure_entry(const char *str)
 
 }  // namespace detail
 
+std::optional<UString> UString::find(const StringRef str)
+{
+  if (str.is_empty()) {
+    return UString();
+  }
+  if (const blender::detail::UStringEntry *entry = global_string_table().lookup_ptr(str)) {
+    return UString(entry);
+  }
+  return std::nullopt;
+}
+
 }  // namespace blender

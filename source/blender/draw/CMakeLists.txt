@@ -463,7 +463,6 @@ set(SHADER_SRC_EEVEE
   engines/eevee/shaders/eevee_nodetree_vert_lib.bsl.hh
   engines/eevee/shaders/eevee_occupancy_convert.bsl.hh
   engines/eevee/shaders/eevee_occupancy_lib.bsl.hh
-  engines/eevee/shaders/eevee_octahedron_lib.bsl.hh
   engines/eevee/shaders/eevee_pipeline.bsl.hh
   engines/eevee/shaders/eevee_ray_data_lib.bsl.hh
   engines/eevee/shaders/eevee_ray_denoise.bsl.hh
@@ -569,7 +568,7 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_edit_curve_point_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_wire_vert.glsl
   engines/overlay/shaders/overlay_edit_curves_handle_vert.glsl
-  engines/overlay/shaders/overlay_edit_gpencil_canvas_vert.glsl
+  engines/overlay/shaders/overlay_edit_gpencil_canvas.bsl.hh
   engines/overlay/shaders/overlay_edit_lattice.bsl.hh
   engines/overlay/shaders/overlay_edit_mesh.bsl.hh
   engines/overlay/shaders/overlay_edit_mesh_analysis_frag.glsl
@@ -590,14 +589,11 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_edit_uv_verts_frag.glsl
   engines/overlay/shaders/overlay_edit_uv_verts_vert.glsl
   engines/overlay/shaders/overlay_extra_frag.glsl
-  engines/overlay/shaders/overlay_extra_groundline_vert.glsl
   engines/overlay/shaders/overlay_extra_lightprobe_grid_vert.glsl
   engines/overlay/shaders/overlay_extra_loose_point_frag.glsl
   engines/overlay/shaders/overlay_extra_loose_point_vert.glsl
   engines/overlay/shaders/overlay_extra_point_vert.glsl
-  engines/overlay/shaders/overlay_extra_vert.glsl
-  engines/overlay/shaders/overlay_extra_wire_frag.glsl
-  engines/overlay/shaders/overlay_extra_wire_vert.glsl
+  engines/overlay/shaders/overlay_extra.bsl.hh
   engines/overlay/shaders/overlay_facing_frag.glsl
   engines/overlay/shaders/overlay_facing_vert.glsl
   engines/overlay/shaders/overlay_fullscreen_vert.glsl

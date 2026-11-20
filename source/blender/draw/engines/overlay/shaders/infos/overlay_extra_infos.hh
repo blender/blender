@@ -26,35 +26,6 @@ FLAT(float2, edge_start)
 FLAT(float4, final_color)
 GPU_SHADER_INTERFACE_END()
 
-GPU_SHADER_CREATE_INFO(overlay_extra)
-DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.hh")
-VERTEX_IN(0, float3, pos)
-VERTEX_IN(1, int, vclass)
-VERTEX_OUT(overlay_extra_iface)
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, line_output)
-VERTEX_SOURCE("overlay_extra_vert.glsl")
-FRAGMENT_SOURCE("overlay_extra_frag.glsl")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_globals)
-STORAGE_BUF(0, read, ExtraInstanceData, data_buf[])
-GPU_SHADER_CREATE_END()
-
-/* clang-format off */
-CREATE_INFO_VARIANT(overlay_extra_selectable, overlay_extra, overlay_select)
-CREATE_INFO_VARIANT(overlay_extra_clipped, overlay_extra, drw_clipped)
-CREATE_INFO_VARIANT(overlay_extra_selectable_clipped, overlay_extra_selectable, drw_clipped)
-/* clang-format on */
-
-GPU_SHADER_CREATE_INFO(overlay_extra_spot_cone)
-DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(overlay_extra)
-DEFINE("IS_SPOT_CONE")
-GPU_SHADER_CREATE_END()
-
-CREATE_INFO_VARIANT(overlay_extra_spot_cone_clipped, overlay_extra_spot_cone, drw_clipped)
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -82,88 +53,6 @@ CREATE_INFO_VARIANT(overlay_extra_grid, overlay_extra_grid_base, draw_modelmat)
 CREATE_INFO_VARIANT(overlay_extra_grid_selectable, overlay_extra_grid_base, draw_modelmat_with_custom_id, overlay_select)
 CREATE_INFO_VARIANT(overlay_extra_grid_clipped, overlay_extra_grid, drw_clipped)
 CREATE_INFO_VARIANT(overlay_extra_grid_selectable_clipped, overlay_extra_grid_selectable, drw_clipped)
-/* clang-format on */
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Ground-lines
- * \{ */
-
-GPU_SHADER_CREATE_INFO(overlay_extra_groundline)
-DO_STATIC_COMPILATION()
-VERTEX_IN(0, float3, pos)
-/* Instance attributes. */
-VERTEX_OUT(overlay_extra_iface)
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, line_output)
-VERTEX_SOURCE("overlay_extra_groundline_vert.glsl")
-FRAGMENT_SOURCE("overlay_extra_frag.glsl")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_globals)
-STORAGE_BUF(0, read, float4, data_buf[])
-GPU_SHADER_CREATE_END()
-
-/* clang-format off */
-CREATE_INFO_VARIANT(overlay_extra_groundline_selectable, overlay_extra_groundline, overlay_select)
-CREATE_INFO_VARIANT(overlay_extra_groundline_clipped, overlay_extra_groundline, drw_clipped)
-CREATE_INFO_VARIANT(overlay_extra_groundline_selectable_clipped, overlay_extra_groundline_selectable, drw_clipped)
-/* clang-format on */
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Extra wires
- * \{ */
-
-GPU_SHADER_INTERFACE_INFO(overlay_extra_wire_iface)
-NO_PERSPECTIVE(float2, stipple_coord)
-FLAT(float2, stipple_start)
-FLAT(float4, final_color)
-GPU_SHADER_INTERFACE_END()
-
-GPU_SHADER_CREATE_INFO(overlay_extra_wire_base)
-VERTEX_OUT(overlay_extra_wire_iface)
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, line_output)
-VERTEX_SOURCE("overlay_extra_wire_vert.glsl")
-FRAGMENT_SOURCE("overlay_extra_wire_frag.glsl")
-TYPEDEF_SOURCE("overlay_shader_shared.hh")
-STORAGE_BUF(0, read, VertexData, data_buf[])
-PUSH_CONSTANT(int, colorid)
-DEFINE_VALUE("pos", "data_buf[gl_VertexID].pos_.xyz")
-DEFINE_VALUE("color", "data_buf[gl_VertexID].color_")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_globals)
-GPU_SHADER_CREATE_END()
-
-/* clang-format off */
-CREATE_INFO_VARIANT(overlay_extra_wire, overlay_extra_wire_base, draw_modelmat)
-CREATE_INFO_VARIANT(overlay_extra_wire_selectable, overlay_extra_wire_base, draw_modelmat_with_custom_id, overlay_select)
-CREATE_INFO_VARIANT(overlay_extra_wire_clipped, overlay_extra_wire, drw_clipped)
-CREATE_INFO_VARIANT(overlay_extra_wire_selectable_clipped, overlay_extra_wire_selectable, drw_clipped)
-/* clang-format on */
-
-GPU_SHADER_CREATE_INFO(overlay_extra_wire_object_base)
-VERTEX_IN(0, float3, pos)
-VERTEX_IN(1, float4, color)
-/* If colorid is equal to 0 (i.e: Not specified) use color attribute and stippling. */
-VERTEX_IN(2, int, colorid)
-VERTEX_OUT(overlay_extra_wire_iface)
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, line_output)
-VERTEX_SOURCE("overlay_extra_wire_vert.glsl")
-FRAGMENT_SOURCE("overlay_extra_wire_frag.glsl")
-DEFINE("OBJECT_WIRE")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_globals)
-GPU_SHADER_CREATE_END()
-
-/* clang-format off */
-CREATE_INFO_VARIANT(overlay_extra_wire_object, overlay_extra_wire_object_base, draw_modelmat)
-CREATE_INFO_VARIANT(overlay_extra_wire_object_selectable, overlay_extra_wire_object_base, draw_modelmat_with_custom_id, overlay_select)
-CREATE_INFO_VARIANT(overlay_extra_wire_object_clipped, overlay_extra_wire_object, drw_clipped)
-CREATE_INFO_VARIANT(overlay_extra_wire_object_selectable_clipped, overlay_extra_wire_object_selectable, drw_clipped)
 /* clang-format on */
 
 /** \} */
@@ -322,30 +211,5 @@ CREATE_INFO_VARIANT(overlay_image_depth_bias_selectable, overlay_image_depth_bia
 CREATE_INFO_VARIANT(overlay_image_depth_bias_clipped, overlay_image_depth_bias, drw_clipped)
 CREATE_INFO_VARIANT(overlay_image_depth_bias_selectable_clipped, overlay_image_depth_bias_selectable, drw_clipped)
 /* clang-format on */
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name GPencil Canvas
- * \{ */
-
-GPU_SHADER_CREATE_INFO(overlay_gpencil_canvas)
-DO_STATIC_COMPILATION()
-VERTEX_OUT(overlay_extra_iface)
-PUSH_CONSTANT(float4, color)
-PUSH_CONSTANT(float3, axis_x)
-PUSH_CONSTANT(float3, axis_y)
-PUSH_CONSTANT(float3, origin)
-PUSH_CONSTANT(int, half_line_count)
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, line_output)
-VERTEX_SOURCE("overlay_edit_gpencil_canvas_vert.glsl")
-FRAGMENT_SOURCE("overlay_extra_frag.glsl")
-ADDITIONAL_INFO(draw_mesh)
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_globals)
-GPU_SHADER_CREATE_END()
-
-CREATE_INFO_VARIANT(overlay_gpencil_canvas_clipped, overlay_gpencil_canvas, drw_clipped)
 
 /** \} */

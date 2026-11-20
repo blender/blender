@@ -9,6 +9,7 @@
 #pragma once
 
 #include <atomic>
+#include <optional>
 
 #include "BLI_fixed_string.hh"
 #include "BLI_hash.hh"
@@ -67,6 +68,12 @@ class UString {
  public:
   UString() = default;
   explicit UString(const StringRef str) : ptr_(&blender::detail::ustring_ensure_entry(str)) {}
+
+  /**
+   * Get the existing #UString equal to #str, without adding it to the global table. Useful for
+   * lookups with arbitrary keys, which can't match any #UString if none exists yet.
+   */
+  static std::optional<UString> find(StringRef str);
 
   template<FixedString FStr> friend UString operator""_ustr();
 

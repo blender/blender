@@ -25,6 +25,7 @@
 
 #include "eevee_thickness_lib.bsl.hh"
 #include "gpu_shader_codegen_lib.glsl"
+#include "gpu_shader_math_octahedral.bsl.hh"
 #include "gpu_shader_math_vector.bsl.hh"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
 #include "gpu_shader_utildefines.bsl.hh"
@@ -158,22 +159,11 @@ bool color_is_grayscale(float3 color)
 
 float2 normal_pack(float3 N)
 {
-  N /= length_manhattan(N);
-  float2 _sign = sign(N.xy);
-  _sign.x = _sign.x == 0.0f ? 1.0f : _sign.x;
-  _sign.y = _sign.y == 0.0f ? 1.0f : _sign.y;
-  N.xy = (N.z >= 0.0f) ? N.xy : ((1.0f - abs(N.yx)) * _sign);
-  N.xy = N.xy * 0.5f + 0.5f;
-  return N.xy;
+  return octahedral_uv_from_direction(N);
 }
 float3 normal_unpack(float2 N_packed)
 {
-  N_packed = N_packed * 2.0f - 1.0f;
-  float3 N = float3(N_packed.x, N_packed.y, 1.0f - abs(N_packed.x) - abs(N_packed.y));
-  float t = clamp(-N.z, 0.0f, 1.0f);
-  N.x += (N.x >= 0.0f) ? -t : t;
-  N.y += (N.y >= 0.0f) ? -t : t;
-  return normalize(N);
+  return normalize(octahedral_uv_to_direction(N_packed));
 }
 
 /* Keep IOR 1.0 stable across 10-bit quantization. */

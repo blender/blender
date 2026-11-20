@@ -297,7 +297,7 @@ class TOPBAR_MT_file_recover(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("wm.recover_last_session", text="Last Session")
+        layout.operator("wm.recover_last_session", text="Last Session", icon='RECOVER_LAST')
         layout.operator("wm.recover_auto_save", text="Auto Save...")
 
 

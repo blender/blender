@@ -110,7 +110,7 @@ struct SplatData {
 
   uint2 pack() const
   {
-    return uint2(axes.pack(), packSnorm2x16(detail::pack_normal_octahedral(N)));
+    return uint2(axes.pack(), packSnorm2x16(octahedral_uv_from_direction(N)));
   }
 };
 

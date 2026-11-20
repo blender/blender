@@ -15,10 +15,6 @@
  *              IEEE TVCG 2002
  *              https://www.cs.umd.edu/~zwicker/publications/EWASplatting-TVCG02.pdf
  *
- *  [octa2017]  Rune Stubbe
- *              Octahedral Encoding
- *              https://www.shadertoy.com/view/Mtfyzl (link is not author's source)
- *
  *  [3dgs2023]  Bernhard Kebl, Georgios Kopanas et al.
  *              3D Gaussian Splatting for Real-Time Radiance Field Rendering
  *              ACM Transactions on Graphics (SIGGRAPH 2023)
@@ -44,6 +40,7 @@
 #include "gpu_shader_math_constants.bsl.hh"
 #include "gpu_shader_math_matrix_construct.bsl.hh"
 #include "gpu_shader_math_matrix_transform.bsl.hh"
+#include "gpu_shader_math_octahedral.bsl.hh"
 #include "gpu_shader_math_quaternion.bsl.hh"
 #include "gpu_shader_math_vector.bsl.hh"
 #include "gpu_shader_math_vector_reduce.bsl.hh"
@@ -61,29 +58,6 @@ template<typename T> void swap(T &a, T &b)
 }
 template void swap<float>(float &, float &);
 template void swap<float2>(float2 &, float2 &);
-
-/* TODO(not_mark): use or update `eevee_octahedron_lib` instead? */
-/** Octahedral normal encoding [octa2017]. */
-float2 pack_normal_octahedral(float3 N)
-{
-  N /= reduce_add(abs(N));
-  N.xy = N.z >= 0.0f ? N.xy :
-                       (1.0f - abs(N.yx)) *
-                           mix(float2(-1.0f), float2(1.0f), greaterThanEqual(N.xy, float2(0)));
-  N.xy = N.xy * 0.5f + 0.5f;
-  return N.xy;
-}
-
-/* TODO(not_mark): use or update `eevee_octahedron_lib` instead? */
-/** Octahedral normal decoding [octa2017]. */
-float3 unpack_normal_octahedral(float2 p)
-{
-  p = p * 2.0f - 1.0f;
-  float3 N = float3(p.xy, 1.0f - reduce_add(abs(p.xy)));
-  float t = clamp(-N.z, 0.0f, 1.0f);
-  N.xy += mix(float2(-t), float2(t), greaterThanEqual(N.xy, float2(0.0f)));
-  return normalize(N);
-}
 
 /**
  * Inverse of expmap packing [quat2017] of quaternion data.
@@ -517,7 +491,7 @@ struct ShapeResource {
       const uint4 shape_data = texelFetch(shape_data_tx, int(shape.id));
       shape.mean = detail::unpack_gaussian_mean(shape_data, infos.splat_mean_range);
       shape.wP = object.point_object_to_world(shape.mean);
-      shape.wN = detail::unpack_normal_octahedral(unpackSnorm2x16(prepass_data.y));
+      shape.wN = normalize(octahedral_uv_to_direction(unpackSnorm2x16(prepass_data.y)));
     }
     else {
       const Gaussian gs = get_gaussian(shape.id);

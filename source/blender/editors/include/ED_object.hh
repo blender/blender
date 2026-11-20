@@ -428,6 +428,21 @@ void constraint_link(Main *bmain,
 void constraint_copy_for_object(Main *bmain, Object *ob_dst, bConstraint *con);
 void constraint_copy_for_pose(Main *bmain, Object *ob_dst, bPoseChannel *pchan, bConstraint *con);
 
+/**
+ * Remove all constraints on the object.
+ * This works both for object constraints and bone constraints.
+ */
+void constraint_remove_all(Main *bmain, Object *ob, ListBaseT<bConstraint> *constraints);
+/**
+ * Remove specified constraints.
+ * This works both for object constraints and bone constraints.
+ */
+void constraint_remove(Main *bmain,
+                       Object *ob,
+                       ListBaseT<bConstraint> *constraints,
+                       ReportList *reports,
+                       Span<int> indices);
+
 /* `object_modes.cc` */
 
 /**
