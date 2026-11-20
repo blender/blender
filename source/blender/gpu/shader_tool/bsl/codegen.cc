@@ -1513,7 +1513,6 @@ struct CodegenContext : NodeErrorHandler {
         builder.ss << union_getter(cls, *var) + "\n";
         builder.ss << union_setter(cls, *var) + "\n";
       }
-      return;
     }
 
     if (cls.is_crtp) {
