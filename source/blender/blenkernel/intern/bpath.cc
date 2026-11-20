@@ -436,6 +436,7 @@ struct BPathFind_Data {
   const char *searchdir;
   ReportList *reports;
   bool find_all; /* Also search for files which current path is still valid. */
+  BPathSummary summary;
 };
 
 static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
@@ -454,6 +455,8 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false;
   }
 
+  data->summary.count_total++;
+
   filepath_new[0] = '\0';
 
   is_found = missing_files_find__recursive(
@@ -464,6 +467,7 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
                 RPT_WARNING,
                 "Could not open the directory '%s'",
                 BLI_path_basename(data->searchdir));
+    data->summary.count_failed++;
     return false;
   }
   if (is_found == false) {
@@ -472,6 +476,7 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
                 "Could not find '%s' in '%s'",
                 BLI_path_basename(path_src),
                 data->searchdir);
+    data->summary.count_failed++;
     return false;
   }
 
@@ -480,13 +485,15 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
     BLI_path_rel(filepath_new, data->basedir);
   }
   BLI_strncpy(path_dst, filepath_new, path_dst_maxncpy);
+  data->summary.count_changed++;
   return true;
 }
 
 void BKE_bpath_missing_files_find(Main *bmain,
                                   const char *searchpath,
                                   ReportList *reports,
-                                  const bool find_all)
+                                  const bool find_all,
+                                  BPathSummary *r_summary)
 {
   BPathFind_Data data = {nullptr};
   const int flag = BKE_BPATH_FOREACH_PATH_ABSOLUTE | BKE_BPATH_FOREACH_PATH_RELOAD_EDITED |
@@ -503,6 +510,10 @@ void BKE_bpath_missing_files_find(Main *bmain,
   path_data.flag = eBPathForeachFlag(flag);
   path_data.user_data = &data;
   BKE_bpath_foreach_path_main(&path_data);
+
+  if (r_summary) {
+    *r_summary = data.summary;
+  }
 }
 
 #undef MAX_DIR_RECURSE

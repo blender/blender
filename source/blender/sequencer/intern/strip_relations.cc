@@ -358,6 +358,18 @@ void relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
   sequencer_all_free_anim_ibufs(scene, &ed->seqbase, timeline_frame, frame_range);
 }
 
+void relations_refresh_all(Scene *scene)
+{
+  Editing *ed = editing_get(scene);
+  if (ed == nullptr) {
+    return;
+  }
+
+  relations_free_imbuf(scene, &ed->seqbase, false);
+  media_presence_free(scene);
+  cache_cleanup(scene, CacheCleanup::All);
+}
+
 static Strip *sequencer_check_scene_recursion(Scene *scene, ListBaseT<Strip> *seqbase)
 {
   for (Strip &strip : *seqbase) {
