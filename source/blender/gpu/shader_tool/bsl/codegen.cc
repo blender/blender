@@ -1580,6 +1580,10 @@ struct CodegenContext : NodeErrorHandler {
       class_and_crtp_functions_prototypes(nested_body, nested);
     });
 
+    if (cls.is_anonymous) {
+      return;
+    }
+
     if (!body.child_first(NodeType::FuncDecl).is_valid() &&
         !body.child_first(NodeType::FuncForwardDecl).is_valid())
     {
@@ -1605,6 +1609,10 @@ struct CodegenContext : NodeErrorHandler {
     foreach_nested_class(body, cls, [&](LocalScope nested_body, SymbolClass &nested) {
       class_and_crtp_functions_decl(nested_body, nested);
     });
+
+    if (cls.is_anonymous) {
+      return;
+    }
 
     /* Emit function members. */
     for (FuncDecl decl : body.children_of_type<FuncDecl>()) {
