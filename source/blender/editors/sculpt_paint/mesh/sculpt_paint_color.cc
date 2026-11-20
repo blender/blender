@@ -343,7 +343,7 @@ static void do_color_smooth_task(const Depsgraph &depsgraph,
                                  new_colors);
 
   for (const int i : colors.index_range()) {
-    blend_color_interpolate_float(new_colors[i], colors[i], new_colors[i], factors[i]);
+    new_colors[i] = math::interpolate(colors[i], new_colors[i], factors[i]);
   }
 
   for (const int i : verts.index_range()) {
@@ -505,9 +505,8 @@ static void do_paint_brush_task(const Depsgraph &depsgraph,
       continue;
     }
 
-    float4 daub_color;
-    blend_color_interpolate_float(
-        daub_color, brush_color, wet_mix_sampled_color, ss.cache->paint_brush.wet_mix);
+    float4 daub_color = math::interpolate(
+        brush_color, wet_mix_sampled_color, ss.cache->paint_brush.wet_mix);
 
     /* Color buffer holds the total accumulated color for the vertex, incremented by the rate. */
     daub_color = daub_color * flow_factors[i] * ss.cache->paint_brush.flow;
@@ -682,8 +681,7 @@ void do_paint_brush(const Depsgraph &depsgraph,
       if (ss.cache->first_time) {
         ss.cache->paint_brush.wet_mix_prev_color = wet_color;
       }
-      blend_color_interpolate_float(wet_color,
-                                    wet_color,
+      wet_color = math::interpolate(wet_color,
                                     ss.cache->paint_brush.wet_mix_prev_color,
                                     ss.cache->paint_brush.wet_persistence);
       ss.cache->paint_brush.wet_mix_prev_color = math::clamp(wet_color, 0.0f, 1.0f);
@@ -877,9 +875,8 @@ static void do_smear_brush_task(const Depsgraph &depsgraph,
       accum /= totw;
     }
 
-    float4 col = color_vert_get(
-        faces, corner_verts, vert_to_face_map, color_attribute.span, color_attribute.domain, vert);
-    blend_color_interpolate_float(col, ss.cache->paint_brush.prev_colors[vert], accum, factors[i]);
+    const float4 col = math::interpolate(
+        ss.cache->paint_brush.prev_colors[vert], accum, factors[i]);
     color_vert_set(faces,
                    corner_verts,
                    vert_to_face_map,

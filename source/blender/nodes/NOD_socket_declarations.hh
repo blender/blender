@@ -40,6 +40,10 @@ class Float : public SocketDeclaration {
   float soft_min_value = -FLT_MAX;
   float soft_max_value = FLT_MAX;
   PropertySubType subtype = PROP_NONE;
+  /** Increment of the UI slider. */
+  float step = 0.1f;
+  /** Number of decimal places for the UI. */
+  int precision = 3;
 
   friend FloatBuilder;
 
@@ -57,6 +61,8 @@ class FloatBuilder : public SocketDeclarationBuilder<Float> {
   FloatBuilder &max(float value);
   FloatBuilder &default_value(float value);
   FloatBuilder &subtype(PropertySubType subtype);
+  FloatBuilder &step(float value);
+  FloatBuilder &precision(int value);
   FloatBuilder &try_copy_ui_data(const SocketDeclaration &other_decl) override;
 };
 
@@ -367,7 +373,7 @@ class ClosureBuilder : public SocketDeclarationBuilder<Closure> {
 
 class IDSocketDeclaration : public SocketDeclaration {
  public:
-  const char *idname;
+  UString idname;
   /**
    * Get the default ID pointer for this socket. This is a function to avoid dangling pointers,
    * since bNode::id pointers are remapped as ID pointers change, but pointers in socket
@@ -375,7 +381,7 @@ class IDSocketDeclaration : public SocketDeclaration {
    */
   std::function<ID *(const bNode &node)> default_value_fn;
 
-  IDSocketDeclaration(const char *idname);
+  IDSocketDeclaration(UString idname);
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
@@ -547,7 +553,7 @@ class Custom : public SocketDeclaration {
 
   using Builder = CustomTypeBuilder;
 
-  const char *idname_;
+  UString idname_;
   std::function<void(bNode &node, bNodeSocket &socket, const char *data_path)> init_socket_fn;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
@@ -558,7 +564,7 @@ class Custom : public SocketDeclaration {
 
 class CustomTypeBuilder : public SocketDeclarationBuilder<Custom> {
  public:
-  CustomTypeBuilder &idname(const char *idname);
+  CustomTypeBuilder &idname(UString idname);
 
   CustomTypeBuilder &init_socket_fn(
       std::function<void(bNode &node, bNodeSocket &socket, const char *data_path)> fn)
@@ -593,6 +599,18 @@ inline FloatBuilder &FloatBuilder::default_value(const float value)
 inline FloatBuilder &FloatBuilder::subtype(PropertySubType subtype)
 {
   decl_->subtype = subtype;
+  return *this;
+}
+
+inline FloatBuilder &FloatBuilder::step(const float value)
+{
+  decl_->step = value;
+  return *this;
+}
+
+inline FloatBuilder &FloatBuilder::precision(const int value)
+{
+  decl_->precision = value;
   return *this;
 }
 
@@ -808,27 +826,27 @@ inline RotationBuilder &RotationBuilder::default_value(const math::EulerXYZ &val
 /** \name #IDSocketDeclaration and Children Inline Methods
  * \{ */
 
-inline IDSocketDeclaration::IDSocketDeclaration(const char *idname) : idname(idname) {}
+inline IDSocketDeclaration::IDSocketDeclaration(const UString idname) : idname(idname) {}
 
-inline Object::Object() : IDSocketDeclaration("NodeSocketObject") {}
+inline Object::Object() : IDSocketDeclaration("NodeSocketObject"_ustr) {}
 
-inline Material::Material() : IDSocketDeclaration("NodeSocketMaterial") {}
+inline Material::Material() : IDSocketDeclaration("NodeSocketMaterial"_ustr) {}
 
-inline Collection::Collection() : IDSocketDeclaration("NodeSocketCollection") {}
+inline Collection::Collection() : IDSocketDeclaration("NodeSocketCollection"_ustr) {}
 
-inline Texture::Texture() : IDSocketDeclaration("NodeSocketTexture") {}
+inline Texture::Texture() : IDSocketDeclaration("NodeSocketTexture"_ustr) {}
 
-inline Image::Image() : IDSocketDeclaration("NodeSocketImage") {}
+inline Image::Image() : IDSocketDeclaration("NodeSocketImage"_ustr) {}
 
-inline Font::Font() : IDSocketDeclaration("NodeSocketFont") {}
+inline Font::Font() : IDSocketDeclaration("NodeSocketFont"_ustr) {}
 
-inline Scene::Scene() : IDSocketDeclaration("NodeSocketScene") {}
+inline Scene::Scene() : IDSocketDeclaration("NodeSocketScene"_ustr) {}
 
-inline Text::Text() : IDSocketDeclaration("NodeSocketText") {}
+inline Text::Text() : IDSocketDeclaration("NodeSocketText"_ustr) {}
 
-inline Mask::Mask() : IDSocketDeclaration("NodeSocketMask") {}
+inline Mask::Mask() : IDSocketDeclaration("NodeSocketMask"_ustr) {}
 
-inline Sound::Sound() : IDSocketDeclaration("NodeSocketSound") {}
+inline Sound::Sound() : IDSocketDeclaration("NodeSocketSound"_ustr) {}
 
 /** \} */
 
@@ -836,7 +854,7 @@ inline Sound::Sound() : IDSocketDeclaration("NodeSocketSound") {}
 /** \name #CustomTypeBuilder Inline Methods
  * \{ */
 
-inline CustomTypeBuilder &CustomTypeBuilder::idname(const char *idname)
+inline CustomTypeBuilder &CustomTypeBuilder::idname(const UString idname)
 {
   decl_->idname_ = idname;
   return *this;

@@ -286,7 +286,9 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
                     .subtype(PropertySubType(value.subtype))
                     .default_value(value.value)
                     .min(value.min)
-                    .max(value.max);
+                    .max(value.max)
+                    .step(value.step)
+                    .precision(value.precision);
         break;
       }
       case SOCK_VECTOR: {
@@ -422,7 +424,7 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
       }
       case SOCK_CUSTOM: {
         decl = &b.add_socket<decl::Custom>(name, identifier, in_out)
-                    .idname(io_socket.socket_type)
+                    .idname(UString(io_socket.socket_type))
                     .init_socket_fn(get_init_socket_fn(tree.tree_interface, io_socket));
         break;
       }
@@ -434,7 +436,7 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
   }
   else {
     decl = &b.add_socket<decl::Custom>(name, identifier, in_out)
-                .idname(io_socket.socket_type)
+                .idname(UString(io_socket.socket_type))
                 .init_socket_fn(get_init_socket_fn(tree.tree_interface, io_socket));
   }
   decl->description(io_socket.description());
@@ -605,12 +607,12 @@ static void node_reroute_declare(nodes::NodeDeclarationBuilder &b)
     return;
   }
 
-  const StringRefNull socket_idname(static_cast<const NodeReroute *>(node->storage)->type_idname);
+  const UString socket_idname(static_cast<const NodeReroute *>(node->storage)->type_idname);
   b.add_input<nodes::decl::Custom>("Input"_ustr)
-      .idname(socket_idname.c_str())
+      .idname(socket_idname)
       .structure_type(nodes::StructureType::Dynamic);
   b.add_output<nodes::decl::Custom>("Output"_ustr)
-      .idname(socket_idname.c_str())
+      .idname(socket_idname)
       .structure_type(nodes::StructureType::Dynamic);
 }
 
@@ -837,17 +839,17 @@ static void node_implicit_conversion_declare(nodes::NodeDeclarationBuilder &b)
     return;
   }
 
-  const StringRefNull socket_idname(
+  const UString socket_idname(
       static_cast<const NodeImplicitConversion *>(node->storage)->type_idname);
   b.use_custom_socket_order();
   b.allow_any_socket_order();
   b.add_default_layout();
   b.add_input<nodes::decl::Custom>("Value"_ustr)
-      .idname(socket_idname.c_str())
+      .idname(socket_idname)
       .structure_type(nodes::StructureType::Dynamic)
       .optional_label();
   b.add_output<nodes::decl::Custom>("Value"_ustr)
-      .idname(socket_idname.c_str())
+      .idname(socket_idname)
       .structure_type(nodes::StructureType::Dynamic)
       .propagate_all()
       .align_with_previous();

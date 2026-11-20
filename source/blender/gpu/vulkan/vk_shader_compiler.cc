@@ -374,6 +374,18 @@ static bool compile_ex(shaderc::Compiler &compiler,
   if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     do_optimize = false;
   }
+  /* SpirV optimizer (redundancy-elimination) uses a lot of memory. Upstream this has been fixed
+   * (https://github.com/KhronosGroup/SPIRV-Tools/pull/6962v). But isn't part of the SpirV version
+   * we are targeting for 5.4. For now we work around this issue by disabling optimizations for
+   * large shaders.
+   */
+  if (shader_module.combined_sources.size() > 128000) {
+    CLOG_INFO(&LOG,
+              "Disabling shader optimization steps, source of %s source is %d bytes",
+              full_name.c_str(),
+              int32_t(shader_module.combined_sources.size()));
+    do_optimize = false;
+  }
   options.SetOptimizationLevel(do_optimize ? shaderc_optimization_level_performance :
                                              shaderc_optimization_level_zero);
 

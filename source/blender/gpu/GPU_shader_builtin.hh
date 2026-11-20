@@ -95,11 +95,6 @@ enum GPUBuiltinShader {
   /** Draw sequencer zebra pattern (overexposed regions). */
   GPU_SHADER_SEQUENCER_ZEBRA,
 
-  /** Compute shaders to generate 2d index buffers (mainly for curve drawing). */
-  GPU_SHADER_INDEXBUF_POINTS,
-  GPU_SHADER_INDEXBUF_LINES,
-  GPU_SHADER_INDEXBUF_TRIS,
-
   /** Compute shaders to generate mipmaps. */
   GPU_SHADER_2D_UPDATE_MIPMAPS_UNORM_8,
   GPU_SHADER_2D_UPDATE_MIPMAPS_UNORM_8_LAYERED,

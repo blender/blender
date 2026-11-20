@@ -860,7 +860,8 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     TransData *td, *td_old;
     float mtx[3][3], smtx[3][3], bonemat[3][3];
     bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
-    auto &bid = *static_cast<Vector<BoneInitData> *>(tc->custom.type.data);
+    /* Only allocated when mirroring, may be null. */
+    Vector<BoneInitData> *bid = static_cast<Vector<BoneInitData> *>(tc->custom.type.data);
 
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
@@ -1016,7 +1017,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
           bone_data.zwidth = eboflip->zwidth;
           copy_v3_v3(bone_data.head, eboflip->head);
           copy_v3_v3(bone_data.tail, eboflip->tail);
-          bid.append(bone_data);
+          bid->append(bone_data);
         }
       }
     }

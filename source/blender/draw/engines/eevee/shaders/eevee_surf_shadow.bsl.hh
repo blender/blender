@@ -61,7 +61,28 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
     return;
   }
 
+  int2 texel_co = int2(frag_co.xy);
+
+  /* Using bitwise ops is way faster than integer ops. */
+  constexpr int page_shift = SHADOW_PAGE_LOD;
+  constexpr int page_mask = int(~(0xFFFFFFFFu << SHADOW_PAGE_LOD));
+
+  int2 tile_co = texel_co >> page_shift;
+  int2 texel_page = texel_co & page_mask;
+
+  int view_index = shadow_iface.shadow_view_id;
+
+  int render_page_index = shadow_render_page_index_get(view_index, tile_co);
+  uint page_packed = srt.render_map_buf[render_page_index];
+
   if (pipe.use_transparency) [[static_branch]] {
+    /* The page is not rendered by this view: reject before evaluating the material, which is
+     * the expensive part of this shader.
+     * Opaque materials have nothing to skip and keep the branch-less path below. */
+    if (page_packed >= SHADOW_MAX_PAGE) {
+      return;
+    }
+
     const ViewMatrices view = views.get(shadow_iface.shadow_view_id);
 
     float3 barycentric_co = float3(0.0f);
@@ -95,20 +116,6 @@ void surf_shadow([[resource_table]] KernelGlobals &kg,
       return;
     }
   }
-
-  int2 texel_co = int2(frag_co.xy);
-
-  /* Using bitwise ops is way faster than integer ops. */
-  constexpr int page_shift = SHADOW_PAGE_LOD;
-  constexpr int page_mask = int(~(0xFFFFFFFFu << SHADOW_PAGE_LOD));
-
-  int2 tile_co = texel_co >> page_shift;
-  int2 texel_page = texel_co & page_mask;
-
-  int view_index = shadow_iface.shadow_view_id;
-
-  int render_page_index = shadow_render_page_index_get(view_index, tile_co);
-  uint page_packed = srt.render_map_buf[render_page_index];
 
   int3 page = int3(shadow_page_unpack(page_packed));
   /* If the page index is invalid this page shouldn't be rendered,

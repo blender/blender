@@ -1801,7 +1801,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
     /* #RegionView3D */
     /**
      * Needed so the value won't be left overwritten,
-     * Without this the #wmPaintCursor can't use the pixel size & view matrices for drawing.
+     * Without this the #wmCursorOverlay can't use the pixel size & view matrices for drawing.
      */
     RV3DMatrixStore *rv3d_mats;
     eRegionView3D_Persp rv3d_persp;

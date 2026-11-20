@@ -2447,6 +2447,10 @@ def km_node_editor(params):
          {"properties": [("data_path", 'tool_settings.use_snap_node')]}),
         ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
          {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
+        *([] if params.context_menu_event["type"] != 'RIGHTMOUSE' else (
+            ("node.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
+             {"properties": [("select_passthrough", True)]}),
+        )),
         *_template_items_context_menu("NODE_MT_context_menu", params.context_menu_event),
         # Viewer shortcuts.
         *(
@@ -4043,10 +4047,11 @@ def km_grease_pencil_selection(params):
         # Select All
         *_template_items_select_actions(params, "grease_pencil.select_all"),
         # Select fill
-        ("grease_pencil.select_fill", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("grease_pencil.select_fill", {"type": 'L', "value": 'PRESS', "alt": True}, None),
         # Select linked
-        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS'}, None),
-        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS', "shift": True},
+        ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        ("grease_pencil.select_linked_pick", {"type": 'L', "value": 'PRESS'}, None),
+        ("grease_pencil.select_linked_pick", {"type": 'L', "value": 'PRESS', "shift": True},
          {"properties": [("deselect", True)]}),
         # Select more/less
         ("grease_pencil.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),

@@ -1130,7 +1130,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  immUniformThemeColor(TH_SHADE1);
+  immUniformThemeColor3(TH_SHADE1);
   immRectf(pos, x - 1, y + 1, x + boxw + 1, y - boxh - 1);
   immUniformThemeColorShade(TH_BACK, 16);
   immRectf(pos, x, y, x + boxw, y - boxh);
@@ -1158,7 +1158,10 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       immUniformThemeColor(TH_SHADE2);
+      /* Blend translucent theme color with the background, see #163821. */
+      GPU_blend(GPU_BLEND_ALPHA);
       immRectf(posi, x + margin_x, y - 3, x + margin_x + w, y + line_height - 3);
+      GPU_blend(GPU_BLEND_NONE);
 
       immUnbindProgram();
     }

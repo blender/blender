@@ -8,6 +8,8 @@
 
 #include "GEO_mix_geometries.hh"
 
+#include "BLI_array_utils.hh"
+
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
@@ -131,6 +133,9 @@ static void mix_attributes(bke::MutableAttributeAccessor attributes_a,
       continue;
     }
     const bke::GAttributeReader attribute_b = b_attributes.lookup(name, attribute_a.domain, type);
+    if (!attribute_b) {
+      continue;
+    }
     if (sharing_info_equal(attribute_a.sharing_info, attribute_b.sharing_info)) {
       continue;
     }
@@ -172,22 +177,12 @@ static Array<int> create_id_index_map(const bke::AttributeAccessor attributes_a,
 
   const VArraySpan ids_span_a(ids_a.varray.typed<int>());
   const VArraySpan ids_span_b(ids_b.varray.typed<int>());
+  if (ids_span_a.is_empty() || ids_span_b.is_empty()) {
+    return {};
+  }
 
-  /* Use #int instead of the default #int64_t for internal indices. */
-  const VectorSet<int,
-                  16,
-                  DefaultProbingStrategy,
-                  DefaultHash<int>,
-                  DefaultEquality<int>,
-                  SimpleVectorSetSlot<int, int>,
-                  GuardedAllocator>
-      id_map_b(ids_span_b);
   Array<int> index_map(ids_span_a.size());
-  threading::parallel_for(ids_span_a.index_range(), 1024, [&](const IndexRange range) {
-    for (const int i : range) {
-      index_map[i] = id_map_b.index_of_try(ids_span_a[i]);
-    }
-  });
+  array_utils::map_ids_to_indices(ids_span_b, ids_span_a, index_map);
   return index_map;
 }
 

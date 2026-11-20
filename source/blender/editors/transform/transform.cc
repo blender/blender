@@ -526,7 +526,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
   else if (t->spacetype == SPACE_VIEW3D) {
     if (t->options & CTX_PAINT_CURVE) {
       wmWindow *window = CTX_wm_window(C);
-      WM_paint_cursor_tag_redraw(window, t->region);
+      WM_cursor_overlay_tag_redraw(window, t->region);
     }
     else {
       /* Do we need more refined tags? */
@@ -572,7 +572,7 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
     }
     else if (t->options & CTX_PAINT_CURVE) {
       wmWindow *window = CTX_wm_window(C);
-      WM_paint_cursor_tag_redraw(window, t->region);
+      WM_cursor_overlay_tag_redraw(window, t->region);
     }
     else if (t->options & CTX_CURSOR) {
       ED_area_tag_redraw(t->area);
@@ -2134,7 +2134,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
           t->region->runtime->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
       t->draw_handle_pixel = ED_region_draw_cb_activate(
           t->region->runtime->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
-      t->draw_handle_cursor = WM_paint_cursor_activate(
+      t->draw_handle_cursor = WM_cursor_overlay_activate(
           SPACE_TYPE_ANY, RGN_TYPE_ANY, transform_draw_cursor_poll, transform_draw_cursor_draw, t);
     }
     else if (ELEM(t->spacetype,
@@ -2147,7 +2147,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     {
       t->draw_handle_view = ED_region_draw_cb_activate(
           t->region->runtime->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-      t->draw_handle_cursor = WM_paint_cursor_activate(
+      t->draw_handle_cursor = WM_cursor_overlay_activate(
           SPACE_TYPE_ANY, RGN_TYPE_ANY, transform_draw_cursor_poll, transform_draw_cursor_draw, t);
     }
   }

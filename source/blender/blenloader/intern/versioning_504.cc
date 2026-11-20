@@ -11,6 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_listbase.hh"
 #include "BLI_sys_types.hh"
@@ -18,6 +19,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_screen.hh"
 
 #include "readfile.hh"
 
@@ -37,6 +39,50 @@ void do_versions_after_linking_504(FileData * /*fd*/, Main * /*bmain*/)
    *
    * \note Keep this message at the bottom of the function.
    */
+}
+
+static void version_float_socket_value_precision(bNodeSocketValueFloat &value)
+{
+  /* Zero is an invalid value. This makes the versioning idempotent. */
+  if (value.step == 0.0f) {
+    value.step = 0.1f;
+    value.precision = 3;
+  }
+}
+
+static void version_float_socket_precision(Main &bmain)
+{
+  FOREACH_NODETREE_BEGIN (&bmain, ntree, id) {
+    for (bNode &node : ntree->nodes) {
+      for (bNodeSocket &socket : node.inputs) {
+        if (socket.type == SOCK_FLOAT && socket.default_value) {
+          version_float_socket_value_precision(
+              *static_cast<bNodeSocketValueFloat *>(socket.default_value));
+        }
+      }
+      for (bNodeSocket &socket : node.outputs) {
+        if (socket.type == SOCK_FLOAT && socket.default_value) {
+          version_float_socket_value_precision(
+              *static_cast<bNodeSocketValueFloat *>(socket.default_value));
+        }
+      }
+    }
+    ntree->tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
+      if (item.item_type == NodeTreeInterfaceItemType::Socket) {
+        if (bNodeTreeInterfaceSocket *socket =
+                bke::node_interface::get_item_as<bNodeTreeInterfaceSocket>(&item))
+        {
+          const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
+          if (typeinfo && typeinfo->type == SOCK_FLOAT && socket->socket_data) {
+            version_float_socket_value_precision(
+                *static_cast<bNodeSocketValueFloat *>(socket->socket_data));
+          }
+        }
+      }
+      return true;
+    });
+  }
+  FOREACH_NODETREE_END;
 }
 
 void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
@@ -103,6 +149,29 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 4)) {
     for (Scene &scene : bmain->scenes) {
       scene.r.compositor_proxy_preview_scale = 50;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 7)) {
+    version_float_socket_precision(*bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 8)) {
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype != SPACE_SEQ) {
+            continue;
+          }
+          ListBaseT<ARegion> *regionbase = (area.spacedata.first() == &sl) ? &area.regionbase :
+                                                                             &sl.regionbase;
+          if (ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                             RGN_TYPE_WINDOW))
+          {
+            timeline_region->v2d.align &= ~V2D_ALIGN_NO_NEG_Y;
+          }
+        }
+      }
     }
   }
 

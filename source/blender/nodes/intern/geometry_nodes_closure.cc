@@ -125,7 +125,7 @@ ClosureSignature ClosureSignature::from_closure_to_list_node(const bNode &node)
   const auto &storage = *static_cast<const GeometryNodeClosureToList *>(node.storage);
   ClosureSignature signature;
   signature.inputs.add({.key = "Index",
-                        .type = bke::node_socket_type_find("NodeSocketInt"),
+                        .type = bke::node_socket_type_find("NodeSocketInt"_ustr),
                         .structure_type = NodeSocketInterfaceStructureType::Single});
   for (const int i : IndexRange(storage.items_num)) {
     const GeometryNodeClosureToListItem &item = storage.items[i];

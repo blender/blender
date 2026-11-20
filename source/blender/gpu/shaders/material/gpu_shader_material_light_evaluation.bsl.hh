@@ -5,6 +5,7 @@
 #pragma once
 
 #include "gpu_shader_material_interface.bsl.hh"
+#include "gpu_shader_math_vector_safe.bsl.hh"
 
 [[node]]
 void node_light_evaluation_common(const float light_index,
@@ -30,7 +31,8 @@ void node_light_evaluation_diffuse(float3 position,
                                    float &distance)
 {
   node_light_evaluation_common_impl(kg, int(light_index), position, direction, distance, mask);
-  node_light_evaluation_impl<true>(kg, sd, int(light_index), position, normal, roughness, factor);
+  node_light_evaluation_impl<true>(
+      kg, sd, int(light_index), position, safe_normalize(normal), roughness, factor);
 }
 
 [[node]]
@@ -46,5 +48,6 @@ void node_light_evaluation_glossy(float3 position,
                                   float &distance)
 {
   node_light_evaluation_common_impl(kg, int(light_index), position, direction, distance, mask);
-  node_light_evaluation_impl<false>(kg, sd, int(light_index), position, normal, roughness, factor);
+  node_light_evaluation_impl<false>(
+      kg, sd, int(light_index), position, safe_normalize(normal), roughness, factor);
 }

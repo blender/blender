@@ -850,21 +850,20 @@ static bool rna_XrSessionState_action_binding_create(bContext *C,
   const bool is_float_action = ELEM(ami->type, XR_FLOAT_INPUT, XR_VECTOR2F_INPUT);
   const bool is_button_action = (is_float_action || ami->type == XR_BOOLEAN_INPUT);
   const bool is_pose_action = (ami->type == XR_POSE_INPUT);
-  float float_thresholds[2];
-  eXrAxisFlag axis_flags[2];
-  wmXrPose poses[2];
+  float float_threshold = 0.0f;
+  eXrAxisFlag axis_flag = eXrAxisFlag(0);
+  wmXrPose pose = {};
 
   if (is_float_action) {
-    float_thresholds[0] = float_thresholds[1] = amb->float_threshold;
+    float_threshold = amb->float_threshold;
   }
   if (is_button_action) {
-    axis_flags[0] = axis_flags[1] = eXrAxisFlag(amb->axis_flag);
+    axis_flag = eXrAxisFlag(amb->axis_flag);
   }
   if (is_pose_action) {
-    copy_v3_v3(poses[0].position, amb->pose_location);
-    eul_to_quat(poses[0].orientation_quat, amb->pose_rotation);
-    normalize_qt(poses[0].orientation_quat);
-    memcpy(&poses[1], &poses[0], sizeof(poses[1]));
+    copy_v3_v3(pose.position, amb->pose_location);
+    eul_to_quat(pose.orientation_quat, amb->pose_rotation);
+    normalize_qt(pose.orientation_quat);
   }
 
   return WM_xr_action_binding_create(&wm->xr,
@@ -873,9 +872,9 @@ static bool rna_XrSessionState_action_binding_create(bContext *C,
                                      amb->profile,
                                      &ami->user_paths,
                                      &amb->component_paths,
-                                     is_float_action ? float_thresholds : nullptr,
-                                     is_button_action ? axis_flags : nullptr,
-                                     is_pose_action ? poses : nullptr);
+                                     float_threshold,
+                                     axis_flag,
+                                     pose);
 #  else
   UNUSED_VARS(C, actionmap, ami, amb);
   return false;

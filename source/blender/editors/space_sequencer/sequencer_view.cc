@@ -78,17 +78,22 @@ void SEQUENCER_OT_sample(wmOperatorType *ot)
  * \{ */
 void SEQ_get_timeline_region_padding(const bContext *C, float *r_pad_top, float *r_pad_bottom)
 {
-  *r_pad_top = UI_TIME_SCRUB_MARGIN_Y;
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (sseq->flag & SEQ_SHOW_OVERLAY && sseq->cache_overlay.flag & SEQ_CACHE_SHOW &&
-      sseq->cache_overlay.flag & SEQ_CACHE_SHOW_FINAL_OUT)
-  {
-    *r_pad_top += UI_TIME_CACHE_MARGIN_Y;
+
+  if (r_pad_top) {
+    *r_pad_top = UI_TIME_SCRUB_MARGIN_Y;
+    if (sseq->flag & SEQ_SHOW_OVERLAY && sseq->cache_overlay.flag & SEQ_CACHE_SHOW &&
+        sseq->cache_overlay.flag & SEQ_CACHE_SHOW_FINAL_OUT)
+    {
+      *r_pad_top += UI_TIME_CACHE_MARGIN_Y;
+    }
   }
 
-  *r_pad_bottom = BLI_listbase_is_empty(ED_sequencer_context_get_markers(C)) ?
-                      V2D_SCROLL_HANDLE_HEIGHT :
-                      UI_MARKER_MARGIN_Y;
+  if (r_pad_bottom) {
+    *r_pad_bottom = BLI_listbase_is_empty(ED_sequencer_context_get_markers(C)) ?
+                        V2D_SCROLL_HANDLE_HEIGHT :
+                        UI_MARKER_MARGIN_Y;
+  }
 }
 
 void SEQ_add_timeline_region_padding(const bContext *C, rctf *view_box)

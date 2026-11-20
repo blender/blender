@@ -1017,7 +1017,8 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
 
   const bool use_hdr_swapchain = hdr_info_ &&
                                  (hdr_info_->wide_gamut_enabled || hdr_info_->hdr_enabled) &&
-                                 device_vk.use_vk_ext_swapchain_colorspace;
+                                 device_vk.use_vk_ext_swapchain_colorspace &&
+                                 (supported_swapchain_usage_ & VK_IMAGE_USAGE_STORAGE_BIT);
   if (use_hdr_swapchain != use_hdr_swapchain_) {
     /* Re-create swapchain if HDR mode was toggled in the system settings. */
     recreateSwapchain(use_hdr_swapchain);
@@ -1157,7 +1158,8 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferRelease()
   GHOST_Frame &submission_frame_data = frame_data_[render_frame_];
   const bool use_hdr_swapchain = hdr_info_ &&
                                  (hdr_info_->wide_gamut_enabled || hdr_info_->hdr_enabled) &&
-                                 device_vk.use_vk_ext_swapchain_colorspace;
+                                 device_vk.use_vk_ext_swapchain_colorspace &&
+                                 (supported_swapchain_usage_ & VK_IMAGE_USAGE_STORAGE_BIT);
 
   GHOST_VulkanSwapChainData swap_chain_data;
   swap_chain_data.image = swapchain_image.vk_image;
@@ -1503,6 +1505,7 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
              GHOST_kFailure);
   }
 
+  supported_swapchain_usage_ = capabilities.supportedUsageFlags;
   use_hdr_swapchain_ = use_hdr_swapchain;
   render_extent_ = capabilities.currentExtent;
   render_extent_min_ = capabilities.minImageExtent;
@@ -2024,6 +2027,14 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   render_extent_ = {0, 0};
   render_extent_min_ = {0, 0};
   surface_format_ = {VK_FORMAT_R8G8B8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+
+  /* Setup initial supported swapchain usages. */
+  if (surface_ != VK_NULL_HANDLE) {
+    VkSurfaceCapabilitiesKHR surface_capabilities = {};
+    volk::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+        device_vk.vk_physical_device, surface_, &surface_capabilities);
+    supported_swapchain_usage_ = surface_capabilities.supportedUsageFlags;
+  }
 
   active_context_ = this;
   return GHOST_kSuccess;

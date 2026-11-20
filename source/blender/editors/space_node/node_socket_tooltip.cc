@@ -409,6 +409,11 @@ class SocketTooltipBuilder {
 
   void build_tooltip_value_enum(const nodes::MenuValue menu_item)
   {
+    /* The value may come from a menu socket linked to a socket of another type. */
+    if (socket_.type != SOCK_MENU) {
+      this->build_tooltip_value_unknown();
+      return;
+    }
     const auto *storage = socket_.default_value_typed<bNodeSocketValueMenu>();
     if (!storage->enum_items || storage->has_conflict()) {
       this->build_tooltip_value_and_type_oneline(TIP_("Unknown"), TIP_("Menu"));

@@ -888,7 +888,7 @@ ccl_device int integrate_surface(KernelGlobals kg,
     }
 
 #  ifdef __DENOISING_FEATURES__
-    film_write_denoising_features_surface_volume(kg, state, &sd, render_buffer);
+    film_write_denoising_features_surface_volume(kg, state, path_flag, &sd, render_buffer);
 #  endif
 
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_INDIRECT_LIGHT);

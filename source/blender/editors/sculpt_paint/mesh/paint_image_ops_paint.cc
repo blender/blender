@@ -112,7 +112,7 @@ struct ImagePaintStroke final : public PaintStroke {
 
  private:
   void *stroke_handle_ = nullptr;
-  wmPaintCursor *cursor_ = nullptr;
+  wmCursorOverlay *cursor_ = nullptr;
 
  public:
   ImagePaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -263,11 +263,11 @@ bool ImagePaintStroke::test_start(wmOperator *op, const float2 mouse)
   if ((brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) &&
       (brush->flag & BRUSH_USE_GRADIENT))
   {
-    this->cursor_ = WM_paint_cursor_activate(SPACE_TYPE_ANY,
-                                             RGN_TYPE_ANY,
-                                             ED_image_tools_paint_poll,
-                                             gradient_draw_line,
-                                             &this->gradient_data);
+    this->cursor_ = WM_cursor_overlay_activate(SPACE_TYPE_ANY,
+                                               RGN_TYPE_ANY,
+                                               ED_image_tools_paint_poll,
+                                               gradient_draw_line,
+                                               &this->gradient_data);
   }
 
   settings->imapaint.flag |= IMAGEPAINT_DRAWING;
@@ -286,7 +286,7 @@ struct TexturePaintStroke final : public PaintStroke {
 
  private:
   void *stroke_handle_ = nullptr;
-  wmPaintCursor *cursor_ = nullptr;
+  wmCursorOverlay *cursor_ = nullptr;
 
  public:
   TexturePaintStroke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -445,11 +445,11 @@ bool TexturePaintStroke::test_start(wmOperator *op, const float2 mouse)
   if ((brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_FILL) &&
       (brush->flag & BRUSH_USE_GRADIENT))
   {
-    cursor_ = WM_paint_cursor_activate(SPACE_TYPE_ANY,
-                                       RGN_TYPE_ANY,
-                                       ED_image_tools_paint_poll,
-                                       gradient_draw_line,
-                                       &this->gradient_data);
+    cursor_ = WM_cursor_overlay_activate(SPACE_TYPE_ANY,
+                                         RGN_TYPE_ANY,
+                                         ED_image_tools_paint_poll,
+                                         gradient_draw_line,
+                                         &this->gradient_data);
   }
 
   settings->imapaint.flag |= IMAGEPAINT_DRAWING;

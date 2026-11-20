@@ -11,20 +11,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.hh"
-#include "BLI_math_base_c.hh"
-#include "BLI_utildefines.hh"
 
 #include "gpu_backend.hh"
 
 #include "GPU_index_buffer.hh"
-
-#include "GPU_capabilities.hh"
-#include "GPU_compute.hh"
-#include "GPU_platform.hh"
-#include "GPU_state.hh"
+#include "GPU_platform.hh"  // IWYU pragma: keep
 
 #include <algorithm> /* For `min/max`. */
-#include <cstring>
 
 namespace blender {
 
@@ -98,14 +91,6 @@ MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *builder)
   return {builder->data, builder->max_index_len};
 }
 
-void GPU_indexbuf_join(GPUIndexBufBuilder *builder_to, const GPUIndexBufBuilder *builder_from)
-{
-  BLI_assert(builder_to->data == builder_from->data);
-  builder_to->index_len = max_uu(builder_to->index_len, builder_from->index_len);
-  builder_to->index_min = min_uu(builder_to->index_min, builder_from->index_min);
-  builder_to->index_max = max_uu(builder_to->index_max, builder_from->index_max);
-}
-
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)
 {
   BLI_assert(builder->data != nullptr);
@@ -156,129 +141,6 @@ void GPU_indexbuf_add_line_adj_verts(
   GPU_indexbuf_add_generic_vert(builder, v2);
   GPU_indexbuf_add_generic_vert(builder, v3);
   GPU_indexbuf_add_generic_vert(builder, v4);
-}
-
-void GPU_indexbuf_set_point_vert(GPUIndexBufBuilder *builder, uint elem, uint v1)
-{
-  BLI_assert(builder->prim_type == GPU_PRIM_POINTS);
-  BLI_assert(elem < builder->max_index_len);
-  builder->data[elem++] = v1;
-  builder->index_min = std::min(builder->index_min, v1);
-  builder->index_max = std::max(builder->index_max, v1);
-  builder->index_len = std::max(builder->index_len, elem);
-}
-
-void GPU_indexbuf_set_line_verts(GPUIndexBufBuilder *builder, uint elem, uint v1, uint v2)
-{
-  BLI_assert(builder->prim_type == GPU_PRIM_LINES);
-  BLI_assert(v1 != v2);
-  BLI_assert(v1 <= builder->max_allowed_index);
-  BLI_assert(v2 <= builder->max_allowed_index);
-  BLI_assert((elem + 1) * 2 <= builder->max_index_len);
-  uint idx = elem * 2;
-  builder->data[idx++] = v1;
-  builder->data[idx++] = v2;
-  builder->index_min = std::min({builder->index_min, v1, v2});
-  builder->index_max = std::max({builder->index_max, v1, v2});
-  builder->index_len = std::max(builder->index_len, idx);
-}
-
-void GPU_indexbuf_set_tri_verts(GPUIndexBufBuilder *builder, uint elem, uint v1, uint v2, uint v3)
-{
-  BLI_assert(builder->prim_type == GPU_PRIM_TRIS);
-  BLI_assert(v1 != v2 && v2 != v3 && v3 != v1);
-  BLI_assert(v1 <= builder->max_allowed_index);
-  BLI_assert(v2 <= builder->max_allowed_index);
-  BLI_assert(v3 <= builder->max_allowed_index);
-  BLI_assert((elem + 1) * 3 <= builder->max_index_len);
-  uint idx = elem * 3;
-  builder->data[idx++] = v1;
-  builder->data[idx++] = v2;
-  builder->data[idx++] = v3;
-
-  builder->index_min = std::min({builder->index_min, v1, v2, v3});
-  builder->index_max = std::max({builder->index_max, v1, v2, v3});
-  builder->index_len = std::max(builder->index_len, idx);
-}
-
-void GPU_indexbuf_set_point_restart(GPUIndexBufBuilder *builder, uint elem)
-{
-  BLI_assert(builder->prim_type == GPU_PRIM_POINTS);
-  BLI_assert(elem < builder->max_index_len);
-  builder->data[elem++] = builder->restart_index_value;
-  builder->index_len = std::max(builder->index_len, elem);
-  builder->uses_restart_indices = true;
-}
-
-void GPU_indexbuf_set_line_restart(GPUIndexBufBuilder *builder, uint elem)
-{
-  BLI_assert(builder->prim_type == GPU_PRIM_LINES);
-  BLI_assert((elem + 1) * 2 <= builder->max_index_len);
-  uint idx = elem * 2;
-  builder->data[idx++] = builder->restart_index_value;
-  builder->data[idx++] = builder->restart_index_value;
-  builder->index_len = std::max(builder->index_len, idx);
-  builder->uses_restart_indices = true;
-}
-
-void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem)
-{
-  BLI_assert(builder->prim_type == GPU_PRIM_TRIS);
-  BLI_assert((elem + 1) * 3 <= builder->max_index_len);
-  uint idx = elem * 3;
-  builder->data[idx++] = builder->restart_index_value;
-  builder->data[idx++] = builder->restart_index_value;
-  builder->data[idx++] = builder->restart_index_value;
-  builder->index_len = std::max(builder->index_len, idx);
-  builder->uses_restart_indices = true;
-}
-
-IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
-                                              uint curves_num,
-                                              uint verts_per_curve)
-{
-  uint64_t dispatch_x_dim = verts_per_curve;
-  if (ELEM(prim_type, GPU_PRIM_LINE_STRIP, GPU_PRIM_TRI_STRIP)) {
-    dispatch_x_dim += 1;
-  }
-  uint64_t grid_x, grid_y, grid_z;
-  uint64_t max_grid_x = GPU_max_work_group_count(0), max_grid_y = GPU_max_work_group_count(1),
-           max_grid_z = GPU_max_work_group_count(2);
-  grid_x = min_uu(max_grid_x, (dispatch_x_dim + 15) / 16);
-  grid_y = (curves_num + 15) / 16;
-  if (grid_y <= max_grid_y) {
-    grid_z = 1;
-  }
-  else {
-    grid_y = grid_z = uint64_t(ceil(sqrt(double(grid_y))));
-    grid_y = min_uu(grid_y, max_grid_y);
-    grid_z = min_uu(grid_z, max_grid_z);
-  }
-  bool tris = (prim_type == GPU_PRIM_TRIS);
-  bool lines = (prim_type == GPU_PRIM_LINES);
-  gpu::Shader *shader = GPU_shader_get_builtin_shader(
-      tris ? GPU_SHADER_INDEXBUF_TRIS :
-             (lines ? GPU_SHADER_INDEXBUF_LINES : GPU_SHADER_INDEXBUF_POINTS));
-  GPU_shader_bind(shader);
-  IndexBuf *ibo = GPU_indexbuf_build_on_device(curves_num * dispatch_x_dim);
-  int resolution;
-  if (tris) {
-    resolution = 6;
-  }
-  else if (lines) {
-    resolution = 2;
-  }
-  else {
-    resolution = 1;
-  }
-  GPU_shader_uniform_1i(shader, "elements_per_curve", dispatch_x_dim / resolution);
-  GPU_shader_uniform_1i(shader, "ncurves", curves_num);
-  GPU_indexbuf_bind_as_ssbo(ibo, GPU_shader_get_ssbo_binding(shader, "out_indices"));
-  GPU_compute_dispatch(shader, grid_x, grid_y, grid_z);
-
-  GPU_memory_barrier(GPU_BARRIER_ELEMENT_ARRAY);
-  GPU_shader_unbind();
-  return ibo;
 }
 
 /** \} */

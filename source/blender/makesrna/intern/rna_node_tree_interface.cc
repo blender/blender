@@ -999,6 +999,16 @@ void rna_NodeTreeInterfaceSocketFloat_default_value_range(
   *softmax = dval->max;
 }
 
+void rna_NodeTreeInterfaceSocketFloat_default_value_precision(PointerRNA *ptr,
+                                                              float *step,
+                                                              float *precision)
+{
+  bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
+  bNodeSocketValueFloat *dval = static_cast<bNodeSocketValueFloat *>(socket->socket_data);
+  *step = dval->step / UI_PRECISION_FLOAT_SCALE;
+  *precision = dval->precision;
+}
+
 static const EnumPropertyItem *rna_NodeTreeInterfaceSocketInt_subtype_itemf(bContext * /*C*/,
                                                                             PointerRNA * /*ptr*/,
                                                                             PropertyRNA * /*prop*/,

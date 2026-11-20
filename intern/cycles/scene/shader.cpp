@@ -356,12 +356,10 @@ void Shader::tag_update(Scene *scene)
    * e.g. surface attributes when there is only a volume shader. this could
    * be more fine grained but it's better than nothing */
   OutputNode *output = graph->output();
-  const bool prev_has_volume = has_volume;
   has_surface = has_surface || output->input("Surface")->link;
-  has_volume = has_volume || output->input("Volume")->link;
   has_displacement = has_displacement || output->input("Displacement")->link;
 
-  if (!has_surface && !has_volume) {
+  if (!has_surface && !has_volume_connected) {
     /* If we need to output surface AOVs, add a Transparent BSDF so that the
      * surface shader runs. */
     for (ShaderNode *node : graph->nodes) {
@@ -423,15 +421,11 @@ void Shader::tag_update(Scene *scene)
 
   need_update_shadow_transparency = prev_has_surface_shadow_transparency;
 
-  if (has_volume != prev_has_volume || volume_step_rate != prev_volume_step_rate) {
+  if (volume_step_rate != prev_volume_step_rate) {
     scene->geometry_manager->need_flags_update = true;
     scene->object_manager->need_flags_update = true;
     scene->volume_manager->need_update_step_size = true;
     prev_volume_step_rate = volume_step_rate;
-  }
-
-  if (has_volume || prev_has_volume) {
-    scene->volume_manager->tag_update(this);
   }
 }
 
@@ -562,7 +556,20 @@ void ShaderManager::device_update_pre(Device * /*device*/,
       shader->has_surface_raytrace = false;
       shader->has_surface_bssrdf = false;
       shader->has_surface_spatial_varying = false;
+
+      /* Detect volume changes after finalize, which may remove the volume output. */
+      const bool prev_has_volume = shader->has_volume;
       shader->has_volume = output->input("Volume")->link != nullptr;
+
+      if (shader->has_volume != prev_has_volume) {
+        scene->geometry_manager->need_flags_update = true;
+        scene->object_manager->need_flags_update = true;
+        scene->volume_manager->need_update_step_size = true;
+      }
+      if (shader->has_volume || prev_has_volume) {
+        scene->volume_manager->tag_update(shader);
+      }
+
       shader->has_volume_spatial_varying = false;
       shader->has_volume_attribute_dependency = false;
       shader->has_displacement = output->input("Displacement")->link != nullptr;
@@ -597,6 +604,7 @@ void ShaderManager::device_update_pre(Device * /*device*/,
   if (bool(kintegrator->use_volumes) != has_volumes) {
     scene->tag_has_volume_modified();
     kintegrator->use_volumes = has_volumes;
+    scene->camera->need_flags_update = true;
   }
 }
 

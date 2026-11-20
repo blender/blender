@@ -32,6 +32,7 @@
 #include "ED_view3d.hh"
 
 #include "GEO_merge_curves.hh"
+#include "GEO_resample_curves.hh"
 
 namespace blender {
 
@@ -752,9 +753,13 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
                                           const int material_index)
 {
   const bke::CurvesGeometry &src_curves = drawing.strokes();
-  Span<float3> src_positions = src_curves.positions();
-  bke::AttributeAccessor src_attributes = src_curves.attributes();
-  const VArray<float> src_radii = drawing.radii();
+
+  /* TODO: Create outline directly from non-poly curves. */
+  const bke::CurvesGeometry eval_curves = geometry::resample_to_evaluated(src_curves, strokes);
+
+  const Span<float3> src_positions = eval_curves.positions();
+  bke::AttributeAccessor src_attributes = eval_curves.attributes();
+  const VArray<float> src_radii = eval_curves.radius();
   const VArray<bool> src_cyclic = *src_attributes.lookup_or_default(
       "cyclic", bke::AttrDomain::Curve, false);
   const VArray<int8_t> src_start_caps = *src_attributes.lookup_or_default<int8_t>(
@@ -791,7 +796,7 @@ bke::CurvesGeometry create_curves_outline(const bke::greasepencil::Drawing &draw
 
         const int prev_point_num = data.positions.size();
         const int prev_curve_num = data.point_counts.size();
-        const IndexRange points = src_curves.points_by_curve()[curve_i];
+        const IndexRange points = eval_curves.points_by_curve()[curve_i];
 
         generate_stroke_perimeter(transformed_positions,
                                   transformed_radii,

@@ -1326,23 +1326,6 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     layout.op("UI_OT_copy_python_command_button", std::nullopt, ICON_NONE);
   }
 
-  /* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
-  if (U.flag & USER_DEVELOPER_UI) {
-    if (!block_is_menu(but->block) || (but->block->handle && but->block->handle->can_refresh)) {
-      Layout &sub = layout.column(true);
-      if (but->block->handle) {
-        PointerRNA region_ptr = RNA_pointer_create_discrete(
-            id_cast<ID *>(CTX_wm_screen(C)), RNA_Region, but->block->handle->region);
-        sub.context_ptr_set("popup_region", &region_ptr);
-      }
-      sub.op("UI_OT_editsource",
-             std::nullopt,
-             ICON_NONE,
-             wm::OpCallContext::InvokeDefault,
-             UI_ITEM_NONE);
-    }
-  }
-
   /* Show header tools for header buttons. */
   if (block_is_popup_any(but->block) == false) {
     const ARegion *region = CTX_wm_region(C);
@@ -1351,6 +1334,7 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
       /* skip */
     }
     else if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+      layout.separator();
       layout.menu_fn(IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, nullptr);
     }
     else if (region->regiontype == RGN_TYPE_NAV_BAR) {
@@ -1362,6 +1346,10 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
     }
     else if (region->regiontype == RGN_TYPE_FOOTER) {
       layout.menu_fn(IFACE_("Footer"), ICON_NONE, ED_screens_footer_tools_menu_create, nullptr);
+    }
+    else if (ELEM(region->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS)) {
+      layout.separator();
+      ED_screens_region_flip_menu_create(C, &layout, nullptr);
     }
   }
 
@@ -1381,6 +1369,25 @@ bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *even
   MenuType *mt = WM_menutype_find("UI_MT_button_context_menu", true);
   if (mt) {
     menutype_draw(C, mt, &layout.column(false));
+  }
+
+  /* Development tools are optional, they should be placed last. */
+  /* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
+  if (U.flag & USER_DEVELOPER_UI) {
+    if (!block_is_menu(but->block) || (but->block->handle && but->block->handle->can_refresh)) {
+      layout.separator();
+      Layout &sub = layout.column(true);
+      if (but->block->handle) {
+        PointerRNA region_ptr = RNA_pointer_create_discrete(
+            id_cast<ID *>(CTX_wm_screen(C)), RNA_Region, but->block->handle->region);
+        sub.context_ptr_set("popup_region", &region_ptr);
+      }
+      sub.op("UI_OT_editsource",
+             std::nullopt,
+             ICON_NONE,
+             wm::OpCallContext::InvokeDefault,
+             UI_ITEM_NONE);
+    }
   }
 
   if (but->context) {
@@ -1445,6 +1452,8 @@ int popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   PointerRNA prefs_ptr = RNA_pointer_create_discrete(nullptr, RNA_PreferencesSystem, &U);
   layout.prop(
       &prefs_ptr, "show_panel_tabs_compact", UI_ITEM_NONE, IFACE_("Compact Tabs"), ICON_NONE);
+  layout.separator();
+  ED_screens_region_flip_menu_create(C, &layout, nullptr);
 
   popup_menu_end(C, pup);
   return WM_UI_HANDLER_BREAK;

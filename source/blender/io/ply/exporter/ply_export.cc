@@ -43,7 +43,8 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
 
   ED_editors_flush_edits(bmain);
 
-  Depsgraph *depsgraph = DEG_graph_new(bmain, scene, view_layer, export_params.evaluation_mode);
+  Depsgraph *depsgraph = nullptr;
+  bool depsgraph_needs_free = false;
 
   if (export_params.collection[0]) {
     Collection *collection = reinterpret_cast<Collection *>(
@@ -53,21 +54,29 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
                   RPT_ERROR,
                   "PLY Export: Unable to find collection '%s'",
                   export_params.collection);
-
-      DEG_graph_free(depsgraph);
       return;
     }
 
+    depsgraph = DEG_graph_new(bmain, scene, view_layer, export_params.evaluation_mode);
+    depsgraph_needs_free = true;
     DEG_graph_build_from_collection(depsgraph, collection);
   }
-  else {
+  else if (export_params.evaluation_mode == DAG_EVAL_RENDER) {
+    depsgraph = DEG_graph_new(bmain, scene, view_layer, export_params.evaluation_mode);
+    depsgraph_needs_free = true;
     DEG_graph_build_from_view_layer(depsgraph);
   }
-  BKE_scene_graph_update_tagged(depsgraph, bmain);
+  else {
+    depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  }
+
+  BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
   load_plydata(*plyData, depsgraph, export_params);
 
-  DEG_graph_free(depsgraph);
+  if (depsgraph_needs_free) {
+    DEG_graph_free(depsgraph);
+  }
 
   std::unique_ptr<FileBuffer> buffer;
 

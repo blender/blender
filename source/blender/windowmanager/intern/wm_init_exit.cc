@@ -735,6 +735,8 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   RNA_exit(); /* Should be after #BPY_python_end so struct python slots are cleared. */
 
+  IDP_struct_type_exit();
+
   wm_ghost_exit();
 
   if (C) {

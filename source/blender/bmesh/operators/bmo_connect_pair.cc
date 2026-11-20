@@ -42,7 +42,7 @@ namespace blender {
  * - run the standard connect operator.
  */
 
-#define CONNECT_EPS 0.0001f
+#define CONNECT_EPS_BASIS 0.00001f
 #define VERT_OUT 1
 #define VERT_EXCLUDE 2
 
@@ -84,6 +84,8 @@ struct PathContext {
   HeapSimple *states;
   float matrix[3][3];
   float axis_sep;
+  /* CONNECT_EPS_BASIS scaled by geometry. */
+  float connect_eps;
 
   /* only to access BMO flags */
   BMesh *bm_bmoflag;
@@ -178,8 +180,8 @@ static int state_isect_co_pair(const PathContext *pc, const float co_a[3], const
   const float diff_a = dot_m3_v3_row_x(pc->matrix, co_a) - pc->axis_sep;
   const float diff_b = dot_m3_v3_row_x(pc->matrix, co_b) - pc->axis_sep;
 
-  const int test_a = (fabsf(diff_a) < CONNECT_EPS) ? 0 : (diff_a < 0.0f) ? -1 : 1;
-  const int test_b = (fabsf(diff_b) < CONNECT_EPS) ? 0 : (diff_b < 0.0f) ? -1 : 1;
+  const int test_a = (fabsf(diff_a) < pc->connect_eps) ? 0 : (diff_a < 0.0f) ? -1 : 1;
+  const int test_b = (fabsf(diff_b) < pc->connect_eps) ? 0 : (diff_b < 0.0f) ? -1 : 1;
 
   if ((test_a && test_b) && (test_a != test_b)) {
     return 1; /* on either side */
@@ -190,7 +192,7 @@ static int state_isect_co_pair(const PathContext *pc, const float co_a[3], const
 static int state_isect_co_exact(const PathContext *pc, const float co[3])
 {
   const float diff = dot_m3_v3_row_x(pc->matrix, co) - pc->axis_sep;
-  return (fabsf(diff) <= CONNECT_EPS);
+  return (fabsf(diff) <= pc->connect_eps);
 }
 
 static float state_calc_co_pair_fac(const PathContext *pc,
@@ -629,6 +631,11 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
   {
     pc.states = BLI_heapsimple_new();
     pc.link_pool = BLI_mempool_create(sizeof(PathLink), 0, 512, BLI_MEMPOOL_NOP);
+    /* Scale CONNECT_EPS_BASIS by pair extends to avoid precision issues, see #113111. */
+    pc.connect_eps = CONNECT_EPS_BASIS *
+                     std::max(1.0f,
+                              sqrtf(std::max(len_squared_v3(pc.v_pair[0]->co),
+                                             len_squared_v3(pc.v_pair[1]->co))));
   }
 
   /* calculate matrix */

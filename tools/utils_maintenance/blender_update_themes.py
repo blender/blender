@@ -21,7 +21,6 @@ def update(filepath):
     print("Updating theme: {!r}".format(filepath))
     preset_xml_map = (
         ("preferences.themes[0]", "Theme"),
-        ("preferences.ui_styles[0]", "Theme"),
     )
     rna_xml.xml_file_run(
         context,
@@ -41,8 +40,6 @@ def update_default(filepath):
         fh.write("""<bpy>
   <Theme>
   </Theme>
-  <ThemeStyle>
-  </ThemeStyle>
 </bpy>
 """)
 
@@ -52,7 +49,7 @@ def main():
         for fn in os.listdir(path):
             if fn.endswith(".xml"):
                 fn_full = os.path.join(path, fn)
-                if fn == "blender_dark.xml":
+                if fn == "Blender_Dark.xml":
                     update_default(fn_full)
                 else:
                     update(fn_full)

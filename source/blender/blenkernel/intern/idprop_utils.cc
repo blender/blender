@@ -219,6 +219,17 @@ static void idp_repr_fn_recursive(ReprState *state, const IDProperty *prop)
       }
       break;
     }
+    IDP_ANY_STRUCT_TYPE_CASE: {
+      STR_APPEND_STR("<");
+      if (const IDPropertyStructTypeInfo *info = IDP_struct_type_info(prop->type)) {
+        STR_APPEND_STR(info->rna_identifier.c_str());
+      }
+      else {
+        STR_APPEND_STR("Unknown Struct");
+      }
+      STR_APPEND_STR(">");
+      break;
+    }
     default: {
       BLI_assert_unreachable();
       break;
@@ -305,6 +316,13 @@ const char *IDP_type_str(const eIDPropertyType type, const short sub_type)
       return "Array of Properties";
     case IDP_BOOLEAN:
       return "Boolean";
+    IDP_ANY_STRUCT_TYPE_CASE: {
+      const IDPropertyStructTypeInfo *info = IDP_struct_type_info(type);
+      if (info) {
+        return info->rna_identifier.c_str();
+      }
+      break;
+    }
   }
   BLI_assert_unreachable();
   return "Unknown";

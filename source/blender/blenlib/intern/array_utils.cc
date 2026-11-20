@@ -17,6 +17,7 @@
 #include "BLI_bounds.hh"
 #include "BLI_bytes_type_common.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_map.hh"
 #include "BLI_threads.hh"
 #include "BLI_vector_set.hh"
 
@@ -457,20 +458,16 @@ void count_indices(const Span<int> indices, MutableSpan<int> counts)
 }
 
 /**
- * A lookup table indexed by the IDs avoids hashing and can be filled in parallel, which makes
- * it much faster than a hash table, but the size of the table depends on the range of the IDs,
- * so still use a VectorSet instead of the lookup table would need to be too large.
+ * Build a table indexed by `(id - id_bounds.min)` containing the first element index in \a mask
+ * for each ID, or `INT_MAX` for IDs not present in \a ids.
  */
-static int group_ids_to_indices_with_table(const Span<int> ids,
-                                           const IndexMask &mask,
-                                           const Bounds<int> &id_bounds,
-                                           MutableSpan<int> r_group_indices,
-                                           Vector<int> *r_first_indices)
+static Array<int, 64> build_first_index_table(const Span<int> ids,
+                                              const IndexMask &mask,
+                                              const Bounds<int> &id_bounds)
 {
   const int64_t id_min = id_bounds.min;
   const int64_t ids_range = int64_t(id_bounds.max) - int64_t(id_bounds.min) + 1;
 
-  /* Find the first element with each ID. */
   Array<int, 64> first_elem(ids_range, std::numeric_limits<int>::max());
   mask.foreach_index_optimized<int>(
       [&](const int i) {
@@ -480,6 +477,22 @@ static int group_ids_to_indices_with_table(const Span<int> ids,
         }
       },
       exec_mode::grain_size(4096));
+  return first_elem;
+}
+
+/**
+ * A lookup table indexed by the IDs avoids hashing and can be filled in parallel, which makes
+ * it much faster than a hash table, but the size of the table depends on the range of the IDs,
+ * so still use a hash table instead if the lookup table would need to be too large.
+ */
+static int group_ids_to_indices_with_table(const Span<int> ids,
+                                           const IndexMask &mask,
+                                           const Bounds<int> &id_bounds,
+                                           MutableSpan<int> r_group_indices,
+                                           Vector<int> *r_first_indices)
+{
+  const int64_t id_min = id_bounds.min;
+  Array<int, 64> first_elem = build_first_index_table(ids, mask, id_bounds);
 
   /* Number the groups in the order of their first elements, replacing the first element index in
    * the table with the group index. */
@@ -535,6 +548,128 @@ int group_ids_to_indices(const Span<int> ids,
     r_group_indices[pos] = group;
   });
   return unique_ids.size();
+}
+
+/** Smaller map slot for integers that are not negative. */
+class NonNegativeValueMapSlot {
+ private:
+  static constexpr int s_is_empty = -1;
+  static constexpr int s_is_removed = -2;
+
+  int key_ = 0;
+  int value_ = s_is_empty;
+
+ public:
+  int *key()
+  {
+    return &key_;
+  }
+  const int *key() const
+  {
+    return &key_;
+  }
+  int *value()
+  {
+    return &value_;
+  }
+  const int *value() const
+  {
+    return &value_;
+  }
+  bool is_occupied() const
+  {
+    return value_ >= 0;
+  }
+  bool is_empty() const
+  {
+    return value_ == s_is_empty;
+  }
+  template<typename Hash> uint64_t get_hash(const Hash &hash) const
+  {
+    BLI_assert(this->is_occupied());
+    return hash(key_);
+  }
+  template<typename ForwardKey, typename IsEqual>
+  bool contains(const ForwardKey &key, const IsEqual &is_equal, uint64_t /*hash*/) const
+  {
+    return value_ >= 0 && is_equal(key, key_);
+  }
+  void occupy(const int key, uint64_t /*hash*/, const int value)
+  {
+    BLI_assert(!this->is_occupied());
+    BLI_assert(value >= 0);
+    key_ = key;
+    value_ = value;
+  }
+  void remove()
+  {
+    BLI_assert(this->is_occupied());
+    value_ = s_is_removed;
+  }
+};
+static_assert(sizeof(NonNegativeValueMapSlot) == 8);
+
+static void map_ids_to_indices_with_table(const Span<int> src_ids,
+                                          const Span<int> dst_ids,
+                                          const Bounds<int> &id_bounds,
+                                          MutableSpan<int> r_src_indices)
+{
+  const int64_t id_min = id_bounds.min;
+  const Array<int, 64> first_elem = build_first_index_table(
+      src_ids, IndexMask(src_ids.size()), id_bounds);
+
+  threading::parallel_for(dst_ids.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int id = dst_ids[i];
+      if (id >= id_bounds.min && id <= id_bounds.max) {
+        const int src_i = first_elem[int64_t(id) - id_min];
+        r_src_indices[i] = (src_i == std::numeric_limits<int>::max()) ? -1 : src_i;
+      }
+      else {
+        r_src_indices[i] = -1;
+      }
+    }
+  });
+}
+
+void map_ids_to_indices(const Span<int> src_ids,
+                        const Span<int> dst_ids,
+                        MutableSpan<int> r_src_by_dst_indices)
+{
+  PRF_scope(ProfileCategory::Default);
+  BLI_assert(r_src_by_dst_indices.size() == dst_ids.size());
+  if (dst_ids.is_empty()) {
+    return;
+  }
+  const std::optional<Bounds<int>> id_bounds = bounds::min_max(src_ids);
+  if (!id_bounds) {
+    r_src_by_dst_indices.fill(-1);
+    return;
+  }
+
+  const int64_t ids_range = int64_t(id_bounds->max) - int64_t(id_bounds->min) + 1;
+  if (ids_range < src_ids.size() * 4) {
+    map_ids_to_indices_with_table(src_ids, dst_ids, *id_bounds, r_src_by_dst_indices);
+    return;
+  }
+
+  Map<int,
+      int,
+      16,
+      DefaultProbingStrategy,
+      DefaultHash<int>,
+      DefaultEquality<int>,
+      NonNegativeValueMapSlot>
+      src_index_by_id;
+  src_index_by_id.reserve(src_ids.size());
+  for (const int i : src_ids.index_range()) {
+    src_index_by_id.add(src_ids[i], i);
+  }
+  threading::parallel_for(dst_ids.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      r_src_by_dst_indices[i] = src_index_by_id.lookup_default(dst_ids[i], -1);
+    }
+  });
 }
 
 void invert_booleans(MutableSpan<bool> span)

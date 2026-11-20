@@ -107,6 +107,7 @@ using PropFloatArrayGetFunc = void (*)(PointerRNA *ptr, float *values);
 using PropFloatArraySetFunc = void (*)(PointerRNA *ptr, const float *values);
 using PropFloatRangeFunc =
     void (*)(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax);
+using PropFloatPrecisionFunc = void (*)(PointerRNA *ptr, float *step, float *precision);
 using PropStringGetFunc = void (*)(PointerRNA *ptr, char *value);
 using PropStringLengthFunc = int (*)(PointerRNA *ptr);
 using PropStringSetFunc = void (*)(PointerRNA *ptr, const char *value);
@@ -396,23 +397,23 @@ struct FunctionRNA {
 };
 
 struct PropertyRNA {
-  PropertyRNA *next, *prev;
+  PropertyRNA *next = nullptr, *prev = nullptr;
 
   /** Magic bytes to distinguish with #IDProperty. */
-  int magic;
+  int magic = 0;
 
   /** Unique identifier. */
   UString identifier;
   /** Various options. */
-  PropertyFlag flag;
+  PropertyFlag flag = {};
   /** Various override options. */
-  PropertyOverrideFlag flag_override;
+  PropertyOverrideFlag flag_override = {};
   /** Function parameters flags. */
-  ParameterFlag flag_parameter;
+  ParameterFlag flag_parameter = {};
   /** Internal ("private") flags. */
-  PropertyFlagIntern flag_internal;
+  PropertyFlagIntern flag_internal = {};
   /** The subset of #StructRNA::prop_tag_defines values that applies to this property. */
-  short tags;
+  short tags = 0;
 
   /**
    * Indicates which set of purpose-specific path template variables this
@@ -421,60 +422,60 @@ struct PropertyRNA {
    * Note that the property must also be marked as supporting path templates
    * (`PROP_PATH_SUPPORTS_TEMPLATES` in `flag`) for this to have any effect.
    */
-  PropertyPathTemplateType path_template_type;
+  PropertyPathTemplateType path_template_type = {};
 
   /** User readable name. */
-  const char *name;
+  const char *name = nullptr;
   /** Single line description, displayed in the tool-tip for example. */
-  const char *description;
+  const char *description = nullptr;
   /** Icon ID. */
-  int icon;
+  int icon = 0;
   /** Context for translation. */
-  const char *translation_context;
+  const char *translation_context = nullptr;
 
   /** Optional deprecation information. */
-  const DeprecatedRNA *deprecated;
+  const DeprecatedRNA *deprecated = nullptr;
 
   /** Property type as it appears to the outside. */
-  PropertyType type;
+  PropertyType type = {};
   /** Subtype, 'interpretation' of the property. */
-  PropertySubType subtype;
+  PropertySubType subtype = {};
   /** If non-NULL, overrides arraylength. Must not return 0? */
-  PropArrayLengthGetFunc getlength;
+  PropArrayLengthGetFunc getlength = nullptr;
   /** Dimension of array. */
-  unsigned int arraydimension;
+  unsigned int arraydimension = 0;
   /** Array lengths for all dimensions (when `arraydimension > 0`). */
-  unsigned int arraylength[RNA_MAX_ARRAY_DIMENSION];
-  unsigned int totarraylength;
+  unsigned int arraylength[RNA_MAX_ARRAY_DIMENSION] = {};
+  unsigned int totarraylength = 0;
 
   /** Callback for updates on change. */
-  UpdateFunc update;
-  int noteflag;
+  UpdateFunc update = nullptr;
+  int noteflag = 0;
 
   /**
    * Callback for testing if editable. Its r_info parameter can be used to
    * return info on editable state that might be shown to user. E.g. tool-tips
    * of disabled buttons can show reason why button is disabled using this.
    */
-  EditableFunc editable;
+  EditableFunc editable = nullptr;
   /** Callback for testing if array-item editable (if applicable). */
-  ItemEditableFunc itemeditable;
+  ItemEditableFunc itemeditable = nullptr;
 
   /** Optional function to dynamically override the user-readable #name. */
-  PropUINameFunc ui_name_func;
+  PropUINameFunc ui_name_func = nullptr;
 
   /** Optional function to dynamically override the user-readable #description. */
-  PropUINameFunc ui_description_func;
+  PropUINameFunc ui_description_func = nullptr;
 
   /** Override handling callbacks (diff is also used for comparison). */
-  RNAPropOverrideDiff override_diff;
-  RNAPropOverrideStore override_store;
-  RNAPropOverrideApply override_apply;
+  RNAPropOverrideDiff override_diff = nullptr;
+  RNAPropOverrideStore override_store = nullptr;
+  RNAPropOverrideApply override_apply = nullptr;
 
   /* Raw access. */
 
-  int rawoffset;
-  RawPropertyType rawtype;
+  int rawoffset = 0;
+  RawPropertyType rawtype = {};
 
   /**
    * Attributes attached directly to this collection.
@@ -483,13 +484,13 @@ struct PropertyRNA {
    * any property can have this but should only be used for collections and arrays
    * since python will convert int/bool/pointer's.
    */
-  StructRNA *srna;
+  StructRNA *srna = nullptr;
 
   /**
    * Python handle to hold all callbacks
    * (in a pointer array at the moment, may later be a tuple).
    */
-  void *py_data;
+  void *py_data = nullptr;
 };
 
 inline UString PropertyRNAIdentifierGetter::operator()(const PropertyRNA *prop) const
@@ -500,102 +501,103 @@ inline UString PropertyRNAIdentifierGetter::operator()(const PropertyRNA *prop) 
 /* Property Types. */
 
 struct BoolPropertyRNA : public PropertyRNA {
-  PropBooleanGetFunc get;
-  PropBooleanSetFunc set;
-  PropBooleanArrayGetFunc getarray;
-  PropBooleanArraySetFunc setarray;
+  PropBooleanGetFunc get = nullptr;
+  PropBooleanSetFunc set = nullptr;
+  PropBooleanArrayGetFunc getarray = nullptr;
+  PropBooleanArraySetFunc setarray = nullptr;
 
-  PropBooleanGetFuncEx get_ex;
-  PropBooleanSetFuncEx set_ex;
-  PropBooleanArrayGetFuncEx getarray_ex;
-  PropBooleanArraySetFuncEx setarray_ex;
+  PropBooleanGetFuncEx get_ex = nullptr;
+  PropBooleanSetFuncEx set_ex = nullptr;
+  PropBooleanArrayGetFuncEx getarray_ex = nullptr;
+  PropBooleanArraySetFuncEx setarray_ex = nullptr;
 
-  PropBooleanGetTransformFunc get_transform;
-  PropBooleanSetTransformFunc set_transform;
-  PropBooleanArrayGetTransformFunc getarray_transform;
-  PropBooleanArraySetTransformFunc setarray_transform;
+  PropBooleanGetTransformFunc get_transform = nullptr;
+  PropBooleanSetTransformFunc set_transform = nullptr;
+  PropBooleanArrayGetTransformFunc getarray_transform = nullptr;
+  PropBooleanArraySetTransformFunc setarray_transform = nullptr;
 
-  PropBooleanGetFuncEx get_default;
-  PropBooleanArrayGetFuncEx get_default_array;
-  bool defaultvalue;
-  const bool *defaultarray;
+  PropBooleanGetFuncEx get_default = nullptr;
+  PropBooleanArrayGetFuncEx get_default_array = nullptr;
+  bool defaultvalue = false;
+  const bool *defaultarray = nullptr;
 };
 
 struct IntPropertyRNA : public PropertyRNA {
-  PropIntGetFunc get;
-  PropIntSetFunc set;
-  PropIntArrayGetFunc getarray;
-  PropIntArraySetFunc setarray;
-  PropIntRangeFunc range;
+  PropIntGetFunc get = nullptr;
+  PropIntSetFunc set = nullptr;
+  PropIntArrayGetFunc getarray = nullptr;
+  PropIntArraySetFunc setarray = nullptr;
+  PropIntRangeFunc range = nullptr;
 
-  PropIntGetFuncEx get_ex;
-  PropIntSetFuncEx set_ex;
-  PropIntArrayGetFuncEx getarray_ex;
-  PropIntArraySetFuncEx setarray_ex;
-  PropIntRangeFuncEx range_ex;
+  PropIntGetFuncEx get_ex = nullptr;
+  PropIntSetFuncEx set_ex = nullptr;
+  PropIntArrayGetFuncEx getarray_ex = nullptr;
+  PropIntArraySetFuncEx setarray_ex = nullptr;
+  PropIntRangeFuncEx range_ex = nullptr;
 
-  PropIntGetTransformFunc get_transform;
-  PropIntSetTransformFunc set_transform;
-  PropIntArrayGetTransformFunc getarray_transform;
-  PropIntArraySetTransformFunc setarray_transform;
+  PropIntGetTransformFunc get_transform = nullptr;
+  PropIntSetTransformFunc set_transform = nullptr;
+  PropIntArrayGetTransformFunc getarray_transform = nullptr;
+  PropIntArraySetTransformFunc setarray_transform = nullptr;
 
-  PropertyScaleType ui_scale_type;
-  int softmin, softmax;
-  int hardmin, hardmax;
-  int step;
+  PropertyScaleType ui_scale_type = {};
+  int softmin = 0, softmax = 0;
+  int hardmin = 0, hardmax = 0;
+  int step = 0;
 
-  PropIntGetFuncEx get_default;
-  PropIntArrayGetFuncEx get_default_array;
-  int defaultvalue;
-  const int *defaultarray;
+  PropIntGetFuncEx get_default = nullptr;
+  PropIntArrayGetFuncEx get_default_array = nullptr;
+  int defaultvalue = 0;
+  const int *defaultarray = nullptr;
 };
 
 struct FloatPropertyRNA : public PropertyRNA {
-  PropFloatGetFunc get;
-  PropFloatSetFunc set;
-  PropFloatArrayGetFunc getarray;
-  PropFloatArraySetFunc setarray;
-  PropFloatRangeFunc range;
+  PropFloatGetFunc get = nullptr;
+  PropFloatSetFunc set = nullptr;
+  PropFloatArrayGetFunc getarray = nullptr;
+  PropFloatArraySetFunc setarray = nullptr;
+  PropFloatRangeFunc range = nullptr;
+  PropFloatPrecisionFunc precision_fn = nullptr;
 
-  PropFloatGetFuncEx get_ex;
-  PropFloatSetFuncEx set_ex;
-  PropFloatArrayGetFuncEx getarray_ex;
-  PropFloatArraySetFuncEx setarray_ex;
-  PropFloatRangeFuncEx range_ex;
+  PropFloatGetFuncEx get_ex = nullptr;
+  PropFloatSetFuncEx set_ex = nullptr;
+  PropFloatArrayGetFuncEx getarray_ex = nullptr;
+  PropFloatArraySetFuncEx setarray_ex = nullptr;
+  PropFloatRangeFuncEx range_ex = nullptr;
 
-  PropFloatGetTransformFunc get_transform;
-  PropFloatSetTransformFunc set_transform;
-  PropFloatArrayGetTransformFunc getarray_transform;
-  PropFloatArraySetTransformFunc setarray_transform;
+  PropFloatGetTransformFunc get_transform = nullptr;
+  PropFloatSetTransformFunc set_transform = nullptr;
+  PropFloatArrayGetTransformFunc getarray_transform = nullptr;
+  PropFloatArraySetTransformFunc setarray_transform = nullptr;
 
-  PropertyScaleType ui_scale_type;
-  float softmin, softmax;
-  float hardmin, hardmax;
-  float step;
-  int precision;
+  PropertyScaleType ui_scale_type = {};
+  float softmin = 0.0f, softmax = 0.0f;
+  float hardmin = 0.0f, hardmax = 0.0f;
+  float step = 0.0f;
+  int precision = 0;
 
-  PropFloatGetFuncEx get_default;
-  PropFloatArrayGetFuncEx get_default_array;
+  PropFloatGetFuncEx get_default = nullptr;
+  PropFloatArrayGetFuncEx get_default_array = nullptr;
 
-  float defaultvalue;
-  const float *defaultarray;
+  float defaultvalue = 0.0f;
+  const float *defaultarray = nullptr;
 };
 
 struct StringPropertyRNA : public PropertyRNA {
-  PropStringGetFunc get;
-  PropStringLengthFunc length;
-  PropStringSetFunc set;
+  PropStringGetFunc get = nullptr;
+  PropStringLengthFunc length = nullptr;
+  PropStringSetFunc set = nullptr;
 
-  PropStringGetFuncEx get_ex;
+  PropStringGetFuncEx get_ex = nullptr;
   /* This callback only returns the 'storage' length (i.e. length of string returned by `get_ex`),
    * _not_ the final length (potentially modified by the `get_transform` callback). */
-  PropStringLengthFuncEx length_ex;
-  PropStringSetFuncEx set_ex;
+  PropStringLengthFuncEx length_ex = nullptr;
+  PropStringSetFuncEx set_ex = nullptr;
 
-  PropStringGetTransformFunc get_transform;
-  PropStringSetTransformFunc set_transform;
+  PropStringGetTransformFunc get_transform = nullptr;
+  PropStringSetTransformFunc set_transform = nullptr;
 
-  PropStringGetFuncEx get_default;
+  PropStringGetFuncEx get_default = nullptr;
 
   /**
    * Optional callback to list candidates for a string.
@@ -603,66 +605,66 @@ struct StringPropertyRNA : public PropertyRNA {
    *
    * \note The callback type is public, hence the difference in naming convention.
    */
-  StringPropertySearchFunc search;
-  eStringPropertySearchFlag search_flag;
+  StringPropertySearchFunc search = nullptr;
+  eStringPropertySearchFlag search_flag = {};
 
   /**
    * Used for strings which are #PROP_FILEPATH to have a default filter when opening a file
    * browser.
    */
-  StringPropertyPathFilterFunc path_filter;
+  StringPropertyPathFilterFunc path_filter = nullptr;
 
   /** Maximum length including the string terminator! */
-  int maxlength;
+  int maxlength = 0;
 
-  const char *defaultvalue;
+  const char *defaultvalue = nullptr;
 };
 
 struct EnumPropertyRNA : public PropertyRNA {
-  PropEnumGetFunc get;
-  PropEnumSetFunc set;
-  PropEnumItemFunc item_fn;
+  PropEnumGetFunc get = nullptr;
+  PropEnumSetFunc set = nullptr;
+  PropEnumItemFunc item_fn = nullptr;
 
-  PropEnumGetFuncEx get_ex;
-  PropEnumSetFuncEx set_ex;
+  PropEnumGetFuncEx get_ex = nullptr;
+  PropEnumSetFuncEx set_ex = nullptr;
 
-  PropEnumGetTransformFunc get_transform;
-  PropEnumSetTransformFunc set_transform;
+  PropEnumGetTransformFunc get_transform = nullptr;
+  PropEnumSetTransformFunc set_transform = nullptr;
 
-  PropEnumGetFuncEx get_default;
+  PropEnumGetFuncEx get_default = nullptr;
 
-  const EnumPropertyItem *item;
-  int totitem;
+  const EnumPropertyItem *item = nullptr;
+  int totitem = 0;
 
-  int defaultvalue;
-  const char *native_enum_type;
+  int defaultvalue = 0;
+  const char *native_enum_type = nullptr;
 };
 
 struct PointerPropertyRNA : public PropertyRNA {
-  PropPointerGetFunc get;
-  PropPointerSetFunc set;
-  PropPointerTypeFunc type_fn;
+  PropPointerGetFunc get = nullptr;
+  PropPointerSetFunc set = nullptr;
+  PropPointerTypeFunc type_fn = nullptr;
   /** unlike operators, 'set' can still run if poll fails, used for filtering display. */
-  PropPointerPollFunc poll;
+  PropPointerPollFunc poll = nullptr;
 
   /** Default ID data-block UID, only for properties registered at runtime. */
-  uint32_t id_default_session_uid;
+  uint32_t id_default_session_uid = 0;
 
-  StructRNA *pointer_type;
+  StructRNA *pointer_type = nullptr;
 };
 
 struct CollectionPropertyRNA : public PropertyRNA {
-  PropCollectionBeginFunc begin;
-  PropCollectionNextFunc next;
-  PropCollectionEndFunc end; /* optional */
-  PropCollectionGetFunc get;
-  PropCollectionLengthFunc length;             /* optional */
-  PropCollectionLookupIntFunc lookupint;       /* optional */
-  PropCollectionLookupStringFunc lookupstring; /* optional */
-  PropCollectionAssignIntFunc assignint;       /* optional */
+  PropCollectionBeginFunc begin = nullptr;
+  PropCollectionNextFunc next = nullptr;
+  PropCollectionEndFunc end = nullptr; /* optional */
+  PropCollectionGetFunc get = nullptr;
+  PropCollectionLengthFunc length = nullptr;             /* optional */
+  PropCollectionLookupIntFunc lookupint = nullptr;       /* optional */
+  PropCollectionLookupStringFunc lookupstring = nullptr; /* optional */
+  PropCollectionAssignIntFunc assignint = nullptr;       /* optional */
 
   /** The type of this item. */
-  StructRNA *item_type;
+  StructRNA *item_type = nullptr;
 };
 
 /**

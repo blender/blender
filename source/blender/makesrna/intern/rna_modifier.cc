@@ -855,6 +855,7 @@ static const EnumPropertyItem grease_pencil_build_time_mode_items[] = {
 #  include "BLI_string.hh"
 #  include "BLI_string_utf8.hh"
 
+#  include "BKE_attribute.hh"
 #  include "BKE_bake_geometry_nodes_modifier.hh"
 #  include "BKE_cachefile.hh"
 #  include "BKE_compute_contexts.hh"
@@ -1544,6 +1545,28 @@ static void rna_DataTransferModifier_data_types_update(Main *bmain, Scene *scene
   rna_Modifier_dependency_update(bmain, scene, ptr);
 }
 
+/* Add the color attributes of a domain, in the order data transfer indexes them. */
+static void rna_DataTransferModifier_color_layers_add(const Mesh &mesh,
+                                                      const bke::AttrDomain domain,
+                                                      EnumPropertyItem **r_item,
+                                                      int *r_totitem)
+{
+  int idx = 0;
+  for (const bke::AttrType type : {bke::AttrType::ColorFloat, bke::AttrType::ColorByte}) {
+    RNA_enum_item_add_separator(r_item, r_totitem);
+
+    mesh.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (iter.domain != domain || iter.data_type != type) {
+        return;
+      }
+      EnumPropertyItem tmp_item = {0};
+      tmp_item.value = idx++;
+      tmp_item.identifier = tmp_item.name = iter.name.c_str();
+      RNA_enum_item_add(r_item, r_totitem, &tmp_item);
+    });
+  }
+}
+
 static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(bContext *C,
                                                                                 PointerRNA *ptr,
                                                                                 PropertyRNA *prop,
@@ -1645,28 +1668,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
         return item;
       }
 
-      const CustomData *cdata;
-      if (domain == bke::AttrDomain::Point) {
-        cdata = &mesh_eval->vert_data;
-      }
-      else {
-        cdata = &mesh_eval->corner_data;
-      }
-
-      eCustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
-
-      int idx = 0;
-      for (int i = 0; i < 2; i++) {
-        int num_data = CustomData_number_of_layers(cdata, types[i]);
-
-        RNA_enum_item_add_separator(&item, &totitem);
-
-        for (int j = 0; j < num_data; j++) {
-          tmp_item.value = idx++;
-          tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(cdata, types[i], j);
-          RNA_enum_item_add(&item, &totitem, &tmp_item);
-        }
-      }
+      rna_DataTransferModifier_color_layers_add(*mesh_eval, domain, &item, &totitem);
     }
   }
 
@@ -1700,7 +1702,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
     if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_MDEFORMVERT] >= 0) {
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
-      if (ob_dst) {
+      if (ob_dst && BKE_object_supports_vertex_groups(ob_dst)) {
         const bDeformGroup *dg;
         int i;
 
@@ -1723,7 +1725,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
     if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_UV] >= 0) {
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
-      if (ob_dst && ob_dst->data) {
+      if (ob_dst && ob_dst->type == OB_MESH && ob_dst->data) {
         Mesh *me_dst = id_cast<Mesh *>(ob_dst->data);
         const VectorSet<StringRefNull> uv_map_names = me_dst->uv_map_names();
         const int num_data = uv_map_names.size();
@@ -1749,26 +1751,14 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
     if (dtmd->layers_select_src[multilayer_index] >= 0) {
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
-      if (ob_dst && ob_dst->data) {
-        eCustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
+      if (ob_dst && ob_dst->type == OB_MESH && ob_dst->data) {
+        const Mesh *me_dst = id_cast<const Mesh *>(ob_dst->data);
+        const bke::AttrDomain domain = STREQ(RNA_property_identifier(prop),
+                                             "layers_vcol_vert_select_dst") ?
+                                           bke::AttrDomain::Point :
+                                           bke::AttrDomain::Corner;
 
-        Mesh *me_dst = id_cast<Mesh *>(ob_dst->data);
-        CustomData *cdata = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?
-                                &me_dst->vert_data :
-                                &me_dst->corner_data;
-
-        int idx = 0;
-        for (int i = 0; i < 2; i++) {
-          int num_data = CustomData_number_of_layers(cdata, types[i]);
-
-          RNA_enum_item_add_separator(&item, &totitem);
-
-          for (int j = 0; j < num_data; j++) {
-            tmp_item.value = idx++;
-            tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(cdata, types[i], j);
-            RNA_enum_item_add(&item, &totitem, &tmp_item);
-          }
-        }
+        rna_DataTransferModifier_color_layers_add(*me_dst, domain, &item, &totitem);
       }
     }
   }

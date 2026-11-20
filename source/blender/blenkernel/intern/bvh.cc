@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <limits>
+#include <memory>
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
@@ -63,10 +64,14 @@ Tree &Tree::operator=(Tree &&other)
 Tree::~Tree()
 {
 #ifdef WITH_EMBREE
-  rtcReleaseScene(this->rtc_scene_);
-  this->rtc_scene_ = nullptr;
-  rtcReleaseDevice(this->rtc_device_);
-  this->rtc_device_ = nullptr;
+  if (this->rtc_scene_) {
+    rtcReleaseScene(this->rtc_scene_);
+    this->rtc_scene_ = nullptr;
+  }
+  if (this->rtc_device_) {
+    rtcReleaseDevice(this->rtc_device_);
+    this->rtc_device_ = nullptr;
+  }
   index_map_by_geom_.clear_and_shrink();
   user_data_by_geom_.clear_and_shrink();
 #else /* WITH_EMBREE */
@@ -108,12 +113,25 @@ struct BvhBuildContext {
   RTCBuildQuality build_quality;
 };
 
-/** Create the Embree device and scene used to build every tree. */
+/* Creating an Embree device is expensive, so share one between all trees. */
+static RTCDevice get_device()
+{
+  using DevicePtr = std::unique_ptr<RTCDeviceTy, decltype(&rtcReleaseDevice)>;
+  static const DevicePtr device = []() {
+    DevicePtr device(rtcNewDevice("verbose=0"), rtcReleaseDevice);
+    rtcSetDeviceErrorFunction(device.get(), rtc_error_func, nullptr);
+    rtcSetDeviceMemoryMonitorFunction(device.get(), rtc_memory_monitor_func, nullptr);
+    return device;
+  }();
+  return device.get();
+}
+
+/** Create a scene and retain its Embree device for the tree. */
 static BvhBuildContext build_context_create()
 {
-  RTCDevice device = rtcNewDevice("verbose=0");
-  rtcSetDeviceErrorFunction(device, rtc_error_func, nullptr);
-  rtcSetDeviceMemoryMonitorFunction(device, rtc_memory_monitor_func, nullptr);
+  RTCDevice device = get_device();
+  /* Every tree owns a reference, including if it outlives the shared device pointer. */
+  rtcRetainDevice(device);
 
   RTCScene scene = rtcNewScene(device);
   const RTCSceneFlags scene_flags = RTCSceneFlags(RTC_SCENE_FLAG_ROBUST |
@@ -199,7 +217,7 @@ static void add_mesh_faces(const BvhBuildContext &ctx,
             SimpleVectorSetSlot<int, int>,
             GuardedAllocator>
       used_verts;
-  used_verts.reserve(faces.size());
+  used_verts.reserve(face_mask.size());
   face_mask.foreach_index(
       [&](const int face) { used_verts.add_multiple(corner_verts.slice(faces[face])); });
 

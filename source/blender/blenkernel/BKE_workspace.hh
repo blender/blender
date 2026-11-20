@@ -10,6 +10,7 @@
 
 #include <string>
 
+#include "DNA_ID.h"
 #include "DNA_listBase.h"
 
 #include "BLI_compiler_attrs.hh"
@@ -182,7 +183,7 @@ WorkSpaceLayout *BKE_workspace_active_layout_for_workspace_get(
 
 bool BKE_workspace_owner_id_check(const WorkSpace *workspace, const char *owner_id) ATTR_NONNULL();
 
-void BKE_workspace_id_tag_all_visible(Main *bmain, int tag) ATTR_NONNULL();
+void BKE_workspace_id_tag_all_visible(Main *bmain, eID_Tag tag) ATTR_NONNULL();
 
 /**
  * Empty the Workspace status items to clear the status bar.

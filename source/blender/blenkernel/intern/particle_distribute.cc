@@ -16,7 +16,6 @@
 #include "BLI_kdtree_new.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_rand_c.hh"
-#include "BLI_sort.hh"
 #include "BLI_task_c.hh"
 #include "BLI_utildefines.hh"
 
@@ -832,31 +831,6 @@ static void exec_distribute_child(TaskPool *__restrict /*pool*/, void *taskdata)
   }
 }
 
-static int distribute_compare_orig_index(const void *p1, const void *p2, void *user_data)
-{
-  const int *orig_index = static_cast<const int *>(user_data);
-  int index1 = orig_index[*static_cast<const int *>(p1)];
-  int index2 = orig_index[*static_cast<const int *>(p2)];
-
-  if (index1 < index2) {
-    return -1;
-  }
-  if (index1 == index2) {
-    /* This pointer comparison appears to make #qsort stable for GLIBC,
-     * and apparently on SOLARIS too, makes the renders reproducible. */
-    if (p1 < p2) {
-      return -1;
-    }
-    if (p1 == p2) {
-      return 0;
-    }
-
-    return 1;
-  }
-
-  return 1;
-}
-
 static void distribute_invalid(ParticleSimulationData *sim, int from)
 {
   Scene *scene = sim->scene;
@@ -1275,11 +1249,10 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     }
 
     if (orig_index) {
-      BLI_qsort_r(particle_element,
-                  totpart,
-                  sizeof(int),
-                  distribute_compare_orig_index,
-                  (void *)orig_index);
+      /* Stable sort for reproducible results when particle share the same original index. */
+      std::stable_sort(particle_element,
+                       particle_element + totpart,
+                       [&](const int a, const int b) { return orig_index[a] < orig_index[b]; });
     }
   }
 

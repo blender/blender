@@ -514,7 +514,7 @@ class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
 
   std::optional<AttrDomain> preferred_domain(
       const GeometryComponent & /*component*/) const override;
-  NativeFieldDomain native_domain_info(const GeometryComponent & /*component*/) const override;
+  NativeFieldDomain native_domain_info(const GeometryComponent &component) const override;
 };
 
 bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,

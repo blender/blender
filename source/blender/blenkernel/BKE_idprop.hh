@@ -405,6 +405,7 @@ double IDP_coerce_to_double_or_zero(const IDProperty *prop);
  * Loop through all ID properties in hierarchy of given \a id_property_root included.
  *
  * \note Container types (groups and arrays) are processed after applying the callback on them.
+ * \note Struct ID properties (e.g. CurveMapping) are only processed when there is no filter.
  *
  * \param type_filter: If not 0, only apply callback on properties of matching types, see
  * #eIDPropertyTypeFilter enum in DNA_ID.h.
@@ -428,6 +429,39 @@ void IDP_BlendReadData_impl(BlendDataReader *reader,
                             IDProperty **prop,
                             const char *caller_func_id);
 #define IDP_BlendDataRead(reader, prop) IDP_BlendReadData_impl(reader, prop, __func__)
+
+/**
+ * Type information for IDProperty types that own a DNA struct (e.g. IDP_CURVE_MAPPING).
+ */
+struct IDPropertyStructTypeInfo {
+  eIDPropertyType idp_type;
+  /** RNA struct identifier (e.g. CurveMapping or ColorRamp). */
+  std::string rna_identifier;
+
+  void *(*create_default)() = nullptr;
+  void *(*copy)(const void *src, int flag) = nullptr;
+  void (*free)(void *data) = nullptr;
+  void (*blend_write)(BlendWriter *writer, const void *data) = nullptr;
+  void (*blend_read)(BlendDataReader *reader, void **data_p) = nullptr;
+  bool (*equals)(const void *a, const void *b) = nullptr;
+};
+
+/** Register struct type. It must have static storage duration. */
+void IDP_struct_type_register(const IDPropertyStructTypeInfo &type_info);
+
+void IDP_struct_type_init();
+void IDP_struct_type_exit();
+
+/** Get the struct type info for the given type if possible, or null otherwise. */
+const IDPropertyStructTypeInfo *IDP_struct_type_info(eIDPropertyType type);
+/** True if the property or any of its descendants owns a DNA struct. */
+bool IDP_contains_struct_type(IDProperty *prop);
+/** Get the struct type info based on the rna identifier. */
+const IDPropertyStructTypeInfo *IDP_struct_type_find_by_rna_identifier(StringRef rna_identifier);
+
+[[nodiscard]] IDProperty *IDP_NewStruct(StringRef name,
+                                        const IDPropertyStructTypeInfo &type_info,
+                                        eIDPropertyFlag flags = {});
 
 enum eIDPropertyUIDataType {
   /** Other properties types that don't support RNA UI data. */
@@ -470,7 +504,8 @@ namespace bke::idprop {
 /**
  * \brief Convert the given `properties` to `Value` objects for serialization.
  *
- * `IDP_ID` and `IDP_IDPARRAY` are not supported and will be ignored.
+ * `IDP_ID`, `IDP_IDPARRAY`, and struct (e.g. CurveMapping) types are not supported and will be
+ * ignored.
  *
  * UI data such as max/min will not be serialized.
  */

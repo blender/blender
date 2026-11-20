@@ -24,6 +24,68 @@
 static OneAPIErrorCallback s_error_cb = nullptr;
 static void *s_error_user_ptr = nullptr;
 
+/* Kernel names are "_ZTS<length>ccl_gpu_kernel_<name>", see ccl_gpu_kernel_signature. */
+static DeviceKernel oneapi_device_kernel_from_name(const std::string &kernel_name)
+{
+  const std::string_view prefix = "ccl_gpu_kernel_";
+  const size_t pos = kernel_name.find(prefix);
+  if (pos == std::string::npos) {
+    return DEVICE_KERNEL_NUM;
+  }
+  const std::string_view name = std::string_view(kernel_name).substr(pos + prefix.size());
+  for (int i = 0; i < DEVICE_KERNEL_NUM; i++) {
+    const DeviceKernel kernel = DeviceKernel(i);
+    if (name == device_kernel_as_string(kernel)) {
+      return kernel;
+    }
+  }
+  return DEVICE_KERNEL_NUM;
+}
+
+static void oneapi_get_kernel_info(
+    sycl::queue *queue,
+    const sycl::kernel_bundle<sycl::bundle_state::executable> &kernel_bundle,
+    const sycl::kernel_id &kernel_id,
+    OneAPIKernelInfo *kernel_infos)
+{
+  const DeviceKernel kernel = oneapi_device_kernel_from_name(kernel_id.get_name());
+  if (kernel == DEVICE_KERNEL_NUM) {
+    return;
+  }
+
+  OneAPIKernelInfo &info = kernel_infos[kernel];
+  info = OneAPIKernelInfo();
+
+  /* Failing to get these properties is not an error: fields that could not be queried stay zero
+   * and defaults are used instead. */
+  try {
+    const sycl::device &device = queue->get_device();
+    const sycl::kernel sycl_kernel = kernel_bundle.get_kernel(kernel_id);
+
+    info.max_work_group_size =
+        sycl_kernel.get_info<sycl::info::kernel_device_specific::work_group_size>(device);
+    info.max_sub_group_size =
+        sycl_kernel.get_info<sycl::info::kernel_device_specific::max_sub_group_size>(device);
+
+    /* With work-groups of one sub-group per EU of an Xe-core and no local memory, the maximum
+     * number of concurrent work-groups measures the number of hardware threads the device can
+     * run for this kernel. With work-groups of a single sub-group, the limits of an Xe-core on
+     * work-groups using barriers or local memory would be reached first. */
+    if (device.has(sycl::aspect::ext_intel_eus_per_xe_core) && info.max_sub_group_size > 0) {
+      const size_t work_group_size =
+          device.get_info<sycl::ext::intel::info::device::eus_per_xe_core>() *
+          info.max_sub_group_size;
+      if (work_group_size > 0 && work_group_size <= info.max_work_group_size) {
+        info.max_num_work_groups = sycl_kernel.ext_oneapi_get_info<
+            sycl::ext::oneapi::experimental::info::kernel_queue_specific::max_num_work_groups>(
+            *queue, sycl::range<1>(work_group_size), 0);
+      }
+    }
+  }
+  catch (const sycl::exception &) {
+  }
+}
+
 #  ifdef WITH_EMBREE_GPU
 static RTCFeatureFlags oneapi_embree_features_from_kernel_features(const uint64_t kernel_features)
 {
@@ -55,37 +117,6 @@ void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr)
 {
   s_error_cb = cb;
   s_error_user_ptr = user_ptr;
-}
-
-size_t oneapi_suggested_gpu_kernel_size(const DeviceKernel kernel)
-{
-  /* This defines are available only to the device code, so making this function
-   * seems to be the most reasonable way to provide access to them for the host code. */
-  switch (kernel) {
-    case DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_QUEUED_SHADOW_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_ACTIVE_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_TERMINATED_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_TERMINATED_SHADOW_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_PATHS_ARRAY:
-      return GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE;
-
-    case DEVICE_KERNEL_INTEGRATOR_SORTED_PATHS_ARRAY:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_STATES:
-    case DEVICE_KERNEL_INTEGRATOR_COMPACT_SHADOW_STATES:
-      return GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE;
-
-    case DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS:
-    case DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS:
-      return GPU_PARALLEL_SORT_BLOCK_SIZE;
-
-    case DEVICE_KERNEL_PREFIX_SUM:
-      return GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE;
-
-    default:
-      return (size_t)0;
-  }
 }
 
 /* NOTE(@nsirgien): Execution of this simple kernel will check basic functionality like
@@ -243,10 +274,12 @@ bool oneapi_kernel_has_intersections(const std::string &kernel_name)
 
 bool oneapi_load_kernels(SyclQueue *queue_,
                          const uint64_t kernel_features,
-                         bool use_hardware_raytracing)
+                         bool use_hardware_raytracing,
+                         OneAPIKernelInfo *kernel_infos)
 {
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
+  assert(kernel_infos);
 
 #  ifdef WITH_EMBREE_GPU
   /* For best performance, we always JIT compile the kernels that are using Embree. */
@@ -275,7 +308,9 @@ bool oneapi_load_kernels(SyclQueue *queue_,
         one_kernel_bundle_input
             .set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
                 embree_features);
-        sycl::build(one_kernel_bundle_input);
+        sycl::kernel_bundle<sycl::bundle_state::executable> one_kernel_bundle_exe = sycl::build(
+            one_kernel_bundle_input);
+        oneapi_get_kernel_info(queue, one_kernel_bundle_exe, kernel_id, kernel_infos);
       }
     }
     catch (const sycl::exception &e) {
@@ -312,14 +347,18 @@ bool oneapi_load_kernels(SyclQueue *queue_,
         one_kernel_bundle_input
             .set_specialization_constant<ONEAPIKernelContext::oneapi_embree_features>(
                 RTC_FEATURE_FLAG_NONE);
-        sycl::build(one_kernel_bundle_input);
+        sycl::kernel_bundle<sycl::bundle_state::executable> one_kernel_bundle_exe = sycl::build(
+            one_kernel_bundle_input);
+        oneapi_get_kernel_info(queue, one_kernel_bundle_exe, kernel_id, kernel_infos);
         continue;
       }
 #  endif
       /* This call will ensure that AoT or cached JIT binaries are available
        * for execution. It will trigger compilation if it is not already the case. */
-      (void)sycl::get_kernel_bundle<sycl::bundle_state::executable>(
-          queue->get_context(), {queue->get_device()}, {kernel_id});
+      sycl::kernel_bundle<sycl::bundle_state::executable> one_kernel_bundle_exe =
+          sycl::get_kernel_bundle<sycl::bundle_state::executable>(
+              queue->get_context(), {queue->get_device()}, {kernel_id});
+      oneapi_get_kernel_info(queue, one_kernel_bundle_exe, kernel_id, kernel_infos);
     }
   }
   catch (const sycl::exception &e) {

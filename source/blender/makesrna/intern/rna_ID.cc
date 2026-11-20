@@ -1755,6 +1755,24 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "PropertyGroup");
 
+  /* IDP_CURVE_MAPPING */
+  prop = RNA_def_property(srna, "curve_mapping", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "CurveMapping");
+
+  /* IDP_COLOR_BAND */
+  prop = RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "ColorRamp");
+
+  /* IDP_CURVE_PROFILE */
+  prop = RNA_def_property(srna, "curve_profile", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "CurveProfile");
+
   prop = RNA_def_property(srna, "collection", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
   RNA_def_property_struct_type(prop, "PropertyGroup");

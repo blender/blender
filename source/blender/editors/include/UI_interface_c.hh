@@ -3261,6 +3261,9 @@ ARegion *tooltip_create_from_search_item_generic(bContext *C,
 /* For float buttons the 'step', is scaled */
 #define UI_PRECISION_FLOAT_SCALE 0.01f
 
+#define UI_PRECISION_FLOAT_STEP_MIN 0.000001f
+#define UI_PRECISION_FLOAT_STEP_MAX 10.0f
+
 /* Typical UI text */
 #define UI_FSTYLE_WIDGET (const uiFontStyle *)&(ui::style_get()->widget)
 #define UI_FSTYLE_TOOLTIP (const uiFontStyle *)&(ui::style_get()->tooltip)

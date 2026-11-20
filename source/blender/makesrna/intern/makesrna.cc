@@ -3746,12 +3746,13 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     case PROP_FLOAT: {
       FloatPropertyRNA *fprop = reinterpret_cast<FloatPropertyRNA *>(prop);
       fprintf(f,
-              "\t\t%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, ",
+              "\t\t%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, ",
               rna_function_string(fprop->get),
               rna_function_string(fprop->set),
               rna_function_string(fprop->getarray),
               rna_function_string(fprop->setarray),
               rna_function_string(fprop->range),
+              rna_function_string(fprop->precision_fn),
               rna_function_string(fprop->get_ex),
               rna_function_string(fprop->set_ex),
               rna_function_string(fprop->getarray_ex),

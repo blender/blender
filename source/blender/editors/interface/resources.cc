@@ -1163,6 +1163,17 @@ void get_color_shade_alpha_4ubv(int colorid, int coloffset, int alphaoffset, uch
   col[3] = a;
 }
 
+void color_blend_3ubv_3ubv(unsigned char col[3], const unsigned char col_state[3], float fac)
+{
+  CLAMP(fac, 0.0f, 1.0f);
+
+  if (fac != 0.0f) {
+    col[0] = int((1.0f - fac) * col[0] + fac * col_state[0]);
+    col[1] = int((1.0f - fac) * col[1] + fac * col_state[1]);
+    col[2] = int((1.0f - fac) * col[2] + fac * col_state[2]);
+  }
+}
+
 void get_color_blend_3ubv(int colorid1, int colorid2, float fac, uchar col[3])
 {
   const uchar *cp1 = get_color_ptr(g_theme_state.theme, g_theme_state.spacetype, colorid1);

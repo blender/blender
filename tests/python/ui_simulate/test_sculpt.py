@@ -37,20 +37,9 @@ def asset_shelf_brush_selection():
     t.assertEqual(current_brush.name, "Blob")
 
 
-def _view3d_startup_area_maximized(e):
-    """
-    Set the 3D viewport and set the area full-screen so no other regions.
-    """
-    yield e.shift.f5()                  # 3D Viewport.
-    yield e.ctrl.alt.space()            # Full-screen.
-    yield e.a()                         # Select all.
-    yield e.delete().ret()              # Delete all.
-
-
 def _reset_objects(e):
     yield e.ctrl.tab().o()              # Object Mode
-    yield e.a()                         # Select all.
-    yield e.delete().ret()              # Delete all.
+    yield from ui.delete_all(e)
 
 
 def _subdivide_mesh(e, times):
@@ -96,7 +85,8 @@ def _assertBetween(t, value, low, high):
 def face_set_expand():
     import bpy
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from _create_test_monkey(e)
 
@@ -121,7 +111,8 @@ def face_set_expand():
 
 def face_set_gestures():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     # Box Face Set
     yield from _create_test_monkey(e)
@@ -166,7 +157,8 @@ def _num_hidden_vertices():
 
 def hide_gestures():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     # Box Hide
     yield from _create_test_monkey(e)
@@ -220,7 +212,8 @@ def _num_fully_masked_vertices():
 
 def mask_expand_and_invert():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from _create_test_monkey(e)
 
@@ -250,7 +243,8 @@ def mask_expand_and_invert():
 
 def mask_gestures():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     # Box Mask
     yield from _create_test_monkey(e)
@@ -287,7 +281,8 @@ def _create_test_cube(e):
 def trim_gestures():
     import bpy
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     # Box Trim
     yield from _create_test_cube(e)

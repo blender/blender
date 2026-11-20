@@ -210,7 +210,7 @@ static StructRNA *rna_NodeSocket_register(Main *bmain,
   }
 
   /* check if we have registered this socket type before */
-  st = bke::node_socket_type_find(dummy_st.idname.ref());
+  st = bke::node_socket_type_find(dummy_st.idname);
   if (!st) {
     /* create a new node socket type */
     st = MEM_new<bke::bNodeSocketType>(__func__, dummy_st);
@@ -551,6 +551,14 @@ void rna_NodeSocketStandard_float_range(
   *max = FLT_MAX;
   *softmin = dval->min;
   *softmax = dval->max;
+}
+
+void rna_NodeSocketStandard_float_precision(PointerRNA *ptr, float *step, float *precision)
+{
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  bNodeSocketValueFloat *dval = static_cast<bNodeSocketValueFloat *>(sock->default_value);
+  *step = dval->step / UI_PRECISION_FLOAT_SCALE;
+  *precision = dval->precision;
 }
 
 void rna_NodeSocketStandard_int_range(
@@ -1140,7 +1148,11 @@ static void rna_def_node_socket_float(BlenderRNA *brna,
 
   prop = RNA_def_property(srna, "default_value", PROP_FLOAT, subtype);
   RNA_def_property_float_sdna(prop, nullptr, "value");
-  RNA_def_property_float_funcs(prop, nullptr, nullptr, "rna_NodeSocketStandard_float_range");
+  RNA_def_property_float_funcs(prop,
+                               nullptr,
+                               nullptr,
+                               "rna_NodeSocketStandard_float_range",
+                               "rna_NodeSocketStandard_float_precision");
   RNA_def_property_float_default_func(prop, "rna_NodeSocketStandard_float_default");
   RNA_def_property_ui_name_func(prop, "rna_NodeSocketStandard_name_func");
   RNA_def_property_ui_description_func(prop, "rna_NodeSocketStandard_description_func");
@@ -1192,8 +1204,11 @@ static void rna_def_node_socket_interface_float(BlenderRNA *brna,
   RNA_def_property_float_sdna(prop, nullptr, "value");
   RNA_def_property_float_default(prop, value_default);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_float_funcs(
-      prop, nullptr, nullptr, "rna_NodeTreeInterfaceSocketFloat_default_value_range");
+  RNA_def_property_float_funcs(prop,
+                               nullptr,
+                               nullptr,
+                               "rna_NodeTreeInterfaceSocketFloat_default_value_range",
+                               "rna_NodeTreeInterfaceSocketFloat_default_value_precision");
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
@@ -1207,6 +1222,20 @@ static void rna_def_node_socket_interface_float(BlenderRNA *brna,
   RNA_def_property_float_sdna(prop, nullptr, "max");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Maximum Value", "Maximum value");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
+  prop = RNA_def_property(srna, "precision", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "precision");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Precision", "Number of decimal places to display");
+  RNA_def_property_range(prop, 0, 6);
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
+  prop = RNA_def_property(srna, "step", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "step");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_range(prop, UI_PRECISION_FLOAT_STEP_MIN, UI_PRECISION_FLOAT_STEP_MAX);
+  RNA_def_property_ui_text(prop, "Step", "Step size for incrementing/decrementing the value");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
   RNA_def_struct_sdna_from(srna, "bNodeTreeInterfaceSocket", nullptr);

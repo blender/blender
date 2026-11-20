@@ -19,8 +19,6 @@
 
 #include "BLI_enum_flags.hh"
 #include "BLI_ustring.hh"
-
-/** Workaround to forward-declare C++ type in C header. */
 #include "BLI_vector.hh"
 
 namespace blender {
@@ -2101,6 +2099,10 @@ struct bNodeSocketValueFloat {
   int subtype = 0;
   float value = 0;
   float min = 0, max = 0;
+  /** Increment of the UI slider. */
+  float step = 0.1f;
+  /** Number of decimal places showing in the UI. */
+  int precision = 3;
 };
 
 struct bNodeSocketValueBoolean {

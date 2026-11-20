@@ -20,7 +20,6 @@
 
 namespace blender {
 
-/** Workaround to forward-declare C++ type in C header. */
 namespace bke {
 struct WindowManagerRuntime;
 struct WindowRuntime;

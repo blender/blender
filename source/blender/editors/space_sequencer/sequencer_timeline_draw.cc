@@ -2278,10 +2278,24 @@ static std::optional<BladeSplit> blade_split_get(
     split_expand_strips(ed, strip, include, split.strips);
   }
 
-  if (split.strips.is_empty() && !all_channels) {
-    return std::nullopt;
+  if (!split.strips.is_empty() || all_channels) {
+    return split;
   }
-  return split;
+
+  /* Check to see if we are at a split point (where two strips directly neighbor one another).
+   * If so, then show the tooltip and preview frame even though it's technically not splittable. */
+  bool left_neighbor = false, right_neighbor = false;
+  for (Strip &strip : *ed->current_strips()) {
+    if (strip.channel == *channel && (!only_selected || (strip.flag & SEQ_SELECT))) {
+      left_neighbor |= strip.right_handle(scene) == split_frame;
+      right_neighbor |= strip.left_handle() == split_frame;
+    }
+  }
+  if (left_neighbor && right_neighbor) {
+    return split;
+  }
+
+  return std::nullopt;
 }
 
 static void blade_split_draw(Scene *scene, const ARegion *region, const BladeSplit &split)
@@ -2356,14 +2370,14 @@ static void blade_paint_cursor_draw(bContext *C,
 static void blade_paint_cursor_free_fn(void *customdata)
 {
   if (G_MAIN->wm.first()) {
-    WM_paint_cursor_end(static_cast<wmPaintCursor *>(customdata));
+    WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(customdata));
   }
 }
 
 static void WIDGETGROUP_blade_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *region = CTX_wm_region(C);
-  gzgroup->customdata = WM_paint_cursor_activate(
+  gzgroup->customdata = WM_cursor_overlay_activate(
       SPACE_SEQ, RGN_TYPE_WINDOW, blade_paint_cursor_poll, blade_paint_cursor_draw, region);
   gzgroup->customdata_free = blade_paint_cursor_free_fn;
 }

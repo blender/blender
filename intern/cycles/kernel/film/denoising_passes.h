@@ -252,20 +252,27 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
 ccl_device_forceinline void film_write_denoising_features_surface_volume(
     KernelGlobals kg,
     IntegratorState state,
+    const uint32_t path_flag,
     const ccl_private ShaderData *sd,
     ccl_global float *ccl_restrict render_buffer)
 {
+  /* Don't write denoising passes for paths that were split off for shadow catchers
+   * to avoid double-counting. */
+  if (!(path_flag & PATH_RAY_DENOISING_FEATURES) || (path_flag & PATH_RAY_SHADOW_CATCHER_PASS)) {
+    return;
+  }
+
   ccl_global float *buffer = film_pass_pixel_render_buffer(kg, state, render_buffer);
 
   const bool follow_reflections = (kernel_data.film.denoising_pass_options_flag &
                                    DENOISING_PASS_FOLLOW_REFLECTIONS) != 0;
   const bool is_first_bounce = INTEGRATOR_STATE(state, path, bounce) == 0;
 
-  const Spectrum denoising_feature_throughput = INTEGRATOR_STATE(
-      state, path, denoising_feature_throughput);
-
   if (is_first_bounce || follow_reflections) {
     if (kernel_data.film.pass_denoising_depth != PASS_UNUSED) {
+      const Spectrum denoising_feature_throughput = INTEGRATOR_STATE(
+          state, path, denoising_feature_throughput);
+
       const float denoising_depth = denoising_depth_compute(
           kg, state, sd, denoising_feature_throughput, follow_reflections);
       film_write_pass_float(buffer + kernel_data.film.pass_denoising_depth, denoising_depth);

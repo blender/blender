@@ -30,6 +30,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.hh"
+#include "BKE_idprop.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
@@ -2178,6 +2179,103 @@ bool BKE_color_managed_colorspace_settings_equals(const ColorManagedColorspaceSe
                                                   const ColorManagedColorspaceSettings *settings2)
 {
   return STREQ(settings1->name, settings2->name);
+}
+
+bool BKE_curvemapping_equals(const CurveMapping *a_ptr, const CurveMapping *b_ptr)
+{
+  const CurveMapping &a = *a_ptr;
+  const CurveMapping &b = *b_ptr;
+  /* CUMA_PREMULLED is ignored because it's a runtime flag. */
+  if ((a.flag & ~CUMA_PREMULLED) != (b.flag & ~CUMA_PREMULLED) || a.tone != b.tone ||
+      a.preset != b.preset)
+  {
+    return false;
+  }
+  if (a.clipr.xmin != b.clipr.xmin || a.clipr.xmax != b.clipr.xmax ||
+      a.clipr.ymin != b.clipr.ymin || a.clipr.ymax != b.clipr.ymax)
+  {
+    return false;
+  }
+  if (float3(a.black) != float3(b.black)) {
+    return false;
+  }
+  if (float3(a.white) != float3(b.white)) {
+    return false;
+  }
+
+  /* Other flags are runtime-flags and ignored here. */
+  const eCurveMapPoint_Flag point_flag_mask = CUMA_HANDLE_VECTOR | CUMA_HANDLE_AUTO_ANIM;
+  for (const int curve_i : IndexRange(CM_TOT)) {
+    const CurveMap &a_curve = a.cm[curve_i];
+    const CurveMap &b_curve = b.cm[curve_i];
+    if (a_curve.totpoint != b_curve.totpoint) {
+      return false;
+    }
+    if (a_curve.default_handle_type != b_curve.default_handle_type) {
+      return false;
+    }
+    for (const int point_i : IndexRange(a_curve.totpoint)) {
+      const CurveMapPoint &a_point = a_curve.curve[point_i];
+      const CurveMapPoint &b_point = b_curve.curve[point_i];
+      if (a_point.x != b_point.x || a_point.y != b_point.y ||
+          (a_point.flag & point_flag_mask) != (b_point.flag & point_flag_mask))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+static void *idp_struct_curvemapping_create()
+{
+  return BKE_curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+}
+
+static void *idp_struct_curvemapping_copy(const void *src, const int /*flag*/)
+{
+  return BKE_curvemapping_copy(static_cast<const CurveMapping *>(src));
+}
+
+static void idp_struct_curvemapping_free(void *data)
+{
+  BKE_curvemapping_free(static_cast<CurveMapping *>(data));
+}
+
+static void idp_struct_curvemapping_blend_write(BlendWriter *writer, const void *data)
+{
+  BKE_curvemapping_blend_write(writer, static_cast<const CurveMapping *>(data));
+}
+
+static void idp_struct_curvemapping_blend_read(BlendDataReader *reader, void **data_p)
+{
+  CurveMapping **cm = reinterpret_cast<CurveMapping **>(data_p);
+  BLO_read_struct(reader, CurveMapping, cm);
+  if (*cm) {
+    BKE_curvemapping_blend_read(reader, *cm);
+  }
+}
+
+static bool idp_struct_curvemapping_equals(const void *a, const void *b)
+{
+  return BKE_curvemapping_equals(static_cast<const CurveMapping *>(a),
+                                 static_cast<const CurveMapping *>(b));
+}
+
+static const IDPropertyStructTypeInfo idp_struct_type_curvemapping = {
+    .idp_type = IDP_CURVE_MAPPING,
+    .rna_identifier = "CurveMapping",
+    .create_default = idp_struct_curvemapping_create,
+    .copy = idp_struct_curvemapping_copy,
+    .free = idp_struct_curvemapping_free,
+    .blend_write = idp_struct_curvemapping_blend_write,
+    .blend_read = idp_struct_curvemapping_blend_read,
+    .equals = idp_struct_curvemapping_equals,
+};
+
+void BKE_curvemapping_idproperty_type_register()
+{
+  IDP_struct_type_register(idp_struct_type_curvemapping);
 }
 
 }  // namespace blender

@@ -1440,9 +1440,10 @@ void ED_view3d_distance_set(RegionView3D *rv3d, const float dist)
 #if 0
   mul_mat3_m4_v3(rv3d->viewinv, tvec);
 #else
-  /* Rotate the distance delta by the same rotation the view matrix is built from. */
+  /* Rotate the distance delta by the inverse of the rotation the view matrix is built from. */
   float mat[3][3];
   quat_to_mat3(mat, rv3d->viewquat);
+  invert_m3(mat);
   mul_m3_v3(mat, tvec);
 #endif
   sub_v3_v3(rv3d->ofs, tvec);

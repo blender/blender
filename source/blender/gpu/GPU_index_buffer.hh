@@ -197,13 +197,6 @@ void GPU_indexbuf_init_build_on_device(gpu::IndexBuf *elem, uint index_len);
 
 MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *);
 
-/*
- * Thread safe.
- *
- * Function inspired by the reduction directives of multi-thread work API's.
- */
-void GPU_indexbuf_join(GPUIndexBufBuilder *builder, const GPUIndexBufBuilder *builder_from);
-
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *, uint v);
 void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *);
 
@@ -211,15 +204,6 @@ void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder *, uint v);
 void GPU_indexbuf_add_line_verts(GPUIndexBufBuilder *, uint v1, uint v2);
 void GPU_indexbuf_add_tri_verts(GPUIndexBufBuilder *, uint v1, uint v2, uint v3);
 void GPU_indexbuf_add_line_adj_verts(GPUIndexBufBuilder *, uint v1, uint v2, uint v3, uint v4);
-
-void GPU_indexbuf_set_point_vert(GPUIndexBufBuilder *builder, uint elem, uint v1);
-void GPU_indexbuf_set_line_verts(GPUIndexBufBuilder *builder, uint elem, uint v1, uint v2);
-void GPU_indexbuf_set_tri_verts(GPUIndexBufBuilder *builder, uint elem, uint v1, uint v2, uint v3);
-
-/* Skip primitive rendering at the given index. */
-void GPU_indexbuf_set_point_restart(GPUIndexBufBuilder *builder, uint elem);
-void GPU_indexbuf_set_line_restart(GPUIndexBufBuilder *builder, uint elem);
-void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem);
 
 gpu::IndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *);
 gpu::IndexBuf *GPU_indexbuf_build_ex(GPUIndexBufBuilder *builder,
@@ -251,10 +235,6 @@ gpu::IndexBuf *GPU_indexbuf_build_from_memory(GPUPrimType prim_type,
  * \note Sub-ranges are not taken into account, the whole buffer will be bound without any offset.
  */
 void GPU_indexbuf_bind_as_ssbo(gpu::IndexBuf *elem, int binding);
-
-gpu::IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
-                                                   uint curves_num,
-                                                   uint verts_per_curve);
 
 /* Upload data to the GPU (if not built on the device) and bind the buffer to its default target.
  */

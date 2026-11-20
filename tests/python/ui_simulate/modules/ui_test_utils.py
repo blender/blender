@@ -9,6 +9,7 @@ __all__ = (
     "cursor_motion_data_y",
     "cursor_motion_data_xy",
     "cursor_motion_data_circle",
+    "delete_all",
     "get_area_center",
     "get_area_center_from_spacetype",
     "get_window_area_by_type",
@@ -16,6 +17,7 @@ __all__ = (
     "idle_until",
     "keep_open",
     "poll_sweep",
+    "set_and_maximize_view3d_area",
     "test_window",
 )
 
@@ -53,6 +55,22 @@ def call_menu(e, text: str):
     yield e.f3()
     yield e.text_unicode(text.replace(" -> ", " \u25b8 "))
     yield e.ret()
+
+
+def delete_all(e):
+    """
+    Delete all objects in the scene.
+    """
+    yield e.a()                         # Select all.
+    yield e.delete().ret()              # Delete all.
+
+
+def set_and_maximize_view3d_area(e):
+    """
+    Set the 3D viewport and set the area full-screen to hide all other regions.
+    """
+    yield e.shift.f5()                  # 3D Viewport.
+    yield e.ctrl.alt.space()            # Full-screen.
 
 
 def get_window_area_by_type(window, space_type):

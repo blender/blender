@@ -609,11 +609,15 @@ void VKBackend::detect_workarounds(VKDevice &device)
   /* AMD official driver always reads layer 0 for all layers in subpassLoad. The Vulkan spec
    * (VUID-StandaloneSpirv-OpTypeImage-06214) requires the layer to be implicit from the fragment
    * position.
-   *
-   * Similar issue seems to happen on Windows + Intel and on Mesa.
    */
-  if (GPU_type_matches(GPU_DEVICE_ATI | GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     extensions.dynamic_rendering_local_read = false;
+  }
+
+  /* AMD official driver can crash when using HWRT. Disabling for now, but investigation will still
+   * continue. (See #166550) */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    GCaps.ray_query_support = false;
   }
 
   /* Disable vertex input dynamic state for Qualcomm devices (#153414).

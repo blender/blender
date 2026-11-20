@@ -325,11 +325,11 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
       return nullptr;
     }
 
-    handle = WM_paint_cursor_activate(params.space_type_enum.value,
-                                      params.region_type_enum.value,
-                                      nullptr,
-                                      cb_wm_cursor_draw,
-                                      static_cast<void *>(args));
+    handle = WM_cursor_overlay_activate(params.space_type_enum.value,
+                                        params.region_type_enum.value,
+                                        nullptr,
+                                        cb_wm_cursor_draw,
+                                        static_cast<void *>(args));
   }
   else if (RNA_struct_is_a(srna, RNA_Space)) {
     struct {
@@ -432,7 +432,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject * /*self*/, PyObject *args)
     {
       return nullptr;
     }
-    handle_removed = WM_paint_cursor_end(static_cast<wmPaintCursor *>(handle));
+    handle_removed = WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(handle));
     capsule_clear = true;
   }
   else if (RNA_struct_is_a(srna, RNA_Space)) {
@@ -526,7 +526,7 @@ void BPY_callback_screen_free(ARegionType *art)
 
 void BPY_callback_wm_free(wmWindowManager *wm)
 {
-  WM_paint_cursor_remove_by_type(wm, cb_wm_cursor_draw, cb_customdata_free);
+  WM_cursor_overlay_remove_by_type(wm, cb_wm_cursor_draw, cb_customdata_free);
 }
 
 /** \} */

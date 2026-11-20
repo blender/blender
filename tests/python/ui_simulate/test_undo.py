@@ -250,16 +250,6 @@ def compositor_make_group():
 # -----------------------------------------------------------------------------
 # 3D View
 
-def _view3d_startup_area_maximized(e):
-    """
-    Set the 3D viewport and set the area full-screen so no other regions.
-    """
-    yield e.shift.f5()                  # 3D Viewport.
-    yield e.ctrl.alt.space()            # Full-screen.
-    yield e.a()                         # Select all.
-    yield e.delete().ret()              # Delete all.
-
-
 def _view3d_startup_area_single(e):
     """
     Create a single area (not full screen)
@@ -323,7 +313,8 @@ def view3d_mesh_edit_shape_key():
 
 def view3d_simple():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     # NOTE: it should be possible to consider "Add -> Mesh -> Plane" an exact match.
     # However, shortcuts are now included so without them this ends up fuzzy-matching to "Add -> Image -> Mesh Plane".
@@ -360,7 +351,8 @@ def view3d_simple():
 
 def view3d_multi_mode_undo_history():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     # NOTE: it should be possible to consider "Add -> Mesh -> Plane" an exact match.
     # However, shortcuts are now included so without them this ends up fuzzy-matching to "Add -> Image -> Mesh Plane".
@@ -416,7 +408,8 @@ def _extract_mesh_positions(window):
 
 def view3d_sculpt_with_memfile_step():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from ui.call_menu(e, "Add -> Mesh -> Torus")
 
@@ -473,7 +466,8 @@ def view3d_sculpt_with_memfile_step():
 
 def view3d_sculpt_dyntopo_simple():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from ui.call_menu(e, "Add -> Mesh -> Torus")
     # Avoid dynamic topology prompt.
@@ -498,7 +492,8 @@ def view3d_sculpt_dyntopo_simple():
 
 def view3d_sculpt_dyntopo_and_edit():
     e, _, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from ui.call_menu(e, "Add -> Mesh -> Torus")
     yield e.numpad_period()             # View all.
@@ -522,7 +517,8 @@ def view3d_sculpt_trim():
     """
 
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
     yield from ui.call_menu(e, "Add -> Mesh -> Torus")
     yield e.numpad_period()             # View all.
     yield from ui.call_operator(e, "Remove UV Map")
@@ -545,7 +541,8 @@ def view3d_sculpt_trim():
 
 def view3d_sculpt_dyntopo_stroke_toggle():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from ui.call_menu(e, "Add -> Mesh -> Torus")
     yield e.numpad_period()             # View all.
@@ -588,7 +585,8 @@ def view3d_sculpt_dyntopo_stroke_toggle():
 
 def view3d_sculpt_with_empty_memfile_step():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
     yield from ui.call_menu(e, "Add -> Mesh -> Torus")
     yield e.ctrl.tab().s()              # Sculpt via pie menu.
 
@@ -605,7 +603,8 @@ def view3d_sculpt_with_empty_memfile_step():
 
 def view3d_texture_paint_simple():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from ui.call_menu(e, "Add -> Mesh -> Monkey")
     yield e.numpad_period()             # View monkey
@@ -628,7 +627,8 @@ def view3d_particle_edit_undo_from_texture_paint():
     import bpy
 
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     def assert_particle_edit_valid():
         ob = bpy.context.active_object
@@ -693,7 +693,8 @@ def view3d_mesh_edit_mode_object_mix():
     """
     import bpy
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     def state_get():
         # Re-read the objects, 'memfile' undo steps re-allocate ID's.
@@ -754,7 +755,8 @@ def view3d_mesh_edit_mode_object_mix():
 
 def view3d_mesh_edit_separate():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from ui.call_menu(e, "Add -> Mesh -> Cube")
     yield e.numpad_period()             # View all.
@@ -780,7 +782,8 @@ def view3d_mesh_edit_separate():
 
 def view3d_mesh_particle_edit_mode_simple():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from ui.call_menu(e, "Add -> Mesh -> Cube")
     yield e.r.z().text("15").ret()      # Single object-mode action (to test mixing different kinds of undo steps).
@@ -815,7 +818,8 @@ def view3d_font_edit_mode_object_mix():
     """
     import bpy
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     def state_get():
         objects = window.view_layer.objects
@@ -870,7 +874,8 @@ def view3d_font_edit_mode_object_mix():
 
 def view3d_font_edit_mode_simple():
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     yield from ui.call_menu(e, "Add -> Text")
     yield e.numpad_period()             # View all.
@@ -896,7 +901,8 @@ def view3d_font_edit_mode_simple():
 def view3d_multi_mode_select():
     # Note, this test should be extended to change modes for each object type.
     e, t, window = ui.test_window()
-    yield from _view3d_startup_area_maximized(e)
+    yield from ui.set_and_maximize_view3d_area(e)
+    yield from ui.delete_all(e)
 
     object_names = []
 
@@ -953,8 +959,10 @@ def view3d_multi_mode_multi_window():
         e.cursor_position_set(x=pos_v3d[0], y=pos_v3d[1], move=True)
         del pos_v3d
 
-    yield from _view3d_startup_area_maximized(e_a)
-    yield from _view3d_startup_area_maximized(e_b)
+    yield from ui.set_and_maximize_view3d_area(e_a)
+    yield from ui.delete_all(e_a)
+    yield from ui.set_and_maximize_view3d_area(e_b)
+    yield from ui.delete_all(e_b)
 
     undo_current = 0
     undo_state_empty = undo_current

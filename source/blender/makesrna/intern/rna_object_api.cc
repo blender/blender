@@ -658,12 +658,12 @@ static void rna_Object_ray_cast(Object *ob,
   float direction_unit[3];
   normalize_v3_v3(direction_unit, direction);
 
-  if (isect_ray_aabb_v3_simple(
+  /* A mesh without faces has nothing to hit. */
+  if (mesh_eval->faces_num > 0 &&
+      isect_ray_aabb_v3_simple(
           origin, direction_unit, bounds->min, bounds->max, &distmin, nullptr) &&
       distmin <= distance)
   {
-    /* Bounds will be nullopt if the mesh has no faces. */
-    BLI_assert(mesh_eval->faces_num > 0);
     const bke::bvh::Tree &bvh_tree = mesh_eval->bvh_tris();
     const bke::bvh::Ray ray(origin, direction_unit, distance);
     if (const std::optional<bke::bvh::RayHit> hit = bvh_tree.ray_intersect(ray)) {

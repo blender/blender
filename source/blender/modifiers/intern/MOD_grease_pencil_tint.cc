@@ -81,9 +81,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   BKE_modifier_copydata_generic(md, target, flag);
   modifier::greasepencil::copy_influence_data(&tmd->influence, &ttmd->influence, flag);
 
-  if (tmd->color_ramp) {
-    ttmd->color_ramp = MEM_dupalloc(tmd->color_ramp);
-  }
+  ttmd->color_ramp = BKE_colorband_copy_or_null(tmd->color_ramp);
 }
 
 static void free_data(ModifierData *md)

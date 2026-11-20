@@ -999,7 +999,7 @@ static const char *node_get_static_idname(int type, int treetype)
   return "";
 }
 
-static StringRefNull node_socket_get_static_idname(bNodeSocket *sock)
+static UString node_socket_get_static_idname(bNodeSocket *sock)
 {
   switch (sock->type) {
     case SOCK_FLOAT: {
@@ -1028,10 +1028,10 @@ static StringRefNull node_socket_get_static_idname(bNodeSocket *sock)
       return *bke::node_static_socket_type(SOCK_SHADER, PROP_NONE);
     }
     default: {
-      return "";
+      return ""_ustr;
     }
   }
-  return "";
+  return ""_ustr;
 }
 
 static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)

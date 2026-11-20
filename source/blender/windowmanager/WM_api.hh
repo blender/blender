@@ -71,7 +71,7 @@ struct wmJob;
 struct wmJobWorkerStatus;
 struct wmOperator;
 struct wmOperatorType;
-struct wmPaintCursor;
+struct wmCursorOverlay;
 struct wmTabletData;
 
 #ifdef WITH_INPUT_NDOF
@@ -665,17 +665,17 @@ void WM_cursor_time(wmWindow *win, int nr);
  */
 void WM_cursor_progress(wmWindow *win, float progress_factor);
 
-wmPaintCursor *WM_paint_cursor_activate(short space_type,
-                                        short region_type,
-                                        wmPaintCursorPoll poll,
-                                        wmPaintCursorDraw draw,
-                                        void *customdata);
+wmCursorOverlay *WM_cursor_overlay_activate(short space_type,
+                                            short region_type,
+                                            wmCursorOverlayPoll poll,
+                                            wmCursorOverlayDraw draw,
+                                            void *customdata);
 
-bool WM_paint_cursor_end(wmPaintCursor *handle);
-void WM_paint_cursor_remove_by_type(wmWindowManager *wm,
-                                    wmPaintCursorDraw draw_fn,
-                                    void (*free)(void *));
-void WM_paint_cursor_tag_redraw(wmWindow *win, ARegion *region);
+bool WM_cursor_overlay_end(wmCursorOverlay *handle);
+void WM_cursor_overlay_remove_by_type(wmWindowManager *wm,
+                                      wmCursorOverlayDraw draw_fn,
+                                      void (*free)(void *));
+void WM_cursor_overlay_tag_redraw(wmWindow *win, ARegion *region);
 
 /**
  * Set the cursor location in window coordinates (compatible with #wmEvent.xy).
@@ -2551,9 +2551,9 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const char *profile_path,
                                  const ListBaseT<XrUserPath> *user_paths,
                                  const ListBaseT<XrComponentPath> *component_paths,
-                                 const float *float_thresholds,
-                                 const eXrAxisFlag *axis_flags,
-                                 const wmXrPose *poses);
+                                 const float float_threshold,
+                                 const eXrAxisFlag axis_flag,
+                                 const wmXrPose pose);
 void WM_xr_action_binding_destroy(wmXrData *xr,
                                   const char *action_set_name,
                                   const char *action_name,

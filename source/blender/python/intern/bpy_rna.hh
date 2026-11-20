@@ -225,6 +225,7 @@ void BPY_rna_types_finalize_external_types(PyObject *submodule);
 [[nodiscard]] PyObject *pyrna_id_CreatePyObject(ID *id);
 [[nodiscard]] bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
 [[nodiscard]] bool pyrna_id_CheckPyObject(PyObject *obj);
+[[nodiscard]] bool pyrna_struct_CheckPyObject(PyObject *obj);
 
 /* operators also need this to set args */
 [[nodiscard]] int pyrna_pydict_to_props(PointerRNA *ptr,

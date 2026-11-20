@@ -234,7 +234,7 @@ template<typename Accessors> void rna_Node_ItemArray_item_color_get(PointerRNA *
 {
   using ItemT = typename Accessors::ItemT;
   ItemT &item = *static_cast<ItemT *>(ptr->data);
-  const StringRefNull socket_type_idname = *bke::node_static_socket_type(
+  const UString socket_type_idname = *bke::node_static_socket_type(
       Accessors::get_socket_type(item), 0);
   ED_node_type_draw_color(socket_type_idname.c_str(), values);
 }

@@ -1203,14 +1203,14 @@ class SEQUENCER_MT_strip(Menu):
                     layout.separator()
                     layout.operator("sequencer.rendersize")
                     layout.operator("sequencer.images_separate")
-                elif strip_type != 'SOUND':
-                    layout.separator()
-                    layout.operator("sequencer.rendersize")
                 elif strip_type == 'META':
                     layout.separator()
                     layout.operator("sequencer.meta_make")
                     layout.operator("sequencer.meta_separate")
                     layout.operator("sequencer.meta_toggle", text="Toggle Meta")
+                elif strip_type != 'SOUND':
+                    layout.separator()
+                    layout.operator("sequencer.rendersize")
                 if strip_type != 'META':
                     layout.separator()
                     layout.operator("sequencer.meta_make")
@@ -1386,14 +1386,14 @@ class SEQUENCER_MT_context_menu(Menu):
             }:
                 layout.separator()
                 layout.menu("SEQUENCER_MT_strip_effect")
-            elif strip_type != 'SOUND':
-                layout.separator()
-                layout.operator("sequencer.rendersize")
             elif strip_type == 'IMAGE':
                 layout.separator()
                 layout.operator("sequencer.rendersize")
                 if has_selection:
                     layout.operator("sequencer.images_separate")
+            elif strip_type != 'SOUND':
+                layout.separator()
+                layout.operator("sequencer.rendersize")
 
         if has_selection:
             layout.separator()

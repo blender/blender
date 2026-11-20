@@ -1168,6 +1168,8 @@ def km_node_editor(params):
         ("node.select_link_viewer", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("node.backimage_fit", {"type": 'A', "value": 'PRESS', "alt": True}, None),
         ("node.backimage_sample", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
+        ("node.select", {"type": 'RIGHTMOUSE', "value": 'PRESS'},
+         {"properties": [("select_passthrough", True)]}),
         *_template_items_context_menu("NODE_MT_context_menu", {"type": 'RIGHTMOUSE', "value": 'PRESS'}),
         ("node.link_make", {"type": 'L', "value": 'PRESS'},
          {"properties": [("replace", False)]}),

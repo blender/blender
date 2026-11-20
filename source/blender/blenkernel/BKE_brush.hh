@@ -144,8 +144,12 @@ float BKE_brush_sample_tex_3d(const Paint *paint,
                               float4 &rgba,
                               int thread,
                               ImagePool *pool);
-float BKE_brush_sample_masktex(
-    const Paint *paint, Brush *br, const float2 &point, int thread, ImagePool *pool);
+float BKE_brush_sample_masktex(const Paint *paint,
+                               Brush *br,
+                               const float2 &point,
+                               float pressure,
+                               int thread,
+                               ImagePool *pool);
 
 /**
  * Get the mask texture for this given object mode.

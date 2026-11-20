@@ -90,7 +90,7 @@ static int brush_radius_project(ViewContext *vc, float radius, const float locat
   return 0;
 }
 
-static void pixel_radius_update(PaintCursorContext &pcontext)
+static void pixel_radius_update(PaintCursorOverlayContext &pcontext)
 {
   if (pcontext.is_cursor_over_mesh) {
     pcontext.pixel_radius = brush_radius_project(
@@ -147,7 +147,7 @@ static void brush_unprojected_size_update(Paint &paint,
   }
 }
 
-void mesh_cursor_update_and_init(PaintCursorContext &pcontext)
+void mesh_cursor_update_and_init(PaintCursorOverlayContext &pcontext)
 {
   PRF_scope(ProfileCategory::Editor);
   BLI_assert(pcontext.ss != nullptr);
@@ -245,7 +245,7 @@ static void geometry_preview_lines_draw(const Depsgraph &depsgraph,
   }
 }
 
-void mesh_cursor_active_draw(PaintCursorContext &pcontext)
+void mesh_cursor_active_draw(PaintCursorOverlayContext &pcontext)
 {
   PRF_scope(ProfileCategory::Draw);
   BLI_assert(pcontext.ss != nullptr);
@@ -443,7 +443,7 @@ static void point_with_symmetry_draw(const PaintMode paint_mode,
   }
 }
 
-static void inactive_cursor_draw(PaintCursorContext &pcontext)
+static void inactive_cursor_draw(PaintCursorOverlayContext &pcontext)
 {
   const bool has_cube_tip = BKE_brush_has_cube_tip(pcontext.brush, pcontext.mode);
   const float roundness = has_cube_tip ? pcontext.brush->tip_roundness : 1.0f;
@@ -471,13 +471,13 @@ static void inactive_cursor_draw(PaintCursorContext &pcontext)
       80);
 }
 
-static void object_space_radius_update(PaintCursorContext &pcontext)
+static void object_space_radius_update(PaintCursorOverlayContext &pcontext)
 {
   pcontext.radius = object_space_radius_get(
       pcontext.vc, *pcontext.paint, *pcontext.brush, pcontext.location);
 }
 
-static void pose_brush_segments_draw(const PaintCursorContext &pcontext)
+static void pose_brush_segments_draw(const PaintCursorOverlayContext &pcontext)
 {
   SculptSession &ss = *pcontext.ss;
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
@@ -495,7 +495,7 @@ static void pose_brush_segments_draw(const PaintCursorContext &pcontext)
   immEnd();
 }
 
-static void pose_brush_origins_draw(const PaintCursorContext &pcontext)
+static void pose_brush_origins_draw(const PaintCursorOverlayContext &pcontext)
 {
 
   SculptSession &ss = *pcontext.ss;
@@ -509,7 +509,7 @@ static void pose_brush_origins_draw(const PaintCursorContext &pcontext)
   }
 }
 
-static void boundary_preview_pivot_draw(const PaintCursorContext &pcontext)
+static void boundary_preview_pivot_draw(const PaintCursorOverlayContext &pcontext)
 {
   if (!pcontext.ss->boundary_preview) {
     /* There is no guarantee that a boundary preview exists as there may be no boundaries
@@ -524,7 +524,7 @@ static void boundary_preview_pivot_draw(const PaintCursorContext &pcontext)
                           3);
 }
 
-static void boundary_preview_update(const PaintCursorContext &pcontext)
+static void boundary_preview_update(const PaintCursorOverlayContext &pcontext)
 {
   SculptSession &ss = *pcontext.ss;
   /* Needed for updating the necessary SculptSession data in order to initialize the
@@ -535,7 +535,7 @@ static void boundary_preview_update(const PaintCursorContext &pcontext)
       *pcontext.depsgraph, *pcontext.vc.obact, pcontext.brush, pcontext.radius);
 }
 
-static float3 get_active_vertex_position(const PaintCursorContext &pcontext)
+static float3 get_active_vertex_position(const PaintCursorOverlayContext &pcontext)
 {
   Object &active_object = *pcontext.vc.obact;
 
@@ -557,7 +557,7 @@ static float3 get_active_vertex_position(const PaintCursorContext &pcontext)
   return pcontext.ss->active_vert_position(*pcontext.depsgraph, active_object);
 }
 
-static void screen_space_overlays_draw(const PaintCursorContext &pcontext)
+static void screen_space_overlays_draw(const PaintCursorOverlayContext &pcontext)
 {
   const Brush &brush = *pcontext.brush;
   Object &active_object = *pcontext.vc.obact;
@@ -647,7 +647,7 @@ static void screen_space_overlays_draw(const PaintCursorContext &pcontext)
   }
 }
 
-static void object_space_overlays_draw(const PaintCursorContext &pcontext)
+static void object_space_overlays_draw(const PaintCursorOverlayContext &pcontext)
 {
   if (pcontext.mode != PaintMode::Sculpt) {
     return;
@@ -682,7 +682,7 @@ static void object_space_overlays_draw(const PaintCursorContext &pcontext)
   }
 }
 
-static void cursor_space_drawing_setup(const PaintCursorContext &pcontext)
+static void cursor_space_drawing_setup(const PaintCursorOverlayContext &pcontext)
 {
   const Brush *brush = pcontext.brush;
   const float3 normal = bke::brush::supports_tilt(*brush) ?
@@ -722,7 +722,7 @@ static void cursor_space_drawing_setup(const PaintCursorContext &pcontext)
   GPU_matrix_mul(cursor_rot.ptr());
 }
 
-static void main_inactive_cursor_draw(const PaintCursorContext &pcontext)
+static void main_inactive_cursor_draw(const PaintCursorOverlayContext &pcontext)
 {
   bool has_cube_tip = BKE_brush_has_cube_tip(pcontext.brush, pcontext.mode);
   const float roundness = has_cube_tip ? pcontext.brush->tip_roundness : 1.0f;
@@ -770,7 +770,7 @@ static void layer_brush_height_preview_draw(const uint gpuattr,
   GPU_matrix_pop();
 }
 
-static void cursor_space_overlays_draw(const PaintCursorContext &pcontext)
+static void cursor_space_overlays_draw(const PaintCursorOverlayContext &pcontext)
 {
   const Brush &brush = *pcontext.brush;
   /* Main inactive cursor. */
@@ -810,7 +810,7 @@ static void cursor_space_overlays_draw(const PaintCursorContext &pcontext)
   }
 }
 
-void mesh_cursor_inactive_draw(PaintCursorContext &pcontext)
+void mesh_cursor_inactive_draw(PaintCursorOverlayContext &pcontext)
 {
   PRF_scope(ProfileCategory::Draw);
   if (!pcontext.is_cursor_over_mesh) {

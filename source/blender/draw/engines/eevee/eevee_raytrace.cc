@@ -699,7 +699,7 @@ RayTraceResultTexture RayTraceModule::trace(int closure_index,
 
   {
     /* Tracing rays. */
-    ray_data_tx_.acquire_2d(tracing_res, gpu::TextureFormat::SFLOAT_16_16_16_16);
+    ray_data_tx_.acquire_2d(tracing_res, gpu::TextureFormat::RAYTRACE_RAYDATA_FORMAT);
     ray_time_tx_.acquire_2d(tracing_res, gpu::TextureFormat::RAYTRACE_RAYTIME_FORMAT);
     ray_radiance_tx_.acquire_2d(tracing_res, gpu::TextureFormat::RAYTRACE_RADIANCE_FORMAT);
 

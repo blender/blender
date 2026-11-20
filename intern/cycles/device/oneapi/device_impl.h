@@ -40,6 +40,7 @@ class OneapiDevice : public GPUDevice {
   bool use_hardware_raytracing = false;
   uint64_t kernel_features = 0;
   int scene_max_shaders_ = 0;
+  OneAPIKernelInfo kernel_infos_[DEVICE_KERNEL_NUM] = {};
   /* On some driver versions, usage of Intel oneAPI extension for host->GPU copy optimization
    * is causing crashes and failures. As a result, to ensure functionality, we disable
    * this extension as a workaround. This class member variable is controlling this behavior
@@ -135,6 +136,7 @@ class OneapiDevice : public GPUDevice {
   size_t get_memcapacity();
   int get_num_multiprocessors();
   int get_max_num_threads_per_multiprocessor();
+  size_t get_local_mem_size();
   bool queue_synchronize(SyclQueue *queue);
   bool enqueue_kernel(KernelContext *kernel_context,
                       const int kernel,

@@ -154,7 +154,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   /* The grain size is completely arbitrary since we don't know how expensive the closure is.
    * However since the closure evaluation itself has fairly high overhead, it makes to optimize for
    * the case where each task has a relatively high cost. */
-  const bke::bNodeSocketType *int_type = bke::node_socket_type_find("NodeSocketInt");
+  const bke::bNodeSocketType *int_type = bke::node_socket_type_find("NodeSocketInt"_ustr);
   threading::parallel_for(IndexRange(count), 8, [&](const IndexRange range) {
     ClosureEagerEvalParams closure_params;
 

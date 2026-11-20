@@ -332,9 +332,9 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const char *profile_path,
                                  const ListBaseT<XrUserPath> *user_paths,
                                  const ListBaseT<XrComponentPath> *component_paths,
-                                 const float *float_thresholds,
-                                 const eXrAxisFlag *axis_flags,
-                                 const wmXrPose *poses)
+                                 const float float_threshold,
+                                 const eXrAxisFlag axis_flag,
+                                 const wmXrPose pose)
 {
   const uint count = uint(user_paths->count());
   BLI_assert(count == uint(component_paths->count()));
@@ -354,16 +354,10 @@ bool WM_xr_action_binding_create(wmXrData *xr,
     subaction_paths[i] = const_cast<char *>(user_path->path);
 
     binding_info->component_path = component_path->path;
-    if (float_thresholds) {
-      binding_info->float_threshold = float_thresholds[i];
-    }
-    if (axis_flags) {
-      binding_info->axis_flag = axis_flags[i];
-    }
-    if (poses) {
-      copy_v3_v3(binding_info->pose.position, poses[i].position);
-      copy_qt_qt(binding_info->pose.orientation_quat, poses[i].orientation_quat);
-    }
+    binding_info->float_threshold = float_threshold;
+    binding_info->axis_flag = axis_flag;
+    copy_v3_v3(binding_info->pose.position, pose.position);
+    copy_qt_qt(binding_info->pose.orientation_quat, pose.orientation_quat);
   }
 
   GHOST_XrActionProfileInfo profile_info{};

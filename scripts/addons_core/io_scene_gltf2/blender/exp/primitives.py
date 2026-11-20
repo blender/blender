@@ -16,6 +16,7 @@ from . import primitive_attributes as gltf2_blender_gather_primitive_attributes
 from .accessors import gather_accessor, array_to_accessor
 from .material.materials import get_final_material, gather_material, get_base_material, get_material_from_idx
 from .material.extensions import variants as ext_variants
+from ..com import conversion as gltf2_blender_conversion
 
 
 @cached
@@ -67,6 +68,18 @@ def gather_primitives(
             _, base_material, material_info = get_base_material(
                 internal_primitive['material'], materials, export_settings)
 
+            # If UV Map is requested by material, but no UV Map in primitive
+            # We are going to create a fake UVMap TEXCOORD_0 for the primitive, with all 0.0,0.0
+
+            # TODO seems we have some empty dict here for some of the textures. We
+            # should probably avoid it at the root of uv_info creation
+            # When done, we can replace the check with len(material_info["uv_info"]) > 0
+
+            if any(len(i) for i in material_info["uv_info"].values()
+                   ) and internal_primitive['attributes'].get('TEXCOORD_0') is None:
+                size = internal_primitive['attributes']['POSITION'].count
+                internal_primitive['attributes']['TEXCOORD_0'] = __get_empty_uvmap(size, export_settings)
+
             # Now, we can retrieve the real material, by checking attributes and active maps
             blender_mat = get_material_from_idx(internal_primitive['material'], materials, export_settings)
             material = get_final_material(
@@ -109,6 +122,18 @@ def gather_primitives(
         primitives.append(primitive)
 
     return primitives
+
+
+def __get_empty_uvmap(size: int, export_settings):
+    empty_data = np.zeros((size, 2), dtype=gltf2_blender_conversion.get_numpy_type('FLOAT2'))
+
+    return array_to_accessor(
+        "TEXCOORD_0",
+        empty_data,
+        export_settings,
+        gltf2_io_constants.ComponentType.Float,
+        gltf2_io_constants.DataType.Vec2
+    )
 
 
 @cached

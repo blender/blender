@@ -1009,7 +1009,7 @@ void PaintStroke::done(bContext *C, const bool is_cancel)
   }
 
   if (stroke_cursor_) {
-    WM_paint_cursor_end(static_cast<wmPaintCursor *>(stroke_cursor_));
+    WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(stroke_cursor_));
   }
 }
 
@@ -1503,7 +1503,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
 
       if (paint_supports_smooth_stroke(*br, mode, brush_switch_mode_)) {
 
-        stroke_cursor_ = WM_paint_cursor_activate(
+        stroke_cursor_ = WM_cursor_overlay_activate(
             SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_cursor_poll, paint_draw_smooth_cursor, this);
       }
 
@@ -1512,7 +1512,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
       }
 
       if (br->stroke_method == BRUSH_STROKE_LINE) {
-        stroke_cursor_ = WM_paint_cursor_activate(
+        stroke_cursor_ = WM_cursor_overlay_activate(
             SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_cursor_poll, paint_draw_line_cursor, this);
       }
 
@@ -1536,14 +1536,14 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
     if (event->modifier & KM_SHIFT) {
       brush_switch_mode_ = BrushSwitchMode::Smooth;
       if (!stroke_cursor_) {
-        stroke_cursor_ = WM_paint_cursor_activate(
+        stroke_cursor_ = WM_cursor_overlay_activate(
             SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_cursor_poll, paint_draw_smooth_cursor, this);
       }
     }
     else {
       stroke_mode_ = BrushStrokeMode::Normal;
       if (stroke_cursor_ != nullptr) {
-        WM_paint_cursor_end(static_cast<wmPaintCursor *>(stroke_cursor_));
+        WM_cursor_overlay_end(static_cast<wmCursorOverlay *>(stroke_cursor_));
         stroke_cursor_ = nullptr;
       }
     }
@@ -1634,7 +1634,7 @@ wmOperatorStatus PaintStroke::modal(bContext *C, wmOperator *op, const wmEvent *
     ARegion *region = CTX_wm_region(C);
 
     if (region && (paint->flags & PAINT_SHOW_BRUSH)) {
-      WM_paint_cursor_tag_redraw(window, region);
+      WM_cursor_overlay_tag_redraw(window, region);
     }
   }
 

@@ -2971,9 +2971,9 @@ Span<bNodeSocketType *> node_socket_types_get()
   return get_socket_type_map().as_span();
 }
 
-bNodeSocketType *node_socket_type_find(const StringRef idname)
+bNodeSocketType *node_socket_type_find(const UString idname)
 {
-  bNodeSocketType *const *value = get_socket_type_map().lookup_key_ptr_as(UString(idname));
+  bNodeSocketType *const *value = get_socket_type_map().lookup_key_ptr_as(idname);
   if (!value) {
     return nullptr;
   }
@@ -2982,7 +2982,7 @@ bNodeSocketType *node_socket_type_find(const StringRef idname)
 
 bNodeSocketType *node_socket_type_find_static(const int type, const int subtype)
 {
-  const std::optional<StringRefNull> idname = node_static_socket_type(type, subtype);
+  const std::optional<UString> idname = node_static_socket_type(type, subtype);
   if (!idname) {
     return nullptr;
   }
@@ -3087,7 +3087,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
                                 bNode * /*node*/,
                                 const eNodeSocketInOut in_out,
                                 ListBaseT<bNodeSocket> *lb,
-                                const StringRefNull idname,
+                                const UString idname,
                                 const StringRefNull identifier,
                                 const StringRefNull name)
 {
@@ -3128,7 +3128,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   sock->flag |= SOCK_COLLAPSED;
   sock->type = SOCK_CUSTOM; /* int type undefined by default */
 
-  idname.copy_utf8_truncated(sock->idname);
+  idname.ref().copy_utf8_truncated(sock->idname);
   node_socket_set_typeinfo(ntree, sock, node_socket_type_find(idname));
 
   return sock;
@@ -3387,7 +3387,7 @@ static void node_socket_free_default_value(bNodeSocket *sock, const bool do_id_u
 void node_modify_socket_type(bNodeTree &ntree,
                              bNode & /*node*/,
                              bNodeSocket &sock,
-                             const StringRefNull idname)
+                             const UString idname)
 {
   bNodeSocketType *socktype = node_socket_type_find(idname);
 
@@ -3449,15 +3449,14 @@ void node_modify_socket_type(bNodeTree &ntree,
     }
   }
 
-  idname.copy_utf8_truncated(sock.idname);
+  idname.ref().copy_utf8_truncated(sock.idname);
   node_socket_set_typeinfo(&ntree, &sock, socktype);
 }
 
 void node_modify_socket_type_static(
     bNodeTree *ntree, bNode *node, bNodeSocket *sock, const int type, const int subtype)
 {
-  const std::optional<StringRefNull> idname = node_static_socket_type(type, subtype);
-
+  const std::optional<UString> idname = node_static_socket_type(type, subtype);
   if (!idname.has_value()) {
     CLOG_ERROR(&LOG, "static node socket type %d undefined", type);
     return;
@@ -3469,7 +3468,7 @@ void node_modify_socket_type_static(
 bNodeSocket *node_add_socket(bNodeTree &ntree,
                              bNode &node,
                              const eNodeSocketInOut in_out,
-                             const StringRefNull idname,
+                             const UString idname,
                              const StringRefNull identifier,
                              const StringRefNull name)
 {
@@ -3497,9 +3496,9 @@ bool node_is_static_socket_type(const bNodeSocketType &stype)
   return RNA_struct_is_a(stype.ext_socket.srna, RNA_NodeSocketStandard);
 }
 
-std::optional<StringRefNull> node_static_socket_type(const int type,
-                                                     const int subtype,
-                                                     const std::optional<int> dimensions)
+std::optional<UString> node_static_socket_type(const int type,
+                                               const int subtype,
+                                               const std::optional<int> dimensions)
 {
   BLI_assert(!(dimensions.has_value() && !ELEM(type, SOCK_VECTOR, SOCK_INT_VECTOR)));
 
@@ -3507,209 +3506,209 @@ std::optional<StringRefNull> node_static_socket_type(const int type,
     case SOCK_FLOAT:
       switch (PropertySubType(subtype)) {
         case PROP_UNSIGNED:
-          return "NodeSocketFloatUnsigned";
+          return "NodeSocketFloatUnsigned"_ustr;
         case PROP_PERCENTAGE:
-          return "NodeSocketFloatPercentage";
+          return "NodeSocketFloatPercentage"_ustr;
         case PROP_FACTOR:
-          return "NodeSocketFloatFactor";
+          return "NodeSocketFloatFactor"_ustr;
         case PROP_MASS:
-          return "NodeSocketFloatMass";
+          return "NodeSocketFloatMass"_ustr;
         case PROP_ANGLE:
-          return "NodeSocketFloatAngle";
+          return "NodeSocketFloatAngle"_ustr;
         case PROP_TIME:
-          return "NodeSocketFloatTime";
+          return "NodeSocketFloatTime"_ustr;
         case PROP_TIME_ABSOLUTE:
-          return "NodeSocketFloatTimeAbsolute";
+          return "NodeSocketFloatTimeAbsolute"_ustr;
         case PROP_DISTANCE:
-          return "NodeSocketFloatDistance";
+          return "NodeSocketFloatDistance"_ustr;
         case PROP_WAVELENGTH:
-          return "NodeSocketFloatWavelength";
+          return "NodeSocketFloatWavelength"_ustr;
         case PROP_COLOR_TEMPERATURE:
-          return "NodeSocketFloatColorTemperature";
+          return "NodeSocketFloatColorTemperature"_ustr;
         case PROP_FREQUENCY:
-          return "NodeSocketFloatFrequency";
+          return "NodeSocketFloatFrequency"_ustr;
         case PROP_PIXEL:
-          return "NodeSocketFloatPixel";
+          return "NodeSocketFloatPixel"_ustr;
         case PROP_NONE:
         default:
-          return "NodeSocketFloat";
+          return "NodeSocketFloat"_ustr;
       }
     case SOCK_INT:
       switch (PropertySubType(subtype)) {
         case PROP_UNSIGNED:
-          return "NodeSocketIntUnsigned";
+          return "NodeSocketIntUnsigned"_ustr;
         case PROP_PERCENTAGE:
-          return "NodeSocketIntPercentage";
+          return "NodeSocketIntPercentage"_ustr;
         case PROP_FACTOR:
-          return "NodeSocketIntFactor";
+          return "NodeSocketIntFactor"_ustr;
         case PROP_PIXEL:
-          return "NodeSocketIntPixel";
+          return "NodeSocketIntPixel"_ustr;
         case PROP_NONE:
         default:
-          return "NodeSocketInt";
+          return "NodeSocketInt"_ustr;
       }
     case SOCK_BOOLEAN:
-      return "NodeSocketBool";
+      return "NodeSocketBool"_ustr;
     case SOCK_ROTATION:
-      return "NodeSocketRotation";
+      return "NodeSocketRotation"_ustr;
     case SOCK_MATRIX:
-      return "NodeSocketMatrix";
+      return "NodeSocketMatrix"_ustr;
     case SOCK_VECTOR:
       if (!dimensions.has_value() || dimensions.value() == 3) {
         switch (PropertySubType(subtype)) {
           case PROP_FACTOR:
-            return "NodeSocketVectorFactor";
+            return "NodeSocketVectorFactor"_ustr;
           case PROP_PERCENTAGE:
-            return "NodeSocketVectorPercentage";
+            return "NodeSocketVectorPercentage"_ustr;
           case PROP_TRANSLATION:
-            return "NodeSocketVectorTranslation";
+            return "NodeSocketVectorTranslation"_ustr;
           case PROP_DIRECTION:
-            return "NodeSocketVectorDirection";
+            return "NodeSocketVectorDirection"_ustr;
           case PROP_VELOCITY:
-            return "NodeSocketVectorVelocity";
+            return "NodeSocketVectorVelocity"_ustr;
           case PROP_ACCELERATION:
-            return "NodeSocketVectorAcceleration";
+            return "NodeSocketVectorAcceleration"_ustr;
           case PROP_EULER:
-            return "NodeSocketVectorEuler";
+            return "NodeSocketVectorEuler"_ustr;
           case PROP_XYZ:
-            return "NodeSocketVectorXYZ";
+            return "NodeSocketVectorXYZ"_ustr;
           case PROP_PIXEL:
-            return "NodeSocketVectorPixel";
+            return "NodeSocketVectorPixel"_ustr;
           case PROP_NONE:
           default:
-            return "NodeSocketVector";
+            return "NodeSocketVector"_ustr;
         }
       }
       else if (dimensions.value() == 2) {
         switch (PropertySubType(subtype)) {
           case PROP_FACTOR:
-            return "NodeSocketVectorFactor2D";
+            return "NodeSocketVectorFactor2D"_ustr;
           case PROP_PERCENTAGE:
-            return "NodeSocketVectorPercentage2D";
+            return "NodeSocketVectorPercentage2D"_ustr;
           case PROP_TRANSLATION:
-            return "NodeSocketVectorTranslation2D";
+            return "NodeSocketVectorTranslation2D"_ustr;
           case PROP_DIRECTION:
-            return "NodeSocketVectorDirection2D";
+            return "NodeSocketVectorDirection2D"_ustr;
           case PROP_VELOCITY:
-            return "NodeSocketVectorVelocity2D";
+            return "NodeSocketVectorVelocity2D"_ustr;
           case PROP_ACCELERATION:
-            return "NodeSocketVectorAcceleration2D";
+            return "NodeSocketVectorAcceleration2D"_ustr;
           case PROP_EULER:
-            return "NodeSocketVectorEuler2D";
+            return "NodeSocketVectorEuler2D"_ustr;
           case PROP_XYZ:
-            return "NodeSocketVectorXYZ2D";
+            return "NodeSocketVectorXYZ2D"_ustr;
           case PROP_PIXEL:
-            return "NodeSocketVectorPixel2D";
+            return "NodeSocketVectorPixel2D"_ustr;
           case PROP_NONE:
           default:
-            return "NodeSocketVector2D";
+            return "NodeSocketVector2D"_ustr;
         }
       }
       else if (dimensions.value() == 4) {
         switch (PropertySubType(subtype)) {
           case PROP_FACTOR:
-            return "NodeSocketVectorFactor4D";
+            return "NodeSocketVectorFactor4D"_ustr;
           case PROP_PERCENTAGE:
-            return "NodeSocketVectorPercentage4D";
+            return "NodeSocketVectorPercentage4D"_ustr;
           case PROP_TRANSLATION:
-            return "NodeSocketVectorTranslation4D";
+            return "NodeSocketVectorTranslation4D"_ustr;
           case PROP_DIRECTION:
-            return "NodeSocketVectorDirection4D";
+            return "NodeSocketVectorDirection4D"_ustr;
           case PROP_VELOCITY:
-            return "NodeSocketVectorVelocity4D";
+            return "NodeSocketVectorVelocity4D"_ustr;
           case PROP_ACCELERATION:
-            return "NodeSocketVectorAcceleration4D";
+            return "NodeSocketVectorAcceleration4D"_ustr;
           case PROP_EULER:
-            return "NodeSocketVectorEuler4D";
+            return "NodeSocketVectorEuler4D"_ustr;
           case PROP_XYZ:
-            return "NodeSocketVectorXYZ4D";
+            return "NodeSocketVectorXYZ4D"_ustr;
           case PROP_PIXEL:
-            return "NodeSocketVectorPixel4D";
+            return "NodeSocketVectorPixel4D"_ustr;
           case PROP_NONE:
           default:
-            return "NodeSocketVector4D";
+            return "NodeSocketVector4D"_ustr;
         }
       }
       else {
         BLI_assert_unreachable();
-        return "NodeSocketVector";
+        return "NodeSocketVector"_ustr;
       }
     case SOCK_INT_VECTOR:
       if (!dimensions.has_value() || dimensions.value() == 3) {
         switch (PropertySubType(subtype)) {
           case PROP_UNSIGNED:
-            return "NodeSocketIntVectorUnsigned3D";
+            return "NodeSocketIntVectorUnsigned3D"_ustr;
           case PROP_FACTOR:
-            return "NodeSocketIntVectorFactor3D";
+            return "NodeSocketIntVectorFactor3D"_ustr;
           case PROP_PERCENTAGE:
-            return "NodeSocketIntVectorPercentage3D";
+            return "NodeSocketIntVectorPercentage3D"_ustr;
           case PROP_PIXEL:
-            return "NodeSocketIntVectorPixel3D";
+            return "NodeSocketIntVectorPixel3D"_ustr;
           case PROP_NONE:
           default:
-            return "NodeSocketIntVector3D";
+            return "NodeSocketIntVector3D"_ustr;
         }
       }
       else if (dimensions.value() == 2) {
         switch (PropertySubType(subtype)) {
           case PROP_UNSIGNED:
-            return "NodeSocketIntVectorUnsigned2D";
+            return "NodeSocketIntVectorUnsigned2D"_ustr;
           case PROP_FACTOR:
-            return "NodeSocketIntVectorFactor2D";
+            return "NodeSocketIntVectorFactor2D"_ustr;
           case PROP_PERCENTAGE:
-            return "NodeSocketIntVectorPercentage2D";
+            return "NodeSocketIntVectorPercentage2D"_ustr;
           case PROP_PIXEL:
-            return "NodeSocketIntVectorPixel2D";
+            return "NodeSocketIntVectorPixel2D"_ustr;
           case PROP_NONE:
           default:
-            return "NodeSocketIntVector2D";
+            return "NodeSocketIntVector2D"_ustr;
         }
       }
       else {
         BLI_assert_unreachable();
-        return "NodeSocketIntVector3D";
+        return "NodeSocketIntVector3D"_ustr;
       }
     case SOCK_RGBA:
-      return "NodeSocketColor";
+      return "NodeSocketColor"_ustr;
     case SOCK_STRING:
       switch (PropertySubType(subtype)) {
         case PROP_FILEPATH:
-          return "NodeSocketStringFilePath";
+          return "NodeSocketStringFilePath"_ustr;
         default:
-          return "NodeSocketString";
+          return "NodeSocketString"_ustr;
       }
     case SOCK_SHADER:
-      return "NodeSocketShader";
+      return "NodeSocketShader"_ustr;
     case SOCK_OBJECT:
-      return "NodeSocketObject";
+      return "NodeSocketObject"_ustr;
     case SOCK_IMAGE:
-      return "NodeSocketImage";
+      return "NodeSocketImage"_ustr;
     case SOCK_GEOMETRY:
-      return "NodeSocketGeometry";
+      return "NodeSocketGeometry"_ustr;
     case SOCK_COLLECTION:
-      return "NodeSocketCollection";
+      return "NodeSocketCollection"_ustr;
     case SOCK_TEXTURE:
-      return "NodeSocketTexture";
+      return "NodeSocketTexture"_ustr;
     case SOCK_MATERIAL:
-      return "NodeSocketMaterial";
+      return "NodeSocketMaterial"_ustr;
     case SOCK_FONT:
-      return "NodeSocketFont";
+      return "NodeSocketFont"_ustr;
     case SOCK_SCENE:
-      return "NodeSocketScene";
+      return "NodeSocketScene"_ustr;
     case SOCK_TEXT_ID:
-      return "NodeSocketText";
+      return "NodeSocketText"_ustr;
     case SOCK_MASK:
-      return "NodeSocketMask";
+      return "NodeSocketMask"_ustr;
     case SOCK_SOUND:
-      return "NodeSocketSound";
+      return "NodeSocketSound"_ustr;
     case SOCK_MENU:
-      return "NodeSocketMenu";
+      return "NodeSocketMenu"_ustr;
     case SOCK_BUNDLE:
-      return "NodeSocketBundle";
+      return "NodeSocketBundle"_ustr;
     case SOCK_CLOSURE:
-      return "NodeSocketClosure";
+      return "NodeSocketClosure"_ustr;
     case SOCK_DYNAMIC:
-      return "NodeSocketDynamic";
+      return "NodeSocketDynamic"_ustr;
     case SOCK_CUSTOM:
       break;
   }
@@ -3999,7 +3998,7 @@ bNodeSocket *node_add_static_socket(bNodeTree &ntree,
                                     const StringRefNull identifier,
                                     const StringRefNull name)
 {
-  const std::optional<StringRefNull> idname = node_static_socket_type(type, subtype);
+  const std::optional<UString> idname = node_static_socket_type(type, subtype);
 
   if (!idname.has_value()) {
     CLOG_ERROR(&LOG, "static node socket type %d undefined", type);

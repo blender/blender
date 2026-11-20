@@ -209,7 +209,7 @@ void WM_OT_stl_export(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "evaluation_mode",
                io_stl_export_evaluation_mode,
-               DAG_EVAL_RENDER,
+               DAG_EVAL_VIEWPORT,
                "Object Properties",
                "Determines properties like object visibility, modifiers etc., where they differ "
                "for Render and Viewport");

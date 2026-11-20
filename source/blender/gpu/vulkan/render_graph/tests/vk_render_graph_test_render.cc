@@ -342,7 +342,8 @@ TEST_P(VKRenderGraphTestRender, begin_draw_end__layered)
           endl() + ")",
       log[0]);
   EXPECT_EQ(
-      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, "
+      "VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
       "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, "
       "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
       "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT" +
@@ -667,6 +668,7 @@ TEST_P(VKRenderGraphTestRender, begin_draw_draw_draw_end__layered_attachment_lay
       "VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT" +
           endl() +
           " - image_barrier(src_access_mask=VK_ACCESS_SHADER_WRITE_BIT, "
+          "VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, "
           "dst_access_mask=VK_ACCESS_INPUT_ATTACHMENT_READ_BIT, "
           "old_layout=VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR, "
           "new_layout=VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR, image=0x1, subresource_range=" +
@@ -775,7 +777,9 @@ TEST_P(VKRenderGraphTestRender, begin_draw_end__layered_depth)
 
   /* Layer transition: DEPTH_ATTACHMENT_OPTIMAL -> GENERAL (shader read of layer 1) */
   EXPECT_EQ(
-      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
+      "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, "
+      "VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT, "
+      "VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
       "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, "
       "dst_stage_mask=VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, "
       "VK_PIPELINE_STAGE_ALL_COMMANDS_BIT" +

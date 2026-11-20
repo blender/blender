@@ -827,9 +827,11 @@ def get_final_material(mesh, blender_material, attr_indices, base_material, uvma
                 indices[m] = i
             else:
                 # Using render index
-                indices[m] = mesh.uv_layers.active_render_index
+                active_render_index = mesh.uv_layers.active_render_index
+                indices[m] = active_render_index if active_render_index >= 0 else 0
         elif v['type'] == 'Render':
-            indices[m] = mesh.uv_layers.active_render_index
+            active_render_index = mesh.uv_layers.active_render_index
+            indices[m] = active_render_index if active_render_index >= 0 else 0
         elif v['type'] == "Attribute":
             # This can be a regular UVMap or a custom attribute
             i = mesh.uv_layers.find(v['value'])

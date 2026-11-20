@@ -70,43 +70,15 @@ GHOST_ContextMTL::GHOST_ContextMTL(const GHOST_ContextParams &context_params,
       }
 
       owns_metal_device_ = true;
-      if (metalDevice) {
-        metal_layer_ = [[CAMetalLayer alloc] init];
-        metal_layer_.edgeAntialiasingMask = 0;
-        metal_layer_.masksToBounds = NO;
-        metal_layer_.opaque = YES;
-        metal_layer_.framebufferOnly = YES;
-        metal_layer_.presentsWithTransaction = NO;
-        [metal_layer_ removeAllAnimations];
-        metal_layer_.device = metalDevice;
-        metal_layer_.allowsNextDrawableTimeout = NO;
-
-        {
-          const GHOST_TVSyncModes vsync = getVSync();
-          if (vsync != GHOST_kVSyncModeUnset) {
-            metal_layer_.displaySyncEnabled = (vsync == GHOST_kVSyncModeOff) ? NO : YES;
-          }
-        }
-
-        /* Enable EDR support. This is done by:
-         * 1. Using a floating point render target, so that values outside 0..1 can be used
-         * 2. Informing the OS that we are EDR aware, and intend to use values outside 0..1
-         * 3. Setting the extended sRGB color space so that the OS knows how to interpret the
-         *    values.
-         */
-        metal_layer_.wantsExtendedDynamicRangeContent = YES;
-        metal_layer_.pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
-        const CFStringRef name = kCGColorSpaceExtendedSRGB;
-        CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
-        metal_layer_.colorspace = colorspace;
-        CGColorSpaceRelease(colorspace);
-
-        metalInit();
-      }
-      else {
+      if (!metalDevice) {
         ghost_fatal_error_dialog(
             "[ERROR] Failed to create Metal device for offscreen GHOST Context.\n");
       }
+
+      metal_layer_ = createMetalLayer(metalDevice, getVSync());
+      metal_layer_.allowsNextDrawableTimeout = NO;
+
+      metalInit();
     }
 
     /* Initialize swap-interval. */
@@ -200,10 +172,45 @@ MTLCommandQueue *GHOST_ContextMTL::metalCommandQueue()
 {
   return s_sharedMetalCommandQueue;
 }
+
 MTLDevice *GHOST_ContextMTL::metalDevice()
 {
   id<MTLDevice> device = metal_layer_.device;
   return (MTLDevice *)device;
+}
+
+CAMetalLayer *GHOST_ContextMTL::createMetalLayer(id<MTLDevice> metalDevice,
+                                                 GHOST_TVSyncModes vsync)
+{
+  CAMetalLayer *layer = [[CAMetalLayer alloc] init];
+
+  layer.edgeAntialiasingMask = 0;
+  layer.masksToBounds = NO;
+  layer.opaque = YES;
+  layer.framebufferOnly = YES;
+  layer.presentsWithTransaction = NO;
+
+  [layer removeAllAnimations];
+
+  layer.device = metalDevice;
+  if (vsync != GHOST_kVSyncModeUnset) {
+    layer.displaySyncEnabled = (vsync == GHOST_kVSyncModeOff) ? NO : YES;
+  }
+
+  /* Enable EDR support. This is done by:
+   * 1. Using a floating point render target, so that values outside 0..1 can be used
+   * 2. Informing the OS that we are EDR aware, and intend to use values outside 0..1
+   * 3. Setting the extended sRGB color space so that the OS knows how to interpret the
+   *    values.
+   */
+  layer.wantsExtendedDynamicRangeContent = YES;
+  layer.pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
+  const CFStringRef name = kCGColorSpaceExtendedSRGB;
+  CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
+  layer.colorspace = colorspace;
+  CGColorSpaceRelease(colorspace);
+
+  return layer;
 }
 
 void GHOST_ContextMTL::metalRegisterPresentCallback(void (*callback)(

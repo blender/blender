@@ -304,6 +304,7 @@ struct ProjPaintState {
   BrushSwitchMode brush_switch_mode;
 
   float brush_size;
+  float pressure;
   Object *ob;
   /* for symmetry, we need to store modified object matrix */
   float obmat[4][4];
@@ -5685,7 +5686,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
             /* Mask texture. */
             if (ps->is_maskbrush) {
               float texmask = BKE_brush_sample_masktex(
-                  ps->paint, ps->brush, projPixel->projCoSS, thread_index, pool);
+                  ps->paint, ps->brush, projPixel->projCoSS, ps->pressure, thread_index, pool);
               CLAMP(texmask, 0.0f, 1.0f);
               custom_mask *= texmask;
             }
@@ -6035,6 +6036,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
   Scene *scene = ps->scene;
 
   ps->brush_size = size;
+  ps->pressure = pressure;
   ps->blend = brush->blend;
   if (eraser) {
     ps->blend = IMB_BLEND_ERASE_ALPHA;
@@ -6386,7 +6388,7 @@ void paint_proj_redraw(const bContext *C, void *ps_handle_p, bool final)
   }
 }
 
-void paint_proj_stroke_done(void *ps_handle_p, wmPaintCursor *cursor)
+void paint_proj_stroke_done(void *ps_handle_p, wmCursorOverlay *cursor)
 {
   ProjStrokeHandle *ps_handle = static_cast<ProjStrokeHandle *>(ps_handle_p);
 
@@ -6412,7 +6414,7 @@ void paint_proj_stroke_done(void *ps_handle_p, wmPaintCursor *cursor)
 
   MEM_delete(ps_handle);
   if (cursor) {
-    WM_paint_cursor_end(cursor);
+    WM_cursor_overlay_end(cursor);
   }
 }
 /* use project paint to re-apply an image */

@@ -130,8 +130,8 @@ struct bScreen {
   char do_refresh = 0;
   /** Notifier for gesture draw. */
   char do_draw_gesture = 0;
-  /** Notifier for paint cursor draw. */
-  char do_draw_paintcursor = 0;
+  /** Notifier for cursor overlay draw. */
+  char do_draw_cursor_overlay = 0;
   /** Notifier for dragging draw. */
   char do_draw_drag = 0;
   /** Set to delay screen handling after switching back from maximized area. */

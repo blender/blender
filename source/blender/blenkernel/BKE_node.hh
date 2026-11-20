@@ -683,7 +683,12 @@ void node_set_undefined_type(bNode &node);
 
 Span<bNodeType *> node_types_get();
 
-bNodeSocketType *node_socket_type_find(StringRef idname);
+bNodeSocketType *node_socket_type_find(UString idname);
+inline bNodeSocketType *node_socket_type_find(const StringRef idname)
+{
+  return node_socket_type_find(UString(idname));
+}
+
 bNodeSocketType *node_socket_type_find_static(int type, int subtype = 0);
 void node_register_socket_type(bNodeSocketType &stype);
 void node_unregister_socket_type(bNodeSocketType &stype);
@@ -693,9 +698,9 @@ StringRefNull node_socket_type_label(const bNodeSocketType &stype);
 /* The optional dimensions argument can be provided for types that support multiple possible
  * dimensions like Vector. It is expected to be in the range [2, 4] and if not provided, 3 will be
  * assumed. */
-std::optional<StringRefNull> node_static_socket_type(int type,
-                                                     int subtype,
-                                                     std::optional<int> dimensions = std::nullopt);
+std::optional<UString> node_static_socket_type(int type,
+                                               int subtype,
+                                               std::optional<int> dimensions = std::nullopt);
 std::optional<StringRefNull> node_static_socket_interface_type_new(
     int type, int subtype, std::optional<int> dimensions = std::nullopt);
 
@@ -710,7 +715,7 @@ const bNodeSocket *node_find_socket(const bNode &node,
 bNodeSocket *node_add_socket(bNodeTree &ntree,
                              bNode &node,
                              eNodeSocketInOut in_out,
-                             StringRefNull idname,
+                             UString idname,
                              StringRefNull identifier,
                              StringRefNull name);
 bNodeSocket *node_add_static_socket(bNodeTree &ntree,
@@ -984,10 +989,7 @@ StringRefNull node_socket_sub_type_label(int subtype);
 
 void node_remove_socket_ex(bNodeTree &ntree, bNode &node, bNodeSocket &sock, bool do_id_user);
 
-void node_modify_socket_type(bNodeTree &ntree,
-                             bNode &node,
-                             bNodeSocket &sock,
-                             StringRefNull idname);
+void node_modify_socket_type(bNodeTree &ntree, bNode &node, bNodeSocket &sock, UString idname);
 
 /**
  * \note Goes over entire tree.

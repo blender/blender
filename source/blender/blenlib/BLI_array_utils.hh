@@ -549,6 +549,18 @@ int group_ids_to_indices(Span<int> ids,
                          MutableSpan<int> r_group_indices,
                          Vector<int> *r_first_indices = nullptr);
 
+/**
+ * For each ID in \a dst_ids, find the index of the first element with the same ID in \a src_ids,
+ * or -1 if the ID is not present in \a src_ids.
+ *
+ * \param src_ids: The IDs to search in (indices in to \a r_src_by_dst_indices refer to this).
+ * \param dst_ids: The IDs to look up (must have the same size as \a r_src_by_dst_indices).
+ * \param r_src_by_dst_indices: Output indices into \a src_ids, or -1 for unmatched IDs.
+ */
+void map_ids_to_indices(Span<int> src_ids,
+                        Span<int> dst_ids,
+                        MutableSpan<int> r_src_by_dst_indices);
+
 void invert_booleans(MutableSpan<bool> span);
 void invert_booleans(MutableSpan<bool> span, const IndexMask &mask);
 

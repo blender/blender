@@ -1478,7 +1478,23 @@ void label_markdown_draw(const ButtonLabel *button, const uchar color[4], const 
   }
 
   const MarkdownLayoutCache &cache = *button->markdown_cache;
-  const MarkdownDrawColors colors = markdown_draw_colors_init(color);
+  const MarkdownDrawColors colors = [&]() {
+    MarkdownDrawColors colors = markdown_draw_colors_init(color);
+
+    if (button->flag & BUT_REDALERT) {
+      ColorTheme4b alert_color;
+      theme::get_color_4ubv(TH_REDALERT, alert_color);
+      const float red_alpha = float(alert_color[3]) / 255.0f;
+
+      theme::color_blend_3ubv_3ubv(colors.quote_dimmed_link, alert_color, red_alpha);
+      theme::color_blend_3ubv_3ubv(colors.code_span_link, alert_color, red_alpha);
+      theme::color_blend_3ubv_3ubv(colors.link, alert_color, red_alpha);
+      theme::color_blend_3ubv_3ubv(colors.code_box_text, alert_color, red_alpha);
+      theme::color_blend_3ubv_3ubv(colors.code_span_text, alert_color, red_alpha);
+    }
+
+    return colors;
+  }();
 
   const bTheme *btheme = theme::theme_get();
   const float corner_radius = btheme->tui.wcol_box.roundness * U.widget_unit /

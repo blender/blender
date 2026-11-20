@@ -108,6 +108,8 @@ static void brush_copy_data(Main * /*bmain*/,
   brush_dst->curve_auto_smooth = BKE_curvemapping_copy(brush_src->curve_auto_smooth);
   brush_dst->curve_spacing = BKE_curvemapping_copy(brush_src->curve_spacing);
 
+  brush_dst->gradient = BKE_colorband_copy_or_null(brush_src->gradient);
+
   if (brush_src->gpencil_settings != nullptr) {
     brush_dst->gpencil_settings = MEM_new<BrushGpencilSettings>(
         __func__, dna::shallow_copy(*(brush_src->gpencil_settings)));
@@ -968,7 +970,7 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
 
 const MTex *BKE_brush_mask_texture_get(const Brush *brush, const PaintMode paint_mode)
 {
-  if (ELEM(paint_mode, PaintMode::Sculpt, PaintMode::Vertex)) {
+  if (ELEM(paint_mode, PaintMode::Sculpt)) {
     return &brush->mtex;
   }
   return &brush->mask_mtex;
@@ -976,7 +978,7 @@ const MTex *BKE_brush_mask_texture_get(const Brush *brush, const PaintMode paint
 
 const MTex *BKE_brush_color_texture_get(const Brush *brush, const PaintMode paint_mode)
 {
-  if (ELEM(paint_mode, PaintMode::Sculpt, PaintMode::Vertex)) {
+  if (ELEM(paint_mode, PaintMode::Sculpt)) {
     return &brush->mask_mtex;
   }
   return &brush->mtex;
@@ -1098,8 +1100,12 @@ float BKE_brush_sample_tex_3d(const Paint *paint,
   return intensity;
 }
 
-float BKE_brush_sample_masktex(
-    const Paint *paint, Brush *br, const float2 &point, const int thread, ImagePool *pool)
+float BKE_brush_sample_masktex(const Paint *paint,
+                               Brush *br,
+                               const float2 &point,
+                               const float pressure,
+                               const int thread,
+                               ImagePool *pool)
 {
   const bke::PaintRuntime *paint_runtime = paint->runtime;
   MTex *mtex = &br->mask_mtex;
@@ -1200,11 +1206,10 @@ float BKE_brush_sample_masktex(
 
   switch (br->mask_pressure) {
     case BRUSH_MASK_PRESSURE_CUTOFF:
-      intensity = ((1.0f - intensity) < paint_runtime->size_pressure_value) ? 1.0f : 0.0f;
+      intensity = ((1.0f - intensity) < pressure) ? 1.0f : 0.0f;
       break;
     case BRUSH_MASK_PRESSURE_RAMP:
-      intensity = paint_runtime->size_pressure_value +
-                  intensity * (1.0f - paint_runtime->size_pressure_value);
+      intensity = pressure + intensity * (1.0f - pressure);
       break;
     default:
       break;

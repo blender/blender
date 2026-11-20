@@ -23,6 +23,9 @@
 
 #include "DNA_ID.h" /* ID property definitions. */
 
+#include "RNA_access.hh"
+#include "RNA_types.hh"
+
 #define USE_STRING_COERCE
 
 #ifdef USE_STRING_COERCE
@@ -36,6 +39,8 @@ namespace blender {
 extern bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
 extern PyObject *pyrna_id_CreatePyObject(ID *id);
 extern bool pyrna_id_CheckPyObject(PyObject *obj);
+extern bool pyrna_struct_CheckPyObject(PyObject *obj);
+extern PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);
 
 /* Currently there is no need to expose this publicly. */
 static PyObject *BPy_IDGroup_IterKeys_CreatePyObject(BPy_IDProperty *group, const bool reversed);
@@ -100,6 +105,20 @@ static PyObject *idprop_py_from_idp_group(ID *id, IDProperty *prop, IDProperty *
 static PyObject *idprop_py_from_idp_id(IDProperty *prop)
 {
   return pyrna_id_CreatePyObject(static_cast<ID *>(prop->data.pointer));
+}
+
+static PyObject *idprop_py_from_idp_struct(ID *id, IDProperty *prop)
+{
+  const IDPropertyStructTypeInfo *info = IDP_struct_type_info(prop->type);
+  if (!info || !prop->data.pointer) {
+    Py_RETURN_NONE;
+  }
+  StructRNA *srna = RNA_struct_find(info->rna_identifier.c_str());
+  if (srna == nullptr) {
+    Py_RETURN_NONE;
+  }
+  PointerRNA ptr = RNA_pointer_create_discrete(id, srna, prop->data.pointer);
+  return pyrna_struct_CreatePyObject(&ptr);
 }
 
 static PyObject *idprop_py_from_idp_array(ID *id, IDProperty *prop)
@@ -178,6 +197,8 @@ PyObject *BPy_IDGroup_WrapData(ID *id, IDProperty *prop, IDProperty *parent)
       return idprop_py_from_idp_idparray(id, prop); /* this could be better a internal type */
     case IDP_ID:
       return idprop_py_from_idp_id(prop);
+    IDP_ANY_STRUCT_TYPE_CASE:
+      return idprop_py_from_idp_struct(id, prop);
     default:
       Py_RETURN_NONE;
   }
@@ -474,6 +495,7 @@ static IDProperty *idp_from_PyFloat(IDProperty *prop_exist,
         case IDP_DOUBLE:
         case IDP_IDPARRAY:
         case IDP_BOOLEAN:
+        IDP_ANY_STRUCT_TYPE_CASE:
           break;
       }
     }
@@ -511,6 +533,7 @@ static IDProperty *idp_from_PyBool(IDProperty *prop_exist,
         case IDP_DOUBLE:
         case IDP_IDPARRAY:
         case IDP_BOOLEAN:
+        IDP_ANY_STRUCT_TYPE_CASE:
           break;
       }
     }
@@ -558,6 +581,7 @@ static IDProperty *idp_from_PyLong(IDProperty *prop_exist,
         case IDP_ID:
         case IDP_IDPARRAY:
         case IDP_BOOLEAN:
+        IDP_ANY_STRUCT_TYPE_CASE:
           break;
       }
     }
@@ -1060,7 +1084,11 @@ IDProperty *BPy_IDProperty_FromPyObject(IDProperty *prop_exist,
     return idp_from_DatablockPointer(prop_exist, name, ob, do_conversion, can_create);
   }
   if (PyMapping_Check(ob)) {
-    return idp_from_PyMapping(prop_exist, name, ob, do_conversion, can_create);
+    /* Any bpy_struct succeeds the PyMapping_Check but fails further down with a more confusing
+     * error. Check this case early so that a more useful error message is created below. */
+    if (!pyrna_struct_CheckPyObject(ob)) {
+      return idp_from_PyMapping(prop_exist, name, ob, do_conversion, can_create);
+    }
   }
 
   PyErr_Format(
@@ -1215,6 +1243,15 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
       return idprop_py_from_idp_bool(prop);
     case IDP_ID:
       return idprop_py_from_idp_id(prop);
+    IDP_ANY_STRUCT_TYPE_CASE: {
+      /* Struct IDProperty can't be converted to a detached Python value because their lifetime is
+       * bound to the IDProperty. */
+      PyErr_Format(PyExc_TypeError,
+                   "cannot convert IDProperty '%s' of type '%s' to a Python value",
+                   prop->name,
+                   IDP_type_str(prop));
+      return nullptr;
+    }
     case IDP_ARRAY: {
       PyObject *seq = PyList_New(prop->len);
       int i;
@@ -1969,6 +2006,15 @@ static PyObject *BPy_IDGroup_update(BPy_IDProperty *self, PyObject *value)
     BPy_IDProperty *other = reinterpret_cast<BPy_IDProperty *>(value);
     if (self->prop == other->prop) [[unlikely]] {
       Py_RETURN_NONE;
+    }
+
+    /* Struct types should not be merged into arbitrary custom properties. They should just be used
+     * by RNA backed properties. */
+    if (IDP_contains_struct_type(other->prop)) {
+      PyErr_Format(PyExc_TypeError,
+                   "cannot update from IDProperty group '%s' because it contains struct types",
+                   other->prop->name);
+      return nullptr;
     }
 
     /* XXX, possible one is inside the other */
