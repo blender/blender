@@ -387,8 +387,9 @@ static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
 }
 
-static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void console_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
+  BlendWriter *writer = screen_writer.writer;
   SpaceConsole *con = reinterpret_cast<SpaceConsole *>(sl);
 
   for (ConsoleLine &cl : con->history) {

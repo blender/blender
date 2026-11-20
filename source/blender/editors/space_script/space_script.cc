@@ -167,11 +167,11 @@ static void script_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
   }
 }
 
-static void script_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void script_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
   SpaceScript *scr = reinterpret_cast<SpaceScript *>(sl);
   scr->but_refs = nullptr;
-  writer->write_struct_cast<SpaceScript>(sl);
+  screen_writer.writer->write_struct_cast<SpaceScript>(sl);
 }
 
 void ED_spacetype_script()

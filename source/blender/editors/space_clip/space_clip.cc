@@ -1219,9 +1219,9 @@ static void clip_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *
   sclip->scopes.ok = 0;
 }
 
-static void clip_space_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void clip_space_blend_write(ScreenBlendWriteData &screen_writer, SpaceLink *sl)
 {
-  writer->write_struct_cast<SpaceClip>(sl);
+  screen_writer.writer->write_struct_cast<SpaceClip>(sl);
 }
 
 /** \} */

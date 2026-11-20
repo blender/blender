@@ -23,6 +23,7 @@
 
 #include "BLI_ghash.hh"
 #include "BLI_listbase.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_utildefines.hh"
 
@@ -132,6 +133,10 @@ static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *
   BKE_id_blend_write(writer, &wm->id);
   write_wm_xr_data(writer, &wm->xr);
 
+  /* Shared by the global area maps of all windows, so that allocated pointers stay unique within
+   * the window-manager ID. */
+  ResourceScope scope;
+
   for (wmWindow &win : wm->windows) {
     /* Update deprecated screen member (for so loading in 2.7x uses the correct screen). */
     win.screen = BKE_workspace_active_screen_get(win.workspace_hook);
@@ -152,7 +157,7 @@ static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *
     writer->write_struct(win.workspace_hook);
     writer->write_struct(win.stereo3d_format);
 
-    BKE_screen_area_map_blend_write(writer, &win.global_areas);
+    BKE_screen_area_map_blend_write(writer, scope, &win.global_areas);
 
     /* Data is written, clear deprecated data again. */
     win.screen = nullptr;
