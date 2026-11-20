@@ -61,7 +61,8 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
     return {};
   }
   const StringRefNull rna_path = fcu->rna_path();
-  if (rna_path.is_empty()) {
+  const ParsedRNAPathRef parsed_rna_path = fcu->rna_path_parsed();
+  if (parsed_rna_path.is_empty()) {
     BLI_strncpy_utf8(name, RPT_("<no path>"), name_maxncpy);
     return {};
   }
@@ -75,7 +76,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
   PointerRNA ptr;
   PropertyRNA *prop;
 
-  if (!RNA_path_resolve_property(&id_ptr, rna_path.c_str(), &ptr, &prop)) {
+  if (!RNA_path_resolve_property(&id_ptr, parsed_rna_path, &ptr, &prop)) {
     /* Could not resolve the path, so just use the path itself as 'name'. */
     BLI_snprintf_utf8(name, name_maxncpy, "\"%s[%d]\"", rna_path.c_str(), fcu->array_index);
 
