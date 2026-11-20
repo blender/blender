@@ -75,24 +75,15 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
     }
   }
   else if (ELEM(type, WM_GESTURE_LINES, WM_GESTURE_LASSO)) {
-    float *lasso;
-    gesture->points_alloc = 1024;
-    gesture->customdata = lasso = MEM_new_array_uninitialized<float>(
-        size_t(2) * gesture->points_alloc, "lasso points");
-    lasso[0] = xy[0] - gesture->winrct.xmin;
-    lasso[1] = xy[1] - gesture->winrct.ymin;
-    gesture->points = 1;
+    gesture->lasso_points.reserve(1024);
+    gesture->lasso_points.append(
+        float2(xy[0] - gesture->winrct.xmin, xy[1] - gesture->winrct.ymin));
   }
   else if (ELEM(type, WM_GESTURE_POLYLINE)) {
-    gesture->points_alloc = 64;
-    short *border = MEM_new_array_uninitialized<short>(size_t(2) * gesture->points_alloc,
-                                                       "polyline points");
-    gesture->customdata = border;
-    border[0] = xy[0] - gesture->winrct.xmin;
-    border[1] = xy[1] - gesture->winrct.ymin;
-    gesture->mval.x = border[0];
-    gesture->mval.y = border[1];
-    gesture->points = 1;
+    gesture->polyline_points.reserve(64);
+    const short2 point(short(xy[0] - gesture->winrct.xmin), short(xy[1] - gesture->winrct.ymin));
+    gesture->polyline_points.append(point);
+    gesture->mval = int2(point);
   }
 
   return gesture;
@@ -101,7 +92,7 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
 void WM_gesture_end(wmWindow *win, wmGesture *gesture)
 {
   BLI_remlink(&win->runtime->gesture, gesture);
-  MEM_delete_void(gesture->customdata);
+  MEM_delete(static_cast<rcti *>(gesture->customdata));
   WM_generic_user_data_free(&gesture->user_data);
   MEM_delete(gesture->edge_pan_data);
   MEM_delete(gesture);
@@ -304,30 +295,23 @@ static void draw_filled_lasso_px_cb(int x, int x_end, int y, void *user_data)
 
 static void draw_filled_lasso(wmGesture *gt, const int2 *lasso_pt_extra)
 {
-  const int mcoords_len = gt->points + (lasso_pt_extra ? 1 : 0);
-  Array<int2> mcoords(mcoords_len);
-  int i;
+  Vector<int2> mcoords;
   rcti rect;
   const float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
   if (gt->type == WM_GESTURE_POLYLINE) {
-    const short *lasso = static_cast<const short *>(gt->customdata);
-    for (i = 0; i < mcoords_len; i++, lasso += 2) {
-      mcoords[i][0] = lasso[0];
-      mcoords[i][1] = lasso[1];
+    for (const short2 &point : gt->polyline_points) {
+      mcoords.append(int2(point));
     }
   }
   else {
-    const float *lasso = static_cast<const float *>(gt->customdata);
-    for (i = 0; i < mcoords_len; i++, lasso += 2) {
-      mcoords[i][0] = lasso[0];
-      mcoords[i][1] = lasso[1];
+    for (const float2 &point : gt->lasso_points) {
+      mcoords.append(int2(point));
     }
   }
 
   if (lasso_pt_extra) {
-    mcoords[mcoords_len - 1][0] = lasso_pt_extra->x;
-    mcoords[mcoords_len - 1][1] = lasso_pt_extra->y;
+    mcoords.append(*lasso_pt_extra);
   }
 
   BLI_lasso_boundbox(&rect, mcoords);
@@ -377,9 +361,8 @@ static void draw_filled_lasso(wmGesture *gt, const int2 *lasso_pt_extra)
  * tool, and this common logic. */
 static void draw_lasso_smooth_stroke_indicator(wmGesture *gt, const uint shdr_pos)
 {
-  float (*lasso)[2] = static_cast<float (*)[2]>(gt->customdata);
-  float last_x = lasso[gt->points - 1][0];
-  float last_y = lasso[gt->points - 1][1];
+  const float last_x = gt->lasso_points.last().x;
+  const float last_y = gt->lasso_points.last().y;
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_line_smooth(true);
@@ -414,14 +397,11 @@ static void draw_lasso_smooth_stroke_indicator(wmGesture *gt, const uint shdr_po
 
 static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
 {
-  const float *lasso = static_cast<float *>(gt->customdata);
-  int i;
-
   if (filled) {
     draw_filled_lasso(gt, nullptr);
   }
 
-  const int numverts = gt->points;
+  const int numverts = int(gt->lasso_points.size());
 
   /* Nothing to draw, do early output. */
   if (numverts < 2) {
@@ -445,8 +425,8 @@ static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
 
   immBegin((gt->type == WM_GESTURE_LASSO) ? GPU_PRIM_LINE_LOOP : GPU_PRIM_LINE_STRIP, numverts);
 
-  for (i = 0; i < gt->points; i++, lasso += 2) {
-    immVertex2f(shdr_pos, lasso[0], lasso[1]);
+  for (const float2 &point : gt->lasso_points) {
+    immVertex2f(shdr_pos, point.x, point.y);
   }
 
   immEnd();
@@ -459,12 +439,10 @@ static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
 
 static void draw_start_vertex_circle(const wmGesture &gt, const uint shdr_pos)
 {
-  const int numverts = gt.points;
+  const int numverts = int(gt.polyline_points.size());
 
   /* Draw the circle around the starting vertex. */
-  const short (*border)[2] = static_cast<short int (*)[2]>(gt.customdata);
-
-  const float start_pos[2] = {float(border[0][0]), float(border[0][1])};
+  const float start_pos[2] = {float(gt.polyline_points[0].x), float(gt.polyline_points[0].y)};
   const float current_pos[2] = {float(gt.mval.x), float(gt.mval.y)};
 
   const float dist = len_v2v2(start_pos, current_pos);
@@ -493,7 +471,7 @@ static void wm_gesture_draw_polyline(wmGesture *gt)
 {
   draw_filled_lasso(gt, &gt->mval);
 
-  const int numverts = gt->points + 1;
+  const int numverts = int(gt->polyline_points.size()) + 1;
   if (numverts < 2) {
     return;
   }
@@ -515,9 +493,8 @@ static void wm_gesture_draw_polyline(wmGesture *gt)
 
   immBegin(GPU_PRIM_LINE_LOOP, numverts);
 
-  const short *border = static_cast<short *>(gt->customdata);
-  for (int i = 0; i < gt->points; i++, border += 2) {
-    immVertex2f(shdr_pos, float(border[0]), float(border[1]));
+  for (const short2 &point : gt->polyline_points) {
+    immVertex2f(shdr_pos, float(point.x), float(point.y));
   }
   immVertex2f(shdr_pos, float(gt->mval.x), float(gt->mval.y));
 

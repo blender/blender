@@ -572,18 +572,13 @@ static wmOperatorStatus gesture_lasso_apply(bContext *C, wmOperator *op)
   wmOperatorStatus retval = OPERATOR_FINISHED;
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
   PointerRNA itemptr;
-  float loc[2];
-  int i;
-  const float *lasso = static_cast<const float *>(gesture->customdata);
 
   /* Operator storage as path. */
 
   RNA_collection_clear(op->ptr, "path");
-  for (i = 0; i < gesture->points; i++, lasso += 2) {
-    loc[0] = lasso[0];
-    loc[1] = lasso[1];
+  for (const float2 &point : gesture->lasso_points) {
     RNA_collection_add(op->ptr, "path", &itemptr);
-    RNA_float_set_array(&itemptr, "loc", loc);
+    RNA_float_set_array(&itemptr, "loc", point);
   }
 
   gesture_modal_end(C, op);
@@ -618,42 +613,29 @@ wmOperatorStatus WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEve
         gesture->mval = int2((event->xy[0] - gesture->winrct.xmin),
                              (event->xy[1] - gesture->winrct.ymin));
 
-        if (gesture->points == gesture->points_alloc) {
-          gesture->points_alloc *= 2;
-          gesture->customdata = MEM_realloc_uninitialized(
-              gesture->customdata, sizeof(float[2]) * gesture->points_alloc);
-        }
-
         {
-          float (*lasso)[2] = static_cast<float (*)[2]>(gesture->customdata);
+          Vector<float2> &lasso = gesture->lasso_points;
           const float2 current_mouse_position = float2(gesture->mval);
-          const float2 last_position(lasso[gesture->points - 1][0], lasso[gesture->points - 1][1]);
+          const float2 last_position = lasso.last();
 
           const float2 delta = current_mouse_position - last_position;
           const float dist_squared = math::length_squared(delta);
 
           /* Move the lasso. */
           if (gesture->move) {
-            for (int i = 0; i < gesture->points; i++) {
-              lasso[i][0] += delta.x;
-              lasso[i][1] += delta.y;
+            for (float2 &point : lasso) {
+              point += delta;
             }
           }
           else if (gesture->use_smooth) {
             if (dist_squared > square_f(radius)) {
-              float2 result = math::interpolate(current_mouse_position, last_position, factor);
-
-              lasso[gesture->points][0] = result.x;
-              lasso[gesture->points][1] = result.y;
-              gesture->points++;
+              lasso.append(math::interpolate(current_mouse_position, last_position, factor));
             }
           }
           else if (dist_squared > pow2f(2.0f * UI_SCALE_FAC)) {
             /* Make a simple distance check to get a smoother lasso even if smoothing isn't enabled
              * add only when at least 2 pixels between this and previous location. */
-            lasso[gesture->points][0] = gesture->mval.x;
-            lasso[gesture->points][1] = gesture->mval.y;
-            gesture->points++;
+            lasso.append(current_mouse_position);
           }
         }
         break;
@@ -790,19 +772,16 @@ wmOperatorStatus WM_gesture_polyline_invoke(bContext *C, wmOperator *op, const w
  * a duplicated end point is invalid for submission */
 static int gesture_polyline_valid_points(const wmGesture &wmGesture, const bool is_click_submitted)
 {
-  BLI_assert(wmGesture.points > 2);
+  BLI_assert(wmGesture.polyline_points.size() > 2);
 
-  const int num_points = wmGesture.points;
+  const int num_points = int(wmGesture.polyline_points.size());
   if (is_click_submitted) {
     return num_points;
   }
 
-  short (*points)[2] = static_cast<short int (*)[2]>(wmGesture.customdata);
+  const short2 prev = wmGesture.polyline_points.last();
 
-  const short prev_x = points[num_points - 1][0];
-  const short prev_y = points[num_points - 1][1];
-
-  return (wmGesture.mval.x == prev_x && wmGesture.mval.y == prev_y) ? num_points : num_points + 1;
+  return (wmGesture.mval.x == prev.x && wmGesture.mval.y == prev.y) ? num_points : num_points + 1;
 }
 
 /**
@@ -815,7 +794,7 @@ static int gesture_polyline_valid_points(const wmGesture &wmGesture, const bool 
  */
 static bool gesture_polyline_can_apply(const wmGesture &wmGesture, const bool is_click_submitted)
 {
-  if (wmGesture.points < 2) {
+  if (wmGesture.polyline_points.size() < 2) {
     return false;
   }
 
@@ -835,18 +814,17 @@ static wmOperatorStatus gesture_polyline_apply(bContext *C,
   BLI_assert(gesture_polyline_can_apply(*gesture, is_click_submitted));
 
   const int valid_points = gesture_polyline_valid_points(*gesture, is_click_submitted);
-  const short *border = static_cast<const short int *>(gesture->customdata);
 
   PointerRNA itemptr;
   float loc[2];
   RNA_collection_clear(op->ptr, "path");
-  for (int i = 0; i < gesture->points; i++, border += 2) {
-    loc[0] = border[0];
-    loc[1] = border[1];
+  for (const short2 &point : gesture->polyline_points) {
+    loc[0] = point.x;
+    loc[1] = point.y;
     RNA_collection_add(op->ptr, "path", &itemptr);
     RNA_float_set_array(&itemptr, "loc", loc);
   }
-  if (valid_points > gesture->points) {
+  if (valid_points > gesture->polyline_points.size()) {
     loc[0] = gesture->mval.x;
     loc[1] = gesture->mval.y;
     RNA_collection_add(op->ptr, "path", &itemptr);
@@ -875,16 +853,15 @@ wmOperatorStatus WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wm
         break;
       case GESTURE_MODAL_SELECT: {
         wm_gesture_tag_redraw(CTX_wm_window(C));
-        short (*border)[2] = static_cast<short int (*)[2]>(gesture->customdata);
-        const short prev_x = border[gesture->points - 1][0];
-        const short prev_y = border[gesture->points - 1][1];
+        Vector<short2> &border = gesture->polyline_points;
+        const short2 prev = border.last();
 
-        if (gesture->mval.x == prev_x && gesture->mval.y == prev_y) {
+        if (gesture->mval.x == prev.x && gesture->mval.y == prev.y) {
           break;
         }
 
         const float2 cur(gesture->mval);
-        const float2 orig(border[0][0], border[0][1]);
+        const float2 orig(border[0]);
 
         const float dist = len_v2v2(cur, orig);
 
@@ -894,9 +871,7 @@ wmOperatorStatus WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wm
           return gesture_polyline_apply(C, op, true);
         }
 
-        gesture->points++;
-        border[gesture->points - 1][0] = gesture->mval.x;
-        border[gesture->points - 1][1] = gesture->mval.y;
+        border.append(short2(gesture->mval));
         break;
       }
       case GESTURE_MODAL_CONFIRM:
@@ -916,21 +891,16 @@ wmOperatorStatus WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wm
         wm_gesture_tag_redraw(CTX_wm_window(C));
         gesture->mval = int2((event->xy[0] - gesture->winrct.xmin),
                              (event->xy[1] - gesture->winrct.ymin));
-        if (gesture->points == gesture->points_alloc) {
-          gesture->points_alloc *= 2;
-          gesture->customdata = MEM_realloc_uninitialized(
-              gesture->customdata, sizeof(short[2]) * gesture->points_alloc);
-        }
-        short (*border)[2] = static_cast<short int (*)[2]>(gesture->customdata);
+        Vector<short2> &border = gesture->polyline_points;
 
         /* move the lasso */
         if (gesture->move) {
-          const int dx = gesture->mval.x - border[gesture->points - 1][0];
-          const int dy = gesture->mval.y - border[gesture->points - 1][1];
+          const int dx = gesture->mval.x - border.last().x;
+          const int dy = gesture->mval.y - border.last().y;
 
-          for (int i = 0; i < gesture->points; i++) {
-            border[i][0] += dx;
-            border[i][1] += dy;
+          for (short2 &point : border) {
+            point.x += dx;
+            point.y += dy;
           }
         }
         break;

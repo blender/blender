@@ -672,10 +672,6 @@ struct wmGesture {
   int type;
   /** Bounds of region to draw gesture within. */
   rcti winrct;
-  /** Optional, amount of points stored. */
-  int points;
-  /** Optional, maximum amount of points stored. */
-  int points_alloc;
   int modal_state;
   /** Optional, draw the active side of the straight-line gesture. */
   bool draw_active_side;
@@ -716,10 +712,14 @@ struct wmGesture {
    * customdata
    * - for border is a #rcti.
    * - for circle is #rcti, (`xmin`, `ymin`) is center, `xmax` radius.
-   * - for lasso is short array.
    * - for straight line is a #rcti: (`xmin`, `ymin`) is start, (`xmax`, `ymax`) is end.
    */
   void *customdata;
+
+  /** Points of #WM_GESTURE_LASSO and #WM_GESTURE_LINES gestures. */
+  Vector<float2> lasso_points;
+  /** Points of #WM_GESTURE_POLYLINE gestures. */
+  Vector<short2> polyline_points;
 
   /** Free pointer to use for operator allocations (if set, its freed on exit). */
   wmGenericUserData user_data;
