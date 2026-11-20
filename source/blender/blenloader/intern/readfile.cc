@@ -6785,20 +6785,18 @@ bool blo_read_pointer_array_impl(BlendDataReader *reader, const int64_t array_si
   }
   else if (file_pointer_size == 8 && current_pointer_size == 4) {
     /* Convert pointers from 64 to 32 bit. */
-    final_array = MEM_new_array_uninitialized(array_size, 4, "new pointer array");
-    convert_pointer_array_64_to_32(reader,
-                                   array_size,
-                                   static_cast<uint64_t *>(orig_array),
-                                   static_cast<uint32_t *>(final_array));
+    uint32_t *new_array = MEM_new_array_uninitialized<uint32_t>(array_size, "new pointer array");
+    convert_pointer_array_64_to_32(
+        reader, array_size, static_cast<const uint64_t *>(orig_array), new_array);
+    final_array = new_array;
     MEM_delete_void(orig_array);
   }
   else if (file_pointer_size == 4 && current_pointer_size == 8) {
     /* Convert pointers from 32 to 64 bit. */
-    final_array = MEM_new_array_uninitialized(array_size, 8, "new pointer array");
-    convert_pointer_array_32_to_64(reader,
-                                   array_size,
-                                   static_cast<uint32_t *>(orig_array),
-                                   static_cast<uint64_t *>(final_array));
+    uint64_t *new_array = MEM_new_array_uninitialized<uint64_t>(array_size, "new pointer array");
+    convert_pointer_array_32_to_64(
+        reader, array_size, static_cast<const uint32_t *>(orig_array), new_array);
+    final_array = new_array;
     MEM_delete_void(orig_array);
   }
   else {
