@@ -794,6 +794,13 @@ void apply_brush_texture(PaintMode paint_mode,
                          int thread_id,
                          float *r_value,
                          float4 &r_rgba);
+void apply_brush_texture(const SculptSession &ss,
+                         const Brush &brush,
+                         const MTex &mtex,
+                         const float brush_point[3],
+                         int thread_id,
+                         float *r_value,
+                         float4 &r_rgba);
 
 /**
  * Tilts a normal by the x and y tilt values using the view axis.
