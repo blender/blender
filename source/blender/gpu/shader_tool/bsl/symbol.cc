@@ -833,9 +833,15 @@ struct SymbolParser : NodeErrorHandler {
       }
     }
 
+    const bool is_template = !suffix.empty();
+
     bool is_overload = false;
     SymbolScope &scope = ns ? *ns : def_scope;
-    if (auto [fdecl, fn_ptr] = scope.lookup_function_forward_decl(func); fdecl.is_valid()) {
+    if (auto [fdecl, fn_ptr] = scope.lookup_function_forward_decl(func);
+        /* Template instances are not the definition of a plain prototype with
+         * the same signature. Reusing it would link it twice in the overload list. */
+        !is_template && fdecl.is_valid())
+    {
       fn = fn_ptr;
       /* Modify symbol location if it is forward declared. */
       fn->loc = fdecl.front();
