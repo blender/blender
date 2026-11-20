@@ -910,6 +910,54 @@ static int gizmo_3d_foreach_selected(const bContext *C,
           ob->runtime->sculpt_session->pivot_pos, false, ob->object_to_world().ptr());
     }
   }
+  else if (ob && (ob->mode & (OB_MODE_SCULPT_GREASE_PENCIL | OB_MODE_WEIGHT_GREASE_PENCIL |
+                              OB_MODE_VERTEX_GREASE_PENCIL)))
+  {
+    /* No transforms in these modes. */
+  }
+  else if (ob && (ob->mode & OB_MODE_PAINT_GREASE_PENCIL)) {
+    GreasePencil &grease_pencil = *id_cast<GreasePencil *>(ob->data);
+
+    const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
+        ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
+    threading::parallel_for_each(drawings, [&](const ed::greasepencil::MutableDrawingInfo &info) {
+      const bke::CurvesGeometry &curves = info.drawing.strokes();
+
+      const bke::crazyspace::GeometryDeformation deformation =
+          bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+              *depsgraph, *ob, info.drawing);
+
+      const float4x4 layer_transform = grease_pencil.layer(info.layer_index).to_world_space(*ob);
+
+      IndexMaskMemory memory;
+      const IndexMask editable_points = ed::greasepencil::retrieve_editable_points(
+          *ob, info.drawing, info.layer_index, memory);
+      const IndexMask bezier_points = bke::curves::curve_type_point_selection(
+          curves, CURVE_TYPE_BEZIER, memory);
+
+      auto run_points = [&](const Span<float3> positions, const StringRef selection_name) {
+        const IndexMask selected_points = ed::curves::retrieve_selected_points(
+            curves, selection_name, bezier_points, memory);
+        const IndexMask selected_editable_points = IndexMask::from_intersection(
+            editable_points, selected_points, memory);
+
+        totsel += selected_editable_points.size();
+        selected_editable_points.foreach_index(
+            [&](const int point_i) {
+              run_coord_with_matrix(positions[point_i], true, layer_transform.ptr());
+            },
+            exec_mode::grain_size(4096));
+      };
+
+      run_points(deformation.positions, ".selection");
+
+      if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+        run_points(*curves.handle_positions_left(), ".selection_handle_left");
+        run_points(*curves.handle_positions_right(), ".selection_handle_right");
+      }
+    });
+  }
+
   else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
     PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
     PTCacheEditPoint *point;
