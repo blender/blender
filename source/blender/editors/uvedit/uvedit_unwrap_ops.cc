@@ -2117,16 +2117,21 @@ void UV_OT_average_islands_scale(wmOperatorType *ot)
 /** \name Live UV Unwrap
  * \{ */
 
-static struct {
-  ParamHandle **handles;
-  uint len, len_alloc;
-  wmTimer *timer;
-} g_live_unwrap = {nullptr};
+struct LiveUnwrapData {
+  Vector<ParamHandle *> handles;
+  wmTimer *timer = nullptr;
+};
+
+static LiveUnwrapData &get_live_unwrap_data()
+{
+  static LiveUnwrapData data;
+  return data;
+}
 
 bool ED_uvedit_live_unwrap_timer_check(const wmTimer *timer)
 {
   /* NOTE: don't validate the timer, assume the timer passed in is valid. */
-  return g_live_unwrap.timer == timer;
+  return get_live_unwrap_data().timer == timer;
 }
 
 /**
@@ -2137,18 +2142,20 @@ bool ED_uvedit_live_unwrap_timer_check(const wmTimer *timer)
  */
 static bool uvedit_live_unwrap_timer_validate(const wmWindowManager *wm)
 {
-  if (g_live_unwrap.timer == nullptr) {
+  LiveUnwrapData &live_unwrap = get_live_unwrap_data();
+  if (live_unwrap.timer == nullptr) {
     return false;
   }
-  if (BLI_findindex(&wm->runtime->timers, g_live_unwrap.timer) != -1) {
+  if (BLI_findindex(&wm->runtime->timers, live_unwrap.timer) != -1) {
     return false;
   }
-  g_live_unwrap.timer = nullptr;
+  live_unwrap.timer = nullptr;
   return true;
 }
 
 void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit, wmWindow *win_modal)
 {
+  LiveUnwrapData &live_unwrap = get_live_unwrap_data();
   ParamHandle *handle = nullptr;
 
   if (!ED_uvedit_test(obedit)) {
@@ -2176,8 +2183,8 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit, wmWindow *win_mod
       wmWindowManager *wm = G_MAIN->wm.first();
       /* Clear in the unlikely event this is still set. */
       uvedit_live_unwrap_timer_validate(wm);
-      BLI_assert(!g_live_unwrap.timer);
-      g_live_unwrap.timer = WM_event_timer_add(wm, win_modal, TIMER, 0.01f);
+      BLI_assert(!live_unwrap.timer);
+      live_unwrap.timer = WM_event_timer_add(wm, win_modal, TIMER, 0.01f);
     }
   }
   else {
@@ -2185,69 +2192,50 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit, wmWindow *win_mod
         handle, true, options.use_abf, options.use_original_bounds);
   }
 
-  /* Create or increase size of g_live_unwrap.handles array */
-  if (g_live_unwrap.handles == nullptr) {
-    g_live_unwrap.len_alloc = 32;
-    g_live_unwrap.handles = MEM_new_array_uninitialized<ParamHandle *>(
-        g_live_unwrap.len_alloc, "uvedit_live_unwrap_liveHandles");
-    g_live_unwrap.len = 0;
-  }
-  if (g_live_unwrap.len >= g_live_unwrap.len_alloc) {
-    g_live_unwrap.len_alloc *= 2;
-    g_live_unwrap.handles = static_cast<ParamHandle **>(MEM_realloc_uninitialized(
-        g_live_unwrap.handles, sizeof(ParamHandle *) * g_live_unwrap.len_alloc));
-  }
-  g_live_unwrap.handles[g_live_unwrap.len] = handle;
-  g_live_unwrap.len++;
+  live_unwrap.handles.append(handle);
 }
 
 void ED_uvedit_live_unwrap_re_solve()
 {
-  if (g_live_unwrap.handles) {
-    for (int i = 0; i < g_live_unwrap.len; i++) {
-      if (uv_parametrizer_is_slim(g_live_unwrap.handles[i])) {
-        uv_parametrizer_slim_live_solve_iteration(g_live_unwrap.handles[i]);
-      }
-      else {
-        geometry::uv_parametrizer_lscm_solve(g_live_unwrap.handles[i], nullptr, nullptr);
-      }
-
-      geometry::uv_parametrizer_flush(g_live_unwrap.handles[i]);
+  for (ParamHandle *handle : get_live_unwrap_data().handles) {
+    if (uv_parametrizer_is_slim(handle)) {
+      uv_parametrizer_slim_live_solve_iteration(handle);
     }
+    else {
+      geometry::uv_parametrizer_lscm_solve(handle, nullptr, nullptr);
+    }
+
+    geometry::uv_parametrizer_flush(handle);
   }
 }
 
 void ED_uvedit_live_unwrap_end(const bool cancel)
 {
-  if (g_live_unwrap.timer) {
+  LiveUnwrapData &live_unwrap = get_live_unwrap_data();
+  if (live_unwrap.timer) {
     wmWindowManager *wm = G_MAIN->wm.first();
     uvedit_live_unwrap_timer_validate(wm);
-    if (g_live_unwrap.timer) {
-      wmWindow *win = g_live_unwrap.timer->win;
-      WM_event_timer_remove(wm, win, g_live_unwrap.timer);
-      g_live_unwrap.timer = nullptr;
+    if (live_unwrap.timer) {
+      wmWindow *win = live_unwrap.timer->win;
+      WM_event_timer_remove(wm, win, live_unwrap.timer);
+      live_unwrap.timer = nullptr;
     }
   }
 
-  if (g_live_unwrap.handles) {
-    for (int i = 0; i < g_live_unwrap.len; i++) {
-      if (uv_parametrizer_is_slim(g_live_unwrap.handles[i])) {
-        uv_parametrizer_slim_live_end(g_live_unwrap.handles[i]);
-      }
-      else {
-        geometry::uv_parametrizer_lscm_end(g_live_unwrap.handles[i]);
-      }
-
-      if (cancel) {
-        geometry::uv_parametrizer_flush_restore(g_live_unwrap.handles[i]);
-      }
-      delete (g_live_unwrap.handles[i]);
+  for (ParamHandle *handle : live_unwrap.handles) {
+    if (uv_parametrizer_is_slim(handle)) {
+      uv_parametrizer_slim_live_end(handle);
     }
-    MEM_delete(g_live_unwrap.handles);
-    g_live_unwrap.handles = nullptr;
-    g_live_unwrap.len = 0;
-    g_live_unwrap.len_alloc = 0;
+    else {
+      geometry::uv_parametrizer_lscm_end(handle);
+    }
+
+    if (cancel) {
+      geometry::uv_parametrizer_flush_restore(handle);
+    }
+    delete handle;
   }
+  live_unwrap.handles.clear_and_shrink();
 }
 
 /** \} */
