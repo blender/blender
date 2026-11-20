@@ -183,7 +183,7 @@ static std::optional<std::string> user_special_dir_query(GHOST_TUserSpecialDirTy
   }
 
   std::string path = path_stream.str();
-  return path[0] ? std::optional(path) : std::nullopt;
+  return path.empty() ? std::nullopt : std::optional(path);
 }
 
 std::optional<std::string> GHOST_SystemPathsUnix::getUserSpecialDir(
