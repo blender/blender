@@ -440,6 +440,25 @@ static void rna_PoseChannel_constraints_remove(
   }
 }
 
+static void rna_PoseChannel_constraints_remove_constraints(ID *id,
+                                                           bPoseChannel *pchan,
+                                                           Main *bmain,
+                                                           ReportList *reports,
+                                                           const int *indices_ptr,
+                                                           const int indices_num)
+{
+  Object *ob = id_cast<Object *>(id);
+  ListBaseT<bConstraint> *constraints = &pchan->constraints;
+
+  if (!indices_ptr || indices_num == 0) {
+    ed::object::constraint_remove_all(bmain, ob, constraints);
+    return;
+  }
+
+  Span<int> indices(indices_ptr, indices_num);
+  ed::object::constraint_remove(bmain, ob, constraints, reports, indices);
+}
+
 static void rna_PoseChannel_constraints_move(
     ID *id, bPoseChannel *pchan, Main *bmain, ReportList *reports, int from, int to)
 {
@@ -830,6 +849,24 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
   parm = RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+
+  func = RNA_def_function(
+      srna, "remove_constraints", "rna_PoseChannel_constraints_remove_constraints");
+  RNA_def_function_ui_description(func,
+                                  "Remove multiple constraints from this object specified by "
+                                  "indices. If no indices are provided, remove all constraints.");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  parm = RNA_def_int_array(func,
+                           "indices",
+                           1,
+                           nullptr,
+                           INT_MIN,
+                           INT_MAX,
+                           "Indices",
+                           "The indices of the constraints to remove",
+                           0,
+                           INT_MAX);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
 
   func = RNA_def_function(srna, "move", "rna_PoseChannel_constraints_move");
   RNA_def_function_ui_description(func, "Move a constraint to a different position");

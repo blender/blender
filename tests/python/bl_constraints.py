@@ -11,7 +11,7 @@ import sys
 import unittest
 
 import bpy
-from bpy.types import Constraint
+from bpy.types import Constraint, bpy_prop_collection
 from mathutils import Matrix
 
 
@@ -539,6 +539,69 @@ class GeometryAttributeConstraintTest(AbstractConstraintTests):
              (-0.7435062527656555, 0.26342537999153137, 0.6146588921546936, 0.012183472514152527),
              (0.0, 0.0, 0.0, 1.0))),
         )
+
+
+class AbstractConstraintRemovalTests:
+    """This abstracts away tests for constraint mass removal called on either
+    ObjectConstraints or PoseBoneConstraints structs.
+
+    Should be inherited alongside AbstractConstraintTests.
+    """
+    constraints: bpy_prop_collection
+
+    def check_test_preconditions(self):
+        """Make sure the test file contains the required preconditions."""
+        self.assertEqual(len(self.constraints), 3)
+        self.assertEqual(self.constraints[1].name, 'Copy Location.001')
+
+    def test_remove_constraints(self):
+        """Remove Constraints: simple remove."""
+        # Non-sorted indices and duplicates, both should be handled properly
+        # by the function.
+        self.constraints.remove_constraints(indices=(2, 0, 2))
+        self.assertEqual(len(self.constraints), 1)
+        self.assertEqual(self.constraints.keys(), ['Copy Location.001'])
+
+    def test_remove_all_constraints(self):
+        """Remove Constraints: remove all constraints with explicit empty tuple."""
+        self.constraints.remove_constraints(indices=())
+        self.assertEqual(len(self.constraints), 0)
+
+    def test_remove_all_constraints_no_args(self):
+        """Remove Constraints: remove all constraints with no args."""
+        self.constraints.remove_constraints()
+        self.assertEqual(len(self.constraints), 0)
+
+    def test_exceptions(self):
+        """Remove Constraints: throw exceptions for out-of-range indices."""
+        with self.assertRaises(RuntimeError):
+            self.constraints.remove_constraints(indices=(-1,))
+        with self.assertRaises(RuntimeError):
+            self.constraints.remove_constraints(indices=(3,))
+
+
+class PoseBonesConstratintTest(AbstractConstraintRemovalTests, AbstractConstraintTests):
+    """Test constraint mass removal on PoseBoneConstraints."""
+    layer_collection = 'Pose Bones'
+
+    def setUp(self):
+        super().setUp()
+        context_override = self.bone_constraint_context('Pose Bones')
+        with bpy.context.temp_override(**context_override):
+            self.constraints = bpy.context.active_pose_bone.constraints
+        self.check_test_preconditions()
+
+
+class ObjectConstratintTest(AbstractConstraintRemovalTests, AbstractConstraintTests):
+    """Test constraint mass removal on ObjectConstraints."""
+    layer_collection = 'Object'
+
+    def setUp(self):
+        super().setUp()
+        context_override = self.constraint_context('Object')
+        with bpy.context.temp_override(**context_override):
+            self.constraints = bpy.context.object.constraints
+        self.check_test_preconditions()
 
 
 class ConstraintAPITests(unittest.TestCase):
