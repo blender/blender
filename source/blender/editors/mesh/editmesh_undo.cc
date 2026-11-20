@@ -221,7 +221,7 @@ static struct {
   TaskPool *task_pool;
 #  endif
 
-} um_arraystore = {{{nullptr}}};
+} um_arraystore;
 
 static void store_layer(const eCustomDataType type,
                         const void *data,

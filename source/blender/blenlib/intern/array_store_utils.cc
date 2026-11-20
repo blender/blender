@@ -20,10 +20,8 @@ BArrayStore *BLI_array_store_at_size_ensure(BArrayStore_AtSize *bs_stride,
                                             const int stride,
                                             const int chunk_size)
 {
-  if (bs_stride->stride_table_len < stride) {
-    bs_stride->stride_table_len = stride;
-    bs_stride->stride_table = static_cast<BArrayStore **>(
-        MEM_realloc_zeroed(bs_stride->stride_table, sizeof(*bs_stride->stride_table) * stride));
+  if (bs_stride->stride_table.size() < stride) {
+    bs_stride->stride_table.resize(stride, nullptr);
   }
   BArrayStore **bs_p = &bs_stride->stride_table[stride - 1];
 
@@ -44,21 +42,18 @@ BArrayStore *BLI_array_store_at_size_ensure(BArrayStore_AtSize *bs_stride,
 
 BArrayStore *BLI_array_store_at_size_get(BArrayStore_AtSize *bs_stride, const int stride)
 {
-  BLI_assert(stride > 0 && stride <= bs_stride->stride_table_len);
+  BLI_assert(stride > 0 && stride <= bs_stride->stride_table.size());
   return bs_stride->stride_table[stride - 1];
 }
 
 void BLI_array_store_at_size_clear(BArrayStore_AtSize *bs_stride)
 {
-  for (int i = 0; i < bs_stride->stride_table_len; i += 1) {
-    if (bs_stride->stride_table[i]) {
-      BLI_array_store_destroy(bs_stride->stride_table[i]);
+  for (BArrayStore *bs : bs_stride->stride_table) {
+    if (bs) {
+      BLI_array_store_destroy(bs);
     }
   }
-
-  /* It's possible this table was never used. */
-  MEM_SAFE_DELETE(bs_stride->stride_table);
-  bs_stride->stride_table_len = 0;
+  bs_stride->stride_table.clear_and_shrink();
 }
 
 void BLI_array_store_at_size_calc_memory_usage(const BArrayStore_AtSize *bs_stride,
@@ -67,8 +62,7 @@ void BLI_array_store_at_size_calc_memory_usage(const BArrayStore_AtSize *bs_stri
 {
   size_t size_compacted = 0;
   size_t size_expanded = 0;
-  for (int i = 0; i < bs_stride->stride_table_len; i++) {
-    const BArrayStore *bs = bs_stride->stride_table[i];
+  for (const BArrayStore *bs : bs_stride->stride_table) {
     if (bs) {
       size_compacted += BLI_array_store_calc_size_compacted_get(bs);
       size_expanded += BLI_array_store_calc_size_expanded_get(bs);

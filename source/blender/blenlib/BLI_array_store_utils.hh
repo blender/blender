@@ -10,13 +10,15 @@
 
 #include <stddef.h>
 
+#include "BLI_vector.hh"
+
 namespace blender {
 
 struct BArrayStore;
 
 struct BArrayStore_AtSize {
-  struct BArrayStore **stride_table;
-  int stride_table_len;
+  /** Stores indexed by stride minus one, null when not yet used. */
+  Vector<BArrayStore *> stride_table;
 };
 
 struct BArrayStore *BLI_array_store_at_size_ensure(struct BArrayStore_AtSize *bs_stride,

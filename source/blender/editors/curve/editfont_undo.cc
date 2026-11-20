@@ -83,7 +83,7 @@ static struct {
   /* We could have the undo API pass in the previous state, for now store a local list */
   ListBaseT<LinkData> local_links;
 
-} uf_arraystore = {{nullptr}};
+} uf_arraystore;
 
 /**
  * \param create: When false, only free the arrays.
