@@ -12,6 +12,15 @@
 
 namespace blender::ed::animfilter {
 
+void AnimfilterSpaceRuntime::copy_ui_state_from(const AnimfilterSpaceRuntime &other)
+{
+  this->channel_states = other.channel_states;
+  this->last_used = other.last_used;
+  this->active_channel_ident = other.active_channel_ident;
+  /* The ChannelArena should not be shared between spaces. */
+  this->channel_arena.reset();
+}
+
 AnimationChannelUIState &AnimfilterSpaceRuntime::channel_state_for_update(
     const ChannelIdentifier &channel_key)
 {

@@ -201,11 +201,13 @@ static void action_init(wmWindowManager * /*wm*/, ScrArea *area)
 
 static SpaceLink *action_duplicate(SpaceLink *sl)
 {
-  SpaceAction *saction = MEM_dupalloc(reinterpret_cast<SpaceAction *>(sl));
+  const SpaceAction *other_saction = reinterpret_cast<SpaceAction *>(sl);
+  SpaceAction *saction = MEM_dupalloc(other_saction);
 
   saction->runtime = MEM_new<SpaceAction_Runtime>(__func__);
 
-  /* TODO: copy the UI state. */
+  saction->runtime->animfilter_runtime.copy_ui_state_from(
+      other_saction->runtime->animfilter_runtime);
 
   return reinterpret_cast<SpaceLink *>(saction);
 }

@@ -178,13 +178,14 @@ static void graph_init(wmWindowManager *wm, ScrArea *area)
 
 static SpaceLink *graph_duplicate(SpaceLink *sl)
 {
-  SpaceGraph *sipon = MEM_dupalloc(reinterpret_cast<SpaceGraph *>(sl));
+  const SpaceGraph *other_sgraph = reinterpret_cast<SpaceGraph *>(sl);
+  SpaceGraph *sipon = MEM_dupalloc(other_sgraph);
 
   sipon->runtime = MEM_new<SpaceGraph_Runtime>(__func__);
+  sipon->runtime->animfilter_runtime.copy_ui_state_from(other_sgraph->runtime->animfilter_runtime);
 
   /* clear or remove stuff from old */
-  BLI_duplicatelist(&sipon->runtime->ghost_curves,
-                    &(reinterpret_cast<SpaceGraph *>(sl))->runtime->ghost_curves);
+  BLI_duplicatelist(&sipon->runtime->ghost_curves, &other_sgraph->runtime->ghost_curves);
   sipon->ads = MEM_dupalloc(sipon->ads);
 
   return reinterpret_cast<SpaceLink *>(sipon);

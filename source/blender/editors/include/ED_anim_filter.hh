@@ -1251,6 +1251,9 @@ struct AnimfilterSpaceRuntime {
   /* Runtime cache for channels in the channel box. */
   std::optional<ChannelArena> channel_arena;
   std::optional<ChannelIdentifier> active_channel_ident = {};
+
+  void copy_ui_state_from(const AnimfilterSpaceRuntime &other);
+
   /**
    * Ensures there is an entry for this channel in the UI state map, returning that entry so it can
    * be updated. This also sets the entry's `last_used` field to #last_used.
