@@ -955,6 +955,11 @@ static void bmesh_find_doubles_common(BMesh *bm,
 
   const float dist = BMO_slot_float_get(op->slots_in, "dist");
 
+  /* Distances are squared, so a negative distance would otherwise still merge. */
+  if (dist < 0.0f) {
+    return;
+  }
+
   /* Test whether keep_verts arg exists and is non-empty. */
   if (BMO_slot_exists(op->slots_in, "keep_verts")) {
     BMOIter oiter;
