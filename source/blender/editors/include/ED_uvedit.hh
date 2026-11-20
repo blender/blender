@@ -11,6 +11,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_function_ref.hh"
+#include "BLI_vector.hh"
 #include "BLI_vector_list.hh"
 
 #include "BKE_customdata.hh"
@@ -307,9 +308,9 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
                                 float *dist_sq,
                                 float r_uv[2]);
 
-BMFace **ED_uvedit_selected_faces(const Scene *scene, BMesh *bm, int len_max, int *r_faces_len);
-BMLoop **ED_uvedit_selected_edges(const Scene *scene, BMesh *bm, int len_max, int *r_edges_len);
-BMLoop **ED_uvedit_selected_verts(const Scene *scene, BMesh *bm, int len_max, int *r_verts_len);
+Vector<BMFace *> ED_uvedit_selected_faces(const Scene *scene, BMesh *bm, int len_max);
+Vector<BMLoop *> ED_uvedit_selected_edges(const Scene *scene, BMesh *bm, int len_max);
+Vector<BMLoop *> ED_uvedit_selected_verts(const Scene *scene, BMesh *bm, int len_max);
 
 void ED_uvedit_active_vert_loop_set(BMesh *bm, BMLoop *l);
 BMLoop *ED_uvedit_active_vert_loop_get(const ToolSettings *ts, BMesh *bm);

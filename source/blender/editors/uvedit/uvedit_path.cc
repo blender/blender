@@ -827,26 +827,21 @@ static wmOperatorStatus uv_shortest_path_select_exec(bContext *C, wmOperator *op
 
     /* Find 2x elements. */
     {
-      BMElem **ele_array = nullptr;
-      int ele_array_len = 0;
+      Vector<BMElem *> ele_array;
       if (uv_selectmode & UV_SELECT_FACE) {
-        ele_array = reinterpret_cast<BMElem **>(
-            ED_uvedit_selected_faces(scene, bm, 3, &ele_array_len));
+        ele_array = ED_uvedit_selected_faces(scene, bm, 3).as_span().cast<BMElem *>();
       }
       else if (uv_selectmode & UV_SELECT_EDGE) {
-        ele_array = reinterpret_cast<BMElem **>(
-            ED_uvedit_selected_edges(scene, bm, 3, &ele_array_len));
+        ele_array = ED_uvedit_selected_edges(scene, bm, 3).as_span().cast<BMElem *>();
       }
       else {
-        ele_array = reinterpret_cast<BMElem **>(
-            ED_uvedit_selected_verts(scene, bm, 3, &ele_array_len));
+        ele_array = ED_uvedit_selected_verts(scene, bm, 3).as_span().cast<BMElem *>();
       }
 
-      if (ele_array_len == 2) {
+      if (ele_array.size() == 2) {
         ele_src = ele_array[0];
         ele_dst = ele_array[1];
       }
-      MEM_delete(ele_array);
     }
 
     if (ele_src && ele_dst) {
