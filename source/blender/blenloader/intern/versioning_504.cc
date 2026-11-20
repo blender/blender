@@ -11,6 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_listbase.hh"
 #include "BLI_sys_types.hh"
@@ -18,6 +19,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_screen.hh"
 
 #include "readfile.hh"
 
@@ -152,6 +154,25 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 7)) {
     version_float_socket_precision(*bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 8)) {
+    for (bScreen &screen : bmain->screens) {
+      for (ScrArea &area : screen.areabase) {
+        for (SpaceLink &sl : area.spacedata) {
+          if (sl.spacetype != SPACE_SEQ) {
+            continue;
+          }
+          ListBaseT<ARegion> *regionbase = (area.spacedata.first() == &sl) ? &area.regionbase :
+                                                                             &sl.regionbase;
+          if (ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                             RGN_TYPE_WINDOW))
+          {
+            timeline_region->v2d.align &= ~V2D_ALIGN_NO_NEG_Y;
+          }
+        }
+      }
+    }
   }
 
   /**

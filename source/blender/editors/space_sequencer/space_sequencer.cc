@@ -193,7 +193,6 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   region->v2d.keepofs = V2D_KEEPOFS_X | V2D_KEEPOFS_Y;
   region->v2d.keeptot = V2D_KEEPTOT_FREE;
   region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL | V2D_ZOOM_IGNORE_KEEPOFS;
-  region->v2d.align = V2D_ALIGN_NO_NEG_Y;
 
   return reinterpret_cast<SpaceLink *>(sseq);
 }
@@ -508,30 +507,27 @@ rctf sequencer_clamped_view_bounds_get(const bContext *C, ARegion *region)
 
   rctf strip_boundbox;
 
-  if ((sseq->flag & SEQ_CLAMP_VIEW) == 0) {
-    BLI_rctf_init_minmax(&strip_boundbox);
-    return strip_boundbox;
-  }
-
   /* Initialize default view with 7 channels, that are visible even if empty. */
   seq::timeline_init_boundbox(scene, &strip_boundbox);
   Editing *ed = seq::editing_get(scene);
   if (ed != nullptr) {
     seq::timeline_expand_boundbox(scene, ed->current_strips(), &strip_boundbox);
   }
+  if ((sseq->flag & SEQ_CLAMP_VIEW) == 0) {
+    strip_boundbox.ymax = seq::MAX_CHANNELS + 1.0f;
+  }
   /* We need to calculate how much the current view is padded and add this padding to our
    * strip bounding box. Without this, the scrub-bar or other overlays would occlude the
    * displayed strips in the timeline.
    */
-  float pad_top, pad_bottom;
-  SEQ_get_timeline_region_padding(C, &pad_top, &pad_bottom);
-  /* Add padding to be able to scroll the view so that the collapsed redo panel doesn't occlude any
-   * strips. */
-  float bottom_channel_padding = UI_MARKER_MARGIN_Y * ui::view2d_pixel_size_get_y(v2d);
-  bottom_channel_padding = std::max(bottom_channel_padding, 1.0f);
-  /* Add the padding and make sure we have a margin of one channel in each direction. */
+  float pad_top;
+  SEQ_get_timeline_region_padding(C, &pad_top, nullptr);
+  /* Keep bottom padding the size of the marker region regardless of whether markers are visible.
+   * This makes things visually consistent and leaves enough space for the collapsed redo panel. */
+  const float pad_bottom = UI_MARKER_MARGIN_Y * ui::view2d_pixel_size_get_y(v2d);
+  /* Add the padding and make sure we have a margin of one channel above. */
   strip_boundbox.ymax += 1.0f + pad_top * ui::view2d_pixel_size_get_y(v2d);
-  strip_boundbox.ymin -= bottom_channel_padding;
+  strip_boundbox.ymin -= pad_bottom;
 
   /* If a strip has been deleted, don't move the view automatically, keep current range until it is
    * changed. */
@@ -542,12 +538,6 @@ rctf sequencer_clamped_view_bounds_get(const bContext *C, ARegion *region)
 
 static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
 {
-  SpaceSeq *sseq = CTX_wm_space_seq(C);
-
-  if ((sseq->flag & SEQ_CLAMP_VIEW) == 0) {
-    return;
-  }
-
   View2D *v2d = &region->v2d;
   Scene *scene = CTX_data_sequencer_scene(C);
   if (!scene) {
