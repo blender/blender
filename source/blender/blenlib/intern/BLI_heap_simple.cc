@@ -19,6 +19,7 @@
 
 #include "BLI_heap_simple.hh"
 #include "BLI_utildefines.hh"
+#include "BLI_vector.hh"
 
 #include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
@@ -36,9 +37,9 @@ struct HeapSimpleNode {
 };
 
 struct HeapSimple {
-  uint size;
-  uint bufsize;
-  HeapSimpleNode *tree;
+  uint size = 0;
+  /** The allocated nodes, only the first #size are used. */
+  Vector<HeapSimpleNode> tree;
 };
 
 /** \} */
@@ -52,12 +53,12 @@ static void heapsimple_down(HeapSimple *heap, uint start_i, const HeapSimpleNode
 #if 1
   /* The compiler isn't smart enough to realize that all computations
    * using index here can be modified to work with byte offset. */
-  uint8_t *const tree_buf = reinterpret_cast<uint8_t *>(heap->tree);
+  uint8_t *const tree_buf = reinterpret_cast<uint8_t *>(heap->tree.data());
 
 #  define OFFSET(i) (i * uint(sizeof(HeapSimpleNode)))
 #  define NODE(offset) (*(HeapSimpleNode *)(tree_buf + (offset)))
 #else
-  HeapSimpleNode *const tree = heap->tree;
+  HeapSimpleNode *const tree = heap->tree.data();
 
 #  define OFFSET(i) (i)
 #  define NODE(i) tree[i]
@@ -115,7 +116,7 @@ static void heapsimple_down(HeapSimple *heap, uint start_i, const HeapSimpleNode
 
 static void heapsimple_up(HeapSimple *heap, uint i, float active_val, void *active_ptr)
 {
-  HeapSimpleNode *const tree = heap->tree;
+  HeapSimpleNode *const tree = heap->tree.data();
 
   while (i > 0) [[likely]] {
     const uint p = HEAP_PARENT(i);
@@ -140,11 +141,9 @@ static void heapsimple_up(HeapSimple *heap, uint i, float active_val, void *acti
 
 HeapSimple *BLI_heapsimple_new_ex(uint reserve_num)
 {
-  HeapSimple *heap = MEM_new_zeroed<HeapSimple>(__func__);
+  HeapSimple *heap = MEM_new<HeapSimple>(__func__);
   /* ensure we have at least one so we can keep doubling it */
-  heap->size = 0;
-  heap->bufsize = std::max(1u, reserve_num);
-  heap->tree = MEM_new_array_zeroed<HeapSimpleNode>(heap->bufsize, "BLIHeapSimpleTree");
+  heap->tree.resize(std::max(1u, reserve_num));
   return heap;
 }
 
@@ -161,7 +160,6 @@ void BLI_heapsimple_free(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp)
     }
   }
 
-  MEM_delete(heap->tree);
   MEM_delete(heap);
 }
 
@@ -178,10 +176,8 @@ void BLI_heapsimple_clear(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp)
 
 void BLI_heapsimple_insert(HeapSimple *heap, float value, void *ptr)
 {
-  if (heap->size >= heap->bufsize) [[unlikely]] {
-    heap->bufsize *= 2;
-    heap->tree = static_cast<HeapSimpleNode *>(
-        MEM_realloc_uninitialized(heap->tree, heap->bufsize * sizeof(*heap->tree)));
+  if (heap->size >= uint(heap->tree.size())) [[unlikely]] {
+    heap->tree.resize(heap->tree.size() * 2);
   }
 
   heapsimple_up(heap, heap->size++, value, ptr);
