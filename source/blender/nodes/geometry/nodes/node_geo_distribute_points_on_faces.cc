@@ -669,9 +669,9 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                               attribute_filter,
                                                               use_legacy_normal);
           geometry_set.replace_pointcloud(pointcloud);
-          geometry_set.keep_only(
-              {GeometryComponent::Type::PointCloud, GeometryComponent::Type::Edit});
         }
+        geometry_set.keep_only(
+            {GeometryComponent::Type::PointCloud, GeometryComponent::Type::Edit});
       });
       break;
     }
