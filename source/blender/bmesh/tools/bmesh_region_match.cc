@@ -28,6 +28,7 @@
 #include "BLI_linklist_stack.hh"
 #include "BLI_listbase.hh"
 #include "BLI_mempool.hh"
+#include "BLI_vector.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -118,8 +119,7 @@ struct UIDWalk {
 
     GHash *faces_from_uid; /* UID -> UIDFaceStepItem */
 
-    UID_Int *rehash_store;
-    uint rehash_store_len;
+    Vector<UID_Int> rehash_store;
   } cache;
 };
 
@@ -209,8 +209,7 @@ static void bm_uidwalk_init(UIDWalk *uidwalk,
   /* works because 'int' ghash works for intptr_t too */
   uidwalk->cache.faces_from_uid = BLI_ghash_int_new(__func__);
 
-  uidwalk->cache.rehash_store = nullptr;
-  uidwalk->cache.rehash_store_len = 0;
+  uidwalk->cache.rehash_store.clear();
 
   uidwalk->use_face_isolate = false;
 
@@ -259,7 +258,7 @@ static void bm_uidwalk_free(UIDWalk *uidwalk)
   BLI_ghash_free(uidwalk->cache.verts_uid, nullptr, nullptr);
   MEM_delete(uidwalk->cache.faces_step);
   BLI_ghash_free(uidwalk->cache.faces_from_uid, nullptr, nullptr);
-  MEM_SAFE_DELETE(uidwalk->cache.rehash_store);
+  uidwalk->cache.rehash_store.clear_and_shrink();
 
   BLI_mempool_destroy(uidwalk->link_pool);
   BLI_mempool_destroy(uidwalk->step_pool);
@@ -373,12 +372,9 @@ static UID_Int bm_uidwalk_calc_face_uid(UIDWalk *uidwalk, BMFace *f)
 
 static void bm_uidwalk_rehash_reserve(UIDWalk *uidwalk, uint rehash_store_len_new)
 {
-  if (rehash_store_len_new > uidwalk->cache.rehash_store_len) [[unlikely]] {
+  if (rehash_store_len_new > uint(uidwalk->cache.rehash_store.size())) [[unlikely]] {
     /* Avoid re-allocations. */
-    rehash_store_len_new *= 2;
-    uidwalk->cache.rehash_store = static_cast<UID_Int *>(MEM_realloc_uninitialized(
-        uidwalk->cache.rehash_store, rehash_store_len_new * sizeof(*uidwalk->cache.rehash_store)));
-    uidwalk->cache.rehash_store_len = rehash_store_len_new;
+    uidwalk->cache.rehash_store.resize(rehash_store_len_new * 2);
   }
 }
 
@@ -395,7 +391,7 @@ static void bm_uidwalk_rehash(UIDWalk *uidwalk)
                                        BLI_ghash_len(uidwalk->faces_uid));
 
   bm_uidwalk_rehash_reserve(uidwalk, rehash_store_len_new);
-  uid_store = uidwalk->cache.rehash_store;
+  uid_store = uidwalk->cache.rehash_store.data();
 
   /* verts */
   i = 0;
@@ -432,7 +428,7 @@ static void bm_uidwalk_rehash_facelinks(UIDWalk *uidwalk,
   uint i;
 
   bm_uidwalk_rehash_reserve(uidwalk, faces_len);
-  uid_store = uidwalk->cache.rehash_store;
+  uid_store = uidwalk->cache.rehash_store.data();
 
   i = 0;
   for (f_link = faces; f_link; f_link = f_link->next) {
