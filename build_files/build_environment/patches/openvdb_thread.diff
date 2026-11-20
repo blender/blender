@@ -1,0 +1,11 @@
+diff -Naur openvdb-13.0.0/openvdb/openvdb/thread/Threading.h openvdb/openvdb/openvdb/thread/Threading.h
+--- openvdb-13.0.0/openvdb/openvdb/thread/Threading.h	2025-11-04 00:04:25
++++ openvdb/openvdb/openvdb/thread/Threading.h	2026-10-09 17:10:56
+@@ -22,6 +22,7 @@
+ ///   software doesn't need to provide compile time defines.
+ #include <tbb/blocked_range.h>
+ #include <tbb/task.h>
++#include <tbb/task_arena.h>
+ #include <tbb/task_group.h>
+ 
+ namespace openvdb {

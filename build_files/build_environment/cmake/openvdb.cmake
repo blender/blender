@@ -48,7 +48,11 @@ set(OPENVDB_EXTRA_ARGS
 set(OPENVDB_PATCH
   ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/openvdb/src/external_openvdb <
-    ${PATCH_DIR}/openvdb.diff
+    ${PATCH_DIR}/openvdb.diff &&
+  # Temporary patch until we update to OpenVDB > 13.0.0
+  ${PATCH_CMD} -p 1 -d
+    ${BUILD_DIR}/openvdb/src/external_openvdb <
+    ${PATCH_DIR}/openvdb_thread.diff
 )
 
 ExternalProject_Add(external_openvdb
