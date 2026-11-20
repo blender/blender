@@ -1457,7 +1457,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ADS_FLAG_MINIMAL_GROUPING);
   RNA_def_property_ui_text(
       prop, "Minimal Grouping", "Don't show channel groups with a single child");
-  /* TODO icon */
+  /* TODO: icon, see #166936 */
   RNA_def_property_ui_icon(prop, ICON_CON_CHILDOF, 0);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 
