@@ -13,6 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_vector.hh"
+
 #include "GPU_batch.hh"
 
 #include "gl_index_buffer.hh"
@@ -43,19 +45,16 @@ class GLVaoCache {
   int base_instance_ = 0;
 
   bool is_dynamic_vao_count = false;
-  union {
-    /** Static handle count */
-    struct {
-      const GLShaderInterface *interfaces[GPU_VAO_STATIC_LEN];
-      GLuint vao_ids[GPU_VAO_STATIC_LEN];
-    } static_vaos;
-    /** Dynamic handle count */
-    struct {
-      uint count;
-      const GLShaderInterface **interfaces;
-      GLuint *vao_ids;
-    } dynamic_vaos;
-  };
+  /** Static handle count */
+  struct {
+    const GLShaderInterface *interfaces[GPU_VAO_STATIC_LEN];
+    GLuint vao_ids[GPU_VAO_STATIC_LEN];
+  } static_vaos;
+  /** Dynamic handle count, used instead of the static handles once those are full. */
+  struct {
+    Vector<const GLShaderInterface *, 0> interfaces;
+    Vector<GLuint, 0> vao_ids;
+  } dynamic_vaos;
 
  public:
   GLVaoCache();
@@ -76,6 +75,10 @@ class GLVaoCache {
 
  private:
   void init();
+  /** The interfaces of the static or dynamic handles, depending on which are used. */
+  MutableSpan<const GLShaderInterface *> interfaces_get();
+  /** The VAO ids of the static or dynamic handles, depending on which are used. */
+  MutableSpan<GLuint> vao_ids_get();
   /**
    * The #GLVaoCache object is only valid for one #GLContext.
    * Reset the cache if trying to draw in another context;.

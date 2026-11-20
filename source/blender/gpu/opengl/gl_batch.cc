@@ -59,6 +59,22 @@ void GLVaoCache::init()
   vao_id_ = 0;
 }
 
+MutableSpan<const GLShaderInterface *> GLVaoCache::interfaces_get()
+{
+  if (is_dynamic_vao_count) {
+    return dynamic_vaos.interfaces;
+  }
+  return static_vaos.interfaces;
+}
+
+MutableSpan<GLuint> GLVaoCache::vao_ids_get()
+{
+  if (is_dynamic_vao_count) {
+    return dynamic_vaos.vao_ids;
+  }
+  return static_vaos.vao_ids;
+}
+
 void GLVaoCache::insert(const GLShaderInterface *interface, GLuint vao)
 {
   /* Now insert the cache. */
@@ -85,29 +101,20 @@ void GLVaoCache::insert(const GLShaderInterface *interface, GLuint vao)
       /* Not enough place switch to dynamic. */
       is_dynamic_vao_count = true;
       /* Init dynamic arrays and let the branch below set the values. */
-      dynamic_vaos.count = GPU_BATCH_VAO_DYN_ALLOC_COUNT;
-      dynamic_vaos.interfaces = MEM_new_array_zeroed<const GLShaderInterface *>(
-          dynamic_vaos.count, "dyn vaos interfaces");
-      dynamic_vaos.vao_ids = MEM_new_array_zeroed<GLuint>(dynamic_vaos.count, "dyn vaos ids");
+      dynamic_vaos.interfaces.resize(GPU_BATCH_VAO_DYN_ALLOC_COUNT, nullptr);
+      dynamic_vaos.vao_ids.resize(GPU_BATCH_VAO_DYN_ALLOC_COUNT, 0);
     }
   }
 
   if (is_dynamic_vao_count) {
-    int i; /* find first unused slot */
-    for (i = 0; i < dynamic_vaos.count; i++) {
-      if (dynamic_vaos.vao_ids[i] == 0) {
-        break;
-      }
-    }
-
-    if (i == dynamic_vaos.count) {
-      /* Not enough place, realloc the array. */
-      i = dynamic_vaos.count;
-      dynamic_vaos.count += GPU_BATCH_VAO_DYN_ALLOC_COUNT;
-      dynamic_vaos.interfaces = static_cast<const GLShaderInterface **>(MEM_realloc_zeroed(
-          (void *)dynamic_vaos.interfaces, sizeof(GLShaderInterface *) * dynamic_vaos.count));
-      dynamic_vaos.vao_ids = static_cast<GLuint *>(
-          MEM_realloc_zeroed(dynamic_vaos.vao_ids, sizeof(GLuint) * dynamic_vaos.count));
+    /* Find first unused slot. */
+    int64_t i = dynamic_vaos.vao_ids.first_index_of_try(0);
+    if (i == -1) {
+      /* Not enough place, grow the arrays. */
+      i = dynamic_vaos.vao_ids.size();
+      const int64_t new_size = i + GPU_BATCH_VAO_DYN_ALLOC_COUNT;
+      dynamic_vaos.interfaces.resize(new_size, nullptr);
+      dynamic_vaos.vao_ids.resize(new_size, 0);
     }
     dynamic_vaos.interfaces[i] = interface;
     dynamic_vaos.vao_ids[i] = vao;
@@ -118,11 +125,9 @@ void GLVaoCache::insert(const GLShaderInterface *interface, GLuint vao)
 
 void GLVaoCache::remove(const GLShaderInterface *interface)
 {
-  const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
-  GLuint *vaos = (is_dynamic_vao_count) ? dynamic_vaos.vao_ids : static_vaos.vao_ids;
-  const GLShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
-                                                                  static_vaos.interfaces;
-  for (int i = 0; i < count; i++) {
+  const MutableSpan<GLuint> vaos = this->vao_ids_get();
+  const MutableSpan<const GLShaderInterface *> interfaces = this->interfaces_get();
+  for (const int64_t i : interfaces.index_range()) {
     if (interfaces[i] == interface) {
       context_->vao_free(vaos[i]);
       vaos[i] = 0;
@@ -140,37 +145,33 @@ void GLVaoCache::remove(const GLShaderInterface *interface)
 void GLVaoCache::clear()
 {
   GLContext *ctx = GLContext::get();
-  const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
-  GLuint *vaos = (is_dynamic_vao_count) ? dynamic_vaos.vao_ids : static_vaos.vao_ids;
-  const GLShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
-                                                                  static_vaos.interfaces;
+  const MutableSpan<GLuint> vaos = this->vao_ids_get();
+  const MutableSpan<const GLShaderInterface *> interfaces = this->interfaces_get();
   /* Early out, nothing to free. */
   if (context_ == nullptr) {
     return;
   }
 
   if (context_ == ctx) {
-    glDeleteVertexArrays(count, vaos);
+    glDeleteVertexArrays(GLsizei(vaos.size()), vaos.data());
     glDeleteVertexArrays(1, &vao_base_instance_);
   }
   else {
     /* TODO(fclem): Slow way. Could avoid multiple mutex lock here */
-    for (int i = 0; i < count; i++) {
-      context_->vao_free(vaos[i]);
+    for (const GLuint vao : vaos) {
+      context_->vao_free(vao);
     }
     context_->vao_free(vao_base_instance_);
   }
 
-  for (int i = 0; i < count; i++) {
-    if (interfaces[i] != nullptr) {
-      const_cast<GLShaderInterface *>(interfaces[i])->ref_remove(this);
+  for (const GLShaderInterface *interface : interfaces) {
+    if (interface != nullptr) {
+      const_cast<GLShaderInterface *>(interface)->ref_remove(this);
     }
   }
 
-  if (is_dynamic_vao_count) {
-    MEM_delete(dynamic_vaos.interfaces);
-    MEM_delete(dynamic_vaos.vao_ids);
-  }
+  dynamic_vaos.interfaces.clear_and_shrink();
+  dynamic_vaos.vao_ids.clear_and_shrink();
 
   if (context_) {
     context_->vao_cache_unregister(this);
@@ -181,15 +182,11 @@ void GLVaoCache::clear()
 
 GLuint GLVaoCache::lookup(const GLShaderInterface *interface)
 {
-  const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
-  const GLShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
-                                                                  static_vaos.interfaces;
-  for (int i = 0; i < count; i++) {
-    if (interfaces[i] == interface) {
-      return (is_dynamic_vao_count) ? dynamic_vaos.vao_ids[i] : static_vaos.vao_ids[i];
-    }
+  const int64_t i = this->interfaces_get().as_span().first_index_try(interface);
+  if (i == -1) {
+    return 0;
   }
-  return 0;
+  return this->vao_ids_get()[i];
 }
 
 void GLVaoCache::context_check()
