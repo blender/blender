@@ -63,6 +63,18 @@ static wmXrActionSet *action_set_find(wmXrData *xr, const char *action_set_name)
       GHOST_XrGetActionSetCustomdata(xr->runtime->ghost_context, action_set_name));
 }
 
+template<typename T> static void action_states_alloc(wmXrAction &action, const uint count)
+{
+  action.states = MEM_new_array_zeroed<T>(count, __func__);
+  action.states_prev = MEM_new_array_zeroed<T>(count, __func__);
+}
+
+template<typename T> static void action_states_free(wmXrAction &action)
+{
+  MEM_delete(static_cast<T *>(action.states));
+  MEM_delete(static_cast<T *>(action.states_prev));
+}
+
 static wmXrAction *action_create(const char *action_name,
                                  eXrActionType type,
                                  const ListBaseT<XrUserPath> *user_paths,
@@ -88,25 +100,22 @@ static wmXrAction *action_create(const char *action_name,
     action->subaction_paths[subaction_idx] = BLI_strdup(user_path.path);
   }
 
-  size_t size;
   switch (type) {
     case XR_BOOLEAN_INPUT:
-      size = sizeof(bool);
+      action_states_alloc<bool>(*action, count);
       break;
     case XR_FLOAT_INPUT:
-      size = sizeof(float);
+      action_states_alloc<float>(*action, count);
       break;
     case XR_VECTOR2F_INPUT:
-      size = sizeof(float) * 2;
+      action_states_alloc<float[2]>(*action, count);
       break;
     case XR_POSE_INPUT:
-      size = sizeof(GHOST_XrPose);
+      action_states_alloc<GHOST_XrPose>(*action, count);
       break;
     case XR_VIBRATION_OUTPUT:
       return action;
   }
-  action->states = MEM_new_array_zeroed(count, size, "XrAction_States");
-  action->states_prev = MEM_new_array_zeroed(count, size, "XrAction_StatesPrev");
 
   const bool is_float_action = ELEM(type, XR_FLOAT_INPUT, XR_VECTOR2F_INPUT);
   const bool is_button_action = (is_float_action || type == XR_BOOLEAN_INPUT);
@@ -149,8 +158,22 @@ static void action_destroy(void *val)
     MEM_delete(subaction_paths);
   }
 
-  MEM_SAFE_DELETE_VOID(action->states);
-  MEM_SAFE_DELETE_VOID(action->states_prev);
+  switch (action->type) {
+    case XR_BOOLEAN_INPUT:
+      action_states_free<bool>(*action);
+      break;
+    case XR_FLOAT_INPUT:
+      action_states_free<float>(*action);
+      break;
+    case XR_VECTOR2F_INPUT:
+      action_states_free<float[2]>(*action);
+      break;
+    case XR_POSE_INPUT:
+      action_states_free<GHOST_XrPose>(*action);
+      break;
+    case XR_VIBRATION_OUTPUT:
+      break;
+  }
 
   MEM_SAFE_DELETE(action->float_thresholds);
   MEM_SAFE_DELETE(action->axis_flags);
