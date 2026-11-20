@@ -170,7 +170,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
                                    &scene_dst->ed->seqbase,
                                    scene_src->ed->current_strips(),
                                    seq::StripDuplicate::Selected,
-                                   0);
+                                   LIB_ID_CREATE_NO_USER_REFCOUNT);
 
   BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
 

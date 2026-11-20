@@ -400,6 +400,10 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
     }
   }
 
+  if (id->id_type() == ID_MC) {
+    seq::relations_invalidate_movieclip_strips(bmain, reinterpret_cast<MovieClip *>(id));
+  }
+
   /* Invalidate cache for strips that use this compositing tree. */
   if (id->id_type() == ID_NT) {
     const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(id);

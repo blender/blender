@@ -15,7 +15,7 @@ def _run_playback(args):
     import bpy
     import time
 
-    scene = bpy.context.scene
+    scene = getattr(bpy.context, 'sequencer_scene', None) or bpy.context.scene
     scene.render.compositor_device = ('CPU' if args['device_type'] == 'CPU' else 'GPU')
     window = bpy.context.window
     preview = next((
@@ -90,12 +90,13 @@ def _run_render(args):
     import bpy
     import time
 
-    scene = bpy.context.scene
+    scene = getattr(bpy.context, 'sequencer_scene', None) or bpy.context.scene
     scene.render.compositor_device = ('CPU' if args['device_type'] == 'CPU' else 'GPU')
     scene.render.filepath = args['output_filepath']
 
     start_time = time.perf_counter()
-    status = bpy.ops.render.render(animation=True)
+    with bpy.context.temp_override(scene=scene):
+        status = bpy.ops.render.render(animation=True)
     elapsed = time.perf_counter() - start_time
     if status != {'FINISHED'}:
         raise RuntimeError("VSE animation render did not finish")

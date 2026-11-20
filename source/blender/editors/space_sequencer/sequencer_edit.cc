@@ -2758,10 +2758,14 @@ static void ripple_properties_from_tool_settings(bContext *C, wmOperator *op)
   }
 
   const eSeqRippleFlag ripple_flag = seq::tool_settings_ripple_flag_get(scene);
-  RNA_boolean_set(op->ptr, "all_channels", (ripple_flag & SEQ_RIPPLE_ALL_CHANNELS) != 0);
-  RNA_boolean_set(op->ptr, "markers", (ripple_flag & SEQ_RIPPLE_MARKERS) != 0);
-  if (PropertyRNA *prop = RNA_struct_find_property(op->ptr, "clear_ranges")) {
-    RNA_property_boolean_set(op->ptr, prop, (ripple_flag & SEQ_RIPPLE_CLEAR_RANGES) != 0);
+  if (!RNA_struct_property_is_set(op->ptr, "all_channels")) {
+    RNA_boolean_set(op->ptr, "all_channels", (ripple_flag & SEQ_RIPPLE_ALL_CHANNELS) != 0);
+  }
+  if (!RNA_struct_property_is_set(op->ptr, "markers")) {
+    RNA_boolean_set(op->ptr, "markers", (ripple_flag & SEQ_RIPPLE_MARKERS) != 0);
+  }
+  if (!RNA_struct_property_is_set(op->ptr, "clear_ranges")) {
+    RNA_boolean_set(op->ptr, "clear_ranges", (ripple_flag & SEQ_RIPPLE_CLEAR_RANGES) != 0);
   }
 }
 
