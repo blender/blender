@@ -15,6 +15,7 @@
 
 #include "BLI_heap.hh"
 #include "BLI_utildefines.hh"
+#include "BLI_vector.hh"
 
 #include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
@@ -46,15 +47,15 @@ struct HeapNode_Chunk {
   uint(MEM_SIZE_OPTIMAL((1 << 16) - sizeof(HeapNode_Chunk)) / sizeof(HeapNode))
 
 struct Heap {
-  uint size;
-  uint bufsize;
-  HeapNode **tree;
+  uint size = 0;
+  /** The allocated tree, only the first #size nodes are used. */
+  Vector<HeapNode *> tree;
 
   struct {
     /* Always keep at least one chunk (never nullptr) */
-    HeapNode_Chunk *chunk;
+    HeapNode_Chunk *chunk = nullptr;
     /* when nullptr, allocate a new chunk */
-    HeapNode *free;
+    HeapNode *free = nullptr;
   } nodes;
 };
 
@@ -73,7 +74,7 @@ struct Heap {
 
 BLI_INLINE void heap_swap(Heap *heap, const uint i, const uint j)
 {
-  HeapNode **tree = heap->tree;
+  HeapNode **tree = heap->tree.data();
   HeapNode *pi = tree[i], *pj = tree[j];
   pi->index = j;
   tree[j] = pi;
@@ -84,7 +85,7 @@ BLI_INLINE void heap_swap(Heap *heap, const uint i, const uint j)
 static void heap_down(Heap *heap, uint i)
 {
   /* size won't change in the loop */
-  HeapNode **const tree = heap->tree;
+  HeapNode **const tree = heap->tree.data();
   const uint size = heap->size;
 
   while (true) {
@@ -110,7 +111,7 @@ static void heap_down(Heap *heap, uint i)
 
 static void heap_up(Heap *heap, uint i)
 {
-  HeapNode **const tree = heap->tree;
+  HeapNode **const tree = heap->tree.data();
 
   while (i > 0) [[likely]] {
     const uint p = HEAP_PARENT(i);
@@ -172,11 +173,9 @@ static void heap_node_free(Heap *heap, HeapNode *node)
 
 Heap *BLI_heap_new_ex(uint reserve_num)
 {
-  Heap *heap = MEM_new_zeroed<Heap>(__func__);
+  Heap *heap = MEM_new<Heap>(__func__);
   /* ensure we have at least one so we can keep doubling it */
-  heap->size = 0;
-  heap->bufsize = std::max(1u, reserve_num);
-  heap->tree = MEM_new_array_zeroed<HeapNode *>(heap->bufsize, "BLIHeapTree");
+  heap->tree.resize(std::max(1u, reserve_num));
 
   heap->nodes.chunk = heap_node_alloc_chunk(
       (reserve_num > 1) ? reserve_num : HEAP_CHUNK_DEFAULT_NUM, nullptr);
@@ -208,7 +207,6 @@ void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
     chunk = chunk_prev;
   } while (chunk);
 
-  MEM_delete(heap->tree);
   MEM_delete(heap);
 }
 
@@ -237,10 +235,8 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 {
   HeapNode *node;
 
-  if (heap->size >= heap->bufsize) [[unlikely]] {
-    heap->bufsize *= 2;
-    heap->tree = static_cast<HeapNode **>(
-        MEM_realloc_uninitialized(heap->tree, heap->bufsize * sizeof(*heap->tree)));
+  if (heap->size >= uint(heap->tree.size())) [[unlikely]] {
+    heap->tree.resize(heap->tree.size() * 2);
   }
 
   node = heap_node_alloc(heap);
