@@ -255,6 +255,55 @@ void wire_frag_smooth([[resource_table, condition(selectable)]] draw::Select &se
 }
 
 [[fragment]]
+void wire_frag_no_aa([[resource_table, condition(selectable)]] draw::Select &sel,
+                     [[frag_coord]] const float4 frag_co,
+                     [[in]] const VertOut &v_out,
+                     [[in, condition(selectable)]] const draw::SelectOut &sel_out,
+                     [[out]] FragOut &frag_out)
+{
+  frag_out.line_output = float4(0.0f);
+  frag_out.color = v_out.final_color;
+  if (sel.consts.selectable) [[static_branch]] {
+    sel.select_id_output(sel_out.select_id, frag_co);
+  }
+}
+
+[[fragment]]
+void wire_frag_stipple([[resource_table, condition(selectable)]] draw::Select &sel,
+                       [[frag_coord]] const float4 frag_co,
+                       [[in]] const VertOut &v_out,
+                       [[in, condition(selectable)]] const draw::SelectOut &sel_out,
+                       [[out]] FragOut &frag_out)
+{
+  if (sel.consts.selectable) [[static_branch]] {
+    sel.select_id_output(sel_out.select_id, frag_co);
+  }
+
+  frag_out.color = v_out.final_color;
+  frag_out.line_output = overlay::pack_line_data(frag_co.xy, v_out.edge_start, v_out.edge_pos);
+
+  float dist = distance(v_out.edge_start, v_out.edge_pos);
+  if (frag_out.color.a == 0.0f) {
+    /* Disable stippling. */
+    dist = 0.0f;
+  }
+
+  frag_out.color.a = 1.0f;
+
+  if (!sel.consts.selectable) [[static_branch]] {
+    /* Stipple */
+    constexpr float dash_width = 6.0f;
+    constexpr float dash_factor = 0.5f;
+    /* Discarding inside the selection will create some undefined behavior.
+     * This is because we force the early depth test to only output the front most fragment.
+     * Discarding would expose us to race condition depending on rasterization order. */
+    if (fract(dist / dash_width) > dash_factor) {
+      gpu_discard_fragment();
+    }
+  }
+}
+
+[[fragment]]
 void point_frag([[resource_table, condition(selectable)]] draw::Select &sel,
                 [[frag_coord]] const float4 frag_co,
                 [[in]] const VertOut &v_out,

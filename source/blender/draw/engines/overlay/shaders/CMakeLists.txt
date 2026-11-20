@@ -33,7 +33,6 @@ set(SRC_GLSL_VERT
   overlay_edit_curve_point_vert.glsl
   overlay_edit_curve_wire_vert.glsl
   overlay_edit_curves_handle_vert.glsl
-  overlay_edit_gpencil_canvas_vert.glsl
   overlay_edit_pointcloud_vert.glsl
   overlay_edit_mesh_analysis_vert.glsl
   overlay_edit_mesh_skin_root_vert.glsl
@@ -46,12 +45,9 @@ set(SRC_GLSL_VERT
   overlay_edit_uv_stretching_vert.glsl
   overlay_edit_uv_tiled_image_borders_vert.glsl
   overlay_edit_uv_verts_vert.glsl
-  overlay_extra_groundline_vert.glsl
   overlay_extra_lightprobe_grid_vert.glsl
   overlay_extra_loose_point_vert.glsl
   overlay_extra_point_vert.glsl
-  overlay_extra_vert.glsl
-  overlay_extra_wire_vert.glsl
   overlay_facing_vert.glsl
   overlay_fullscreen_vert.glsl
   overlay_grid_vert.glsl
@@ -80,7 +76,6 @@ set(SRC_GLSL_FRAG
   overlay_edit_uv_verts_frag.glsl
   overlay_extra_frag.glsl
   overlay_extra_loose_point_frag.glsl
-  overlay_extra_wire_frag.glsl
   overlay_facing_frag.glsl
   overlay_grid_frag.glsl
   overlay_image_frag.glsl

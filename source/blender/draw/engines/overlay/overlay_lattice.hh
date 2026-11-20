@@ -53,7 +53,7 @@ class Lattices : Overlay {
         "edit_lattice_wire", res.shaders->lattice_wire.get(), true);
     edit_lattice_point_ps_ = create_sub_pass(
         "edit_lattice_points", res.shaders->lattice_points.get(), false);
-    lattice_ps_ = create_sub_pass("lattice", res.shaders->extra_wire_object.get(), false);
+    lattice_ps_ = create_sub_pass("lattice", res.shaders->lattice.get(), false);
   }
 
   void edit_object_sync(Manager &manager,
@@ -96,7 +96,7 @@ class Lattices : Overlay {
       for (int i : IndexRange(3)) {
         draw_mat[i][3] = color[i];
       }
-      draw_mat[3][3] = 0.0f /* No stipples. */;
+      draw_mat[3][3] = 1.0f;
       ResourceHandleRange res_handle = manager.resource_handle(
           ob_ref, &draw_mat, nullptr, nullptr);
       lattice_ps_->draw(geom, res_handle, res.select_id(ob_ref).get());
