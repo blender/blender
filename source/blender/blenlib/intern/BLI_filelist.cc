@@ -174,21 +174,9 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
   }
 
   if (newnum) {
-    if (dir_ctx->files) {
-      void *const tmp = MEM_realloc_uninitialized(
-          dir_ctx->files, (dir_ctx->files_num + newnum) * sizeof(direntry));
-      if (tmp) {
-        dir_ctx->files = static_cast<direntry *>(tmp);
-      }
-      else { /* Reallocation may fail. */
-        MEM_delete(dir_ctx->files);
-        dir_ctx->files = nullptr;
-      }
-    }
-
-    if (dir_ctx->files == nullptr) {
-      dir_ctx->files = MEM_new_array_uninitialized<direntry>(size_t(newnum), __func__);
-    }
+    /* The context is only used for a single directory. */
+    BLI_assert(dir_ctx->files == nullptr);
+    dir_ctx->files = MEM_new_array_uninitialized<direntry>(size_t(newnum), __func__);
 
     if (dir_ctx->files == nullptr) [[unlikely]] {
       fprintf(stderr, "Couldn't get memory for dir: %s\n", dirname);
