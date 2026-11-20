@@ -16,6 +16,7 @@
 #include "BLI_rect.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -609,23 +610,23 @@ static void space_text_draw(const SpaceText *st,
  * \{ */
 
 struct DrawCache {
-  int *line_height_table;
-  int total_lines, nlines;
+  Vector<int> line_height_table;
+  int total_lines = 0, nlines = 0;
 
   /* This is needed to check cache relevance. */
-  int winx, wordwrap, showlinenrs, tabnumber;
-  short line_height;
-  char char_width_px;
-  char text_id[MAX_ID_NAME - 2];
+  int winx = 0, wordwrap = 0, showlinenrs = 0, tabnumber = 0;
+  short line_height = 0;
+  char char_width_px = 0;
+  char text_id[MAX_ID_NAME - 2] = "";
 
   /** For partial lines recalculation. */
-  bool update;
-  int valid_head, valid_tail; /* Amount of unchanged lines. */
+  bool update = false;
+  int valid_head = 0, valid_tail = 0; /* Amount of unchanged lines. */
 };
 
 static void space_text_drawcache_init(SpaceText *st)
 {
-  DrawCache *drawcache = MEM_new_zeroed<DrawCache>("text draw cache");
+  DrawCache *drawcache = MEM_new<DrawCache>("text draw cache");
 
   drawcache->winx = -1;
   drawcache->nlines = st->text->lines.count();
@@ -669,7 +670,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
 
   if (st->wordwrap) {
     /* Update line heights. */
-    if (full_update || !drawcache->line_height_table) {
+    if (full_update || drawcache->line_height_table.is_empty()) {
       drawcache->valid_head = 0;
       drawcache->valid_tail = 0;
       drawcache->update = true;
@@ -678,16 +679,12 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
     if (drawcache->update) {
       TextLine *line = st->text->lines.first();
       int lineno = 0, lines_count;
-      int *fp = drawcache->line_height_table, *new_tail, *old_tail;
+      int *new_tail, *old_tail;
 
       nlines = txt->lines.count();
 
-      if (fp) {
-        fp = static_cast<int *>(MEM_realloc_uninitialized(fp, sizeof(int) * nlines));
-      }
-      else {
-        fp = MEM_new_array_zeroed<int>(nlines, "text drawcache line_height");
-      }
+      drawcache->line_height_table.resize(nlines, 0);
+      int *fp = drawcache->line_height_table.data();
 
       drawcache->valid_tail = drawcache->valid_head = 0;
       old_tail = fp + drawcache->nlines - drawcache->valid_tail;
@@ -718,12 +715,10 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
         lineno++;
         drawcache->total_lines += lines_count;
       }
-
-      drawcache->line_height_table = fp;
     }
   }
   else {
-    MEM_SAFE_DELETE(drawcache->line_height_table);
+    drawcache->line_height_table.clear_and_shrink();
 
     if (full_update || drawcache->update) {
       nlines = txt->lines.count();
@@ -807,13 +802,7 @@ void space_text_free_caches(SpaceText *st)
 {
   DrawCache *drawcache = static_cast<DrawCache *>(st->runtime->drawcache);
 
-  if (drawcache) {
-    if (drawcache->line_height_table) {
-      MEM_delete(drawcache->line_height_table);
-    }
-
-    MEM_delete(drawcache);
-  }
+  MEM_delete(drawcache);
 }
 
 /** \} */
