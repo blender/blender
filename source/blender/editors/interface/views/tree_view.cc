@@ -706,8 +706,6 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
       *region, win->runtime->eventstate->xy);
 
   if (!hovered_abstract_item) {
-    // TODO: DO NOT LAND THIS IN MAIN! It's hiding a genuine bug and is just here to prevent a
-    // crash that happens when drag-collapsing so many groups that the tree view has to scroll.
     return;
   }
 
