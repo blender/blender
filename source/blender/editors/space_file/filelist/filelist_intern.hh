@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "BLI_array.hh"
 #include "BLI_fileops.hh"
 #include "BLI_map.hh"
 
@@ -128,7 +129,7 @@ struct FileListEntryCache {
 
   /* Block cache: all entries between start and end index.
    * used for part of the list on display. */
-  FileDirEntry **block_entries = nullptr;
+  Array<FileDirEntry *> block_entries;
   int block_start_index = 0;
   int block_end_index = 0;
   int block_center_index = 0;
@@ -137,7 +138,7 @@ struct FileListEntryCache {
   /* Misc cache: random indices, FIFO behavior.
    * NOTE: Not 100% sure we actually need that, time will say. */
   int misc_cursor = 0;
-  int *misc_entries_indices = nullptr;
+  Array<int> misc_entries_indices;
   Map<int, FileDirEntry *> misc_entries;
 
   /* Allows to quickly get a cached entry from its UID. */

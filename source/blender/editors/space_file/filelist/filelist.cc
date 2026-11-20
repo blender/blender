@@ -820,12 +820,10 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
 
 FileListEntryCache::FileListEntryCache() : size(FILELIST_ENTRYCACHESIZE_DEFAULT)
 {
-  block_entries = static_cast<FileDirEntry **>(
-      MEM_new_uninitialized(sizeof(*this->block_entries) * this->size, __func__));
+  this->block_entries.reinitialize(this->size);
 
   this->misc_entries.reserve(this->size);
-  this->misc_entries_indices = MEM_new_array_uninitialized<int>(this->size, __func__);
-  std::fill_n(this->misc_entries_indices, this->size, -1);
+  this->misc_entries_indices = Array<int>(this->size, -1);
 
   this->uids.reserve(this->size * 2);
 }
@@ -833,9 +831,6 @@ FileListEntryCache::FileListEntryCache() : size(FILELIST_ENTRYCACHESIZE_DEFAULT)
 FileListEntryCache::~FileListEntryCache()
 {
   filelist_cache_previews_free(this);
-
-  MEM_delete(this->block_entries);
-  MEM_delete(this->misc_entries_indices);
 
   for (FileDirEntry &entry : this->cached_entries.items_mutable()) {
     filelist_entry_free(&entry);
@@ -849,17 +844,15 @@ void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
   cache->block_cursor = cache->block_start_index = cache->block_center_index =
       cache->block_end_index = 0;
   if (new_size != cache->size) {
-    cache->block_entries = static_cast<FileDirEntry **>(
-        MEM_realloc_uninitialized(cache->block_entries, sizeof(*cache->block_entries) * new_size));
+    cache->block_entries.reinitialize(new_size);
   }
 
   cache->misc_entries.clear();
   cache->misc_entries.reserve(new_size);
   if (new_size != cache->size) {
-    cache->misc_entries_indices = static_cast<int *>(MEM_realloc_uninitialized(
-        cache->misc_entries_indices, sizeof(*cache->misc_entries_indices) * new_size));
+    cache->misc_entries_indices.reinitialize(new_size);
   }
-  std::fill_n(cache->misc_entries_indices, new_size, -1);
+  cache->misc_entries_indices.fill(-1);
 
   cache->uids.clear();
   cache->uids.reserve(new_size * 2);
