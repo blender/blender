@@ -4,6 +4,14 @@
 
 import functools
 
+# Store reset functions for all cached functions
+_reset_functions = []
+
+
+def clear_all_caches():
+    for reset_func in _reset_functions:
+        reset_func()
+
 
 def cached_by_key(key):
     """
@@ -17,6 +25,13 @@ def cached_by_key(key):
     cache on. It is passed all the arguments to func.
     """
     def inner(func):
+
+        def reset_cache():
+            func.__cache = {}
+            func.__export_settings = None
+
+        _reset_functions.append(reset_cache)
+
         @functools.wraps(func)
         def wrapper_cached(*args, **kwargs):
             if kwargs.get("export_settings"):
@@ -87,6 +102,7 @@ def datacache(func):
         func.__cache = {}
 
     func.reset_cache = reset_all_cache
+    _reset_functions.append(reset_all_cache)
 
     @functools.wraps(func)
     def wrapper_objectcache(*args, **kwargs):
@@ -164,6 +180,7 @@ def skdriverdiscovercache(func):
         func.__skdriverdiscover = {}
 
     func.reset_cache = reset_cache_skdriverdiscovercache
+    _reset_functions.append(reset_cache_skdriverdiscovercache)
 
     @functools.wraps(func)
     def wrapper_skdriverdiscover(*args, **kwargs):
