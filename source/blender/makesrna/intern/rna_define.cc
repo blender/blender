@@ -5203,7 +5203,7 @@ static void rna_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
 
 static PropertyRNA *rna_def_property_find_py_id(ContainerRNA *cont, const char *identifier_c_str)
 {
-  const UString identifier(identifier_c_str);
+  const StringRef identifier(identifier_c_str);
   for (PropertyRNA *prop = cont->properties.first(); prop; prop = prop->next) {
     if (prop->identifier == identifier) {
       return prop;

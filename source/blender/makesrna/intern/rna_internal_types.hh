@@ -216,7 +216,7 @@ struct PropertyRNAOrID {
    */
   IDProperty *idprop;
   /** The name of the property. */
-  UString identifier;
+  StringRefNull identifier;
 
   /**
    * Whether this property is a 'pure' IDProperty or not.

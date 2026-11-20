@@ -629,7 +629,7 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
 
   if (prop->magic == RNA_MAGIC) {
     r_prop_rna_or_id->rnaprop = prop;
-    r_prop_rna_or_id->identifier = prop->identifier;
+    r_prop_rna_or_id->identifier = prop->identifier.ref();
 
     r_prop_rna_or_id->is_array = prop->getlength || prop->totarraylength;
     if (r_prop_rna_or_id->is_array) {
@@ -674,7 +674,7 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
     /* Full IDProperties are always set, if it exists. */
     r_prop_rna_or_id->is_set = (idprop_evaluated != nullptr);
 
-    r_prop_rna_or_id->identifier = UString(idprop->name);
+    r_prop_rna_or_id->identifier = idprop->name;
     r_prop_rna_or_id->rnaprop = rna_property_from_idprop_type(idprop);
     if (idprop->type == IDP_ARRAY) {
       r_prop_rna_or_id->is_array = true;
@@ -745,7 +745,7 @@ static const char *rna_ensure_property_name(const PropertyRNA *prop)
 
 StructRNA *RNA_struct_find(const char *identifier)
 {
-  return RNA_blender_rna_get().structs_map.lookup_default(UString(identifier), nullptr);
+  return RNA_blender_rna_get().structs_map.lookup_default_as(StringRef(identifier), nullptr);
 }
 
 const char *RNA_struct_identifier(const StructRNA *type)
@@ -923,7 +923,8 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
     }
   }
   else {
-    return RNA_struct_find_property(ptr, UString(identifier));
+    const std::optional<UString> identifier_ustr = UString::find(identifier);
+    return identifier_ustr ? RNA_struct_find_property(ptr, *identifier_ustr) : nullptr;
   }
 
   return nullptr;
@@ -1137,11 +1138,14 @@ PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifi
 FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier_c_str)
 {
 #if 1
-  const UString identifier(identifier_c_str);
+  const std::optional<UString> identifier = UString::find(identifier_c_str);
+  if (!identifier) {
+    return nullptr;
+  }
   for (; srna; srna = srna->base) {
     std::unique_ptr<FunctionRNA> *func = std::find_if(
         srna->functions.begin(), srna->functions.end(), [&](const auto &func) {
-          return func->identifier == identifier;
+          return func->identifier == *identifier;
         });
     if (func != srna->functions.end()) {
       return func->get();
@@ -2812,7 +2816,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
 #ifdef USE_INT_IDPROPS_FOR_BOOLEAN_RNA_PROP
       IDP_AddToGroup(
           group,
-          bke::idprop::create(prop_rna_or_id.identifier.ref(), int(value), IDP_FLAG_STATIC_TYPE)
+          bke::idprop::create(prop_rna_or_id.identifier, int(value), IDP_FLAG_STATIC_TYPE)
               .release());
 #else
       IDP_AddToGroup(
@@ -3072,7 +3076,7 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bo
       val.array.type = IDP_BOOLEAN;
 #endif
 
-      idprop = IDP_New(IDP_ARRAY, &val, prop_rna_or_id.identifier.ref(), IDP_FLAG_STATIC_TYPE);
+      idprop = IDP_New(IDP_ARRAY, &val, prop_rna_or_id.identifier, IDP_FLAG_STATIC_TYPE);
       IDP_AddToGroup(group, idprop);
 #ifdef USE_INT_IDPROPS_FOR_BOOLEAN_RNA_PROP
       int *values_dst = IDP_array_int_get(idprop);
@@ -3325,8 +3329,7 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
       RNA_property_int_clamp(ptr, iprop, &value);
       IDP_AddToGroup(
           group,
-          bke::idprop::create(prop_rna_or_id.identifier.ref(), value, IDP_FLAG_STATIC_TYPE)
-              .release());
+          bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE).release());
     }
   }
 }
@@ -3562,7 +3565,7 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
       IDP_AddToGroup(
           group,
-          bke::idprop::create(prop_rna_or_id.identifier.ref(), final_values, IDP_FLAG_STATIC_TYPE)
+          bke::idprop::create(prop_rna_or_id.identifier, final_values, IDP_FLAG_STATIC_TYPE)
               .release());
     }
   }
@@ -3788,8 +3791,7 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
       IDP_AddToGroup(
           group,
-          bke::idprop::create(prop_rna_or_id.identifier.ref(), value, IDP_FLAG_STATIC_TYPE)
-              .release());
+          bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE).release());
     }
   }
 }
@@ -4063,7 +4065,7 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
       IDP_AddToGroup(
           group,
-          bke::idprop::create(prop_rna_or_id.identifier.ref(), final_values, IDP_FLAG_STATIC_TYPE)
+          bke::idprop::create(prop_rna_or_id.identifier, final_values, IDP_FLAG_STATIC_TYPE)
               .release());
     }
   }
@@ -4378,7 +4380,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
       IDP_AddToGroup(group,
                      IDP_NewStringMaxSize(value_set.c_str(),
                                           RNA_property_string_maxlength(sprop),
-                                          prop_rna_or_id.identifier.ref(),
+                                          prop_rna_or_id.identifier,
                                           IDP_FLAG_STATIC_TYPE));
     }
   }
@@ -4420,8 +4422,8 @@ void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const cha
       val.string.str = value_set.c_str();
       val.string.len = value_set.size();
       val.string.subtype = IDP_STRING_SUB_BYTE;
-      IDP_AddToGroup(
-          group, IDP_New(IDP_STRING, &val, prop_rna_or_id.identifier.ref(), IDP_FLAG_STATIC_TYPE));
+      IDP_AddToGroup(group,
+                     IDP_New(IDP_STRING, &val, prop_rna_or_id.identifier, IDP_FLAG_STATIC_TYPE));
     }
   }
 }
@@ -4630,8 +4632,7 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
     if (IDProperty *group = RNA_struct_system_idprops(ptr, true)) {
       IDP_AddToGroup(
           group,
-          bke::idprop::create(prop_rna_or_id.identifier.ref(), value, IDP_FLAG_STATIC_TYPE)
-              .release());
+          bke::idprop::create(prop_rna_or_id.identifier, value, IDP_FLAG_STATIC_TYPE).release());
     }
   }
 }
