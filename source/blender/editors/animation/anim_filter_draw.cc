@@ -19,6 +19,7 @@
 #include "DNA_userdef_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
 #include "GPU_immediate.hh"
@@ -125,6 +126,7 @@ static AnimfilterSpaceRuntime *get_animfilter_runtime_from_context(bContext &C)
   return nullptr;
 }
 
+class ChannelTreeView;
 class ChannelItem : public ui::AbstractTreeViewItem {
   /* Keeping a reference to the short-lived AnimationChannel is fine, because the ChannelItem is
    * short-lived as well. Only specific properties are carried over between draw calls (see
@@ -223,6 +225,18 @@ class ChannelItem : public ui::AbstractTreeViewItem {
     label_ = new_name;
     return true;
   }
+
+  /* The channel row consists of a few different parts, from left to right. Not every channel type
+   * supports all of these. */
+  std::optional<const uchar4> get_row_channel_color();
+  struct SliderProperty {
+    PointerRNA ptr;
+    PropertyRNA *prop;
+    int array_index;
+  };
+  std::optional<SliderProperty> get_row_slider_property();
+  void build_row_settings(const ChannelTreeView &tree_view, ui::Layout &layout);
+  std::optional<const uchar4> get_row_parent_color();
 };
 
 class ChannelTreeView : public ui::AbstractTreeView {
@@ -483,63 +497,51 @@ static BIFIconID icon_for_channel_setting(const ChannelSettingKey key,
   return ICON_NONE;
 }
 
-void ChannelItem::build_row(ui::Layout &layout)
+std::optional<const uchar4> ChannelItem::get_row_channel_color()
 {
-  const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
-
-  /* TODO the layout creation code could move into the channel API. */
-  if (channel_.type() == AnimationChannelType::DATA) {
-    DataChannel &data_channel = static_cast<DataChannel &>(channel_);
-    switch (data_channel.source_type()) {
-      case DataChannelType::FCURVE: {
-        if (tree_view.show_channel_color_rect()) {
-          FCurve *fcurve = data_channel.get_source<FCurve>();
-          /* Drawing the FCurve color. Since we use a layout we cannot just use immediate mode to
-           * draw a simple rect. */
-          ui::Block *block = layout.block();
-          block_emboss_set(block, ui::EmbossType::Emboss);
-          ui::Button *but = uiDefBut(block,
-                                     ui::ButtonType::Roundbox,
-                                     "",
-                                     0,
-                                     0,
-                                     UI_UNIT_X / 3.0,
-                                     UI_UNIT_Y,
-                                     nullptr,
-                                     0.0,
-                                     0.0,
-                                     "");
-          const uchar4 color = get_fcurve_color(*fcurve);
-          ui::button_color_set(but, color);
-          block_emboss_set(block, ui::EmbossType::None);
-        }
-        break;
-      }
-      case DataChannelType::DRIVER:
-      case DataChannelType::GREASE_PENCIL:
-        break;
-    }
+  if (channel_.type() != AnimationChannelType::DATA) {
+    return {};
   }
 
-  layout.label(channel_.label(), icon_from_rna_pointer(channel_.source()));
-  if (tree_view.show_property_sliders() && channel_.type() == AnimationChannelType::DATA) {
-    /* TODO: there's a lot of code duplication here with the code section
-     * immediately above (fetching channel data, etc.). */
-    const DataChannel &data_channel = static_cast<DataChannel &>(channel_);
-    const PointerRNA animated_id_ptr = data_channel.tags().source_of_first_tag(
-        ChannelTagType::ANIMATED_ID);
-    if (data_channel.source_type() == DataChannelType::FCURVE && animated_id_ptr.has_data()) {
-      FCurve *fcurve = data_channel.get_source<FCurve>();
-      PointerRNA ptr;
-      PropertyRNA *prop;
-      if (RNA_path_resolve_property(&animated_id_ptr, fcurve->rna_path_parsed(), &ptr, &prop)) {
-        ui::Block *block = layout.block();
-        block_emboss_set(block, ui::EmbossType::Emboss);
-        layout.prop(&ptr, prop, fcurve->array_index, 0, UI_ITEM_NONE, "", ICON_NONE, std::nullopt);
-        block_emboss_set(block, ui::EmbossType::None);
-      }
-    }
+  DataChannel &data_channel = static_cast<DataChannel &>(channel_);
+  if (data_channel.source_type() != DataChannelType::FCURVE) {
+    /* For now, only F-Curves have a channel color. */
+    return {};
   }
+
+  FCurve *fcurve = data_channel.get_source<FCurve>();
+  return get_fcurve_color(*fcurve);
+}
+
+std::optional<ChannelItem::SliderProperty> ChannelItem::get_row_slider_property()
+{
+  if (channel_.type() != AnimationChannelType::DATA) {
+    return {};
+  }
+  const DataChannel &data_channel = static_cast<DataChannel &>(channel_);
+  if (data_channel.source_type() != DataChannelType::FCURVE) {
+    /* For now, only F-Curves have sliders. */
+    return {};
+  }
+
+  const PointerRNA animated_id_ptr = data_channel.tags().source_of_first_tag(
+      ChannelTagType::ANIMATED_ID);
+  if (!animated_id_ptr.has_data()) {
+    return {};
+  }
+
+  FCurve *fcurve = data_channel.get_source<FCurve>();
+  PointerRNA ptr;
+  PropertyRNA *prop;
+  if (!RNA_path_resolve_property(&animated_id_ptr, fcurve->rna_path_parsed(), &ptr, &prop)) {
+    return {};
+  }
+
+  return SliderProperty{ptr, prop, fcurve->array_index};
+}
+
+void ChannelItem::build_row_settings(const ChannelTreeView &tree_view, ui::Layout &layout)
+{
   const ChannelSettings &settings = channel_.channel_settings();
   for (const int setting_int : IndexRange(int(ChannelSettingKey::_MAX))) {
     const ChannelSettingKey key = ChannelSettingKey(setting_int);
@@ -570,37 +572,97 @@ void ChannelItem::build_row(ui::Layout &layout)
     button_func_pushed_state_set(
         but, [state](const ui::Button &) { return state.value == ChannelSettingValue::ON; });
   }
+}
 
-  if (channel_.type() == AnimationChannelType::DATA) {
-    DataChannel &data_channel = static_cast<DataChannel &>(channel_);
-    switch (data_channel.source_type()) {
-      case DataChannelType::FCURVE: {
-        if (tree_view.show_channel_group_color_rect()) {
-          FCurve *fcurve = data_channel.get_source<FCurve>();
-          uchar4 color(255);
-          if (get_actiongroup_color(fcurve->grp, color)) {
-            ui::Block *block = layout.block();
-            block_emboss_set(block, ui::EmbossType::Emboss);
-            ui::Button *but = uiDefBut(block,
-                                       ui::ButtonType::Roundbox,
-                                       "",
-                                       0,
-                                       0,
-                                       UI_UNIT_X / 3.0,
-                                       UI_UNIT_Y,
-                                       nullptr,
-                                       0.0,
-                                       0.0,
-                                       "");
-            ui::button_color_set(but, color);
-            block_emboss_set(block, ui::EmbossType::None);
-          }
-        }
-        break;
-      }
-      case DataChannelType::DRIVER:
-      case DataChannelType::GREASE_PENCIL:
-        break;
+std::optional<const uchar4> ChannelItem::get_row_parent_color()
+{
+  if (channel_.type() != AnimationChannelType::DATA) {
+    return {};
+  }
+
+  DataChannel &data_channel = static_cast<DataChannel &>(channel_);
+  if (data_channel.source_type() != DataChannelType::FCURVE) {
+    /* For now, only F-Curves have a parent color. */
+    return {};
+  }
+
+  FCurve *fcurve = data_channel.get_source<FCurve>();
+  uchar4 color(255);
+  if (!get_actiongroup_color(fcurve->grp, color)) {
+    return {};
+  }
+  return color;
+}
+
+void ChannelItem::build_row(ui::Layout &layout)
+{
+  const ChannelTreeView &tree_view = static_cast<ChannelTreeView &>(this->get_tree_view());
+
+  /* Draw the channel color. */
+  if (tree_view.show_channel_color_rect()) {
+    const std::optional<const uchar4> color = this->get_row_channel_color();
+    if (color) {
+      ui::Block *block = layout.block();
+      block_emboss_set(block, ui::EmbossType::Emboss);
+      ui::Button *but = uiDefBut(block,
+                                 ui::ButtonType::Roundbox,
+                                 "",
+                                 0,
+                                 0,
+                                 UI_UNIT_X / 3.0,
+                                 UI_UNIT_Y,
+                                 nullptr,
+                                 0.0,
+                                 0.0,
+                                 "");
+      ui::button_color_set(but, *color);
+      block_emboss_set(block, ui::EmbossType::None);
+    }
+  }
+
+  /* Draw the label. */
+  layout.label(channel_.label(), icon_from_rna_pointer(channel_.source()));
+
+  /* Draw the property sliders. */
+  if (tree_view.show_property_sliders()) {
+    std::optional<SliderProperty> slider_prop = get_row_slider_property();
+    if (slider_prop) {
+      ui::Block *block = layout.block();
+      block_emboss_set(block, ui::EmbossType::Emboss);
+      layout.prop(&slider_prop->ptr,
+                  slider_prop->prop,
+                  slider_prop->array_index,
+                  0,
+                  UI_ITEM_NONE,
+                  "",
+                  ICON_NONE,
+                  std::nullopt);
+      block_emboss_set(block, ui::EmbossType::None);
+    }
+  }
+
+  /* Draw the channel settings. */
+  this->build_row_settings(tree_view, layout);
+
+  /* Draw the parent color. */
+  if (tree_view.show_channel_group_color_rect()) {
+    const std::optional<const uchar4> color = this->get_row_parent_color();
+    if (color) {
+      ui::Block *block = layout.block();
+      block_emboss_set(block, ui::EmbossType::Emboss);
+      ui::Button *but = uiDefBut(block,
+                                 ui::ButtonType::Roundbox,
+                                 "",
+                                 0,
+                                 0,
+                                 UI_UNIT_X / 3.0,
+                                 UI_UNIT_Y,
+                                 nullptr,
+                                 0.0,
+                                 0.0,
+                                 "");
+      ui::button_color_set(but, *color);
+      block_emboss_set(block, ui::EmbossType::None);
     }
   }
 }
