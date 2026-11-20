@@ -143,6 +143,55 @@ void rna_freelistN(ListBase *listbase)
   listbase->first_ = listbase->last_ = nullptr;
 }
 
+static PropertyRNA *rna_property_new(const PropertyType type)
+{
+  switch (type) {
+    case PROP_BOOLEAN:
+      return MEM_new<BoolPropertyRNA>(__func__);
+    case PROP_INT:
+      return MEM_new<IntPropertyRNA>(__func__);
+    case PROP_FLOAT:
+      return MEM_new<FloatPropertyRNA>(__func__);
+    case PROP_STRING:
+      return MEM_new<StringPropertyRNA>(__func__);
+    case PROP_ENUM:
+      return MEM_new<EnumPropertyRNA>(__func__);
+    case PROP_POINTER:
+      return MEM_new<PointerPropertyRNA>(__func__);
+    case PROP_COLLECTION:
+      return MEM_new<CollectionPropertyRNA>(__func__);
+  }
+  return nullptr;
+}
+
+static void rna_property_delete(PropertyRNA *prop)
+{
+  switch (prop->type) {
+    case PROP_BOOLEAN:
+      MEM_delete(static_cast<BoolPropertyRNA *>(prop));
+      return;
+    case PROP_INT:
+      MEM_delete(static_cast<IntPropertyRNA *>(prop));
+      return;
+    case PROP_FLOAT:
+      MEM_delete(static_cast<FloatPropertyRNA *>(prop));
+      return;
+    case PROP_STRING:
+      MEM_delete(static_cast<StringPropertyRNA *>(prop));
+      return;
+    case PROP_ENUM:
+      MEM_delete(static_cast<EnumPropertyRNA *>(prop));
+      return;
+    case PROP_POINTER:
+      MEM_delete(static_cast<PointerPropertyRNA *>(prop));
+      return;
+    case PROP_COLLECTION:
+      MEM_delete(static_cast<CollectionPropertyRNA *>(prop));
+      return;
+  }
+  BLI_assert_unreachable();
+}
+
 static void rna_brna_structs_add(BlenderRNA *brna, std::unique_ptr<StructRNA> srna_ptr)
 {
   StructRNA *srna = srna_ptr.get();
@@ -677,9 +726,6 @@ void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *rna_ext)
 void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 {
 #ifdef RNA_RUNTIME
-  PropertyRNA *prop, *nextprop;
-  PropertyRNA *parm, *nextparm;
-
   if (srna->flag & STRUCT_RUNTIME) {
     if (RNA_struct_py_type_get(srna)) {
       /* NOTE: Since this is called after finalizing python/BPY in WM_exit process, it may end
@@ -694,24 +740,22 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
     }
   }
   MEM_SAFE_DELETE(srna->cont.prop_lookup_set);
-  for (prop = srna->cont.properties.first(); prop; prop = nextprop) {
-    nextprop = prop->next;
+  for (PropertyRNA &prop : srna->cont.properties.items_mutable()) {
+    RNA_def_property_free_pointers(&prop);
 
-    RNA_def_property_free_pointers(prop);
-
-    if (prop->flag_internal & PROP_INTERN_RUNTIME) {
-      rna_freelinkN(&srna->cont.properties, prop);
+    if (prop.flag_internal & PROP_INTERN_RUNTIME) {
+      rna_remlink(&srna->cont.properties, &prop);
+      rna_property_delete(&prop);
     }
   }
 
   for (const std::unique_ptr<FunctionRNA> &func : srna->functions) {
-    for (parm = func->cont.properties.first(); parm; parm = nextparm) {
-      nextparm = parm->next;
+    for (PropertyRNA &parm : func->cont.properties.items_mutable()) {
+      RNA_def_property_free_pointers(&parm);
 
-      RNA_def_property_free_pointers(parm);
-
-      if (parm->flag_internal & PROP_INTERN_RUNTIME) {
-        rna_freelinkN(&func->cont.properties, parm);
+      if (parm.flag_internal & PROP_INTERN_RUNTIME) {
+        rna_remlink(&func->cont.properties, &parm);
+        rna_property_delete(&parm);
       }
     }
 
@@ -731,9 +775,15 @@ void RNA_free(BlenderRNA *brna)
 
   for (std::unique_ptr<StructRNA> &srna : brna->structs) {
     for (std::unique_ptr<FunctionRNA> &func : srna->functions) {
-      rna_freelistN(&func->cont.properties);
+      for (PropertyRNA &parm : func->cont.properties.items_mutable()) {
+        rna_property_delete(&parm);
+      }
+      func->cont.properties.clear_no_delete();
     }
-    rna_freelistN(&srna->cont.properties);
+    for (PropertyRNA &prop : srna->cont.properties.items_mutable()) {
+      rna_property_delete(&prop);
+    }
+    srna->cont.properties.clear_no_delete();
   }
 
   MEM_delete(brna);
@@ -758,28 +808,6 @@ void RNA_free(BlenderRNA *brna)
     MEM_delete(brna);
   }
 #endif
-}
-
-static size_t rna_property_type_sizeof(PropertyType type)
-{
-  switch (type) {
-    case PROP_BOOLEAN:
-      return sizeof(BoolPropertyRNA);
-    case PROP_INT:
-      return sizeof(IntPropertyRNA);
-    case PROP_FLOAT:
-      return sizeof(FloatPropertyRNA);
-    case PROP_STRING:
-      return sizeof(StringPropertyRNA);
-    case PROP_ENUM:
-      return sizeof(EnumPropertyRNA);
-    case PROP_POINTER:
-      return sizeof(PointerPropertyRNA);
-    case PROP_COLLECTION:
-      return sizeof(CollectionPropertyRNA);
-    default:
-      return 0;
-  }
 }
 
 #ifndef RNA_RUNTIME
@@ -1221,8 +1249,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
   }
 #endif
 
-  prop = static_cast<PropertyRNA *>(
-      MEM_new_zeroed(rna_property_type_sizeof(PropertyType(type)), "PropertyRNA"));
+  prop = rna_property_new(PropertyType(type));
 
   switch (type) {
     case PROP_BOOLEAN:
@@ -5166,7 +5193,8 @@ static void rna_def_property_free(StructOrFunctionRNA *cont_, PropertyRNA *prop)
     }
 
     RNA_def_property_free_pointers(prop);
-    rna_freelinkN(&cont->properties, prop);
+    rna_remlink(&cont->properties, prop);
+    rna_property_delete(prop);
   }
   else {
     RNA_def_property_free_pointers(prop);
