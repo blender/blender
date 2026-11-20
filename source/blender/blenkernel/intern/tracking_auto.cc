@@ -18,6 +18,7 @@
 #include "BLI_task_c.hh"
 #include "BLI_threads.hh"
 #include "BLI_utildefines.hh"
+#include "BLI_vector.hh"
 
 #include "BKE_movieclip.hh"
 #include "BKE_tracking.hh"
@@ -81,14 +82,14 @@ struct AutoTrackContext {
 
   /* Frame at which tracking process started.
    * NOTE: Measured in scene time frames, */
-  int start_scene_frame;
+  int start_scene_frame = 0;
 
   /* True when tracking backwards (from higher frame number to lower frame number.) */
-  bool is_backwards;
+  bool is_backwards = false;
 
   /* Movie clips used during the tracking process. */
-  int num_clips;
-  AutoTrackClip autotrack_clips[MAX_ACCESSOR_CLIP];
+  int num_clips = 0;
+  AutoTrackClip autotrack_clips[MAX_ACCESSOR_CLIP] = {};
 
   /* Tracks for which the context has been created for.
    * This is a flat array of all tracks coming from all clips, regardless of whether track is
@@ -96,17 +97,16 @@ struct AutoTrackContext {
    * on in the scene, and request information it needs.
    *
    * Indexed by AutoTrackOptions::track_index. */
-  int num_all_tracks;
-  AutoTrackTrack *all_autotrack_tracks;
+  Vector<AutoTrackTrack> all_autotrack_tracks;
 
   /* Accessor for images of clip. Used by the autotrack context. */
-  TrackingImageAccessor *image_accessor;
+  TrackingImageAccessor *image_accessor = nullptr;
 
   /* Image buffers acquired for markers which are using keyframe pattern matching.
    * These image buffers are user-referenced and flagged as persistent so that they don't get
    * removed from the movie cache during tracking. */
-  int num_referenced_image_buffers;
-  ImBuf **referenced_image_buffers;
+  int num_referenced_image_buffers = 0;
+  ImBuf **referenced_image_buffers = nullptr;
 
   /* --------------------------------------------------------------------
    * Variant part.
@@ -116,22 +116,22 @@ struct AutoTrackContext {
   /* Auto-track context.
    *
    * NOTE: Is accessed from multiple threads at once. */
-  libmv_AutoTrack *autotrack;
+  libmv_AutoTrack *autotrack = nullptr;
 
   /* Markers from the current frame which will be tracked to the next frame upon the tracking
    * context step.
    *
    * NOTE: This array is re-used across tracking steps, which might make it appear that the array
    * is over-allocated when some tracks has failed to track. */
-  int num_autotrack_markers;
-  AutoTrackMarker *autotrack_markers;
+  int num_autotrack_markers = 0;
+  AutoTrackMarker *autotrack_markers = nullptr;
 
   /* Tracking results which are to be synchronized from the AutoTrack context to the Blender's
    * DNA to make the results visible for users. */
-  ListBaseT<AutoTrackTrackingResult> results_to_sync;
-  int synchronized_scene_frame;
+  ListBaseT<AutoTrackTrackingResult> results_to_sync = {};
+  int synchronized_scene_frame = 0;
 
-  SpinLock spin_lock;
+  SpinLock spin_lock = {};
 };
 
 /* -------------------------------------------------------------------- */
@@ -371,18 +371,17 @@ static void autotrack_context_init_tracks_for_clip(AutoTrackContext *context, in
     return;
   }
 
-  context->all_autotrack_tracks = static_cast<AutoTrackTrack *>(MEM_realloc_uninitialized(
-      context->all_autotrack_tracks,
-      (context->num_all_tracks + num_clip_tracks) * sizeof(AutoTrackTrack)));
+  context->all_autotrack_tracks.reserve(context->all_autotrack_tracks.size() + num_clip_tracks);
 
   for (MovieTrackingTrack &track : tracking_object->tracks) {
-    AutoTrackTrack *autotrack_track = &context->all_autotrack_tracks[context->num_all_tracks++];
-    autotrack_track->clip_index = clip_index;
-    autotrack_track->track = &track;
-    autotrack_track->is_trackable = autotrack_is_track_trackable(context, autotrack_track);
+    AutoTrackTrack autotrack_track{};
+    autotrack_track.clip_index = clip_index;
+    autotrack_track.track = &track;
+    autotrack_track.is_trackable = autotrack_is_track_trackable(context, &autotrack_track);
 
     tracking_configure_tracker(
-        &track, nullptr, context->is_backwards, &autotrack_track->track_region_options);
+        &track, nullptr, context->is_backwards, &autotrack_track.track_region_options);
+    context->all_autotrack_tracks.append(autotrack_track);
   }
 }
 
@@ -413,13 +412,14 @@ static void autotrack_context_init_image_accessor(AutoTrackContext *context)
     clips[i] = context->autotrack_clips[i].clip;
   }
 
+  const int num_all_tracks = int(context->all_autotrack_tracks.size());
   MovieTrackingTrack **tracks = MEM_new_array_zeroed<MovieTrackingTrack *>(
-      context->num_all_tracks, "image accessor init tracks");
-  for (int i = 0; i < context->num_all_tracks; ++i) {
+      num_all_tracks, "image accessor init tracks");
+  for (int i = 0; i < num_all_tracks; ++i) {
     tracks[i] = context->all_autotrack_tracks[i].track;
   }
 
-  context->image_accessor = tracking_image_accessor_new(clips, 1, tracks, context->num_all_tracks);
+  context->image_accessor = tracking_image_accessor_new(clips, 1, tracks, num_all_tracks);
 
   MEM_delete(tracks);
 }
@@ -428,7 +428,7 @@ static void autotrack_context_init_image_accessor(AutoTrackContext *context)
 static size_t autotrack_count_all_usable_markers(AutoTrackContext *context)
 {
   size_t num_usable_markers = 0;
-  for (int track_index = 0; track_index < context->num_all_tracks; ++track_index) {
+  for (const int track_index : context->all_autotrack_tracks.index_range()) {
     const MovieTrackingTrack *track = context->all_autotrack_tracks[track_index].track;
     for (int marker_index = 0; marker_index < track->markersnr; ++marker_index) {
       const MovieTrackingMarker &marker = track->markers[marker_index];
@@ -444,7 +444,7 @@ static size_t autotrack_count_all_usable_markers(AutoTrackContext *context)
 static int autotrack_count_trackable_markers(AutoTrackContext *context)
 {
   int num_trackable_markers = 0;
-  for (int track_index = 0; track_index < context->num_all_tracks; ++track_index) {
+  for (const int track_index : context->all_autotrack_tracks.index_range()) {
     const AutoTrackTrack *autotrack_track = &context->all_autotrack_tracks[track_index];
     if (!autotrack_track->is_trackable) {
       continue;
@@ -474,7 +474,7 @@ static void autotrack_context_init_autotrack(AutoTrackContext *context)
 
   /* Fill in markers array. */
   int num_filled_libmv_markers = 0;
-  for (int track_index = 0; track_index < context->num_all_tracks; ++track_index) {
+  for (const int track_index : context->all_autotrack_tracks.index_range()) {
     const AutoTrackTrack *autotrack_track = &context->all_autotrack_tracks[track_index];
     /*const*/ MovieTrackingTrack &track = *autotrack_track->track;
     for (int marker_index = 0; marker_index < track.markersnr; ++marker_index) {
@@ -515,7 +515,7 @@ static void autotrack_context_init_markers(AutoTrackContext *context)
 
   /* Fill in all the markers. */
   int autotrack_marker_index = 0;
-  for (int track_index = 0; track_index < context->num_all_tracks; ++track_index) {
+  for (const int track_index : context->all_autotrack_tracks.index_range()) {
     const AutoTrackTrack *autotrack_track = &context->all_autotrack_tracks[track_index];
     if (!autotrack_track->is_trackable) {
       continue;
@@ -544,7 +544,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
                                             MovieClipUser *user,
                                             const bool is_backwards)
 {
-  AutoTrackContext *context = MEM_new_zeroed<AutoTrackContext>("autotrack context");
+  AutoTrackContext *context = MEM_new<AutoTrackContext>("autotrack context");
 
   context->start_scene_frame = user->framenr;
   context->is_backwards = is_backwards;
@@ -848,7 +848,7 @@ void BKE_autotrack_context_finish(AutoTrackContext *context)
       if (plane_track.flag & PLANE_TRACK_AUTOKEY) {
         continue;
       }
-      for (int track_index = 0; track_index < context->num_all_tracks; track_index++) {
+      for (const int track_index : context->all_autotrack_tracks.index_range()) {
         const AutoTrackTrack *autotrack_track = &context->all_autotrack_tracks[track_index];
         if (!autotrack_track->is_trackable) {
           continue;
@@ -889,7 +889,6 @@ void BKE_autotrack_context_free(AutoTrackContext *context)
 
   release_keyframed_image_buffers(context);
 
-  MEM_SAFE_DELETE(context->all_autotrack_tracks);
   MEM_SAFE_DELETE(context->autotrack_markers);
 
   context->results_to_sync.free_no_destruct();
