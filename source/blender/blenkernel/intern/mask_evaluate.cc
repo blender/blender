@@ -13,11 +13,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_vector_c.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_mask_types.h"
 
@@ -193,31 +196,12 @@ float (*BKE_mask_spline_differentiate(
 /* ** feather points self-intersection collapse routine ** */
 
 struct FeatherEdgesBucket {
-  int tot_segment;
-  int (*segments)[2];
-  int alloc_segment;
+  Vector<int2> segments;
 };
 
 static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int end)
 {
-  const int alloc_delta = 256;
-
-  if (bucket->tot_segment >= bucket->alloc_segment) {
-    if (!bucket->segments) {
-      bucket->segments = MEM_new_array_zeroed<int[2]>(alloc_delta, "feather bucket segments");
-    }
-    else {
-      bucket->segments = static_cast<int (*)[2]>(MEM_realloc_uninitialized(
-          bucket->segments, (alloc_delta + bucket->tot_segment) * sizeof(*bucket->segments)));
-    }
-
-    bucket->alloc_segment += alloc_delta;
-  }
-
-  bucket->segments[bucket->tot_segment][0] = start;
-  bucket->segments[bucket->tot_segment][1] = end;
-
-  bucket->tot_segment++;
+  bucket->segments.append({start, end});
 }
 
 static void feather_bucket_check_intersect(float (*feather_points)[2],
@@ -229,9 +213,9 @@ static void feather_bucket_check_intersect(float (*feather_points)[2],
   const float *v1 = static_cast<float *>(feather_points[cur_a]);
   const float *v2 = static_cast<float *>(feather_points[cur_b]);
 
-  for (int i = 0; i < bucket->tot_segment; i++) {
-    int check_a = bucket->segments[i][0];
-    int check_b = bucket->segments[i][1];
+  for (const int2 &segment : bucket->segments) {
+    const int check_a = segment[0];
+    const int check_b = segment[1];
 
     const float *v3 = static_cast<float *>(feather_points[check_a]);
     const float *v4 = static_cast<float *>(feather_points[check_b]);
@@ -329,8 +313,6 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline,
   int buckets_per_side, tot_bucket;
   float bucket_size, bucket_scale[2];
 
-  FeatherEdgesBucket *buckets;
-
   float min[2], max[2];
   float max_delta_x = -1.0f, max_delta_y = -1.0f, max_delta;
 
@@ -404,7 +386,7 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline,
   bucket_scale[1] = 1.0f / ((max[1] - min[1]) * bucket_size);
 
   /* fill in buckets' edges */
-  buckets = MEM_new_array_zeroed<FeatherEdgesBucket>(tot_bucket, "feather buckets");
+  Array<FeatherEdgesBucket> buckets(tot_bucket);
 
   for (int i = 0; i < tot_feather_point; i++) {
     int start = i, end = i + 1;
@@ -428,7 +410,7 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline,
       FeatherEdgesBucket *end_bucket = &buckets[end_bucket_index];
       FeatherEdgesBucket *diagonal_bucket_a, *diagonal_bucket_b;
 
-      feather_bucket_get_diagonal(buckets,
+      feather_bucket_get_diagonal(buckets.data(),
                                   start_bucket_index,
                                   end_bucket_index,
                                   buckets_per_side,
@@ -463,7 +445,7 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline,
       FeatherEdgesBucket *end_bucket = &buckets[end_bucket_index];
       FeatherEdgesBucket *diagonal_bucket_a, *diagonal_bucket_b;
 
-      feather_bucket_get_diagonal(buckets,
+      feather_bucket_get_diagonal(buckets.data(),
                                   start_bucket_index,
                                   end_bucket_index,
                                   buckets_per_side,
@@ -477,15 +459,6 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline,
           feather_points, tot_feather_point, diagonal_bucket_b, cur_a, cur_b);
     }
   }
-
-  /* free buckets */
-  for (int i = 0; i < tot_bucket; i++) {
-    if (buckets[i].segments) {
-      MEM_delete(buckets[i].segments);
-    }
-  }
-
-  MEM_delete(buckets);
 
 #undef BUCKET_INDEX
 }
