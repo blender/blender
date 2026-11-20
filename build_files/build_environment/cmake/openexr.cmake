@@ -90,7 +90,7 @@ else()
   harvest_rpath_lib(external_openexr openexr/lib openexr/lib "*${SHAREDLIBEXT}*")
   # The OpenEXR module expects to be installed directly in site-packages, not in a subdir.
   harvest_rpath_python(external_openexr
-    openexr/python/OpenEXR
+    openexr/lib/python${PYTHON_SHORT_VERSION}/site-packages
     python/lib/python${PYTHON_SHORT_VERSION}/site-packages
     "*"
   )
