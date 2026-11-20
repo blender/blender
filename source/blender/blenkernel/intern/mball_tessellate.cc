@@ -111,8 +111,7 @@ struct PROCESS {
   float delta;        /* small delta for calculating normals */
   uint converge_res;  /* converge procedure resolution (more = slower) */
 
-  MetaElem **mainb;  /* array of all meta-elems. */
-  uint totelem, mem; /* number of meta-elems. */
+  Vector<MetaElem *> mainb; /* array of all meta-elems. */
 
   MetaballBVHNode metaball_bvh; /* The simplest bvh */
   Box allbb;                    /* Bounding box of all meta-elems */
@@ -125,9 +124,7 @@ struct PROCESS {
   CORNER **corners;     /* corner value hash table */
   EDGELIST **edges;     /* edge and vertex id hash table */
 
-  int (*indices)[4]; /* output indices */
-  uint totindex;     /* size of memory allocated for indices */
-  uint curindex;     /* number of currently added indices */
+  Vector<int4> indices; /* output indices */
 
   Vector<float3> co; /* surface vertices positions */
   Vector<float3> no; /* surface vertex normals */
@@ -222,7 +219,7 @@ static void build_bvh_spatial(
 
   div = allbox->min[s] + (dim[s] / 2.0f);
 
-  part = partition_mainb(process->mainb, start, end, s, div);
+  part = partition_mainb(process->mainb.data(), start, end, s, div);
 
   make_box_from_metaelem(&node->bb[0], process->mainb[start]);
   node->child[0] = nullptr;
@@ -445,19 +442,8 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
   float n[3];
 #endif
 
-  if (process->totindex == process->curindex) [[unlikely]] {
-    process->totindex = process->totindex ? (process->totindex * 2) : MBALL_ARRAY_LEN_INIT;
-    process->indices = static_cast<int (*)[4]>(
-        MEM_realloc_uninitialized(process->indices, sizeof(int[4]) * process->totindex));
-  }
-
-  int *cur = process->indices[process->curindex++];
-
   /* Treat triangles as fake quads. */
-  cur[0] = i1;
-  cur[1] = i2;
-  cur[2] = i3;
-  cur[3] = i4;
+  process->indices.append({i1, i2, i3, i4});
 
 #ifdef USE_ACCUM_NORMAL
   if (i4 == i3) {
@@ -498,9 +484,6 @@ static void freepolygonize(PROCESS *process)
   }
   if (process->centers) {
     MEM_delete(process->centers);
-  }
-  if (process->mainb) {
-    MEM_delete(process->mainb);
   }
   if (process->bvh_queue) {
     MEM_delete(process->bvh_queue);
@@ -1147,8 +1130,8 @@ static void polygonize(PROCESS *process)
 
   makecubetable();
 
-  for (uint i = 0; i < process->totelem; i++) {
-    find_first_points(process, i);
+  for (const int64_t i : process->mainb.index_range()) {
+    find_first_points(process, uint(i));
   }
 
   while (process->cubes != nullptr) {
@@ -1344,20 +1327,15 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
       copy_v3_v3(new_ml->bb->vec[6], tempmax);
 
       /* add new_ml to mainb[] */
-      if (process->totelem == process->mem) [[unlikely]] {
-        process->mem = process->mem * 2 + 10;
-        process->mainb = static_cast<MetaElem **>(
-            MEM_realloc_uninitialized(process->mainb, sizeof(MetaElem *) * process->mem));
-      }
-      process->mainb[process->totelem++] = new_ml;
+      process->mainb.append(new_ml);
     }
   }
 
   /* Compute AABB of all meta-elems. */
-  if (process->totelem > 0) {
+  if (!process->mainb.is_empty()) {
     copy_v3_v3(process->allbb.min, process->mainb[0]->bb->vec[0]);
     copy_v3_v3(process->allbb.max, process->mainb[0]->bb->vec[6]);
-    for (uint i = 1; i < process->totelem; i++) {
+    for (const int64_t i : process->mainb.index_range().drop_front(1)) {
       make_box_union(process->mainb[i]->bb, &process->allbb, &process->allbb);
     }
   }
@@ -1406,16 +1384,18 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   process.co.reserve(MBALL_ARRAY_LEN_INIT);
   process.no.reserve(MBALL_ARRAY_LEN_INIT);
+  process.indices.reserve(MBALL_ARRAY_LEN_INIT);
   process.pgn_elements = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "Metaball memarena");
 
   /* initialize all mainb (MetaElems) */
   init_meta(depsgraph, &process, scene, ob);
-  if (process.totelem == 0) {
+  if (process.mainb.is_empty()) {
     freepolygonize(&process);
     return nullptr;
   }
 
-  build_bvh_spatial(&process, &process.metaball_bvh, 0, process.totelem, &process.allbb);
+  build_bvh_spatial(
+      &process, &process.metaball_bvh, 0, uint(process.mainb.size()), &process.allbb);
 
   {
     /* Don't polygonize meta-balls with too high resolution (base meta-ball too small).
@@ -1434,7 +1414,7 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
 
   polygonize(&process);
-  if (process.curindex == 0) {
+  if (process.indices.is_empty()) {
     freepolygonize(&process);
     return nullptr;
   }
@@ -1442,20 +1422,20 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
   freepolygonize(&process);
 
   int corners_num = 0;
-  for (uint i = 0; i < process.curindex; i++) {
-    const int *indices = process.indices[i];
+  for (const int4 &indices : process.indices) {
     const int count = indices[2] != indices[3] ? 4 : 3;
     corners_num += count;
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(int(process.co.size()), 0, int(process.curindex), corners_num);
+  Mesh *mesh = BKE_mesh_new_nomain(
+      int(process.co.size()), 0, int(process.indices.size()), corners_num);
   mesh->vert_positions_for_write().copy_from(process.co);
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   int loop_offset = 0;
   for (int i = 0; i < mesh->faces_num; i++) {
-    const int *indices = process.indices[i];
+    const int4 &indices = process.indices[i];
 
     const int count = indices[2] != indices[3] ? 4 : 3;
     face_offsets[i] = loop_offset;
@@ -1469,7 +1449,6 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
     loop_offset += count;
   }
-  MEM_delete(process.indices);
 
   for (int i = 0; i < mesh->verts_num; i++) {
     normalize_v3(process.no[i]);
