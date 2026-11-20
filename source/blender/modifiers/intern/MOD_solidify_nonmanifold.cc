@@ -1943,13 +1943,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   /* Correction for adjacent one sided groups around a vert to
    * prevent edge duplicates and null faces. */
-  uint(*singularity_edges)[2] = nullptr;
-  uint totsingularity = 0;
+  Vector<uint2> singularity_edges;
   if (has_singularities) {
     has_singularities = false;
     uint i = 0;
-    uint singularity_edges_len = 1;
-    singularity_edges = MEM_new_array_uninitialized<uint[2]>(singularity_edges_len, __func__);
     for (NewEdgeRef ***new_edges = orig_edge_data_arr; i < edges_num; i++, new_edges++) {
       if (*new_edges && (do_shell || edge_adj_faces_len[i] == 1) && (**new_edges)->old_edge == i) {
         for (NewEdgeRef **l = *new_edges; *l; l++) {
@@ -1959,25 +1956,15 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             const uint v1 = (*l)->link_edge_groups[0]->new_vert;
             const uint v2 = (*l)->link_edge_groups[1]->new_vert;
             bool exists_already = false;
-            uint j = 0;
-            for (uint(*p)[2] = singularity_edges; j < totsingularity; p++, j++) {
-              if (((*p)[0] == v1 && (*p)[1] == v2) || ((*p)[0] == v2 && (*p)[1] == v1)) {
+            for (const uint2 &edge : singularity_edges) {
+              if ((edge[0] == v1 && edge[1] == v2) || (edge[0] == v2 && edge[1] == v1)) {
                 exists_already = true;
                 break;
               }
             }
             if (!exists_already) {
               has_singularities = true;
-              if (singularity_edges_len <= totsingularity) {
-                singularity_edges_len = totsingularity + 1;
-                singularity_edges = static_cast<uint(*)[2]>(MEM_realloc_uninitialized_id(
-                    singularity_edges,
-                    singularity_edges_len * sizeof(*singularity_edges),
-                    __func__));
-              }
-              singularity_edges[totsingularity][0] = v1;
-              singularity_edges[totsingularity][1] = v2;
-              totsingularity++;
+              singularity_edges.append(uint2(v1, v2));
               if (edge_adj_faces_len[i] == 1 && do_rim) {
                 new_loops_num -= 2;
                 new_faces_num--;
@@ -2066,7 +2053,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* Make edges. */
   {
     uint i = 0;
-    edge_index += totsingularity;
+    edge_index += uint(singularity_edges.size());
     for (NewEdgeRef ***new_edges = orig_edge_data_arr; i < edges_num; i++, new_edges++) {
       if (*new_edges && (do_shell || edge_adj_faces_len[i] == 1) && (**new_edges)->old_edge == i) {
         for (NewEdgeRef **l = *new_edges; *l; l++) {
@@ -2077,14 +2064,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             if (has_singularities && ((*l)->link_edge_groups[0]->is_singularity &&
                                       (*l)->link_edge_groups[1]->is_singularity))
             {
-              uint j = 0;
-              for (uint(*p)[2] = singularity_edges; j < totsingularity; p++, j++) {
-                if (((*p)[0] == v1 && (*p)[1] == v2) || ((*p)[0] == v2 && (*p)[1] == v1)) {
-                  insert = j;
+              for (const int j : singularity_edges.index_range()) {
+                const uint2 &edge = singularity_edges[j];
+                if ((edge[0] == v1 && edge[1] == v2) || (edge[0] == v2 && edge[1] == v1)) {
+                  insert = uint(j);
                   break;
                 }
               }
-              BLI_assert(insert == j);
+              BLI_assert(insert < uint(singularity_edges.size()));
             }
             else {
               edge_index++;
@@ -2120,9 +2107,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         }
       }
     }
-  }
-  if (singularity_edges) {
-    MEM_delete(singularity_edges);
   }
 
   /* DEBUG CODE FOR BUG-FIXING (can not be removed because every bug-fix needs this badly!). */
