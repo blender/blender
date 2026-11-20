@@ -1070,9 +1070,9 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   ccl_global float *denoised_pixel = buffer + pass_denoised;
 
   float4 color_value;
-  color_value.x = denoised_pixel[0];
-  color_value.y = denoised_pixel[1];
-  color_value.z = denoised_pixel[2];
+  color_value.x = max(denoised_pixel[0], 0.0f);
+  color_value.y = max(denoised_pixel[1], 0.0f);
+  color_value.z = max(denoised_pixel[2], 0.0f);
   color_value.w = num_components > 3 ? denoised_pixel[3] : 1.0f;
 
   surf2Dwrite(color_value, color_surface, x * sizeof(float4), y);
@@ -1220,9 +1220,9 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     const ccl_global float *albedo_in = buffer + render_pass_albedo;
 
     float4 albedo_value;
-    albedo_value.x = albedo_in[0] * pixel_scale;
-    albedo_value.y = albedo_in[1] * pixel_scale;
-    albedo_value.z = albedo_in[2] * pixel_scale;
+    albedo_value.x = max(albedo_in[0] * pixel_scale, 0.0f);
+    albedo_value.y = max(albedo_in[1] * pixel_scale, 0.0f);
+    albedo_value.z = max(albedo_in[2] * pixel_scale, 0.0f);
     albedo_value.w = 1.0;
 
     /* Tonemap the albedo with simple reinhard operator. */
