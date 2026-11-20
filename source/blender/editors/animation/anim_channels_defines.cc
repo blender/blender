@@ -5191,6 +5191,13 @@ float ANIM_UI_get_channel_button_width()
   return 0.8f * U.widget_unit;
 }
 
+int ANIM_UI_get_channel_index(View2D &v2d, const int view_y)
+{
+  const float channel_step = ANIM_UI_get_channel_step();
+  const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
+  return int(fabsf(view_y - first_channel) / channel_step);
+}
+
 void ANIM_channel_draw(
     bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc, size_t channel_index)
 {

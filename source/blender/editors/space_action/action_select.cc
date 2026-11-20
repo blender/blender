@@ -2181,21 +2181,12 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
 }
 
 static ed::animfilter::AnimationChannel *find_channel_under_cursor(
-    ed::animfilter::SummaryChannel &root, View2D &v2d, const int channel_y)
+    ed::animfilter::ChannelArena &arena, View2D &v2d, const int channel_y)
 {
   using namespace ed::animfilter;
-  const float channel_step = ANIM_UI_get_channel_step();
-  const float first_channel = ANIM_UI_get_first_channel_top(&v2d);
-  AnimationChannel *channel_under_cursor = nullptr;
   const bool visit_root = true;
-  foreach_expanded(root, visit_root, [&](AnimationChannel &channel, const int row_index) {
-    const float row_top = first_channel - row_index * channel_step;
-    /* TODO abort feature for foreach function. */
-    if (channel_y <= row_top && channel_y > row_top - channel_step) {
-      channel_under_cursor = &channel;
-    }
-  });
-  return channel_under_cursor;
+  const int index = ANIM_UI_get_channel_index(v2d, channel_y);
+  return get_channel_by_index(arena, visit_root, index);
 }
 
 enum class ClickSelectRange : int8_t {
@@ -2227,10 +2218,6 @@ static wmOperatorStatus handle_channel_click(ed::animfilter::ChannelArena &chann
                                              bool wait_to_deselect_others)
 {
   using namespace ed::animfilter;
-  SummaryChannel *root = channels.root();
-  if (!root) {
-    return OPERATOR_CANCELLED;
-  }
 
   if (extend) {
     /* Weird logic copied from legacy system for parity. */
@@ -2238,7 +2225,7 @@ static wmOperatorStatus handle_channel_click(ed::animfilter::ChannelArena &chann
   }
 
   AnimationChannel *channel_under_cursor = find_channel_under_cursor(
-      *root, v2d, ui::view2d_region_to_view_y(&v2d, mval.y));
+      channels, v2d, ui::view2d_region_to_view_y(&v2d, mval.y));
   if (!channel_under_cursor) {
     /* If there is no channel, there can be no key. Jump straight into deselection logic if
      * applicable. */

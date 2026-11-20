@@ -1234,6 +1234,13 @@ using ForEachChannelCallback = FunctionRef<void(AnimationChannel &channel)>;
 int foreach_expanded(AnimationChannel &root,
                      bool visit_root,
                      ForEachChannelIndexCallback callback);
+/**
+ * Does a linear depth first search through the tree starting at either the root or its children
+ * depending on `visit_root`. Only counts visible channels, i.e. under expanded parents.
+ *
+ * \returns the channel with the given `search_index` or nullptr if that index does not exist.
+ */
+AnimationChannel *get_channel_by_index(ChannelArena &arena, bool visit_root, int search_index);
 
 struct AnimfilterSpaceRuntime {
   /* Store the UI states of channels so it is remembered across recreations of

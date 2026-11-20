@@ -4564,6 +4564,55 @@ void foreach_channel(SummaryChannel &root, const ForEachChannelCallback callback
   foreach_channel_recursive(root, callback);
 }
 
+static AnimationChannel *get_channel_by_index_recursive(AnimationChannel &channel,
+                                                        int &current_index,
+                                                        const int search_index)
+{
+  if (current_index == search_index) {
+    return &channel;
+  }
+  current_index++;
+  if (channel.type() != AnimationChannelType::SUMMARY) {
+    return nullptr;
+  }
+
+  SummaryChannel &summary = static_cast<SummaryChannel &>(channel);
+  if (summary.is_collapsed()) {
+    return nullptr;
+  }
+  AnimationChannel *result = nullptr;
+  for (AnimationChannel *child : summary.children()) {
+    result = get_channel_by_index_recursive(*child, current_index, search_index);
+    if (result) {
+      break;
+    }
+  }
+  return result;
+}
+
+AnimationChannel *get_channel_by_index(ChannelArena &arena,
+                                       const bool visit_root,
+                                       const int search_index)
+{
+  if (search_index < 0 || !arena.root()) {
+    return nullptr;
+  }
+  int current_index = 0;
+  AnimationChannel *channel;
+  if (visit_root) {
+    channel = get_channel_by_index_recursive(*arena.root(), current_index, search_index);
+  }
+  else {
+    for (AnimationChannel *child : arena.root()->children()) {
+      channel = get_channel_by_index_recursive(*child, current_index, search_index);
+      if (channel) {
+        break;
+      }
+    }
+  }
+  return channel;
+}
+
 void sync_dopesheet(const bDopeSheet &from, bDopeSheet &to)
 {
   /* This does a straight copy of the flags. If it should turn out that some editors should not

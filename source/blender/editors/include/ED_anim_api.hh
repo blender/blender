@@ -774,6 +774,11 @@ float ANIM_UI_get_channel_step();
 float ANIM_UI_get_channels_total_height(View2D *v2d, int item_count);
 float ANIM_UI_get_channel_name_width();
 float ANIM_UI_get_channel_button_width();
+/**
+ * Returns the index of the channel at the given `view_y`.
+ * \param view_y has to be in view coordinates. See ui::view2d_region_to_view_y.
+ */
+int ANIM_UI_get_channel_index(View2D &v2d, const int view_y);
 
 /** \} */
 
