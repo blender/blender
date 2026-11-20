@@ -11,6 +11,7 @@
 #include "BLI_ghash.hh"
 #include "BLI_rand_c.hh"
 #include "BLI_set.hh"
+#include "BLI_set_algorithms.hh"
 #include "BLI_timeit.hh"
 #include "BLI_vector.hh"
 
@@ -719,6 +720,37 @@ TEST(set, AddOverwrite)
   EXPECT_TRUE(set.add_overwrite(key));
   EXPECT_EQ(set.size(), 2);
   EXPECT_EQ(set.lookup_key(key).data, "d");
+}
+
+TEST(set, set_intersect)
+{
+  Set<int> set_a = {1, 2, 3, 4, 5, 6};
+  const Set<int> set_b = {2, 3, 5, 7, 11, 13};
+
+  const Set<int> actual_intersection = set::intersect(set_a, set_b);
+  const Set<int> expect_intersection = {2, 3, 5};
+  EXPECT_EQ(expect_intersection, actual_intersection);
+}
+
+TEST(set, set_intersect_inplace)
+{
+  Set<int> set_a = {1, 2, 3, 4, 5, 6};
+  const Set<int> set_b = {2, 3, 5, 7, 11, 13};
+
+  set::intersect_inplace(set_a, set_b);
+  const Set<int> expect_intersection = {2, 3, 5};
+  EXPECT_EQ(expect_intersection, set_a);
+}
+TEST(set, set_intersect_inplace_alternative)
+{
+  /* Check the alternative implementation, when set_a is significantly larger than set b. */
+  Set<int> set_a = {0,  1,  2,  3,  4,  5,  6,  8,  9,  10, 12, 13,
+                    14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
+  const Set<int> set_b = {2, 3, 5, 7, 11, 13};
+
+  set::intersect_inplace(set_a, set_b);
+  const Set<int> expect_intersection = {2, 3, 5, 13};
+  EXPECT_EQ(expect_intersection, set_a);
 }
 
 /**
