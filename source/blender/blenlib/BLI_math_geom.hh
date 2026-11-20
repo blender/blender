@@ -412,6 +412,21 @@ inline void interp_weights_poly(MutableSpan<float> r_weights, Span<float2> verts
       co);
 }
 
+/**
+ * 3D version of #interp_weights_poly above, for planar polygons in 3D space.
+ */
+inline void interp_weights_poly(MutableSpan<float> r_weights, Span<float3> verts, const float3 &co)
+{
+  BLI_assert(r_weights.size() == verts.size());
+  interp_weights_poly_v3(
+      r_weights.data(),
+      /* Cast needed because the C API takes a non-const pointer
+       * to a 3D float array; the values are read-only here. */
+      const_cast<float (*)[3]>(reinterpret_cast<const float (*)[3]>(verts.data())),
+      int(verts.size()),
+      co);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

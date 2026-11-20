@@ -365,48 +365,38 @@ static int mesh_remap_interp_face_data_get(const IndexRange face,
                                            const Span<int> corner_verts,
                                            const Span<float3> positions_src,
                                            const float point[3],
-                                           size_t *buff_size,
-                                           float (**vcos)[3],
+                                           Vector<float3> &vcos,
                                            const bool use_loops,
-                                           int **indices,
-                                           float **weights,
+                                           Vector<int> &indices,
+                                           Vector<float> &weights,
                                            const bool do_weights,
                                            int *r_closest_index)
 {
-  float (*vco)[3];
   float ref_dist_sq = FLT_MAX;
-  int *index;
   const int sources_num = int(face.size());
-  int i;
 
-  if (size_t(sources_num) > *buff_size) {
-    *buff_size = size_t(sources_num);
-    *vcos = static_cast<float (*)[3]>(
-        MEM_realloc_uninitialized(*vcos, sizeof(**vcos) * *buff_size));
-    *indices = static_cast<int *>(
-        MEM_realloc_uninitialized(*indices, sizeof(**indices) * *buff_size));
-    if (do_weights) {
-      *weights = static_cast<float *>(
-          MEM_realloc_uninitialized(*weights, sizeof(**weights) * *buff_size));
-    }
+  vcos.resize(sources_num);
+  indices.resize(sources_num);
+  if (do_weights) {
+    weights.resize(sources_num);
   }
 
-  for (i = 0, vco = *vcos, index = *indices; i < sources_num; i++, vco++, index++) {
+  for (const int64_t i : face.index_range()) {
     const int vert = corner_verts[face[i]];
-    *index = use_loops ? int(face[i]) : vert;
-    copy_v3_v3(*vco, positions_src[vert]);
+    indices[i] = use_loops ? int(face[i]) : vert;
+    vcos[i] = positions_src[vert];
     if (r_closest_index) {
       /* Find closest vert/loop in this case. */
-      const float dist_sq = len_squared_v3v3(point, *vco);
+      const float dist_sq = len_squared_v3v3(point, vcos[i]);
       if (dist_sq < ref_dist_sq) {
         ref_dist_sq = dist_sq;
-        *r_closest_index = *index;
+        *r_closest_index = indices[i];
       }
     }
   }
 
   if (do_weights) {
-    interp_weights_poly_v3(*weights, *vcos, sources_num, point);
+    math::interp_weights_poly(weights, vcos, float3(point));
   }
 
   return sources_num;
@@ -561,10 +551,9 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       const Span<float3> vert_normals_dst = me_dst->vert_normals();
       const Span<int> tri_faces = me_src->corner_tri_faces();
 
-      size_t tmp_buff_size = MREMAP_DEFAULT_BUFSIZE;
-      float (*vcos)[3] = MEM_new_array_uninitialized<float[3]>(tmp_buff_size, __func__);
-      int *indices = MEM_new_array_uninitialized<int>(tmp_buff_size, __func__);
-      float *weights = MEM_new_array_uninitialized<float>(tmp_buff_size, __func__);
+      Vector<float3> vcos;
+      Vector<int> indices;
+      Vector<float> weights;
 
       treedata = me_src->bvh_corner_tris();
 
@@ -587,15 +576,15 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
                                                                     corner_verts_src,
                                                                     positions_src,
                                                                     rayhit.co,
-                                                                    &tmp_buff_size,
-                                                                    &vcos,
+                                                                    vcos,
                                                                     false,
-                                                                    &indices,
-                                                                    &weights,
+                                                                    indices,
+                                                                    weights,
                                                                     true,
                                                                     nullptr);
 
-            mesh_remap_item_define(r_map, i, hit_dist, 0, sources_num, indices, weights);
+            mesh_remap_item_define(
+                r_map, i, hit_dist, 0, sources_num, indices.data(), weights.data());
           }
           else {
             /* No source for this dest vertex! */
@@ -625,11 +614,10 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
                                               corner_verts_src,
                                               positions_src,
                                               nearest.co,
-                                              &tmp_buff_size,
-                                              &vcos,
+                                              vcos,
                                               false,
-                                              &indices,
-                                              &weights,
+                                              indices,
+                                              weights,
                                               false,
                                               &index);
 
@@ -640,15 +628,15 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
                                                                       corner_verts_src,
                                                                       positions_src,
                                                                       nearest.co,
-                                                                      &tmp_buff_size,
-                                                                      &vcos,
+                                                                      vcos,
                                                                       false,
-                                                                      &indices,
-                                                                      &weights,
+                                                                      indices,
+                                                                      weights,
                                                                       true,
                                                                       nullptr);
 
-              mesh_remap_item_define(r_map, i, hit_dist, 0, sources_num, indices, weights);
+              mesh_remap_item_define(
+                  r_map, i, hit_dist, 0, sources_num, indices.data(), weights.data());
             }
           }
           else {
@@ -657,10 +645,6 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
           }
         }
       }
-
-      MEM_delete(vcos);
-      MEM_delete(indices);
-      MEM_delete(weights);
     }
     else {
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh vertex mapping mode (%d)!", mode);
@@ -1275,21 +1259,14 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     Span<int3> corner_tris_src;
     Span<int> tri_faces_src;
 
-    size_t buff_size_interp = MREMAP_DEFAULT_BUFSIZE;
-    float (*vcos_interp)[3] = nullptr;
-    int *indices_interp = nullptr;
-    float *weights_interp = nullptr;
+    Vector<float3> vcos_interp;
+    Vector<int> indices_interp;
+    Vector<float> weights_interp;
 
     int tindex, pidx_dst, lidx_dst, plidx_dst, pidx_src, lidx_src, plidx_src;
 
     IslandResult **islands_res;
     size_t islands_res_buff_size = MREMAP_DEFAULT_BUFSIZE;
-
-    if (!use_from_vert) {
-      vcos_interp = MEM_new_array_uninitialized<float[3]>(buff_size_interp, __func__);
-      indices_interp = MEM_new_array_uninitialized<int>(buff_size_interp, __func__);
-      weights_interp = MEM_new_array_uninitialized<float>(buff_size_interp, __func__);
-    }
 
     {
       const bool need_lnors_src = (mode & MREMAP_USE_LOOP) && (mode & MREMAP_USE_NORMAL);
@@ -1918,11 +1895,10 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                                 corner_verts_src,
                                                 positions_src,
                                                 hit_co,
-                                                &buff_size_interp,
-                                                &vcos_interp,
+                                                vcos_interp,
                                                 true,
-                                                &indices_interp,
-                                                &weights_interp,
+                                                indices_interp,
+                                                weights_interp,
                                                 false,
                                                 &best_loop_index_src);
 
@@ -1939,11 +1915,10 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                                                         corner_verts_src,
                                                                         positions_src,
                                                                         hit_co,
-                                                                        &buff_size_interp,
-                                                                        &vcos_interp,
+                                                                        vcos_interp,
                                                                         true,
-                                                                        &indices_interp,
-                                                                        &weights_interp,
+                                                                        indices_interp,
+                                                                        weights_interp,
                                                                         true,
                                                                         nullptr);
 
@@ -1952,8 +1927,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                        isld_res->hit_dist,
                                        best_island_index,
                                        sources_num,
-                                       indices_interp,
-                                       weights_interp);
+                                       indices_interp.data(),
+                                       weights_interp.data());
               }
 
               pidx_src_prev = pidx_src;
@@ -1990,15 +1965,6 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
     if (face_to_corner_tri_map_src_buff) {
       MEM_delete(face_to_corner_tri_map_src_buff);
-    }
-    if (vcos_interp) {
-      MEM_delete(vcos_interp);
-    }
-    if (indices_interp) {
-      MEM_delete(indices_interp);
-    }
-    if (weights_interp) {
-      MEM_delete(weights_interp);
     }
   }
 }
