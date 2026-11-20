@@ -26,6 +26,13 @@ set(OPENSUBDIV_EXTRA_ARGS
   -DCMAKE_DEBUG_POSTFIX=_d
 )
 
+if(NOT WIN32)
+  set(OPENSUBDIV_PATCH
+    sed -e "/install( TARGETS osd_static_[cg]pu/s/^/#DONOTINSTALL /g" -i.bak
+      ${BUILD_DIR}/opensubdiv/src/external_opensubdiv/opensubdiv/CMakeLists.txt
+  )
+endif()
+
 ExternalProject_Add(external_opensubdiv
   URL file://${PACKAGE_DIR}/${OPENSUBDIV_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -39,6 +46,7 @@ ExternalProject_Add(external_opensubdiv
     ${DEFAULT_CMAKE_FLAGS}
     ${OPENSUBDIV_EXTRA_ARGS}
 
+  PATCH_COMMAND ${OPENSUBDIV_PATCH}
   INSTALL_DIR ${LIBDIR}/opensubdiv
 )
 
@@ -65,7 +73,13 @@ if(WIN32)
   endif()
 else()
   harvest(external_opensubdiv opensubdiv/include opensubdiv/include "*.h")
+  if(APPLE)
+    harvest(external_opensubdiv opensubdiv/lib/OpenSubdiv_static.framework opensubdiv/lib/OpenSubdiv_static.framework "*")
+    harvest(external_opensubdiv opensubdiv/lib/OpenSubdiv.framework opensubdiv/lib/OpenSubdiv.framework "*")
+  endif()
+  harvest(external_opensubdiv opensubdiv/lib/cmake/OpenSubdiv opensubdiv/lib/cmake/opensubdiv "*.cmake")
   harvest_rpath_lib(external_opensubdiv opensubdiv/lib opensubdiv/lib "*${SHAREDLIBEXT}*")
+  
 endif()
 
 add_dependencies(

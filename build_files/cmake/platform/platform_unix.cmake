@@ -423,6 +423,12 @@ if(WITH_ALEMBIC)
   set_and_warn_library_found("Alembic" ALEMBIC_FOUND WITH_ALEMBIC)
 endif()
 
+if(WITH_OPENSUBDIV)
+  find_package(OpenSubdiv)
+  set_and_warn_library_found("OpenSubdiv" OpenSubdiv_FOUND WITH_OPENSUBDIV)
+endif()
+add_bundled_libraries(opensubdiv/lib)
+
 if(WITH_USD)
   find_package_wrapper(USD)
   set_and_warn_library_found("USD" USD_FOUND WITH_USD)
@@ -487,15 +493,6 @@ if(WITH_LLVM)
     endif()
   endif()
 endif()
-
-if(WITH_OPENSUBDIV)
-  find_package(OpenSubdiv)
-
-  set(OPENSUBDIV_LIBPATH "")  # TODO, remove and reference the absolute path everywhere
-
-  set_and_warn_library_found("OpenSubdiv" OPENSUBDIV_FOUND WITH_OPENSUBDIV)
-endif()
-add_bundled_libraries(opensubdiv/lib)
 
 if(WITH_TBB OR WITH_TBB_MALLOC_PROXY)
   # find_package_wrapper(TBB 2021.13.0)
@@ -1157,7 +1154,7 @@ if(PLATFORM_BUNDLED_LIBRARIES)
   # rpath to the lib folder. This is needed because these can be in different folders,
   # and because the build and install folder may be different.
   set(CMAKE_SKIP_BUILD_RPATH FALSE)
-  list(APPEND CMAKE_BUILD_RPATH $ORIGIN/lib ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib)
+  list(APPEND CMAKE_BUILD_RPATH $ORIGIN/lib ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib ${PLATFORM_BUNDLED_LIBRARY_DIRS})
 
   # Environment variables to run precompiled executables that needed libraries.
   list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
