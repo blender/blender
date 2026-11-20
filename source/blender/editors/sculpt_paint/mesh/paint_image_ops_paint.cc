@@ -567,8 +567,7 @@ bool ExperimentalTexturePaintStroke::test_start(wmOperator *op, float2 mouse)
 
   mode_data_ = std::move(texture_paint_data);
 
-  if (this->brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW)
-  {
+  if (this->brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
     BKE_curvemapping_init(this->brush->curve_rand_hue);
     BKE_curvemapping_init(this->brush->curve_rand_saturation);
     BKE_curvemapping_init(this->brush->curve_rand_value);
