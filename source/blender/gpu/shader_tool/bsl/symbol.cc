@@ -1028,7 +1028,16 @@ struct SymbolParser : NodeErrorHandler {
        * instantiation. */
       SymbolFunction *fn = &table.fun_arena.alloc(scope, *table.err_cls, fn_decl);
       fn->is_complete = false;
-      fn = scope.functions.emplace(fn).first;
+
+      auto [existing, inserted] = scope.functions.emplace(fn);
+      if (!inserted && existing->is_method() && scope.as_class() != existing->parent_class()) {
+        /* Hide inherited base class method instead of attaching the template to it. */
+        scope.functions.insert_override(fn);
+      }
+      else {
+        fn = existing;
+      }
+
       if (fn->template_data) {
         error(fn_decl.identifier(), Diag::RedefinitionTemplate, fn_decl.identifier().str());
       }
