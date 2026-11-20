@@ -8,6 +8,10 @@
  * \ingroup bli
  */
 
+#include "BLI_assert.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
+
 namespace blender {
 
 struct MemArena;
@@ -39,6 +43,22 @@ void BLI_polyfill_calc(const float (*coords)[2],
                        unsigned int coords_num,
                        int coords_sign,
                        unsigned int (*r_tris)[3]);
+
+/**
+ * C++ version of #BLI_polyfill_calc above.
+ *
+ * \param r_tris: Must have a size of `coords.size() - 2`.
+ */
+inline void BLI_polyfill_calc(const Span<float2> coords,
+                              const int coords_sign,
+                              MutableSpan<uint3> r_tris)
+{
+  BLI_assert(r_tris.size() == coords.size() - 2);
+  BLI_polyfill_calc(reinterpret_cast<const float (*)[2]>(coords.data()),
+                    uint(coords.size()),
+                    coords_sign,
+                    reinterpret_cast<uint(*)[3]>(r_tris.data()));
+}
 
 /* default size of polyfill arena */
 #define BLI_POLYFILL_ARENA_SIZE MEM_SIZE_OPTIMAL(1 << 14)

@@ -325,11 +325,8 @@ static void calc_corner_tris(const Span<float3> positions,
         for (const int i : ngons.index_range()) {
           const Span<float2> positions_2d = projected_positions.slice(local_corner_offsets[i]);
           const IndexRange tris_range = tris_by_ngon[pos + i];
-          MutableSpan<int> map = corner_tris.slice(tris_range).cast<int>();
-          BLI_polyfill_calc(reinterpret_cast<const float (*)[2]>(positions_2d.data()),
-                            positions_2d.size(),
-                            1,
-                            reinterpret_cast<uint(*)[3]>(map.data()));
+          MutableSpan<uint3> map = corner_tris.slice(tris_range).cast<uint3>();
+          BLI_polyfill_calc(positions_2d, 1, map);
           if (ngon_mode == TriangulateNGonMode::Beauty) {
             BLI_polyfill_beautify(reinterpret_cast<const float (*)[2]>(positions_2d.data()),
                                   positions_2d.size(),

@@ -491,10 +491,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
   /* Get the triangulation for the front/back poly. */
   const int face_tris_num = bke::mesh::face_triangles_num(screen_points.size());
   Array<uint3> tris(face_tris_num);
-  BLI_polyfill_calc(reinterpret_cast<const float (*)[2]>(screen_points.data()),
-                    screen_points.size(),
-                    0,
-                    reinterpret_cast<uint(*)[3]>(tris.data()));
+  BLI_polyfill_calc(screen_points, 0, tris);
 
   /* Write the front face triangle indices. */
   MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
