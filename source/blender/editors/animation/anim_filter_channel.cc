@@ -864,6 +864,14 @@ bool AnimationChannel::source_is_type(const StructRNA *rna_type) const
   return this->source_.has_data() && this->source_.type == rna_type;
 }
 
+bool AnimationChannel::is_source_editable() const
+{
+  if (!this->source_) {
+    return false;
+  }
+  return ID_IS_EDITABLE(this->source_.owner_id);
+}
+
 void AnimationChannel::source_set(PointerRNA &&source_ptr)
 {
   BLI_assert_msg(

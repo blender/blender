@@ -1106,8 +1106,7 @@ static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
     if (!active_chan || !active_chan->source_is_type(RNA_FCurve)) {
       return CTX_RESULT_NO_DATA;
     }
-    /* TODO: should we move this into a method AnimationChannel::is_source_editable() ? */
-    if (!ID_IS_EDITABLE(active_chan->source().owner_id)) {
+    if (!active_chan->is_source_editable()) {
       return CTX_RESULT_NO_DATA;
     }
     CTX_data_pointer_set_ptr(result, active_chan->source_ptr());

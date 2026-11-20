@@ -599,6 +599,7 @@ class AnimationChannel {
   bool source_is_id() const;
   ID_Type source_id_type() const;
   bool source_is_type(const StructRNA *rna_type) const;
+  bool is_source_editable() const;
 
   /**
    * Return the icon for the channel's animated property.
@@ -639,6 +640,7 @@ class AnimationChannel {
   {
     return this->source_rna_path_;
   }
+
   /**
    * Returns the RNA path used to sort this channel
    *
