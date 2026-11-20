@@ -18,6 +18,7 @@
 #include "BLI_astar.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_math_geom.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_solvers.hh"
@@ -28,6 +29,7 @@
 #include "BLI_polyfill_2d.hh"
 #include "BLI_rand_c.hh"
 #include "BLI_utildefines.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_modifier_enums.h"
 
@@ -2100,10 +2102,9 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
       int *indices = MEM_new_array_uninitialized<int>(numfaces_src, __func__);
       float *weights = MEM_new_array_uninitialized<float>(numfaces_src, __func__);
 
-      size_t tmp_face_size = MREMAP_DEFAULT_BUFSIZE;
-      float (*face_vcos_2d)[2] = MEM_new_array_uninitialized<float[2]>(tmp_face_size, __func__);
+      Vector<float2, MREMAP_DEFAULT_BUFSIZE> face_vcos_2d;
       /* Tessellated 2D face, always (num_loops - 2) triangles. */
-      int (*tri_vidx_2d)[3] = MEM_new_array_uninitialized<int[3]>(tmp_face_size - 2, __func__);
+      Vector<uint3, MREMAP_DEFAULT_BUFSIZE> tri_vidx_2d;
 
       for (const int64_t i : faces_dst.index_range()) {
         /* For each dst face, we sample some rays from it (2D grid in pnor space)
@@ -2137,13 +2138,8 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
 
         std::fill_n(weights, int(numfaces_src), 0.0f);
 
-        if (size_t(face.size()) > tmp_face_size) [[unlikely]] {
-          tmp_face_size = size_t(face.size());
-          face_vcos_2d = static_cast<float (*)[2]>(
-              MEM_realloc_uninitialized(face_vcos_2d, sizeof(*face_vcos_2d) * tmp_face_size));
-          tri_vidx_2d = static_cast<int (*)[3]>(
-              MEM_realloc_uninitialized(tri_vidx_2d, sizeof(*tri_vidx_2d) * (tmp_face_size - 2)));
-        }
+        face_vcos_2d.resize(face.size());
+        tri_vidx_2d.resize(tris_num);
 
         axis_dominant_v3_to_m3(to_pnor_2d_mat, tmp_no);
         invert_m3_m3(from_pnor_2d_mat, to_pnor_2d_mat);
@@ -2178,33 +2174,26 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
         }
         tot_rays *= tot_rays;
 
-        face_area_2d_inv = area_poly_v2(face_vcos_2d, uint(face.size()));
+        face_area_2d_inv = math::area_poly(face_vcos_2d);
         /* In case we have a null-area degenerated face... */
         face_area_2d_inv = 1.0f / max_ff(face_area_2d_inv, 1e-9f);
 
         /* Tessellate our face. */
         if (face.size() == 3) {
-          tri_vidx_2d[0][0] = 0;
-          tri_vidx_2d[0][1] = 1;
-          tri_vidx_2d[0][2] = 2;
+          tri_vidx_2d[0] = uint3(0, 1, 2);
         }
         if (face.size() == 4) {
-          tri_vidx_2d[0][0] = 0;
-          tri_vidx_2d[0][1] = 1;
-          tri_vidx_2d[0][2] = 2;
-          tri_vidx_2d[1][0] = 0;
-          tri_vidx_2d[1][1] = 2;
-          tri_vidx_2d[1][2] = 3;
+          tri_vidx_2d[0] = uint3(0, 1, 2);
+          tri_vidx_2d[1] = uint3(0, 2, 3);
         }
         else {
-          BLI_polyfill_calc(
-              face_vcos_2d, uint(face.size()), -1, reinterpret_cast<uint(*)[3]>(tri_vidx_2d));
+          BLI_polyfill_calc(face_vcos_2d, -1, tri_vidx_2d);
         }
 
         for (j = 0; j < tris_num; j++) {
-          float *v1 = face_vcos_2d[tri_vidx_2d[j][0]];
-          float *v2 = face_vcos_2d[tri_vidx_2d[j][1]];
-          float *v3 = face_vcos_2d[tri_vidx_2d[j][2]];
+          const float2 &v1 = face_vcos_2d[tri_vidx_2d[j][0]];
+          const float2 &v2 = face_vcos_2d[tri_vidx_2d[j][1]];
+          const float2 &v3 = face_vcos_2d[tri_vidx_2d[j][2]];
           int rays_num;
 
           /* All this allows us to get 'absolute' number of rays for each tri,
@@ -2259,8 +2248,6 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
         }
       }
 
-      MEM_delete(tri_vidx_2d);
-      MEM_delete(face_vcos_2d);
       MEM_delete(indices);
       MEM_delete(weights);
       BLI_rng_free(rng);
