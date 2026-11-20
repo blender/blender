@@ -4278,10 +4278,10 @@ static wmOperatorStatus sequencer_change_scene_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
-  Scene *scene_seq = static_cast<Scene *>(
+  Scene *new_strip_scene = static_cast<Scene *>(
       BLI_findlink(&bmain->scenes, RNA_enum_get(op->ptr, "scene")));
 
-  if (scene_seq == nullptr) {
+  if (new_strip_scene == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Scene not found");
     return OPERATOR_CANCELLED;
   }
@@ -4289,7 +4289,12 @@ static wmOperatorStatus sequencer_change_scene_exec(bContext *C, wmOperator *op)
   /* Assign new scene. */
   Strip *strip = seq::select_active_get(scene);
   if (strip) {
-    strip->scene = scene_seq;
+    if (strip->scene != new_strip_scene) {
+      strip->scene = new_strip_scene;
+      MEM_SAFE_DELETE(strip->scene_view_layer_name);
+      const ViewLayer *view_layer = BKE_view_layer_default_render(new_strip_scene);
+      strip->scene_view_layer_name = BLI_strdup(view_layer->name);
+    }
     /* Do a refresh of the sequencer data. */
     seq::relations_invalidate_cache_raw(scene, strip);
     DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
