@@ -78,8 +78,8 @@
 #include "eevee_nodetree_vert_lib.bsl.hh"            /* IWYU pragma: export */
 #include "eevee_occupancy_convert.bsl.hh"            /* IWYU pragma: export */
 #include "eevee_occupancy_lib.bsl.hh"                /* IWYU pragma: export */
-#include "eevee_octahedron_lib.bsl.hh"               /* IWYU pragma: export */
 #include "eevee_pipeline.bsl.hh"                     /* IWYU pragma: export */
+#include "eevee_ray_data_lib.bsl.hh"                 /* IWYU pragma: export */
 #include "eevee_ray_denoise.bsl.hh"                  /* IWYU pragma: export */
 #include "eevee_ray_generate.bsl.hh"                 /* IWYU pragma: export */
 #include "eevee_ray_tile.bsl.hh"                     /* IWYU pragma: export */

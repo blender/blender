@@ -7,9 +7,9 @@
 #include "draw_math_geom.bsl.hh"
 #include "eevee_defines.hh"
 #include "eevee_lightprobe_shared.hh"
-#include "eevee_octahedron_lib.bsl.hh"
 #include "gpu_shader_math_base.bsl.hh"
 #include "gpu_shader_math_fast.bsl.hh"
+#include "gpu_shader_math_octahedral.bsl.hh"
 #include "gpu_shader_math_spherical_harmonics.bsl.hh"
 
 namespace eevee {

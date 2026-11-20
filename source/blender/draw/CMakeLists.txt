@@ -463,7 +463,6 @@ set(SHADER_SRC_EEVEE
   engines/eevee/shaders/eevee_nodetree_vert_lib.bsl.hh
   engines/eevee/shaders/eevee_occupancy_convert.bsl.hh
   engines/eevee/shaders/eevee_occupancy_lib.bsl.hh
-  engines/eevee/shaders/eevee_octahedron_lib.bsl.hh
   engines/eevee/shaders/eevee_pipeline.bsl.hh
   engines/eevee/shaders/eevee_ray_data_lib.bsl.hh
   engines/eevee/shaders/eevee_ray_denoise.bsl.hh
