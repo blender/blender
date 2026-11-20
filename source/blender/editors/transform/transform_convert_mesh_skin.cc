@@ -51,11 +51,11 @@ static SkinTransformData &create_transform_custom_data(TransCustomData &custom_d
   return *transform_data;
 }
 
-static float *mesh_skin_transdata_center(const TransIslandData *island_data,
-                                         const int island_index,
-                                         BMVert *eve)
+static const float *mesh_skin_transdata_center(const TransIslandData *island_data,
+                                               const int island_index,
+                                               BMVert *eve)
 {
-  if (island_data->center && island_index != -1) {
+  if (!island_data->center.is_empty() && island_index != -1) {
     return island_data->center[island_index];
   }
   return eve->co;
@@ -97,7 +97,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
     int a;
     const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
 
-    TransIslandData island_data = {nullptr};
+    TransIslandData island_data;
     TransMirrorData mirror_data = {nullptr};
     TransMeshDataCrazySpace crazyspace_data = {nullptr};
 

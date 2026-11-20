@@ -742,7 +742,7 @@ void transform_convert_mesh_islands_calc(EditMesh *em,
                                          const bool calc_island_axismtx,
                                          TransIslandData *r_island_data)
 {
-  TransIslandData data = {nullptr};
+  TransIslandData data;
 
   char htype;
   char itype;
@@ -784,11 +784,11 @@ void transform_convert_mesh_islands_calc(EditMesh *em,
 
     BLI_assert(data.island_tot);
     if (calc_island_center) {
-      data.center = MEM_new_array_uninitialized<float[3]>(data.island_tot, __func__);
+      data.center.resize(data.island_tot);
     }
 
     if (calc_island_axismtx) {
-      data.axismtx = MEM_new_array_uninitialized<float[3][3]>(data.island_tot, __func__);
+      data.axismtx.resize(data.island_tot);
     }
 
     BM_mesh_elem_table_ensure(bm, htype);
@@ -821,13 +821,13 @@ void transform_convert_mesh_islands_calc(EditMesh *em,
       for (j = 0; j < fg_len; j++) {
         ese.ele = static_cast<BMElem *>(ele_array[groups_array[fg_sta + j]]);
 
-        if (data.center) {
+        if (!data.center.is_empty()) {
           float tmp_co[3];
           BM_editselection_center(&ese, tmp_co);
           add_v3_v3(co, tmp_co);
         }
 
-        if (data.axismtx) {
+        if (!data.axismtx.is_empty()) {
           float tmp_no[3], tmp_tangent[3];
           BM_editselection_normal(&ese, tmp_no);
           BM_editselection_plane(&ese, tmp_tangent);
@@ -847,15 +847,15 @@ void transform_convert_mesh_islands_calc(EditMesh *em,
         }
       }
 
-      if (data.center) {
+      if (!data.center.is_empty()) {
         mul_v3_v3fl(data.center[i], co, 1.0f / float(fg_len));
       }
 
-      if (data.axismtx) {
+      if (!data.axismtx.is_empty()) {
         normalize_v3(no);
         normalize_v3(tangent);
 
-        createSpaceNormalTangent_or_fallback(data.axismtx[i], no, tangent);
+        createSpaceNormalTangent_or_fallback(data.axismtx[i].ptr(), no, tangent);
       }
     }
 
@@ -877,27 +877,25 @@ void transform_convert_mesh_islands_calc(EditMesh *em,
 
     if (group_tot_single != 0) {
       if (calc_island_center) {
-        data.center = static_cast<float (*)[3]>(MEM_realloc_uninitialized(
-            data.center, sizeof(*data.center) * (data.island_tot + group_tot_single)));
+        data.center.resize(data.island_tot + group_tot_single);
       }
       if (calc_island_axismtx) {
-        data.axismtx = static_cast<float (*)[3][3]>(MEM_realloc_uninitialized(
-            data.axismtx, sizeof(*data.axismtx) * (data.island_tot + group_tot_single)));
+        data.axismtx.resize(data.island_tot + group_tot_single);
       }
 
       BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(v, BM_ELEM_SELECT) && (data.island_vert_map[i] == -1)) {
           data.island_vert_map[i] = data.island_tot;
-          if (data.center) {
-            copy_v3_v3(data.center[data.island_tot], v->co);
+          if (!data.center.is_empty()) {
+            data.center[data.island_tot] = v->co;
           }
-          if (data.axismtx) {
+          if (!data.axismtx.is_empty()) {
             if (is_zero_v3(v->no) == false) {
-              axis_dominant_v3_to_m3(data.axismtx[data.island_tot], v->no);
-              invert_m3(data.axismtx[data.island_tot]);
+              axis_dominant_v3_to_m3(data.axismtx[data.island_tot].ptr(), v->no);
+              invert_m3(data.axismtx[data.island_tot].ptr());
             }
             else {
-              unit_m3(data.axismtx[data.island_tot]);
+              data.axismtx[data.island_tot] = float3x3::identity();
             }
           }
 
@@ -907,17 +905,13 @@ void transform_convert_mesh_islands_calc(EditMesh *em,
     }
   }
 
-  *r_island_data = data;
+  *r_island_data = std::move(data);
 }
 
 void transform_convert_mesh_islanddata_free(TransIslandData *island_data)
 {
-  if (island_data->center) {
-    MEM_delete(island_data->center);
-  }
-  if (island_data->axismtx) {
-    MEM_delete(island_data->axismtx);
-  }
+  island_data->center.clear_and_shrink();
+  island_data->axismtx.clear_and_shrink();
   if (island_data->island_vert_map) {
     MEM_delete(island_data->island_vert_map);
   }
@@ -1430,7 +1424,7 @@ static void mesh_transdata_center_copy(const TransIslandData *island_data,
                                        const float iloc[3],
                                        float r_center[3])
 {
-  if (island_data->center && island_index != -1) {
+  if (!island_data->center.is_empty() && island_index != -1) {
     copy_v3_v3(r_center, island_data->center[island_index]);
   }
   else {
@@ -1467,8 +1461,8 @@ static void VertsToTransData(TransInfo *t,
 
   mesh_transdata_center_copy(island_data, island_index, td->iloc, td->center);
 
-  if ((island_index != -1) && island_data->axismtx) {
-    copy_m3_m3(td->axismtx, island_data->axismtx[island_index]);
+  if ((island_index != -1) && !island_data->axismtx.is_empty()) {
+    copy_m3_m3(td->axismtx, island_data->axismtx[island_index].ptr());
   }
   else if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
     createSpaceNormal(td->axismtx, no);
@@ -1496,7 +1490,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     int a;
     const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
 
-    TransIslandData island_data = {nullptr};
+    TransIslandData island_data;
     TransMirrorData mirror_data = {nullptr};
     TransMeshDataCrazySpace crazyspace_data = {};
 

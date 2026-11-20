@@ -25,11 +25,11 @@ namespace blender::ed::transform {
 /** \name Edit Mesh Bevel Weight and Crease Transform Creation
  * \{ */
 
-static float *mesh_cdata_transdata_center(const TransIslandData *island_data,
-                                          const int island_index,
-                                          BMVert *eve)
+static const float *mesh_cdata_transdata_center(const TransIslandData *island_data,
+                                                const int island_index,
+                                                BMVert *eve)
 {
-  if (island_data->center && island_index != -1) {
+  if (!island_data->center.is_empty() && island_index != -1) {
     return island_data->center[island_index];
   }
   return eve->co;
@@ -66,7 +66,7 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
     int a;
     const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
 
-    TransIslandData island_data = {nullptr};
+    TransIslandData island_data;
     TransMeshDataCrazySpace crazyspace_data = {nullptr};
 
     /* Support other objects using proportional editing to adjust these, unless connected is
