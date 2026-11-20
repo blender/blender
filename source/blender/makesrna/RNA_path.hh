@@ -25,6 +25,7 @@
 
 #include "RNA_types.hh"
 
+#include "BLI_assert.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_ustring.hh"
 
@@ -200,6 +201,24 @@ template<int64_t N = 4> class ParsedRNAPath {
     }
   }
 };
+
+template<int64_t N, int64_t M>
+bool operator==(const ParsedRNAPath<N> &left, const ParsedRNAPath<M> &right)
+{
+  return left.items == right.items;
+}
+
+template<int64_t N, int64_t M>
+bool operator!=(const ParsedRNAPath<N> &left, const ParsedRNAPath<M> &right)
+{
+  return !(left == right);
+}
+
+/**
+ * Lexicographically compare the parsed RNA paths.
+ */
+template<int64_t N, int64_t M>
+bool operator<(const ParsedRNAPath<N> &left, const ParsedRNAPath<M> &right);
 
 /**
  * NOTE: equality is defined in a specific way here to reflect the semantic

@@ -315,7 +315,57 @@ template<int64_t N> std::string ParsedRNAPath<N>::to_string() const
   return rna_path::to_string(this->items);
 }
 
+template<int64_t N, int64_t M>
+bool operator<(const ParsedRNAPath<N> &left, const ParsedRNAPath<M> &right)
+{
+
+  /* Compare lexicographically. */
+  const int right_size = right.items.size();
+  for (const int index : left.items.index_range()) {
+    if (index >= right_size) {
+      /* Left is longer than right, sort the shortest path first. */
+      return false;
+    }
+    const rna_path::Item &left_item = left.items[index];
+    const rna_path::Item &right_item = right.items[index];
+    if (left_item == right_item) {
+      continue;
+    }
+
+    /* Compare the variant types. */
+    if (left_item.index() != right_item.index()) {
+      return left_item.index() < right_item.index();
+    }
+
+    /* Compare the value of the variants.
+     * The index() guard above guarantees both hold the same variant type. */
+    if (std::holds_alternative<rna_path::Member>(left_item)) {
+      return std::get<rna_path::Member>(left_item).identifier.ref() <
+             std::get<rna_path::Member>(right_item).identifier.ref();
+    }
+    if (std::holds_alternative<rna_path::LookupIndex>(left_item)) {
+      return std::get<rna_path::LookupIndex>(left_item).index <
+             std::get<rna_path::LookupIndex>(right_item).index;
+    }
+    BLI_assert(std::holds_alternative<rna_path::LookupKey>(left_item));
+    return std::get<rna_path::LookupKey>(left_item).key.ref() <
+           std::get<rna_path::LookupKey>(right_item).key.ref();
+  }
+
+  /* The left path is a prefix of the right path, but the right path may still be longer. In that
+   * case, the left path should be sorted first. */
+  if (right_size > left.items.size()) {
+    return true;
+  }
+
+  return false;
+}
+
+/* Instantiate templates. */
 template class ParsedRNAPath<4>;
+/* It's unlikely that mixed path types are going to be compared, so just instantiate the known
+ * ones. */
+template bool operator<(const ParsedRNAPath<4> &left, const ParsedRNAPath<4> &right);
 
 /**
  * Generic rna path parser.
