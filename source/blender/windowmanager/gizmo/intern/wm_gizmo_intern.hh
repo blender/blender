@@ -94,25 +94,24 @@ wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf);
 /* #wmGizmoMap. */
 
 struct wmGizmoMapSelectState {
-  struct wmGizmo **items;
-  int len, len_alloc;
+  Vector<wmGizmo *> items;
 };
 
 struct wmGizmoMap {
-  wmGizmoMapType *type;
-  ListBaseT<wmGizmoGroup> groups;
+  wmGizmoMapType *type = nullptr;
+  ListBaseT<wmGizmoGroup> groups = {};
 
   /* Private, update tagging (enum defined in C source). */
-  char update_flag[WM_GIZMOMAP_DRAWSTEP_MAX];
+  char update_flag[WM_GIZMOMAP_DRAWSTEP_MAX] = {};
 
   /** Private, true when not yet used. */
-  bool is_init;
+  bool is_init = false;
 
   /** When set, one of the items in 'groups' has #wmGizmoGroup.tag_remove set. */
-  bool tag_remove_group;
+  bool tag_remove_group = false;
 
   /** When set, the event system re-calculates highlight even without cursor motion. */
-  bool tag_highlight_pending;
+  bool tag_highlight_pending = false;
 
   /**
    * \brief Gizmo map runtime context
@@ -122,16 +121,16 @@ struct wmGizmoMap {
    */
   struct {
     /** We redraw the gizmo-map when this changes. */
-    wmGizmo *highlight;
+    wmGizmo *highlight = nullptr;
     /** User has clicked this gizmo and it gets all input. */
-    wmGizmo *modal;
+    wmGizmo *modal = nullptr;
     /** Array for all selected gizmos. */
     wmGizmoMapSelectState select;
     /** Cursor location at point of entering modal (see: #WM_GIZMO_MOVE_CURSOR). */
-    int event_xy[2];
-    short event_grabcursor;
+    int event_xy[2] = {};
+    short event_grabcursor = 0;
     /** Until we have nice cursor push/pop API. */
-    int last_cursor;
+    int last_cursor = 0;
   } gzmap_context;
 };
 
@@ -157,7 +156,6 @@ void wm_gizmomap_select_array_clear(wmGizmoMap *gzmap);
  * \return if selection has changed.
  */
 bool wm_gizmomap_deselect_all(wmGizmoMap *gzmap);
-void wm_gizmomap_select_array_shrink(wmGizmoMap *gzmap, int len_subtract);
 void wm_gizmomap_select_array_push_back(wmGizmoMap *gzmap, wmGizmo *gz);
 void wm_gizmomap_select_array_remove(wmGizmoMap *gzmap, wmGizmo *gz);
 

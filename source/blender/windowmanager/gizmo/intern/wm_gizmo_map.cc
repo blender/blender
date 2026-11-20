@@ -98,65 +98,27 @@ enum {
  *
  * \{ */
 
-static void wm_gizmomap_select_array_ensure_len_alloc(wmGizmoMap *gzmap, int len)
-{
-  wmGizmoMapSelectState *msel = &gzmap->gzmap_context.select;
-  if (len <= msel->len_alloc) {
-    return;
-  }
-  msel->items = static_cast<wmGizmo **>(
-      MEM_realloc_uninitialized(msel->items, sizeof(*msel->items) * len));
-  msel->len_alloc = len;
-}
-
 void wm_gizmomap_select_array_clear(wmGizmoMap *gzmap)
 {
-  wmGizmoMapSelectState *msel = &gzmap->gzmap_context.select;
-  MEM_SAFE_DELETE(msel->items);
-  msel->len = 0;
-  msel->len_alloc = 0;
-}
-
-void wm_gizmomap_select_array_shrink(wmGizmoMap *gzmap, int len_subtract)
-{
-  wmGizmoMapSelectState *msel = &gzmap->gzmap_context.select;
-  msel->len -= len_subtract;
-  if (msel->len <= 0) {
-    wm_gizmomap_select_array_clear(gzmap);
-  }
-  else {
-    if (msel->len < msel->len_alloc / 2) {
-      msel->items = static_cast<wmGizmo **>(
-          MEM_realloc_uninitialized(msel->items, sizeof(*msel->items) * msel->len));
-      msel->len_alloc = msel->len;
-    }
-  }
+  gzmap->gzmap_context.select.items.clear_and_shrink();
 }
 
 void wm_gizmomap_select_array_push_back(wmGizmoMap *gzmap, wmGizmo *gz)
 {
-  wmGizmoMapSelectState *msel = &gzmap->gzmap_context.select;
-  BLI_assert(msel->len <= msel->len_alloc);
-  if (msel->len == msel->len_alloc) {
-    msel->len_alloc = (msel->len + 1) * 2;
-    msel->items = static_cast<wmGizmo **>(
-        MEM_realloc_uninitialized(msel->items, sizeof(*msel->items) * msel->len_alloc));
-  }
-  msel->items[msel->len++] = gz;
+  gzmap->gzmap_context.select.items.append(gz);
 }
 
 void wm_gizmomap_select_array_remove(wmGizmoMap *gzmap, wmGizmo *gz)
 {
-  wmGizmoMapSelectState *msel = &gzmap->gzmap_context.select;
+  Vector<wmGizmo *> &items = gzmap->gzmap_context.select.items;
   /* Remove gizmo from selected_gizmos array. */
-  for (int i = 0; i < msel->len; i++) {
-    if (msel->items[i] == gz) {
-      for (int j = i; j < (msel->len - 1); j++) {
-        msel->items[j] = msel->items[j + 1];
-      }
-      wm_gizmomap_select_array_shrink(gzmap, 1);
-      break;
-    }
+  const int64_t index = items.first_index_of_try(gz);
+  if (index == -1) {
+    return;
+  }
+  items.remove(index);
+  if (items.is_empty()) {
+    items.clear_and_shrink();
   }
 }
 
@@ -184,7 +146,7 @@ static wmGizmoMap *wm_gizmomap_new_from_type_ex(wmGizmoMapType *gzmap_type, wmGi
 wmGizmoMap *WM_gizmomap_new_from_type(const wmGizmoMapType_Params *gzmap_params)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(gzmap_params);
-  wmGizmoMap *gzmap = MEM_new_zeroed<wmGizmoMap>("GizmoMap");
+  wmGizmoMap *gzmap = MEM_new<wmGizmoMap>("GizmoMap");
   wm_gizmomap_new_from_type_ex(gzmap_type, gzmap);
   return gzmap;
 }
@@ -214,7 +176,7 @@ void WM_gizmomap_reinit(wmGizmoMap *gzmap)
 {
   wmGizmoMapType *gzmap_type = gzmap->type;
   wm_gizmomap_free_data(gzmap);
-  memset(gzmap, 0x0, sizeof(*gzmap));
+  *gzmap = wmGizmoMap();
   wm_gizmomap_new_from_type_ex(gzmap_type, gzmap);
 }
 
@@ -244,7 +206,7 @@ const ListBaseT<wmGizmoGroup> *WM_gizmomap_group_list(wmGizmoMap *gzmap)
 
 bool WM_gizmomap_is_any_selected(const wmGizmoMap *gzmap)
 {
-  return gzmap->gzmap_context.select.len != 0;
+  return !gzmap->gzmap_context.select.items.is_empty();
 }
 
 wmGizmo *WM_gizmomap_get_modal(const wmGizmoMap *gzmap)
@@ -256,11 +218,11 @@ bool WM_gizmomap_minmax(
     const wmGizmoMap *gzmap, bool /*use_hidden*/, bool use_select, float r_min[3], float r_max[3])
 {
   if (use_select) {
-    int i;
-    for (i = 0; i < gzmap->gzmap_context.select.len; i++) {
-      minmax_v3v3_v3(r_min, r_max, gzmap->gzmap_context.select.items[i]->matrix_basis[3]);
+    const Span<wmGizmo *> selected = gzmap->gzmap_context.select.items;
+    for (const wmGizmo *gz : selected) {
+      minmax_v3v3_v3(r_min, r_max, gz->matrix_basis[3]);
     }
-    return i != 0;
+    return !selected.is_empty();
   }
 
   bool ok = false;
@@ -914,12 +876,12 @@ bool wm_gizmomap_deselect_all(wmGizmoMap *gzmap)
 {
   wmGizmoMapSelectState *msel = &gzmap->gzmap_context.select;
 
-  if (msel->items == nullptr || msel->len == 0) {
+  if (msel->items.is_empty()) {
     return false;
   }
 
-  for (int i = 0; i < msel->len; i++) {
-    wm_gizmo_select_set_ex(gzmap, msel->items[i], false, false, true);
+  for (wmGizmo *gz : msel->items) {
+    wm_gizmo_select_set_ex(gzmap, gz, false, false, true);
   }
 
   wm_gizmomap_select_array_clear(gzmap);
@@ -949,7 +911,7 @@ static bool wm_gizmomap_select_all_intern(bContext *C, wmGizmoMap *gzmap)
       C, gzmap, gizmo_selectable_poll, nullptr, WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT);
   bool changed = false;
 
-  wm_gizmomap_select_array_ensure_len_alloc(gzmap, hash.size());
+  msel->items.reserve(hash.size());
 
   for (wmGizmo *gz_iter : hash) {
     WM_gizmo_select_set(gzmap, gz_iter, true);
@@ -957,7 +919,7 @@ static bool wm_gizmomap_select_all_intern(bContext *C, wmGizmoMap *gzmap)
   /* Highlight first gizmo. */
   wm_gizmomap_highlight_set(gzmap, C, msel->items[0], msel->items[0]->highlight_part);
 
-  BLI_assert(hash.size() == msel->len);
+  BLI_assert(hash.size() == msel->items.size());
 
   return changed;
 }
@@ -1209,8 +1171,8 @@ wmGizmo *wm_gizmomap_modal_get(wmGizmoMap *gzmap)
 
 wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *gzmap, int *r_selected_len)
 {
-  *r_selected_len = gzmap->gzmap_context.select.len;
-  return gzmap->gzmap_context.select.items;
+  *r_selected_len = int(gzmap->gzmap_context.select.items.size());
+  return gzmap->gzmap_context.select.items.data();
 }
 
 ListBaseT<wmGizmoGroup> *wm_gizmomap_groups_get(wmGizmoMap *gzmap)

@@ -88,7 +88,7 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
 
   for (wmGizmo *gz = gzgroup->gizmos.first(), *gz_next; gz; gz = gz_next) {
     gz_next = gz->next;
-    if (gzmap->gzmap_context.select.len) {
+    if (!gzmap->gzmap_context.select.items.is_empty()) {
       WM_gizmo_select_unlink(gzmap, gz);
     }
     WM_gizmo_free(gz);
@@ -343,7 +343,7 @@ static wmOperatorStatus gizmo_select_invoke(bContext *C, wmOperator *op, const w
   /* Deselect all first. */
   if (extend == false && deselect == false && toggle == false) {
     wm_gizmomap_deselect_all(gzmap);
-    BLI_assert(msel->items == nullptr && msel->len == 0);
+    BLI_assert(msel->items.is_empty());
     UNUSED_VARS_NDEBUG(msel);
   }
 
