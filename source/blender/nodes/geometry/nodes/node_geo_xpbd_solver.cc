@@ -41,6 +41,9 @@
 #include "NOD_geometry_nodes_list.hh"
 #include "NOD_geometry_nodes_physics_bundles.hh"
 
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_xpbd_solver_cc {
