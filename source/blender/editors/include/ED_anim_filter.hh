@@ -339,19 +339,30 @@ class ChannelTagSet {
   Span<ChannelTag> by_type(ChannelTagType tag_type);
 
   /**
-   * Convenience function for first_by_type(tag_type)->source_data().data_as<T>().
+   * Convenience function for first_by_type(tag_type)->source_data().
    *
    * \returns nullptr if the tag does not exist or doesn't have data (although the latter is a
    * bug, because the caller expected this tag to have data).
    */
-  template<typename T> T *data_of_first_tag(ChannelTagType tag_type) const
+  PointerRNA source_of_first_tag(const ChannelTagType tag_type) const
   {
     const ChannelTag *tag = this->first_by_type(tag_type);
     if (!tag) {
-      return nullptr;
+      return {};
     }
     BLI_assert(tag->source_data().has_data());
-    return tag->source_data().data_as<T>();
+    return tag->source_data();
+  }
+
+  /**
+   * Convenience function for source_of_first_tag(tag_type).data_as<T>().
+   *
+   * \returns nullptr if the tag does not exist or doesn't have data (although the latter is a
+   * bug, because the caller expected this tag to have data).
+   */
+  template<typename T> T *data_of_first_tag(const ChannelTagType tag_type) const
+  {
+    return this->source_of_first_tag(tag_type).data_as<T>();
   }
 
   /**

@@ -524,14 +524,14 @@ void ChannelItem::build_row(ui::Layout &layout)
   if (tree_view.show_property_sliders() && channel_.type() == AnimationChannelType::DATA) {
     /* TODO: there's a lot of code duplication here with the code section
      * immediately above (fetching channel data, etc.). */
-    DataChannel &data_channel = static_cast<DataChannel &>(channel_);
-    const ID *animated_id = data_channel.tags().data_of_first_tag<ID>(ChannelTagType::ANIMATED_ID);
-    if (data_channel.source_type() == DataChannelType::FCURVE && animated_id != nullptr) {
+    const DataChannel &data_channel = static_cast<DataChannel &>(channel_);
+    const PointerRNA animated_id_ptr = data_channel.tags().source_of_first_tag(
+        ChannelTagType::ANIMATED_ID);
+    if (data_channel.source_type() == DataChannelType::FCURVE && animated_id_ptr.has_data()) {
       FCurve *fcurve = data_channel.get_source<FCurve>();
-      PointerRNA id_ptr = RNA_id_pointer_create(const_cast<ID *>(animated_id));
       PointerRNA ptr;
       PropertyRNA *prop;
-      if (RNA_path_resolve_property(&id_ptr, fcurve->rna_path_parsed(), &ptr, &prop)) {
+      if (RNA_path_resolve_property(&animated_id_ptr, fcurve->rna_path_parsed(), &ptr, &prop)) {
         ui::Block *block = layout.block();
         block_emboss_set(block, ui::EmbossType::Emboss);
         layout.prop(&ptr, prop, fcurve->array_index, 0, UI_ITEM_NONE, "", ICON_NONE, std::nullopt);
