@@ -14,6 +14,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
@@ -576,19 +577,22 @@ void ChannelItem::build_row_settings(const ChannelTreeView &tree_view, ui::Layou
 
 std::optional<const uchar4> ChannelItem::get_row_parent_color()
 {
-  if (channel_.type() != AnimationChannelType::DATA) {
+  /* For now, this is only implemented for F-Curves and F-Curve Groups. */
+  const bActionGroup *group = nullptr;
+
+  if (channel_.source_is_type(RNA_ActionGroup)) {
+    group = channel_.source().data_as<bActionGroup>();
+  }
+  else if (channel_.source_is_type(RNA_FCurve)) {
+    const FCurve *fcurve = channel_.source().data_as<FCurve>();
+    group = fcurve->grp;
+  }
+  if (!group) {
     return {};
   }
 
-  DataChannel &data_channel = static_cast<DataChannel &>(channel_);
-  if (data_channel.source_type() != DataChannelType::FCURVE) {
-    /* For now, only F-Curves have a parent color. */
-    return {};
-  }
-
-  FCurve *fcurve = data_channel.get_source<FCurve>();
   uchar4 color(255);
-  if (!get_actiongroup_color(fcurve->grp, color)) {
+  if (!get_actiongroup_color(group, color)) {
     return {};
   }
   return color;
