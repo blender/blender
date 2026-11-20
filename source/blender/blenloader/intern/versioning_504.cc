@@ -16,9 +16,11 @@
 #include "BLI_listbase.hh"
 #include "BLI_sys_types.hh"
 
+#include "BKE_brush.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_paint.hh"
 #include "BKE_screen.hh"
 
 #include "readfile.hh"
@@ -172,6 +174,17 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           }
         }
       }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 9)) {
+    for (Brush &brush : bmain->brushes) {
+      if ((brush.ob_mode & OB_MODE_TEXTURE_PAINT) != 0) {
+        BKE_brush_init_mesh_automasking_settings(&brush);
+      }
+    }
+    for (Scene &scene : bmain->scenes) {
+      BKE_paint_mesh_automasking_settings_ensure(scene.toolsettings->imapaint.paint);
     }
   }
 

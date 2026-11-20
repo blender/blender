@@ -514,6 +514,9 @@ static std::optional<std::string> rna_MeshAutomaskingSettings_path(const Pointer
       {
         return "tool_settings.weight_paint.mesh_automasking_settings";
       }
+      if (rna_MeshAutomaskingSettings_address_get(&tool_settings->imapaint.paint) == ptr->data) {
+        return "tool_settings.image_paint.mesh_automasking_settings";
+      }
       return std::nullopt;
     }
     case ID_BR:

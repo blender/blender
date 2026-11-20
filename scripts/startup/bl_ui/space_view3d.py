@@ -1204,7 +1204,16 @@ class VIEW3D_HT_header(Header):
 
     @staticmethod
     def _texture_mask_icon(ipaint):
-        mask_enabled = ipaint.use_stencil_layer or ipaint.use_cavity
+        if show_experimental_texture_paint(ipaint.brush):
+            automasking = ipaint.mesh_automasking_settings
+            mask_enabled = (
+                automasking.use_automasking_cavity or
+                automasking.use_automasking_cavity_inverted or
+                automasking.use_automasking_view_normal or
+                ipaint.use_stencil_layer
+            )
+        else:
+            mask_enabled = ipaint.use_stencil_layer or ipaint.use_cavity
         return 'CLIPUV_DEHLT' if mask_enabled else 'CLIPUV_HLT'
 
 
@@ -6380,6 +6389,12 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
 class VIEW3D_MT_mesh_paint_automasking_pie(Menu):
     bl_label = "Automasking"
 
+    @classmethod
+    def poll(cls, context):
+        mode = context.mode
+        return mode != 'PAINT_TEXTURE' or (
+            bpy.context.preferences.experimental.use_3d_texture_paint and context.space_data.type == 'VIEW_3D')
+
     def draw(self, context):
         layout = self.layout
         pie = layout.menu_pie()
@@ -6389,19 +6404,29 @@ class VIEW3D_MT_mesh_paint_automasking_pie(Menu):
 
         settings = paint.mesh_automasking_settings
 
-        pie.prop(settings, "use_automasking_topology", text="Topology")
+        if mode != 'PAINT_TEXTURE':
+            pie.prop(settings, "use_automasking_topology", text="Topology")
+        else:
+            pie.separator()
         if mode == 'SCULPT':
             pie.prop(settings, "use_automasking_face_sets", text="Face Sets")
         else:
             pie.separator()
-        pie.prop(settings, "use_automasking_boundary_edges", text="Mesh Boundary")
+        if mode != 'PAINT_TEXTURE':
+            pie.prop(settings, "use_automasking_boundary_edges", text="Mesh Boundary")
+        else:
+            pie.separator()
         if mode == 'SCULPT':
             pie.prop(settings, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
         else:
             pie.separator()
+
         pie.prop(settings, "use_automasking_cavity", text="Cavity")
         pie.prop(settings, "use_automasking_cavity_inverted", text="Cavity (Inverted)")
-        pie.prop(settings, "use_automasking_start_normal", text="Area Normal")
+        if mode != 'PAINT_TEXTURE':
+            pie.prop(settings, "use_automasking_start_normal", text="Area Normal")
+        else:
+            pie.separator()
         pie.prop(settings, "use_automasking_view_normal", text="View Normal")
 
 

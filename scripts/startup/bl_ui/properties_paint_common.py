@@ -1486,6 +1486,9 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
                 container.prop(settings, "clone_image", text="Image")
                 container.prop(settings, "clone_alpha", text="Alpha")
 
+        if mode == 'PAINT_TEXTURE' and show_experimental_texture_paint(brush):
+            draw_texture_paint_automasking_settings(container, brush.mesh_automasking_settings)
+
         if popover:
             draw_color_jitter_panel(container, context, brush)
 
@@ -1615,6 +1618,43 @@ def draw_mesh_automasking_settings(layout, settings, *, topbar=False, use_face_s
         col = parent.column(align=True)
         col.prop(settings, "start_normal_limit", text="Limit")
         col.prop(settings, "start_normal_falloff", text="Falloff")
+
+
+def draw_texture_paint_automasking_settings(layout, settings):
+    header, panel = layout.panel("auto_masking_panel", default_closed=True)
+    header.label(text="Auto-Masking")
+
+    if panel is None:
+        return
+
+    parent = panel
+
+    col = parent.column(align=True)
+    col.prop(settings, "use_automasking_cavity", text="Cavity")
+    col.prop(settings, "use_automasking_cavity_inverted", text="Cavity (inverted)")
+
+    if settings.use_automasking_cavity or settings.use_automasking_cavity_inverted:
+        col = parent.column(align=True)
+        col.prop(settings, "cavity_factor", text="Factor")
+        col.prop(settings, "cavity_blur_steps", text="Blur")
+
+        col = parent.column()
+        col.prop(settings, "use_automasking_custom_cavity_curve", text="Custom Curve")
+
+        if settings.use_automasking_custom_cavity_curve:
+            col.template_curve_mapping(settings, "cavity_curve", brush=True)
+
+    col.separator()
+
+    col = parent.column(align=True)
+    col.prop(settings, "use_automasking_view_normal", text="View Normal")
+
+    if settings.use_automasking_view_normal:
+        col.prop(settings, "use_automasking_view_occlusion", text="Occlusion")
+        subcol = col.column(align=True)
+        subcol.active = not settings.use_automasking_view_occlusion
+        subcol.prop(settings, "view_normal_limit", text="Limit")
+        subcol.prop(settings, "view_normal_falloff", text="Falloff")
 
 
 def draw_color_settings(context, layout, brush, color_type=False):

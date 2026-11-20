@@ -1558,7 +1558,7 @@ void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const bool ensure_b
     BKE_paint_cavity_curve_preset(paint, CURVE_PRESET_LINE);
   }
 
-  if (ELEM(mode, PaintMode::Sculpt, PaintMode::Vertex, PaintMode::Weight)) {
+  if (ELEM(mode, PaintMode::Sculpt, PaintMode::Vertex, PaintMode::Weight, PaintMode::Texture3D)) {
     BKE_paint_mesh_automasking_settings_ensure(*paint);
   }
 }
