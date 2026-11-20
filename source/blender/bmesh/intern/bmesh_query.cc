@@ -2244,29 +2244,20 @@ double BM_mesh_calc_volume(BMesh *bm, bool is_signed)
   return vol;
 }
 
-int BM_mesh_calc_face_groups(BMesh *bm,
-                             int *r_groups_array,
-                             int (**r_group_index)[2],
-                             BMLoopFilterFunc filter_fn,
-                             BMLoopPairFilterFunc filter_pair_fn,
-                             void *user_data,
-                             const char hflag_test,
-                             const char htype_step)
+Vector<int2> BM_mesh_calc_face_groups(BMesh *bm,
+                                      int *r_groups_array,
+                                      BMLoopFilterFunc filter_fn,
+                                      BMLoopPairFilterFunc filter_pair_fn,
+                                      void *user_data,
+                                      const char hflag_test,
+                                      const char htype_step)
 {
   /* NOTE: almost duplicate of #BM_mesh_calc_edge_groups, keep in sync. */
 
-#ifndef NDEBUG
-  int group_index_len = 1;
-#else
-  int group_index_len = 32;
-#endif
-
-  int (*group_index)[2] = MEM_new_array_uninitialized<int[2]>(group_index_len, __func__);
+  Vector<int2> group_index;
 
   int *group_array = r_groups_array;
   STACK_DECLARE(group_array);
-
-  int group_curr = 0;
 
   uint tot_faces = 0;
   uint tot_touch = 0;
@@ -2303,7 +2294,6 @@ int BM_mesh_calc_face_groups(BMesh *bm,
   f_next = static_cast<BMFace *>(BM_iter_new(&iter, bm, BM_FACES_OF_MESH, nullptr));
 
   while (tot_touch != tot_faces) {
-    int *group_item;
     bool ok = false;
 
     BLI_assert(tot_touch < tot_faces);
@@ -2322,16 +2312,8 @@ int BM_mesh_calc_face_groups(BMesh *bm,
     BLI_assert(ok == true);
     UNUSED_VARS_NDEBUG(ok);
 
-    /* manage arrays */
-    if (group_index_len == group_curr) {
-      group_index_len *= 2;
-      group_index = static_cast<int (*)[2]>(
-          MEM_realloc_uninitialized(group_index, sizeof(*group_index) * group_index_len));
-    }
-
-    group_item = group_index[group_curr];
-    group_item[0] = STACK_SIZE(group_array);
-    group_item[1] = 0;
+    group_index.append(int2(int(STACK_SIZE(group_array)), 0));
+    int2 &group_item = group_index.last();
 
     while ((f = STACK_POP(stack))) {
       BMLoop *l_iter, *l_first;
@@ -2384,43 +2366,25 @@ int BM_mesh_calc_face_groups(BMesh *bm,
         } while ((l_iter = l_iter->next) != l_first);
       }
     }
-
-    group_curr++;
   }
 
   MEM_delete(stack);
 
-  /* Reduce allocation to the required size. */
-  if (group_index_len != group_curr) {
-    group_index = static_cast<int (*)[2]>(
-        MEM_realloc_uninitialized(group_index, sizeof(*group_index) * group_curr));
-  }
-  *r_group_index = group_index;
-
-  return group_curr;
+  return group_index;
 }
 
-int BM_mesh_calc_edge_groups(BMesh *bm,
-                             int *r_groups_array,
-                             int (**r_group_index)[2],
-                             BMVertFilterFunc filter_fn,
-                             void *user_data,
-                             const char hflag_test)
+Vector<int2> BM_mesh_calc_edge_groups(BMesh *bm,
+                                      int *r_groups_array,
+                                      BMVertFilterFunc filter_fn,
+                                      void *user_data,
+                                      const char hflag_test)
 {
   /* NOTE: almost duplicate of #BM_mesh_calc_face_groups, keep in sync. */
 
-#ifndef NDEBUG
-  int group_index_len = 1;
-#else
-  int group_index_len = 32;
-#endif
-
-  int (*group_index)[2] = MEM_new_array_uninitialized<int[2]>(group_index_len, __func__);
+  Vector<int2> group_index;
 
   int *group_array = r_groups_array;
   STACK_DECLARE(group_array);
-
-  int group_curr = 0;
 
   uint tot_edges = 0;
   uint tot_touch = 0;
@@ -2454,7 +2418,6 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
   e_next = static_cast<BMEdge *>(BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, nullptr));
 
   while (tot_touch != tot_edges) {
-    int *group_item;
     bool ok = false;
 
     BLI_assert(tot_touch < tot_edges);
@@ -2473,16 +2436,8 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
     BLI_assert(ok == true);
     UNUSED_VARS_NDEBUG(ok);
 
-    /* manage arrays */
-    if (group_index_len == group_curr) {
-      group_index_len *= 2;
-      group_index = static_cast<int (*)[2]>(
-          MEM_realloc_uninitialized(group_index, sizeof(*group_index) * group_index_len));
-    }
-
-    group_item = group_index[group_curr];
-    group_item[0] = STACK_SIZE(group_array);
-    group_item[1] = 0;
+    group_index.append(int2(int(STACK_SIZE(group_array)), 0));
+    int2 &group_item = group_index.last();
 
     while ((e = STACK_POP(stack))) {
       BMIter viter;
@@ -2508,28 +2463,19 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
         }
       }
     }
-
-    group_curr++;
   }
 
   MEM_delete(stack);
 
-  /* Reduce allocation to the required size. */
-  if (group_index_len != group_curr) {
-    group_index = static_cast<int (*)[2]>(
-        MEM_realloc_uninitialized(group_index, sizeof(*group_index) * group_curr));
-  }
-  *r_group_index = group_index;
-
-  return group_curr;
+  return group_index;
 }
 
-int BM_mesh_calc_edge_groups_as_arrays(
-    BMesh *bm, BMVert **verts, BMEdge **edges, BMFace **faces, int (**r_groups)[3])
+Vector<int3> BM_mesh_calc_edge_groups_as_arrays(BMesh *bm,
+                                                BMVert **verts,
+                                                BMEdge **edges,
+                                                BMFace **faces)
 {
-  int (*groups)[3] = MEM_new_array_uninitialized<int[3]>(bm->totvert, __func__);
-  STACK_DECLARE(groups);
-  STACK_INIT(groups, bm->totvert);
+  Vector<int3> groups;
 
   /* Clear all selected vertices */
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
@@ -2595,19 +2541,14 @@ int BM_mesh_calc_edge_groups_as_arrays(
       } while ((v_iter = STACK_POP(stack)));
     }
 
-    int *g = STACK_PUSH_RET(groups);
-    g[0] = STACK_SIZE(verts) - verts_init;
-    g[1] = STACK_SIZE(edges) - edges_init;
-    g[2] = STACK_SIZE(faces) - faces_init;
+    groups.append(int3(int(STACK_SIZE(verts) - verts_init),
+                       int(STACK_SIZE(edges) - edges_init),
+                       int(STACK_SIZE(faces) - faces_init)));
   }
 
   MEM_delete(stack);
 
-  /* Reduce allocation to the required size. */
-  groups = static_cast<int (*)[3]>(
-      MEM_realloc_uninitialized(groups, sizeof(*groups) * STACK_SIZE(groups)));
-  *r_groups = groups;
-  return STACK_SIZE(groups);
+  return groups;
 }
 
 float bmesh_subd_falloff_calc(const int falloff, float val)

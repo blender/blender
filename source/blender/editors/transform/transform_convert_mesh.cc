@@ -750,7 +750,7 @@ void transform_convert_mesh_islands_calc(EditMesh *em,
 
   /* Group variables. */
   int *groups_array = nullptr;
-  int (*group_index)[2] = nullptr;
+  Vector<int2> group_index;
 
   bool has_only_single_islands = bm->totedgesel == 0 && bm->totfacesel == 0;
   if (has_only_single_islands && !calc_single_islands) {
@@ -766,16 +766,17 @@ void transform_convert_mesh_islands_calc(EditMesh *em,
   if (!has_only_single_islands) {
     if (em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
       groups_array = MEM_new_array_uninitialized<int>(bm->totedgesel, __func__);
-      data.island_tot = BM_mesh_calc_edge_groups(
-          bm, groups_array, &group_index, nullptr, nullptr, BM_ELEM_SELECT);
+      group_index = BM_mesh_calc_edge_groups(bm, groups_array, nullptr, nullptr, BM_ELEM_SELECT);
+      data.island_tot = int(group_index.size());
 
       htype = BM_EDGE;
       itype = BM_VERTS_OF_EDGE;
     }
     else { /* `bm->selectmode & SCE_SELECT_FACE`. */
       groups_array = MEM_new_array_uninitialized<int>(bm->totfacesel, __func__);
-      data.island_tot = BM_mesh_calc_face_groups(
-          bm, groups_array, &group_index, nullptr, nullptr, nullptr, BM_ELEM_SELECT, BM_VERT);
+      group_index = BM_mesh_calc_face_groups(
+          bm, groups_array, nullptr, nullptr, nullptr, BM_ELEM_SELECT, BM_VERT);
+      data.island_tot = int(group_index.size());
 
       htype = BM_FACE;
       itype = BM_VERTS_OF_FACE;
@@ -859,7 +860,6 @@ void transform_convert_mesh_islands_calc(EditMesh *em,
     }
 
     MEM_delete(groups_array);
-    MEM_delete(group_index);
   }
 
   /* For proportional editing we need islands of 1 so connected vertices can use it with

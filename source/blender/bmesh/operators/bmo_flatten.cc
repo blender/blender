@@ -114,15 +114,9 @@ void bmo_flatten_exec(BMesh *bm, BMOperator *op)
   BMO_slot_buffer_hflag_enable(bm, op->slots_in, "geom", BM_FACE | BM_EDGE, BM_ELEM_TAG, false);
 
   Array<int> face_groups_array(bm->totface);
-  int (*face_group_index)[2];
-  const int face_group_num = BM_mesh_calc_face_groups(bm,
-                                                      face_groups_array.data(),
-                                                      &face_group_index,
-                                                      nullptr,
-                                                      nullptr,
-                                                      nullptr,
-                                                      BM_ELEM_TAG,
-                                                      BM_EDGE);
+  const Vector<int2> face_group_index = BM_mesh_calc_face_groups(
+      bm, face_groups_array.data(), nullptr, nullptr, nullptr, BM_ELEM_TAG, BM_EDGE);
+  const int face_group_num = int(face_group_index.size());
 
   BM_mesh_elem_table_ensure(bm, BM_FACE);
 
@@ -146,12 +140,11 @@ void bmo_flatten_exec(BMesh *bm, BMOperator *op)
     Vector<BMVert *> verts = collect_verts_from_faces(faces);
     flatten_verts_fn(verts, faces);
   }
-  MEM_delete(face_group_index);
 
   Array<int> edge_groups_array(bm->totedge);
-  int (*edge_group_index)[2];
-  const int edge_group_num = BM_mesh_calc_edge_groups(
-      bm, edge_groups_array.data(), &edge_group_index, nullptr, nullptr, BM_ELEM_TAG);
+  const Vector<int2> edge_group_index = BM_mesh_calc_edge_groups(
+      bm, edge_groups_array.data(), nullptr, nullptr, BM_ELEM_TAG);
+  const int edge_group_num = int(edge_group_index.size());
 
   BM_mesh_elem_table_ensure(bm, BM_EDGE);
 
@@ -168,7 +161,6 @@ void bmo_flatten_exec(BMesh *bm, BMOperator *op)
     Vector<BMVert *> verts = verts_set.extract_vector();
     flatten_verts_fn(verts, {});
   }
-  MEM_delete(edge_group_index);
 }
 
 }  // namespace blender

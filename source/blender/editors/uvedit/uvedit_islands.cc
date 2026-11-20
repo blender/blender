@@ -124,8 +124,6 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
 
   int *groups_array = MEM_new_array_uninitialized<int>(bm->totface, __func__);
 
-  int (*group_index)[2];
-
   /* Set the tag for `BM_mesh_calc_face_groups`. */
   BMFace *f;
   BMIter iter;
@@ -139,14 +137,9 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
   user_data.offsets = uv_offsets;
   user_data.use_seams = use_seams;
 
-  const int group_len = BM_mesh_calc_face_groups(bm,
-                                                 groups_array,
-                                                 &group_index,
-                                                 nullptr,
-                                                 bm_loop_uv_shared_edge_check,
-                                                 &user_data,
-                                                 BM_ELEM_TAG,
-                                                 BM_EDGE);
+  const Vector<int2> group_index = BM_mesh_calc_face_groups(
+      bm, groups_array, nullptr, bm_loop_uv_shared_edge_check, &user_data, BM_ELEM_TAG, BM_EDGE);
+  const int group_len = int(group_index.size());
 
   for (int i = 0; i < group_len; i++) {
     const int faces_start = group_index[i][0];
@@ -167,7 +160,6 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
   }
 
   MEM_delete(groups_array);
-  MEM_delete(group_index);
   return island_added;
 }
 

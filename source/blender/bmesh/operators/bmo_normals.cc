@@ -260,15 +260,9 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
   int *groups_array = MEM_new_array_uninitialized<int>(bm->totface, __func__);
   BMFace **faces_grp = MEM_new_array_uninitialized<BMFace *>(bm->totface, __func__);
 
-  int (*group_index)[2];
-  const int group_tot = BM_mesh_calc_face_groups(bm,
-                                                 groups_array,
-                                                 &group_index,
-                                                 bmo_recalc_normal_loop_filter_cb,
-                                                 nullptr,
-                                                 nullptr,
-                                                 0,
-                                                 BM_EDGE);
+  const Vector<int2> group_index = BM_mesh_calc_face_groups(
+      bm, groups_array, bmo_recalc_normal_loop_filter_cb, nullptr, nullptr, 0, BM_EDGE);
+  const int group_tot = int(group_index.size());
   int i;
 
   BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces", BM_FACE, FACE_FLAG);
@@ -297,7 +291,6 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
   MEM_delete(faces_grp);
 
   MEM_delete(groups_array);
-  MEM_delete(group_index);
 }
 
 }  // namespace blender

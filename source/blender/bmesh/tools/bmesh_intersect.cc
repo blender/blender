@@ -1507,7 +1507,7 @@ bool BM_mesh_intersect(BMesh *bm,
 
     /* group vars */
     int *groups_array;
-    int (*group_index)[2];
+    Vector<int2> group_index;
     int group_tot;
     int i;
     BMFace **ftable;
@@ -1521,8 +1521,9 @@ bool BM_mesh_intersect(BMesh *bm,
     user_data_wrap.user_data = user_data;
 
     groups_array = MEM_new_array_uninitialized<int>(size_t(bm->totface), __func__);
-    group_tot = BM_mesh_calc_face_groups(
-        bm, groups_array, &group_index, bm_loop_filter_fn, nullptr, &user_data_wrap, 0, BM_EDGE);
+    group_index = BM_mesh_calc_face_groups(
+        bm, groups_array, bm_loop_filter_fn, nullptr, &user_data_wrap, 0, BM_EDGE);
+    group_tot = int(group_index.size());
 
 #ifdef USE_DUMP
     printf("%s: Total face-groups: %d\n", __func__, group_tot);
@@ -1585,7 +1586,6 @@ bool BM_mesh_intersect(BMesh *bm,
     }
 
     MEM_delete(groups_array);
-    MEM_delete(group_index);
 
 #ifdef USE_DISSOLVE
     /* We have dissolve code above, this is alternative logic,

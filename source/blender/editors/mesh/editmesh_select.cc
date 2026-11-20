@@ -1392,7 +1392,7 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
   bool changed = false;
 
   /* Group variables. */
-  int (*group_index)[2];
+  Vector<int2> group_index;
   int group_tot;
   int i;
 
@@ -1402,8 +1402,9 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
   }
 
   int *groups_array = MEM_new_array_uninitialized<int>(bm->totfacesel, __func__);
-  group_tot = BM_mesh_calc_face_groups(
-      bm, groups_array, &group_index, nullptr, nullptr, nullptr, BM_ELEM_SELECT, BM_VERT);
+  group_index = BM_mesh_calc_face_groups(
+      bm, groups_array, nullptr, nullptr, nullptr, BM_ELEM_SELECT, BM_VERT);
+  group_tot = int(group_index.size());
 
   BM_mesh_elem_table_ensure(bm, BM_FACE);
 
@@ -1439,7 +1440,6 @@ static wmOperatorStatus edbm_select_similar_region_exec(bContext *C, wmOperator 
   }
 
   MEM_delete(groups_array);
-  MEM_delete(group_index);
 
   if (changed) {
     EDBM_uvselect_clear(bm);
@@ -3726,12 +3726,13 @@ bool EDBM_select_interior_faces(BMesh *bm)
   }
 
   /* Group variables. */
-  int (*fgroup_index)[2];
+  Vector<int2> fgroup_index;
   int fgroup_len;
 
   int *fgroup_array = MEM_new_array_uninitialized<int>(bm->totface, __func__);
-  fgroup_len = BM_mesh_calc_face_groups(
-      bm, fgroup_array, &fgroup_index, bm_interior_loop_filter_fn, nullptr, nullptr, 0, BM_EDGE);
+  fgroup_index = BM_mesh_calc_face_groups(
+      bm, fgroup_array, bm_interior_loop_filter_fn, nullptr, nullptr, 0, BM_EDGE);
+  fgroup_len = int(fgroup_index.size());
 
   int *fgroup_recalc_stack = MEM_new_array_uninitialized<int>(fgroup_len, __func__);
   STACK_DECLARE(fgroup_recalc_stack);
@@ -3767,7 +3768,6 @@ bool EDBM_select_interior_faces(BMesh *bm)
   }
 
   MEM_delete(fgroup_array);
-  MEM_delete(fgroup_index);
 
   Heap *fgroup_heap = BLI_heap_new_ex(fgroup_len);
   HeapNode **fgroup_table = MEM_new_array_uninitialized<HeapNode *>(fgroup_len, __func__);

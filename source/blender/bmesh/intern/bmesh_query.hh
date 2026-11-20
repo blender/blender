@@ -10,6 +10,8 @@
 
 #include "BLI_compiler_attrs.hh"
 #include "BLI_compiler_compat.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_vector.hh"
 
 #include "bmesh_class.hh"
 
@@ -752,48 +754,42 @@ double BM_mesh_calc_volume(BMesh *bm, bool is_signed) ATTR_WARN_UNUSED_RESULT AT
  * \param bm: the BMesh.
  * \param r_groups_array: Array of integers to fill in, length of `bm->totface`
  *        (or when hflag_test is set, the number of flagged faces).
- * \param r_group_index: index, length pairs into \a r_groups_array, size of return value
- *        int pairs: (array_start, array_length).
  * \param filter_fn: Filter the edge-loops or vert-loops we step over (depends on \a htype_step).
  * \param user_data: Optional user data for \a filter_fn, can be NULL.
  * \param hflag_test: Optional flag to test faces,
  *        use to exclude faces from the calculation, 0 for all faces.
  * \param htype_step: BM_VERT to walk over face-verts, BM_EDGE to walk over faces edges
  *        (having both set is supported too).
- * \return The number of groups found.
+ * \return (start, length) pairs into \a r_groups_array, one for each group found.
  */
-int BM_mesh_calc_face_groups(BMesh *bm,
-                             int *r_groups_array,
-                             int (**r_group_index)[2],
-                             BMLoopFilterFunc filter_fn,
-                             BMLoopPairFilterFunc filter_pair_fn,
-                             void *user_data,
-                             char hflag_test,
-                             char htype_step) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
+Vector<int2> BM_mesh_calc_face_groups(BMesh *bm,
+                                      int *r_groups_array,
+                                      BMLoopFilterFunc filter_fn,
+                                      BMLoopPairFilterFunc filter_pair_fn,
+                                      void *user_data,
+                                      char hflag_test,
+                                      char htype_step) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 /**
  * Calculate isolated groups of edges with optional filtering.
  *
  * \param bm: the BMesh.
  * \param r_groups_array: Array of ints to fill in, length of `bm->totedge`
  *        (or when hflag_test is set, the number of flagged edges).
- * \param r_group_index: index, length pairs into \a r_groups_array, size of return value
- *        int pairs: (array_start, array_length).
  * \param filter_fn: Filter the edges or verts we step over (depends on \a htype_step)
  *        as to which types we deal with.
  * \param user_data: Optional user data for \a filter_fn, can be NULL.
  * \param hflag_test: Optional flag to test edges,
  *        use to exclude edges from the calculation, 0 for all edges.
- * \return The number of groups found.
+ * \return (start, length) pairs into \a r_groups_array, one for each group found.
  *
  * \note Unlike #BM_mesh_calc_face_groups there is no 'htype_step' argument,
  *       since we always walk over verts.
  */
-int BM_mesh_calc_edge_groups(BMesh *bm,
-                             int *r_groups_array,
-                             int (**r_group_index)[2],
-                             BMVertFilterFunc filter_fn,
-                             void *user_data,
-                             char hflag_test) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2, 3);
+Vector<int2> BM_mesh_calc_edge_groups(BMesh *bm,
+                                      int *r_groups_array,
+                                      BMVertFilterFunc filter_fn,
+                                      void *user_data,
+                                      char hflag_test) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
 /**
  * This is an alternative to #BM_mesh_calc_edge_groups.
@@ -802,12 +798,11 @@ int BM_mesh_calc_edge_groups(BMesh *bm,
  * it requires looping over geometry connectivity twice,
  * this slows down edit-mesh separate by loose parts, see: #70864.
  */
-int BM_mesh_calc_edge_groups_as_arrays(BMesh *bm,
-                                       BMVert **verts,
-                                       BMEdge **edges,
-                                       BMFace **faces,
-                                       int (**r_groups)[3]) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1, 2, 3, 4, 5);
+Vector<int3> BM_mesh_calc_edge_groups_as_arrays(BMesh *bm,
+                                                BMVert **verts,
+                                                BMEdge **edges,
+                                                BMFace **faces) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL(1, 2, 3, 4);
 
 /* Not really any good place to put this. */
 float bmesh_subd_falloff_calc(int falloff, float val) ATTR_WARN_UNUSED_RESULT;
