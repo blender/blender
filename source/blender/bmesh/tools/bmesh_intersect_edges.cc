@@ -867,8 +867,7 @@ bool BM_mesh_intersect_edges(
       }
 
       if (split_faces) {
-        BMEdge **edgenet = nullptr;
-        int edgenet_alloc_len = 0;
+        Vector<BMEdge *> edgenet;
 
         EDBMSplitElem *pair_flat = reinterpret_cast<EDBMSplitElem *>(&pair_array[0]);
         BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
@@ -914,7 +913,7 @@ bool BM_mesh_intersect_edges(
           BMFace *best_face = nullptr;
           BMVert *v_other_dest, *v_other = vb;
           BMEdge *e_net = e;
-          int edgenet_len = 0;
+          edgenet.clear();
           while (true) {
             if (v_cut_other != -1) {
               v_cut_other += v_cut_other % 2 ? -1 : 1;
@@ -936,20 +935,15 @@ bool BM_mesh_intersect_edges(
               /* Edge/Edge-net to vertex - we can't split the face. */
               break;
             }
-            if (edgenet_len == 0 && BM_edge_exists(va_dest, v_other_dest)) {
+            if (edgenet.is_empty() && BM_edge_exists(va_dest, v_other_dest)) {
               /* Edge to edge - no need to detect face. */
               break;
             }
 
-            if (edgenet_alloc_len == edgenet_len) {
-              edgenet_alloc_len = (edgenet_alloc_len + 1) * 2;
-              edgenet = static_cast<BMEdge **>(
-                  MEM_realloc_uninitialized(edgenet, (edgenet_alloc_len) * sizeof(*edgenet)));
-            }
-            edgenet[edgenet_len++] = e_net;
+            edgenet.append(e_net);
 
             best_face = bm_vert_pair_best_face_get(
-                va_dest, v_other_dest, edgenet, edgenet_len, dist);
+                va_dest, v_other_dest, edgenet.data(), int(edgenet.size()), dist);
 
             if (best_face) {
               if ((va_dest != va) && !BM_edge_exists(va_dest, va)) {
@@ -961,7 +955,7 @@ bool BM_mesh_intersect_edges(
                  * </pre>
                  */
                 e_net = edgenet[0];
-                if (edgenet_len > 1) {
+                if (edgenet.size() > 1) {
                   vb = BM_edge_other_vert(e_net, va);
                 }
                 else {
@@ -969,7 +963,7 @@ bool BM_mesh_intersect_edges(
                 }
                 edgenet[0] = BM_edge_create(bm, va_dest, vb, e_net, BM_CREATE_NOP);
               }
-              if ((edgenet_len > 1) && (v_other_dest != v_other) &&
+              if ((edgenet.size() > 1) && (v_other_dest != v_other) &&
                   !BM_edge_exists(v_other_dest, v_other))
               {
                 /**
@@ -979,8 +973,8 @@ bool BM_mesh_intersect_edges(
                  *       v_other_dest
                  * </pre>
                  */
-                e_net = edgenet[edgenet_len - 1];
-                edgenet[edgenet_len - 1] = BM_edge_create(
+                e_net = edgenet.last();
+                edgenet.last() = BM_edge_create(
                     bm, v_other_dest, BM_edge_other_vert(e_net, v_other), e_net, BM_CREATE_NOP);
               }
               break;
@@ -1022,17 +1016,13 @@ bool BM_mesh_intersect_edges(
 
           if (best_face) {
             Vector<BMFace *> face_arr;
-            BM_face_split_edgenet(bm, best_face, edgenet, edgenet_len, &face_arr);
+            BM_face_split_edgenet(bm, best_face, edgenet.data(), int(edgenet.size()), &face_arr);
             /* Update the new faces normal.
              * Normal is necessary to obtain the best face for edgenet */
             for (BMFace *face : face_arr) {
               BM_face_normal_update(face);
             }
           }
-        }
-
-        if (edgenet) {
-          MEM_delete(edgenet);
         }
       }
       ok = true;
