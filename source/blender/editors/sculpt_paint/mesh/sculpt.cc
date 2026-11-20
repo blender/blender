@@ -2258,10 +2258,26 @@ void apply_brush_texture(const PaintMode paint_mode,
                          float *r_value,
                          float4 &r_rgba)
 {
-  const StrokeCache &cache = *ss.cache;
-  const MTex *mtex = BKE_brush_mask_texture_get(&brush, paint_mode);
+  apply_brush_texture(ss,
+                      brush,
+                      *BKE_brush_mask_texture_get(&brush, paint_mode),
+                      brush_point,
+                      thread_id,
+                      r_value,
+                      r_rgba);
+}
 
-  if (!mtex->tex) {
+void apply_brush_texture(const SculptSession &ss,
+                         const Brush &brush,
+                         const MTex &mtex,
+                         const float brush_point[3],
+                         const int thread_id,
+                         float *r_value,
+                         float4 &r_rgba)
+{
+  const StrokeCache &cache = *ss.cache;
+
+  if (!mtex.tex) {
     *r_value = 1.0f;
     copy_v4_fl(r_rgba, 1.0f);
     return;
@@ -2270,10 +2286,10 @@ void apply_brush_texture(const PaintMode paint_mode,
   float point[3];
   sub_v3_v3v3(point, brush_point, cache.plane_offset);
 
-  if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
+  if (mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
     /* Get strength by feeding the vertex location directly into a texture. */
     *r_value = BKE_brush_sample_tex_3d(
-        cache.paint, &brush, mtex, point, r_rgba, thread_id, ss.tex_pool);
+        cache.paint, &brush, &mtex, point, r_rgba, thread_id, ss.tex_pool);
   }
   else {
     /* If the active area is being applied for symmetry, flip it
@@ -2287,7 +2303,7 @@ void apply_brush_texture(const PaintMode paint_mode,
 
     /* Still no symmetry supported for other paint modes.
      * Sculpt does it DIY. */
-    if (mtex->brush_map_mode == MTEX_MAP_MODE_AREA) {
+    if (mtex.brush_map_mode == MTEX_MAP_MODE_AREA) {
       /* Similar to fixed mode, but projects from brush angle
        * rather than view direction. */
 
@@ -2296,13 +2312,13 @@ void apply_brush_texture(const PaintMode paint_mode,
       float x = symm_point[0];
       float y = symm_point[1];
 
-      x *= mtex->size[0];
-      y *= mtex->size[1];
+      x *= mtex.size[0];
+      y *= mtex.size[1];
 
-      x += mtex->ofs[0];
-      y += mtex->ofs[1];
+      x += mtex.ofs[0];
+      y += mtex.ofs[1];
 
-      paint_get_tex_pixel(mtex, x, y, ss.tex_pool, thread_id, r_value, r_rgba);
+      paint_get_tex_pixel(&mtex, x, y, ss.tex_pool, thread_id, r_value, r_rgba);
 
       add_v3_fl(r_rgba, brush.texture_sample_bias);  // v3 -> Ignore alpha
       *r_value -= brush.texture_sample_bias;
@@ -2312,7 +2328,7 @@ void apply_brush_texture(const PaintMode paint_mode,
           cache.vc->region, symm_point, cache.projection_mat);
       const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
       *r_value = BKE_brush_sample_tex_3d(
-          cache.paint, &brush, mtex, point_3d, r_rgba, thread_id, ss.tex_pool);
+          cache.paint, &brush, &mtex, point_3d, r_rgba, thread_id, ss.tex_pool);
     }
   }
 }

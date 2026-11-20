@@ -26,6 +26,7 @@
 
 #include "RNA_types.hh"
 
+#include "BLI_assert.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_ustring.hh"
 
@@ -214,43 +215,11 @@ bool operator!=(const ParsedRNAPath<N> &left, const ParsedRNAPath<M> &right)
   return !(left == right);
 }
 
+/**
+ * Lexicographically compare the parsed RNA paths.
+ */
 template<int64_t N, int64_t M>
-bool operator<(const ParsedRNAPath<N> &left, const ParsedRNAPath<M> &right)
-{
-  /* Shorter paths are smaller than longer paths. */
-  if (left.items.size() != right.items.size()) {
-    return left.items.size() < right.items.size();
-  }
-
-  /* When equal, compare lexicographically. */
-  for (const int index : left.items.index_range()) {
-    const rna_path::Item &left_item = left.items[index];
-    const rna_path::Item &right_item = right.items[index];
-    if (left_item == right_item) {
-      continue;
-    }
-
-    /* Compare the variant types. */
-    if (left_item.index() != right_item.index()) {
-      return left_item.index() < right_item.index();
-    }
-
-    /* Compare the value of the variants.
-     * The index() guard above guarantees both hold the same variant type. */
-    if (std::holds_alternative<rna_path::Member>(left_item)) {
-      return std::get<rna_path::Member>(left_item).identifier.ref() <
-             std::get<rna_path::Member>(right_item).identifier.ref();
-    }
-    if (std::holds_alternative<rna_path::LookupIndex>(left_item)) {
-      return std::get<rna_path::LookupIndex>(left_item).index <
-             std::get<rna_path::LookupIndex>(right_item).index;
-    }
-    BLI_assert(std::holds_alternative<rna_path::LookupKey>(left_item));
-    return std::get<rna_path::LookupKey>(left_item).key.ref() <
-           std::get<rna_path::LookupKey>(right_item).key.ref();
-  }
-  return false;
-}
+bool operator<(const ParsedRNAPath<N> &left, const ParsedRNAPath<M> &right);
 
 /**
  * NOTE: equality is defined in a specific way here to reflect the semantic
