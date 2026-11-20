@@ -75,6 +75,21 @@ static const char *to_token_string(TokenType tok)
   }
 }
 
+static string this_identifier_override(const SymbolClass *caller_class,
+                                       const SymbolClass *callee_class,
+                                       const string &base)
+{
+  if (callee_class->size == 0) {
+    /* Call constructor for empty classes. */
+    return callee_class->identifier + "_ctor_()";
+  }
+  if (caller_class != callee_class) {
+    /* We need to figure out what inheritance path this function is visible in. */
+    return base + caller_class->get_path_to_base_class(*callee_class);
+  }
+  return base;
+}
+
 struct CodegenContext : NodeErrorHandler {
   SymbolTable &table;
   metadata::Source &metadata;
@@ -535,7 +550,7 @@ struct CodegenContext : NodeErrorHandler {
       bool preceded_by_dot = id.front().prev() == '.' ||
                              id.parent().prev().type() == NodeType::OpDeref;
       if (!var.is_static && !preceded_by_dot && var.parent->as_class() != nullptr) {
-        return {"this_." + var.identifier + whitespace,
+        return {ctx.this_identifier + "." + var.identifier + whitespace,
                 var.type,
                 var.array_dimensions,
                 var.is_bitfield};
@@ -580,22 +595,16 @@ struct CodegenContext : NodeErrorHandler {
       FuncParamList list = call.parameters();
       std::string params_str;
       if (sym.fn_type == SymbolFunction::MEMBER && !preceded_by_dot) {
-        params_str += "this_";
-
         const SymbolFunction *method = sym.as_function();
         const SymbolFunction *scope_fn = scope.parent_function();
         if (scope_fn && scope_fn->fn_type == SymbolFunction::MEMBER) {
-          const SymbolClass *caller_class = scope_fn->parent_class();
-          const SymbolClass *callee_class = method->parent_class();
-          if (callee_class->size == 0) {
-            /* Call constructor for empty classes. */
-            params_str = callee_class->identifier + "_ctor_()";
-          }
-          else if (caller_class != callee_class) {
-            /* We need to figure out what inheritance path this function is visible in. */
-            params_str += caller_class->get_path_to_base_class(*callee_class);
-          }
+          params_str += this_identifier_override(
+              scope_fn->parent_class(), method->parent_class(), ctx.this_identifier);
         }
+        else {
+          params_str += ctx.this_identifier;
+        }
+
         if (!sym.arg_types.empty()) {
           params_str += ", ";
         }
@@ -2225,6 +2234,9 @@ struct CodegenContext : NodeErrorHandler {
   }
 
   vector<SymbolFunction *> inlining_stack;
+  /* Expression for the object of the member function being emitted. Differs from `this_` when
+   * inlining the method of a base class. */
+  string this_identifier = "this_";
 
   string inline_function(SymbolFunction *fn, FuncCall call, const SymbolScope &scope)
   {
@@ -2300,7 +2312,27 @@ struct CodegenContext : NodeErrorHandler {
     }
     builder.ss << "\n";
 
+    /* Access members of a base class method through the base class member. */
+    const string original_this_identifier = this_identifier;
+    const SymbolFunction *caller_fn = scope.parent_function();
+    const bool preceded_by_dot = call.prev().back() == '.' ||
+                                 call.prev().type() == NodeType::OpDeref;
+    if (fn->fn_type == SymbolFunction::MEMBER && !preceded_by_dot && caller_fn &&
+        caller_fn->fn_type == SymbolFunction::MEMBER)
+    {
+      this_identifier = this_identifier_override(
+          caller_fn->parent_class(), fn->parent_class(), this_identifier);
+
+      if (auto it = fn->variables.find("this_"); it != fn->variables.end()) {
+        SymbolVariable *var = it->second.second;
+        original_identifiers.emplace_back(var, var->identifier);
+        var->identifier = this_identifier;
+      }
+    }
+
     local_scope(fn->decl.body(), *fn);
+
+    this_identifier = original_this_identifier;
 
     /* Close the local scope. */
     if (has_return_stmt) {
