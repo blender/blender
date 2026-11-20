@@ -26,7 +26,6 @@
 #include "BLT_translation.hh"
 
 #include "BLI_array.hh"
-#include "BLI_array_utils_c.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_bounds.hh"
 #include "BLI_listbase.hh"
@@ -228,14 +227,8 @@ static void *transform_panel_interaction_begin_fn(bContext *C,
                                                   const ui::BlockInteraction_Params *params,
                                                   void *arg1)
 {
-  const int retval_median = B_TRANSFORM_PANEL_MEDIAN;
-  const int retval_elem_dims = B_TRANSFORM_PANEL_ELEM_DIMS;
-  const bool is_median = BLI_array_findindex(params->unique_retval_ids,
-                                             params->unique_retval_ids_len,
-                                             &retval_median) != -1;
-  const bool is_elem_dims = BLI_array_findindex(params->unique_retval_ids,
-                                                params->unique_retval_ids_len,
-                                                &retval_elem_dims) != -1;
+  const bool is_median = params->unique_retval_ids.contains(B_TRANSFORM_PANEL_MEDIAN);
+  const bool is_elem_dims = params->unique_retval_ids.contains(B_TRANSFORM_PANEL_ELEM_DIMS);
   if (!(is_median || is_elem_dims)) {
     return nullptr;
   }
