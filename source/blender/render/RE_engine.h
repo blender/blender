@@ -154,7 +154,8 @@ struct RenderEngine {
   struct ReportList *reports;
 
   struct {
-    const struct BakeTargets *targets;
+    /** Not const because the render layer names of the images are set while baking. */
+    struct BakeTargets *targets;
     const struct BakePixel *pixels;
     float *result;
     int image_id;

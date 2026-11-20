@@ -336,7 +336,7 @@ static bool write_internal_bake_pixels(Image *image,
 /* force OpenGL reload */
 static void bake_targets_refresh(BakeTargets *targets)
 {
-  for (int i = 0; i < targets->images_num; i++) {
+  for (int i = 0; i < targets->images.size(); i++) {
     Image *ima = targets->images[i].image;
 
     if (ima) {
@@ -735,7 +735,7 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
   /* Error handling and tag (in case multiple materials share the same image). */
   BKE_main_id_tag_idcode(bkr->main, ID_IM, ID_TAG_DOIT, false);
 
-  targets->images = nullptr;
+  targets->images.clear();
 
   for (int i = 0; i < materials_num; i++) {
     Image *image;
@@ -754,11 +754,10 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
     if (image && !(image->id.tag & ID_TAG_DOIT)) {
       for (ImageTile &tile : image->tiles) {
         /* Add bake image. */
-        targets->images = static_cast<BakeImage *>(
-            MEM_realloc_zeroed(targets->images, sizeof(BakeImage) * (targets->images_num + 1)));
-        targets->images[targets->images_num].image = image;
-        targets->images[targets->images_num].tile_number = tile.tile_number;
-        targets->images_num++;
+        BakeImage bk_image{};
+        bk_image.image = image;
+        bk_image.tile_number = tile.tile_number;
+        targets->images.append(bk_image);
       }
 
       image->id.tag |= ID_TAG_DOIT;
@@ -778,7 +777,7 @@ static bool bake_targets_init_internal(const BakeAPIRender *bkr,
   }
 
   /* Saving to image datablocks. */
-  for (int i = 0; i < targets->images_num; i++) {
+  for (int i = 0; i < targets->images.size(); i++) {
     BakeImage *bk_image = &targets->images[i];
 
     ImageUser iuser;
@@ -818,7 +817,7 @@ static bool bake_targets_output_internal(const BakeAPIRender *bkr,
   const bool is_tangent_normal = (bkr->pass_type == SCE_PASS_NORMAL) &&
                                  (bkr->normal_space == R_BAKE_SPACE_TANGENT);
 
-  for (int i = 0; i < targets->images_num; i++) {
+  for (int i = 0; i < targets->images.size(); i++) {
     BakeImage *bk_image = &targets->images[i];
     const bool ok = write_internal_bake_pixels(bk_image->image,
                                                bk_image->tile_number,
@@ -865,7 +864,7 @@ static bool bake_targets_init_external(const BakeAPIRender *bkr,
   }
 
   /* Saving to disk. */
-  for (int i = 0; i < targets->images_num; i++) {
+  for (int i = 0; i < targets->images.size(); i++) {
     BakeImage *bk_image = &targets->images[i];
 
     bk_image->width = bkr->width;
@@ -901,7 +900,7 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
   const bool is_tangent_normal = (bkr->pass_type == SCE_PASS_NORMAL) &&
                                  (bkr->normal_space == R_BAKE_SPACE_TANGENT);
 
-  for (int i = 0; i < targets->images_num; i++) {
+  for (int i = 0; i < targets->images.size(); i++) {
     BakeImage *bk_image = &targets->images[i];
 
     BakeData *bake = &bkr->scene->r.bake;
@@ -1000,8 +999,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   /* Ensure mesh and editmesh topology are in sync. */
   editmode_load(bmain, ob);
 
-  targets->images = MEM_new_zeroed<BakeImage>(__func__);
-  targets->images_num = 1;
+  targets->images.append(BakeImage{});
 
   targets->material_to_image = MEM_new_array_zeroed<Image *>(ob->totcol, __func__);
   targets->materials_num = ob->totcol;
@@ -1377,7 +1375,7 @@ static bool bake_targets_output(const BakeAPIRender *bkr,
 
 static void bake_targets_free(BakeTargets *targets)
 {
-  MEM_SAFE_DELETE(targets->images);
+  targets->images.clear_and_shrink();
   MEM_SAFE_DELETE(targets->material_to_image);
   MEM_SAFE_DELETE(targets->result);
 }
@@ -1421,7 +1419,7 @@ static bool bake(const BakeAPIRender *bkr,
   BakePixel *pixel_array_low = nullptr;
   BakePixel *pixel_array_high = nullptr;
 
-  BakeTargets targets = {nullptr};
+  BakeTargets targets;
 
   const bool preserve_origindex = (bkr->target == R_BAKE_TARGET_VERTEX_COLORS);
   const bool check_valid_uv_map = (bkr->target == R_BAKE_TARGET_IMAGE_TEXTURES);

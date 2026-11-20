@@ -85,7 +85,7 @@ namespace blender {
 struct BakeDataZSpan {
   BakePixel *pixel_array;
   int primitive_id;
-  BakeImage *bk_image;
+  const BakeImage *bk_image;
   ZSpan *zspan;
   float du_dx, du_dy;
   float dv_dx, dv_dy;
@@ -704,8 +704,8 @@ static void bake_pixels_add_denoise_margin(BakePixel pixel_array[],
 {
   /* Bake neighboring pixels with the same primitive, so denoising gets a reasonable
    * pixel value rather than a sharp transition that causes artifacts. */
-  for (int image_id = 0; image_id < targets->images_num; image_id++) {
-    BakeImage *image = &targets->images[image_id];
+  for (int image_id = 0; image_id < targets->images.size(); image_id++) {
+    const BakeImage *image = &targets->images[image_id];
 
     const int width = image->width;
     const int height = image->height;
@@ -786,7 +786,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
 
   BakeDataZSpan bd;
   bd.pixel_array = pixel_array;
-  bd.zspan = MEM_new_array_zeroed<ZSpan>(targets->images_num, "bake zspan");
+  bd.zspan = MEM_new_array_zeroed<ZSpan>(targets->images.size(), "bake zspan");
 
   /* initialize all pixel arrays so we know which ones are 'blank' */
   for (int i = 0; i < pixels_num; i++) {
@@ -795,7 +795,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
     pixel_array[i].is_margin = false;
   }
 
-  for (int i = 0; i < targets->images_num; i++) {
+  for (int i = 0; i < targets->images.size(); i++) {
     zbuf_alloc_span(&bd.zspan[i], targets->images[i].width, targets->images[i].height);
   }
 
@@ -823,8 +823,8 @@ void RE_bake_pixels_populate(Mesh *mesh,
                                      clamp_i(material_indices[face_i], 0, materials_num - 1) :
                                      0;
       Image *image = targets->material_to_image[material_index];
-      for (int image_id = 0; image_id < targets->images_num; image_id++) {
-        BakeImage *bk_image = &targets->images[image_id];
+      for (int image_id = 0; image_id < targets->images.size(); image_id++) {
+        const BakeImage *bk_image = &targets->images[image_id];
         if (bk_image->image != image) {
           continue;
         }
@@ -862,7 +862,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
     }
   }
 
-  for (int i = 0; i < targets->images_num; i++) {
+  for (int i = 0; i < targets->images.size(); i++) {
     zbuf_free_span(&bd.zspan[i]);
   }
 

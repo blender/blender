@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_scene_types.h"
 
@@ -35,20 +36,19 @@ struct BakeImage {
 
 struct BakeTargets {
   /* All images of the object. */
-  BakeImage *images;
-  int images_num;
+  Vector<BakeImage> images;
 
   /* Lookup table from Material number to BakeImage. */
-  struct Image **material_to_image;
-  int materials_num;
+  struct Image **material_to_image = nullptr;
+  int materials_num = 0;
 
   /* Pixel buffer to bake to. */
-  float *result;
-  int pixels_num;
-  int channels_num;
+  float *result = nullptr;
+  int pixels_num = 0;
+  int channels_num = 0;
 
   /* Baking to non-color data image. */
-  bool is_noncolor;
+  bool is_noncolor = false;
 };
 
 struct BakePixel {
@@ -80,7 +80,7 @@ bool RE_bake_engine(struct Render *re,
                     struct Object *object,
                     int object_id,
                     const BakePixel pixel_array[],
-                    const BakeTargets *targets,
+                    BakeTargets *targets,
                     eScenePassType pass_type,
                     int pass_filter,
                     float result[]);
