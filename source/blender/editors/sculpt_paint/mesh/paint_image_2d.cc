@@ -228,7 +228,9 @@ static void brush_imbuf_tex_co(const rctf *mapping, int x, int y, float texco[3]
 }
 
 /* create a mask with the mask texture */
-static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter, const int size)
+static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter,
+                                           const int size,
+                                           const float pressure)
 {
   Brush *brush = painter->brush;
   rctf mask_mapping = painter->mask_mapping;
@@ -245,7 +247,7 @@ static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter, const int size
     for (x = 0; x < size; x++, m++) {
       float res;
       brush_imbuf_tex_co(&mask_mapping, x, y, texco);
-      res = BKE_brush_sample_masktex(painter->paint, brush, texco, thread, pool);
+      res = BKE_brush_sample_masktex(painter->paint, brush, texco, pressure, thread, pool);
       *m = ushort(65535.0f * res);
     }
   }
@@ -263,7 +265,8 @@ static void brush_painter_mask_imbuf_update(BrushPainter *painter,
                                             int h,
                                             int xt,
                                             int yt,
-                                            const int diameter)
+                                            const int diameter,
+                                            const float pressure)
 {
   Brush *brush = painter->brush;
   BrushPainterCache *cache = &tile->cache;
@@ -290,8 +293,8 @@ static void brush_painter_mask_imbuf_update(BrushPainter *painter,
 
       if (!use_texture_old) {
         brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-        res = ushort(65535.0f *
-                     BKE_brush_sample_masktex(painter->paint, brush, texco, thread, pool));
+        res = ushort(65535.0f * BKE_brush_sample_masktex(
+                                    painter->paint, brush, texco, pressure, thread, pool));
       }
 
       /* read from old texture buffer */
@@ -315,7 +318,8 @@ static void brush_painter_mask_imbuf_update(BrushPainter *painter,
 static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
                                                     ImagePaintTile *tile,
                                                     const float pos[2],
-                                                    const int diameter)
+                                                    const int diameter,
+                                                    const float pressure)
 {
   BrushPainterCache *cache = &tile->cache;
   ushort *tex_mask_old;
@@ -361,7 +365,7 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
   /* blend existing texture in new position */
   if ((x1 < x2) && (y1 < y2)) {
     brush_painter_mask_imbuf_update(
-        painter, tile, tex_mask_old, x1, y1, x2, y2, srcx, srcy, diameter);
+        painter, tile, tex_mask_old, x1, y1, x2, y2, srcx, srcy, diameter, pressure);
   }
 
   if (tex_mask_old) {
@@ -370,17 +374,20 @@ static void brush_painter_mask_imbuf_partial_update(BrushPainter *painter,
 
   /* sample texture in new areas */
   if ((0 < x1) && (0 < diameter)) {
-    brush_painter_mask_imbuf_update(painter, tile, nullptr, 0, 0, x1, diameter, 0, 0, diameter);
+    brush_painter_mask_imbuf_update(
+        painter, tile, nullptr, 0, 0, x1, diameter, 0, 0, diameter, pressure);
   }
   if ((x2 < diameter) && (0 < diameter)) {
     brush_painter_mask_imbuf_update(
-        painter, tile, nullptr, x2, 0, diameter, diameter, 0, 0, diameter);
+        painter, tile, nullptr, x2, 0, diameter, diameter, 0, 0, diameter, pressure);
   }
   if ((x1 < x2) && (0 < y1)) {
-    brush_painter_mask_imbuf_update(painter, tile, nullptr, x1, 0, x2, y1, 0, 0, diameter);
+    brush_painter_mask_imbuf_update(
+        painter, tile, nullptr, x1, 0, x2, y1, 0, 0, diameter, pressure);
   }
   if ((x1 < x2) && (y2 < diameter)) {
-    brush_painter_mask_imbuf_update(painter, tile, nullptr, x1, y2, x2, diameter, 0, 0, diameter);
+    brush_painter_mask_imbuf_update(
+        painter, tile, nullptr, x1, y2, x2, diameter, 0, 0, diameter, pressure);
   }
 
   /* through with sampling, now update sizes */
@@ -800,10 +807,10 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
           s, tile, diameter, pos, mouse, brush->mask_mtex.brush_map_mode, &painter->mask_mapping);
 
       if (do_partial_update_mask) {
-        brush_painter_mask_imbuf_partial_update(painter, tile, pos, diameter);
+        brush_painter_mask_imbuf_partial_update(painter, tile, pos, diameter, pressure);
       }
       else {
-        cache->tex_mask = brush_painter_mask_ibuf_new(painter, diameter);
+        cache->tex_mask = brush_painter_mask_ibuf_new(painter, diameter, pressure);
       }
       cache->last_mask_rotation = mask_rotation;
     }
