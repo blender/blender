@@ -1265,8 +1265,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
     int tindex, pidx_dst, lidx_dst, plidx_dst, pidx_src, lidx_src, plidx_src;
 
-    IslandResult **islands_res;
-    size_t islands_res_buff_size = MREMAP_DEFAULT_BUFSIZE;
+    /* Results for each corner of the current destination face, for each island tree. */
+    Array<Vector<IslandResult>> islands_res;
 
     {
       const bool need_lnors_src = (mode & MREMAP_USE_LOOP) && (mode & MREMAP_USE_NORMAL);
@@ -1427,11 +1427,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
 
     /* And check each dest face! */
-    islands_res = MEM_new_array_uninitialized<IslandResult *>(size_t(num_trees), __func__);
-    for (tindex = 0; tindex < num_trees; tindex++) {
-      islands_res[tindex] = MEM_new_array_uninitialized<IslandResult>(islands_res_buff_size,
-                                                                      __func__);
-    }
+    islands_res.reinitialize(num_trees);
     const Span<int> tri_faces = me_src->corner_tri_faces();
 
     for (pidx_dst = 0; pidx_dst < faces_dst.size(); pidx_dst++) {
@@ -1450,12 +1446,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         }
       }
 
-      if (size_t(face_dst.size()) > islands_res_buff_size) {
-        islands_res_buff_size = size_t(face_dst.size()) + MREMAP_DEFAULT_BUFSIZE;
-        for (tindex = 0; tindex < num_trees; tindex++) {
-          islands_res[tindex] = static_cast<IslandResult *>(MEM_realloc_uninitialized(
-              islands_res[tindex], sizeof(**islands_res) * islands_res_buff_size));
-        }
+      for (Vector<IslandResult> &island_res : islands_res) {
+        island_res.resize(face_dst.size());
       }
 
       for (tindex = 0; tindex < num_trees; tindex++) {
@@ -1948,12 +1940,10 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
 
     for (tindex = 0; tindex < num_trees; tindex++) {
-      MEM_delete(islands_res[tindex]);
       if (isld_steps_src) {
         BLI_astar_graph_free(&as_graphdata[tindex]);
       }
     }
-    MEM_delete(islands_res);
     BKE_mesh_loop_islands_free(&island_store);
     if (isld_steps_src) {
       MEM_delete(as_graphdata);
