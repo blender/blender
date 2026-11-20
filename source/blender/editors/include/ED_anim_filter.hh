@@ -817,14 +817,12 @@ class DataChannel : public AnimationChannel {
  protected:
   /* While this could read the AnimationChannel::source_ for its type, the RNA types can't be put
    * into a switch statement which is why I (christoph) ended up keeping this. */
-  DataChannelType source_type_;
+  DataChannelType data_type_;
   Set<ChannelTag> tags_;
   DataChannelFlags datachannel_flags_ = DataChannelFlags(0);
 
  public:
-  DataChannel(StringRef label,
-              DataChannelType source_type,
-              const ParsedSourcePath &source_rna_path);
+  DataChannel(StringRef label, DataChannelType data_type, const ParsedSourcePath &source_rna_path);
   ~DataChannel() override = default;
 
   bool operator==(const DataChannel &other) const
@@ -835,7 +833,7 @@ class DataChannel : public AnimationChannel {
 
   uint64_t hash() const override
   {
-    return get_default_hash(AnimationChannel::hash(), this->source_type_, this->flags_);
+    return get_default_hash(AnimationChannel::hash(), this->data_type_, this->flags_);
   }
 
   /**
@@ -845,9 +843,9 @@ class DataChannel : public AnimationChannel {
    */
   void datachannel_hash(UniqueHashBytes &hash) const;
 
-  DataChannelType source_type() const
+  DataChannelType data_type() const
   {
-    return this->source_type_;
+    return this->data_type_;
   }
 
   template<typename T> T *get_source() const;

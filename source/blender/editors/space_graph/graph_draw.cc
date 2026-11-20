@@ -1653,7 +1653,7 @@ static void draw_fcurve_of_channel(ed::animfilter::DataChannel &channel,
   FCurve *fcurve = channel.get_source<FCurve>();
 
   TimeMapping fcu_to_scene_time;
-  if (channel.source_type() == DataChannelType::FCURVE) {
+  if (channel.data_type() == DataChannelType::FCURVE) {
     FCurveChannel &fcurve_channel = static_cast<FCurveChannel &>(channel);
     fcu_to_scene_time = fcurve_channel.get_time_mapping();
   }

@@ -377,7 +377,7 @@ static void deselect_action_keys(bAnimContext *ac, short test, eEditKeyframes_Se
 static bool is_any_data_selected(ed::animfilter::DataChannel &channel)
 {
   using namespace ed::animfilter;
-  switch (channel.source_type()) {
+  switch (channel.data_type()) {
     case DataChannelType::DRIVER:
     case DataChannelType::FCURVE: {
       FCurve *fcurve = channel.get_source<FCurve>();

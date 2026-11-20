@@ -505,7 +505,7 @@ std::optional<const uchar4> ChannelItem::get_row_channel_color()
   }
 
   DataChannel &data_channel = static_cast<DataChannel &>(channel_);
-  if (data_channel.source_type() != DataChannelType::FCURVE) {
+  if (data_channel.data_type() != DataChannelType::FCURVE) {
     /* For now, only F-Curves have a channel color. */
     return {};
   }
@@ -520,7 +520,7 @@ std::optional<ChannelItem::SliderProperty> ChannelItem::get_row_slider_property(
     return {};
   }
   const DataChannel &data_channel = static_cast<DataChannel &>(channel_);
-  if (data_channel.source_type() != DataChannelType::FCURVE) {
+  if (data_channel.data_type() != DataChannelType::FCURVE) {
     /* For now, only F-Curves have sliders. */
     return {};
   }

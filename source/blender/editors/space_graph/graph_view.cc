@@ -749,7 +749,7 @@ static wmOperatorStatus graph_local_view_exec(bContext *C, wmOperator *op)
     using namespace ed::animfilter;
     ChannelArena &arena = ed::graph::get_summary_tree(*C);
     for (DataChannel *channel : arena.data_channels) {
-      if (channel->source_type() != DataChannelType::FCURVE) {
+      if (channel->data_type() != DataChannelType::FCURVE) {
         continue;
       }
       if (!channel->is_selected()) {

@@ -575,7 +575,7 @@ void debug_stream_hierarchy(std::ostream &stream,
          << "\033[97m" << channel.label() << "\033[0m";
   if (channel.type() == AnimationChannelType::DATA) {
     const DataChannel &data = dynamic_cast<const DataChannel &>(channel);
-    stream << " (\033[95m" << data.source_type() << "\033[0m)";
+    stream << " (\033[95m" << data.data_type() << "\033[0m)";
   }
   stream << std::endl;
 
@@ -1263,9 +1263,9 @@ void SummaryChannel::sort_children()
 /* ===== DataChannel ===== */
 
 DataChannel::DataChannel(const StringRef label,
-                         const DataChannelType source_type,
+                         const DataChannelType data_type,
                          const ParsedSourcePath &source_rna_path)
-    : AnimationChannel(AnimationChannelType::DATA, label), source_type_(source_type)
+    : AnimationChannel(AnimationChannelType::DATA, label), data_type_(data_type)
 {
   source_rna_path_ = source_rna_path;
 }
@@ -1281,19 +1281,19 @@ void DataChannel::datachannel_hash(UniqueHashBytes &hash) const
    * same type, then this data channel should be safe to use. */
   hash.add(source.owner_id ? source.owner_id->id_type() : ID_Type(0));
   hash.add(source.data);
-  hash.add(this->source_type_);
+  hash.add(this->data_type_);
   hash.add(this->flags_);
 }
 
 template<> FCurve *DataChannel::get_source<FCurve>() const
 {
-  BLI_assert(ELEM(this->source_type_, DataChannelType::FCURVE, DataChannelType::DRIVER));
+  BLI_assert(ELEM(this->data_type_, DataChannelType::FCURVE, DataChannelType::DRIVER));
   return static_cast<FCurve *>(this->source().data);
 }
 
 template<> GreasePencilLayer *DataChannel::get_source<GreasePencilLayer>() const
 {
-  BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
+  BLI_assert(this->data_type_ == DataChannelType::GREASE_PENCIL);
   return static_cast<GreasePencilLayer *>(this->source().data);
 }
 
@@ -1461,7 +1461,7 @@ void FCurveChannel::gather_channel_data()
   PRF_scope_with_name("ed::animfilter::FCurveChannel::gather_channel_data",
                       ProfileCategory::Editor);
 
-  BLI_assert(this->source_type_ == DataChannelType::FCURVE);
+  BLI_assert(this->data_type_ == DataChannelType::FCURVE);
   const FCurve *fcurve = this->get_source<FCurve>();
   if (!fcurve || !fcurve->bezt) {
     /* Sampled FCurves cannot be edited and don't show up in the dopesheet. */
@@ -1695,7 +1695,7 @@ void GreasePencilChannel::gather_channel_data()
   PRF_scope_with_name("ed::animfilter::GreasePencilChannel::gather_channel_data",
                       ProfileCategory::Editor);
 
-  BLI_assert(this->source_type_ == DataChannelType::GREASE_PENCIL);
+  BLI_assert(this->data_type_ == DataChannelType::GREASE_PENCIL);
 
   GreasePencilLayer *gp_layer = this->get_source<GreasePencilLayer>();
 

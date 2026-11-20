@@ -269,7 +269,7 @@ static std::optional<rctf> get_channel_bounds(ed::animfilter::AnimationChannel &
 
   if (channel.type() == AnimationChannelType::DATA) {
     DataChannel &data_channel = static_cast<DataChannel &>(channel);
-    if (data_channel.source_type() == DataChannelType::FCURVE) {
+    if (data_channel.data_type() == DataChannelType::FCURVE) {
       return get_fcurve_channel_bounds(
           static_cast<FCurveChannel &>(data_channel), space_link, scene, id, range);
     }
@@ -302,7 +302,7 @@ static std::optional<rctf> get_channel_bounds(ed::animfilter::AnimationChannel &
     foreach_channel(summary_channel, [&](AnimationChannel &child) {
       if (child.type() == AnimationChannelType::DATA) {
         DataChannel &data_channel = static_cast<DataChannel &>(child);
-        if (data_channel.source_type() == DataChannelType::FCURVE) {
+        if (data_channel.data_type() == DataChannelType::FCURVE) {
           std::optional<rctf> fcurve_bounds = get_fcurve_channel_bounds(
               static_cast<FCurveChannel &>(data_channel), space_link, scene, id, range);
           if (fcurve_bounds.has_value()) {
@@ -2553,7 +2553,7 @@ static wmOperatorStatus animchannels_group_exec(bContext *C, wmOperator *op)
     animrig::Channelbag *last_channelbag = nullptr;
     bActionGroup *group = nullptr;
     for (DataChannel *data_channel : arena->data_channels) {
-      if (data_channel->source_type() != DataChannelType::FCURVE) {
+      if (data_channel->data_type() != DataChannelType::FCURVE) {
         continue;
       }
       if (!data_channel->is_selected()) {
