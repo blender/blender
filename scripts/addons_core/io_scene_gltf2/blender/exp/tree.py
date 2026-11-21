@@ -752,6 +752,25 @@ class VExportTree:
                 self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[uuid].flag_status.is_selected
             if self.filter_renderability:
                 self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[uuid].flag_status.is_rendered
+        else:
+            # For Bones:
+            # They are filtered base of the status of the armature too
+            # Warning: There is a special case if we are trying to remove the armature object itself
+            armature_uuid = self.nodes[uuid].armature
+            if hasattr(self.nodes[armature_uuid], "arma_exported"):
+                # This "arma_exported" is set only if we are removing the armature object itself
+                # whatever the keep_tag of the armature is (removed only because we are removing the armature object itself,
+                # or because of some other filters applied to the armature)
+                # So checking directly the status of the armature
+                if self.filter_visibility:
+                    self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[armature_uuid].flag_status.is_visible
+                if self.filter_selectability:
+                    self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[armature_uuid].flag_status.is_selected
+                if self.filter_renderability:
+                    self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[armature_uuid].flag_status.is_rendered
+            else:
+                # Otherwise, we also use the status of the armature to determine if the bone should be kept
+                self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[armature_uuid].keep_tag
 
         for child in self.nodes[uuid].children:
             if self.nodes[uuid].blender_type == VExportNode.INST_COLLECTION or self.nodes[uuid].is_instancer:
