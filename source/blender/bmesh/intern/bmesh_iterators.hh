@@ -217,13 +217,6 @@ int BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                       char restrictmask,
                       void **array,
                       int len);
-void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
-                         const char *slot_name,
-                         char restrictmask,
-                         int *r_len,
-                         /* Optional args to avoid an allocate (normally stack array). */
-                         void **stack_array,
-                         int stack_array_size);
 
 int BM_iter_mesh_bitmap_from_filter(char itype,
                                     BMesh *bm,

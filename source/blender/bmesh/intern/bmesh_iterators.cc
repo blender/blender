@@ -173,46 +173,6 @@ void *BM_iter_as_arrayN(BMesh *bm,
   return nullptr;
 }
 
-void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
-                         const char *slot_name,
-                         const char restrictmask,
-                         int *r_len,
-                         /* Optional args to avoid an allocation (normally stack array). */
-                         void **stack_array,
-                         int stack_array_size)
-{
-  BMOIter iter;
-  BMElem *ele;
-  const int slot_len = BMO_slot_buffer_len(slot_args, slot_name);
-
-  BLI_assert(stack_array_size == 0 || (stack_array_size && stack_array));
-
-  if ((ele = static_cast<BMElem *>(BMO_iter_new(&iter, slot_args, slot_name, restrictmask))) &&
-      slot_len > 0)
-  {
-    BMElem **array = slot_len > stack_array_size ?
-                         MEM_new_array_uninitialized<BMElem *>(slot_len, __func__) :
-                         reinterpret_cast<BMElem **>(stack_array);
-    int i = 0;
-
-    do {
-      array[i++] = ele;
-    } while ((ele = static_cast<BMElem *>(BMO_iter_step(&iter))));
-    BLI_assert(i <= slot_len);
-
-    if (i != slot_len) {
-      if (reinterpret_cast<void **>(array) != stack_array) {
-        array = static_cast<BMElem **>(MEM_realloc_uninitialized(array, sizeof(ele) * i));
-      }
-    }
-    *r_len = i;
-    return array;
-  }
-
-  *r_len = 0;
-  return nullptr;
-}
-
 int BM_iter_mesh_bitmap_from_filter(const char itype,
                                     BMesh *bm,
                                     MutableBitSpan bitmap,
