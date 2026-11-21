@@ -21,11 +21,12 @@ namespace blender {
  * Inserts a new fsmenu entry with the given \a path.
  * Duplicate entries are not added.
  * \param flag: Options for inserting the entry.
+ * \return True if a new entry was added, false if the path was empty or already in the list.
  *
  * \note The existence of `path` is *intentionally* not accessed,
  * see inline code-comments for details.
  */
-void fsmenu_insert_entry(FSMenu *fsmenu,
+bool fsmenu_insert_entry(FSMenu *fsmenu,
                          enum FSMenuCategory category,
                          const char *path,
                          const char *name,
