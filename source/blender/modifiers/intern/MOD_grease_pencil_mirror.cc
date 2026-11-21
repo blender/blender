@@ -96,6 +96,7 @@ static float4x4 get_mirror_matrix(const Object &ob,
 
 static bke::CurvesGeometry create_mirror_copies(const Object &ob,
                                                 const GreasePencilMirrorModifierData &mmd,
+                                                const float4x4 &layer_transform,
                                                 const bke::CurvesGeometry &base_curves,
                                                 const bke::CurvesGeometry &mirror_curves)
 {
@@ -122,8 +123,9 @@ static bke::CurvesGeometry create_mirror_copies(const Object &ob,
           transforms.append(float4x4::identity());
         }
         else {
-          const float4x4 matrix = get_mirror_matrix(
+          const float4x4 mirror_matrix = get_mirror_matrix(
               ob, mmd, bool(mirror_x), bool(mirror_y), bool(mirror_z));
+          const float4x4 matrix = math::invert(layer_transform) * mirror_matrix * layer_transform;
           handles.append(mirror_handle);
           transforms.append(matrix);
         }
@@ -147,6 +149,7 @@ static bke::CurvesGeometry create_mirror_copies(const Object &ob,
 
 static void modify_drawing(const GreasePencilMirrorModifierData &mmd,
                            const ModifierEvalContext &ctx,
+                           const float4x4 &layer_transform,
                            bke::greasepencil::Drawing &drawing)
 {
   const bool use_mirror_x = (mmd.flag & MOD_GREASE_PENCIL_MIRROR_AXIS_X);
@@ -167,7 +170,8 @@ static void modify_drawing(const GreasePencilMirrorModifierData &mmd,
 
   if (curves_mask.size() == src_curves.curve_num) {
     /* All geometry gets mirrored. */
-    drawing.strokes_for_write() = create_mirror_copies(*ctx.object, mmd, src_curves, src_curves);
+    drawing.strokes_for_write() = create_mirror_copies(
+        *ctx.object, mmd, layer_transform, src_curves, src_curves);
   }
   else {
     /* Create masked geometry, then mirror it. */
@@ -175,7 +179,7 @@ static void modify_drawing(const GreasePencilMirrorModifierData &mmd,
         src_curves, curves_mask, {});
 
     drawing.strokes_for_write() = create_mirror_copies(
-        *ctx.object, mmd, src_curves, masked_curves);
+        *ctx.object, mmd, layer_transform, src_curves, masked_curves);
   }
 
   drawing.tag_topology_changed();
@@ -199,10 +203,16 @@ static void modify_geometry_set(ModifierData *md,
   const IndexMask layer_mask = modifier::greasepencil::get_filtered_layer_mask(
       grease_pencil, mmd->influence, mask_memory);
 
-  const Vector<Drawing *> drawings = modifier::greasepencil::get_drawings_for_write(
-      grease_pencil, layer_mask, frame);
+  const Span<const bke::greasepencil::Layer *> layers = grease_pencil.layers();
+  const Vector<modifier::greasepencil::LayerDrawingInfo> drawings =
+      modifier::greasepencil::get_drawing_infos_by_layer(grease_pencil, layer_mask, frame);
+
   threading::parallel_for_each(drawings,
-                               [&](Drawing *drawing) { modify_drawing(*mmd, *ctx, *drawing); });
+                               [&](const modifier::greasepencil::LayerDrawingInfo &info) {
+                                 const bke::greasepencil::Layer &layer = *layers[info.layer_index];
+                                 const float4x4 layer_transform = layer.local_transform();
+                                 modify_drawing(*mmd, *ctx, layer_transform, *info.drawing);
+                               });
 }
 
 static void panel_draw(const bContext *C, Panel *panel)
