@@ -631,8 +631,16 @@ struct MouseInput {
   float precision_factor;
   bool precision;
 
-  /** Additional data, if needed by the particular function. */
-  void *data;
+  /** Accumulated rotation, for #INPUT_ANGLE and #INPUT_ANGLE_SPRING. */
+  struct {
+    double angle;
+    double2 mval_prev;
+  } angle_data;
+
+  /** Start and end points, for #INPUT_CUSTOM_RATIO and #INPUT_CUSTOM_RATIO_FLIP. */
+  int4 custom_points;
+  /** True after #setCustomPoints has been called. */
+  bool use_custom_points;
 
   /**
    * Use virtual cursor, which takes precision into account

@@ -823,10 +823,6 @@ void postTrans(bContext *C, TransInfo *t)
     }
   }
 
-  if (t->mouse.data) {
-    MEM_delete_void(t->mouse.data);
-  }
-
   if (t->rng != nullptr) {
     BLI_rng_free(t->rng);
   }

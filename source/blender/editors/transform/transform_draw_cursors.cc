@@ -196,7 +196,7 @@ void transform_draw_cursor_draw(bContext *C,
       break;
     case HLP_CARROW: {
       /* Draw arrow based on direction defined by custom-points. */
-      const int *data = static_cast<const int *>(t->mouse.data);
+      const int4 &data = t->mouse.custom_points;
       const float angle = -atan2f(data[2] - data[0], data[3] - data[1]);
       GPU_matrix_rotate_axis(RAD2DEGF(angle), 'Z');
       drawArrow(pos_id, UP);
