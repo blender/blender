@@ -11,6 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.hh"
@@ -185,6 +186,26 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
     for (Scene &scene : bmain->scenes) {
       BKE_paint_mesh_automasking_settings_ensure(scene.toolsettings->imapaint.paint);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 10)) {
+    for (Object &object : bmain->objects) {
+      for (ModifierData &md : object.modifiers) {
+        if (md.type == eModifierType_DataTransfer) {
+          auto &dtmd = reinterpret_cast<DataTransferModifierData &>(md);
+          /* Update when DT_TYPE_VCOL was saved (prior to eae36be372a6).
+           * Nowadays, (1 << 16) is DT_TYPE_MPROPCOL_VERT so that can be checked for (but in
+           * _isolation_, if this is set together with DT_TYPE_MLOOPCOL_VERT it could mean a user
+           * chose to transfer "Colors" in the modifier "Vertex Data" and that should not
+           * be overridden). */
+          if (((dtmd.data_types & DT_TYPE_MPROPCOL_VERT) != 0) &&
+              ((dtmd.data_types & DT_TYPE_MLOOPCOL_VERT) == 0))
+          {
+            dtmd.data_types |= DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP;
+          }
+        }
+      }
     }
   }
 
