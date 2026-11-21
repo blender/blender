@@ -36,7 +36,23 @@ def gather_material_normal_texture_info_class(
         filter_type='ALL'):
     export_settings['current_texture_transform'] = {}  # For KHR_animation_pointer
     export_settings['current_normal_scale'] = {}  # For KHR_animation_pointer
-    return __gather_texture_info_helper(primary_socket, blender_shader_sockets, 'NORMAL', filter_type, export_settings)
+
+    # Only a texture plugged through a Normal Map node is a normal map (a height map through a Bump node is not).
+    # Use the texture plugged into the Normal Map Color socket, not any texture found upstream.
+    if primary_socket is None or primary_socket.socket is None:
+        return None, {}, {}, None
+    result = NodeTreeSearcher.from_socket(
+        primary_socket,
+        FilterByType(bpy.types.ShaderNodeNormalMap),
+        export_settings)
+    if not result:
+        if get_texture_node_from_socket(primary_socket, export_settings) is not None:
+            export_settings['log'].warning(
+                "Texture plugged into '{}' socket without a Normal Map node is not exported as normal texture".format(
+                    primary_socket.socket.name))
+        return None, {}, {}, None
+    color_socket = NodeSocket(result[0].shader_node.inputs['Color'], result[0].group_path)
+    return __gather_texture_info_helper(color_socket, (color_socket,), 'NORMAL', filter_type, export_settings)
 
 
 def gather_material_occlusion_texture_info_class(
