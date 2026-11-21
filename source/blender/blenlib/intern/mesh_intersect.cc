@@ -2307,13 +2307,16 @@ class TriOverlaps {
     /* The rest of the code is simpler and easier to parallelize if, in the two-trees case,
      * we repeat the overlaps with indexA and indexB reversed. It is important that
      * in the repeated part, sorting will then bring things with indexB together. */
-    if (two_trees_no_self) {
-      overlap_ = static_cast<BVHTreeOverlap *>(
-          MEM_realloc_uninitialized(overlap_, 2 * overlap_num_ * sizeof(overlap_[0])));
+    if (two_trees_no_self && overlap_num_ > 0) {
+      BVHTreeOverlap *overlap_doubled = MEM_new_array_uninitialized<BVHTreeOverlap>(
+          2 * overlap_num_, __func__);
+      std::copy_n(overlap_, overlap_num_, overlap_doubled);
       for (uint i = 0; i < overlap_num_; ++i) {
-        overlap_[overlap_num_ + i].indexA = overlap_[i].indexB;
-        overlap_[overlap_num_ + i].indexB = overlap_[i].indexA;
+        overlap_doubled[overlap_num_ + i].indexA = overlap_[i].indexB;
+        overlap_doubled[overlap_num_ + i].indexB = overlap_[i].indexA;
       }
+      MEM_delete(overlap_);
+      overlap_ = overlap_doubled;
       overlap_num_ += overlap_num_;
     }
     /* Sort the overlaps to bring all the intersects with a given indexA together. */
