@@ -151,7 +151,7 @@ static void initTimeTranslate(TransInfo *t, wmOperator * /*op*/)
 /** \} */
 
 TransModeInfo TransMode_timetranslate = {
-    /*flags*/ 0,
+    /*flags*/ T_NO_CONSTRAINT,
     /*init_fn*/ initTimeTranslate,
     /*transform_fn*/ applyTimeTranslate,
     /*transform_matrix_fn*/ nullptr,
