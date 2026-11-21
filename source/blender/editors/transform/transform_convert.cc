@@ -687,7 +687,6 @@ static int countAndCleanTransDataContainer(TransInfo *t)
 {
   BLI_assert(ELEM(t->data_len_all, 0, -1));
   t->data_len_all = 0;
-  int data_container_len_orig = t->data_container_len;
   for (TransDataContainer *th_end = t->data_container - 1,
                           *tc = &t->data_container[t->data_container_len - 1];
        tc != th_end;
@@ -703,10 +702,6 @@ static int countAndCleanTransDataContainer(TransInfo *t)
     else {
       t->data_len_all += tc->data_len;
     }
-  }
-  if (data_container_len_orig != t->data_container_len) {
-    t->data_container = static_cast<TransDataContainer *>(MEM_realloc_uninitialized(
-        t->data_container, sizeof(*t->data_container) * t->data_container_len));
   }
   return t->data_len_all;
 }
