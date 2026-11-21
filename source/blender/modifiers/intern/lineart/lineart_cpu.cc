@@ -363,9 +363,12 @@ BLI_INLINE bool lineart_occlusion_is_adjacent_intersection(LineartEdge *e, Linea
 
 static void lineart_bounding_area_triangle_reallocate(LineartBoundingArea *ba)
 {
+  LineartTriangle **new_array = MEM_new_array_zeroed<LineartTriangle *>(ba->max_triangle_count * 2,
+                                                                        __func__);
+  std::copy_n(ba->linked_triangles, ba->max_triangle_count, new_array);
   ba->max_triangle_count *= 2;
-  ba->linked_triangles = static_cast<LineartTriangle **>(MEM_realloc_zeroed(
-      ba->linked_triangles, sizeof(LineartTriangle *) * ba->max_triangle_count));
+  MEM_delete(ba->linked_triangles);
+  ba->linked_triangles = new_array;
 }
 
 static void lineart_bounding_area_line_add(LineartBoundingArea *ba, LineartEdge *e)
