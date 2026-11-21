@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstddef>
@@ -1023,13 +1024,13 @@ static NlaEvalChannelSnapshot *nlaeval_snapshot_get(NlaEvalSnapshot *snapshot, i
 static void nlaeval_snapshot_ensure_size(NlaEvalSnapshot *snapshot, int size)
 {
   if (size > snapshot->size) {
-    snapshot->size *= 2;
-    CLAMP_MIN(snapshot->size, size);
-    CLAMP_MIN(snapshot->size, 16);
-
-    size_t byte_size = sizeof(*snapshot->channels) * snapshot->size;
-    snapshot->channels = static_cast<NlaEvalChannelSnapshot **>(
-        MEM_realloc_zeroed_id(snapshot->channels, byte_size, "NlaEvalSnapshot::channels"));
+    const int new_size = std::max({snapshot->size * 2, size, 16});
+    NlaEvalChannelSnapshot **channels = MEM_new_array_zeroed<NlaEvalChannelSnapshot *>(
+        new_size, "NlaEvalSnapshot::channels");
+    std::copy_n(snapshot->channels, snapshot->size, channels);
+    MEM_SAFE_DELETE(snapshot->channels);
+    snapshot->channels = channels;
+    snapshot->size = new_size;
   }
 }
 
