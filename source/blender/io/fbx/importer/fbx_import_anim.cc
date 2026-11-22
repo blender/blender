@@ -155,7 +155,9 @@ static Vector<ElementAnimations> gather_animated_properties(const FbxElementMapp
       }
       /* Ignore animation of rigged meshes (very hard to handle; matches behavior of python fbx
        * importer). */
-      if (obj->type == OB_MESH && obj->parent && obj->parent->type == OB_ARMATURE) {
+      if (obj->type == OB_MESH && obj->parent && obj->parent->type == OB_ARMATURE &&
+          (obj->partype & PARTYPE) != PARBONE)
+      {
         continue;
       }
       target_id = &obj->id;
@@ -272,6 +274,10 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
   const ufbx_node *fnode = ufbx_as_node(anim.fbx_elem);
   ufbx_matrix bone_xform = ufbx_identity_matrix;
   const bool is_bone = mapping.node_is_blender_bone.contains(fnode);
+  /* Parent bone length for non-bones parented to a bone. */
+  const ufbx_real bone_parent_length = is_bone ? 0.0 :
+                                                 mapping.bone_to_length.lookup_default(
+                                                     fnode->parent, 0.0);
   if (is_bone) {
     /* Bone transform curves need to be transformed to the bind transform
      * in joint-local space:
@@ -380,6 +386,10 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
     if (is_bone) {
       ufbx_matrix matrix = calc_bone_pose_matrix(xform, *fnode, bone_xform);
       xform = ufbx_matrix_to_transform(&matrix);
+    }
+    else {
+      /* FBX attaches objects to the bone head, Blender attaches to the tail. */
+      xform.translation.y -= bone_parent_length;
     }
 
     set_curve_sample(curves[pos_index + 0], i, tf, float(xform.translation.x));

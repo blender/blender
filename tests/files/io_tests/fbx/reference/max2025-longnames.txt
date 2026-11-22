@@ -169,6 +169,7 @@
   - pos 6.099, -21.143, 2.790
   - rot -0.390, 0.143, 0.733 (XYZ)
   - scl 1.000, 1.000, 1.000
+  - anim act:Take 001 slot:OBSphere_Parented_To_Bone blend:REPLACE drivers:0
   - props: int:MaxHandle=9
 
 ==== Lights: 1
@@ -177,7 +178,7 @@
 ==== Actions: 1
 - Action 'Take 001' curverange:(1.0 .. 6.0) layers:1
 - ActionLayer Layer strips:1
- - Keyframe strip channelbags:3
+ - Keyframe strip channelbags:4
  - Channelbag slot 'OBArmature' curves:40
   - fcu 'pose.bones["Likewise_Here_Is_A_Bone_With_A_Long_Name_To_See_What_Happen.002"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Likewise_Here_Is_A_Bone_With_A_Long_Name_To_See_What_Happen.002'
     - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
@@ -224,6 +225,34 @@
   - fcu 'pose.bones["Likewise_Here_Is_A_Bone_With_A_Long_Name_To_See_What_Happen.003"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Likewise_Here_Is_A_Bone_With_A_Long_Name_To_See_What_Happen.003'
     - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
     - (6.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+ - Channelbag slot 'OBSphere_Parented_To_Bone' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Sphere_Parented_To_Bone'
+    - (1.000, 6.099) lh:(-0.667, 6.099 AUTO_CLAMPED) rh:(2.667, 6.099 AUTO_CLAMPED)
+    - (6.000, 5.975) lh:(4.333, 5.975 AUTO_CLAMPED) rh:(7.667, 5.975 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Sphere_Parented_To_Bone'
+    - (1.000, -21.143) lh:(-0.667, -21.143 AUTO_CLAMPED) rh:(2.667, -21.143 AUTO_CLAMPED)
+    - (6.000, -11.155) lh:(4.333, -11.155 AUTO_CLAMPED) rh:(7.667, -11.155 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Sphere_Parented_To_Bone'
+    - (1.000, 2.790) lh:(-0.667, 2.790 AUTO_CLAMPED) rh:(2.667, 2.790 AUTO_CLAMPED)
+    - (6.000, 2.800) lh:(4.333, 2.800 AUTO_CLAMPED) rh:(7.667, 2.800 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Sphere_Parented_To_Bone'
+    - (1.000, -0.390) lh:(-0.667, -0.390 AUTO_CLAMPED) rh:(2.667, -0.390 AUTO_CLAMPED)
+    - (6.000, 0.239) lh:(4.333, 0.239 AUTO_CLAMPED) rh:(7.667, 0.239 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Sphere_Parented_To_Bone'
+    - (1.000, 0.143) lh:(-0.667, 0.143 AUTO_CLAMPED) rh:(2.667, 0.143 AUTO_CLAMPED)
+    - (6.000, -0.531) lh:(4.333, -0.531 AUTO_CLAMPED) rh:(7.667, -0.531 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Sphere_Parented_To_Bone'
+    - (1.000, 0.733) lh:(-0.667, 0.733 AUTO_CLAMPED) rh:(2.667, 0.733 AUTO_CLAMPED)
+    - (6.000, 0.899) lh:(4.333, 0.899 AUTO_CLAMPED) rh:(7.667, 0.899 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Sphere_Parented_To_Bone'
+    - (1.000, 1.000) lh:(-0.667, 1.000 AUTO_CLAMPED) rh:(2.667, 1.000 AUTO_CLAMPED)
+    - (6.000, 1.000) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Sphere_Parented_To_Bone'
+    - (1.000, 1.000) lh:(-0.667, 1.000 AUTO_CLAMPED) rh:(2.667, 1.000 AUTO_CLAMPED)
+    - (6.000, 1.000) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Sphere_Parented_To_Bone'
+    - (1.000, 1.000) lh:(-0.667, 1.000 AUTO_CLAMPED) rh:(2.667, 1.000 AUTO_CLAMPED)
+    - (6.000, 1.000) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
  - Channelbag slot 'OBBox_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Ye' curves:9
   - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_Se'
     - (1.000, -0.261) lh:(0.000, -0.261 AUTO_CLAMPED) rh:(2.000, -0.261 AUTO_CLAMPED)

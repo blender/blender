@@ -25,6 +25,7 @@
   - pos 0.000, -1.000, -1.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
+  - anim act:AnimStack slot:OBMeshUnderChild blend:REPLACE drivers:0
 - Obj 'MeshUnderRoot' MESH data:'MeshUnderRoot' par:'Armature' par_type:BONE par_bone:'MeshUnderRoot'
   - pos 0.000, -1.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
@@ -33,7 +34,7 @@
 ==== Actions: 1
 - Action 'AnimStack' curverange:(1.0 .. 61.0) layers:1
 - ActionLayer Layer strips:1
- - Keyframe strip channelbags:1
+ - Keyframe strip channelbags:2
  - Channelbag slot 'OBArmature' curves:30
   - fcu 'pose.bones["ChildBone"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'ChildBone'
     - (1.000, 0.000) lh:(-9.000, 0.000 AUTO_CLAMPED) rh:(11.000, 0.000 AUTO_CLAMPED)
@@ -95,6 +96,43 @@
     - (1.000, 0.000) lh:(-9.000, 0.000 AUTO_CLAMPED) rh:(11.000, 0.000 AUTO_CLAMPED)
     - (31.000, 0.000) lh:(21.000, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
     - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+ - Channelbag slot 'OBMeshUnderChild' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'MeshUnderChild'
+    - (1.000, 0.000) lh:(-9.000, 0.000 AUTO_CLAMPED) rh:(11.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.000, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'MeshUnderChild'
+    - (1.000, -1.000) lh:(-9.000, -1.000 AUTO_CLAMPED) rh:(11.000, -1.000 AUTO_CLAMPED)
+    - (31.000, -1.000) lh:(21.000, -1.000 AUTO_CLAMPED) rh:(41.000, -1.000 AUTO_CLAMPED)
+    - (61.000, -1.000) lh:(51.000, -1.000 AUTO_CLAMPED) rh:(71.000, -1.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'MeshUnderChild'
+    - (1.000, -1.000) lh:(-9.000, -1.000 AUTO_CLAMPED) rh:(11.000, -1.000 AUTO_CLAMPED)
+    - (31.000, -1.000) lh:(21.000, -1.000 AUTO_CLAMPED) rh:(41.000, -1.000 AUTO_CLAMPED)
+    - (61.000, -1.000) lh:(51.000, -1.000 AUTO_CLAMPED) rh:(71.000, -1.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'MeshUnderChild'
+    - (1.000, 0.000) lh:(-9.000, 0.000 AUTO_CLAMPED) rh:(11.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.524) lh:(21.000, 0.262 AUTO_CLAMPED) rh:(41.000, 0.785 AUTO_CLAMPED)
+    - (61.000, 1.047) lh:(51.000, 1.047 AUTO_CLAMPED) rh:(71.000, 1.047 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'MeshUnderChild'
+    - (1.000, 0.000) lh:(-9.000, 0.000 AUTO_CLAMPED) rh:(11.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.524) lh:(21.000, 0.262 AUTO_CLAMPED) rh:(41.000, 0.785 AUTO_CLAMPED)
+    - (61.000, 1.047) lh:(51.000, 1.047 AUTO_CLAMPED) rh:(71.000, 1.047 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'MeshUnderChild'
+    - (1.000, 0.000) lh:(-9.000, 0.000 AUTO_CLAMPED) rh:(11.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.524) lh:(21.000, 0.262 AUTO_CLAMPED) rh:(41.000, 0.785 AUTO_CLAMPED)
+    - (61.000, 1.047) lh:(51.000, 1.047 AUTO_CLAMPED) rh:(71.000, 1.047 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'MeshUnderChild'
+    - (1.000, 1.000) lh:(-9.000, 1.000 AUTO_CLAMPED) rh:(11.000, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(21.000, 1.000 AUTO_CLAMPED) rh:(41.000, 1.000 AUTO_CLAMPED)
+    - (61.000, 1.000) lh:(51.000, 1.000 AUTO_CLAMPED) rh:(71.000, 1.000 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'MeshUnderChild'
+    - (1.000, 1.000) lh:(-9.000, 1.000 AUTO_CLAMPED) rh:(11.000, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(21.000, 1.000 AUTO_CLAMPED) rh:(41.000, 1.000 AUTO_CLAMPED)
+    - (61.000, 1.000) lh:(51.000, 1.000 AUTO_CLAMPED) rh:(71.000, 1.000 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3 grp:'MeshUnderChild'
+    - (1.000, 1.000) lh:(-9.000, 1.000 AUTO_CLAMPED) rh:(11.000, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(21.000, 1.000 AUTO_CLAMPED) rh:(41.000, 1.000 AUTO_CLAMPED)
+    - (61.000, 1.000) lh:(51.000, 1.000 AUTO_CLAMPED) rh:(71.000, 1.000 AUTO_CLAMPED)
 
 ==== Armatures: 1
 - Armature 'Armature' 3 bones
