@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -295,13 +296,29 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
     VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
     strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
     int selected_strips = strips.size();
-    if (selected_strips > 0) {
-      has_select = true;
-      const Bounds<float2> box = seq::image_transform_bounding_box_from_strips_get(scene, strips);
+    has_select = selected_strips > 0;
+    if (selected_strips == 1) {
+      /* Gizmo system needs unrotated quad min and max to properly calculate matrices later. */
+      const Array<float2> quad = seq::image_transform_quad_get(scene, strips[0], false);
+      const Bounds<float2> box = *bounds::min_max(quad.as_span());
       copy_v2_v2(r_min, box.min);
       copy_v2_v2(r_max, box.max);
     }
     if (selected_strips > 1) {
+      const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
+      if (pivot_point == V3D_AROUND_CURSOR) {
+        SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
+        const float2 cursor_pixel = seq::image_preview_unit_to_px(scene, sseq->cursor);
+        copy_v2_v2(r_center, cursor_pixel);
+      }
+      else if (pivot_point == V3D_AROUND_CENTER_BOUNDS) {
+        const Bounds<float2> box = seq::image_transform_bounding_box_from_strips_get(scene,
+                                                                                     strips);
+        mid_v2_v2v2(r_center, box.min, box.max);
+      }
+      else {
+        seq_get_strip_pivot_median(scene, r_center);
+      }
       /* Don't draw the cage as transforming multiple strips isn't currently very useful as it
        * doesn't behave as one would expect.
        *
@@ -310,18 +327,6 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
        * In addition to this, the rotation of the bounding box can not currently be hooked up
        * properly to read the result from the transform system (when transforming multiple strips).
        */
-      const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
-      if (pivot_point == V3D_AROUND_CURSOR) {
-        SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
-        const float2 cursor_pixel = seq::image_preview_unit_to_px(scene, sseq->cursor);
-        copy_v2_v2(r_center, cursor_pixel);
-      }
-      else if (pivot_point == V3D_AROUND_CENTER_BOUNDS) {
-        mid_v2_v2v2(r_center, r_min, r_max);
-      }
-      else {
-        seq_get_strip_pivot_median(scene, r_center);
-      }
       zero_v2(r_min);
       zero_v2(r_max);
       return has_select;
