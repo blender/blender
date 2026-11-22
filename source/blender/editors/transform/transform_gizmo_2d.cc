@@ -225,6 +225,28 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
   return ggd;
 }
 
+static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
+{
+  zero_v2(r_pivot);
+
+  Editing *ed = seq::editing_get(scene);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
+  VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
+  bool has_select = !strips.is_empty();
+
+  if (has_select) {
+    for (Strip *strip : strips) {
+      const float2 origin = seq::image_transform_origin_preview_offset_get(scene, strip);
+      add_v2_v2(r_pivot, origin);
+    }
+    mul_v2_fl(r_pivot, 1.0f / strips.size());
+  }
+
+  return has_select;
+}
+
 /**
  * Calculates origin in view space, use with #gizmo2d_origin_to_region.
  */
@@ -294,8 +316,11 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
         const float2 cursor_pixel = seq::image_preview_unit_to_px(scene, sseq->cursor);
         copy_v2_v2(r_center, cursor_pixel);
       }
-      else {
+      else if (pivot_point == V3D_AROUND_CENTER_BOUNDS) {
         mid_v2_v2v2(r_center, r_min, r_max);
+      }
+      else {
+        seq_get_strip_pivot_median(scene, r_center);
       }
       zero_v2(r_min);
       zero_v2(r_max);
@@ -357,28 +382,6 @@ static float gizmo2d_calc_rotation(const bContext *C)
   }
 
   return 0.0f;
-}
-
-static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
-{
-  zero_v2(r_pivot);
-
-  Editing *ed = seq::editing_get(scene);
-  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
-  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
-  VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
-  strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
-  bool has_select = !strips.is_empty();
-
-  if (has_select) {
-    for (Strip *strip : strips) {
-      const float2 origin = seq::image_transform_origin_preview_offset_get(scene, strip);
-      add_v2_v2(r_pivot, origin);
-    }
-    mul_v2_fl(r_pivot, 1.0f / strips.size());
-  }
-
-  return has_select;
 }
 
 static bool gizmo2d_calc_transform_pivot(const bContext *C,
