@@ -73,6 +73,7 @@ struct ElementAnimations {
   const ufbx_anim_prop *prop_rotation = nullptr;
   const ufbx_anim_prop *prop_scale = nullptr;
   const ufbx_anim_prop *prop_blend_shape = nullptr;
+  KeyBlock *shape_key_block = nullptr;
   const ufbx_anim_prop *prop_focal_length = nullptr;
   const ufbx_anim_prop *prop_focus_dist = nullptr;
   const ufbx_anim_prop *prop_mat_diffuse = nullptr;
@@ -112,13 +113,14 @@ static Vector<ElementAnimations> gather_animated_properties(const FbxElementMapp
     const bool is_anim_mat = is_diffuse;
 
     ID *target_id = nullptr;
+    KeyBlock *shape_key_block = nullptr;
     eRotationModes object_rotmode = ROT_MODE_QUAT;
 
     if (is_blend_shape) {
       /* Animating blend shape weight. */
-      Key *target_key = mapping.el_to_shape_key.lookup_default(fprop.element, nullptr);
-      if (target_key != nullptr) {
-        target_id = &target_key->id;
+      if (const FbxShapeKey *shape_key = mapping.el_to_shape_key.lookup_ptr(fprop.element)) {
+        target_id = &shape_key->key->id;
+        shape_key_block = shape_key->block;
       }
     }
     else if (is_anim_camera) {
@@ -185,6 +187,7 @@ static Vector<ElementAnimations> gather_animated_properties(const FbxElementMapp
     }
     if (is_blend_shape) {
       anims.prop_blend_shape = &fprop;
+      anims.shape_key_block = shape_key_block;
     }
     if (is_focal_length) {
       anims.prop_focal_length = &fprop;
@@ -512,19 +515,22 @@ static void create_blend_shape_curves(const ElementAnimations &anim,
                                       const double fps,
                                       const float anim_offset)
 {
-  const ufbx_blend_channel *fchan = ufbx_as_blend_channel(anim.prop_blend_shape->element);
-  BLI_assert(fchan != nullptr);
-  std::string rna_path = std::string("key_blocks[\"") +
-                         BLI_str_escape(fchan->target_shape->name.data) + "\"].value";
+  KeyBlock &block = *anim.shape_key_block;
+  std::string rna_path = std::string("key_blocks[\"") + BLI_str_escape(block.name) + "\"].value";
   const ufbx_anim_curve *input_curve = anim.prop_blend_shape->anim_value->curves[0];
   FCurve *curve = create_fcurve(channelbag, {rna_path, 0}, input_curve->keyframes.count);
+  float min_weight = block.slidermin;
+  float max_weight = block.slidermax;
   for (int64_t i = 0; i < curve->totvert; i++) {
     const ufbx_keyframe &fkey = input_curve->keyframes[i];
     double t = fkey.time;
     float tf = float(t * fps + anim_offset);
-    float val = float(fkey.value / 100.0); /* FBX shape weights are 0..100 range. */
+    float val = float(fkey.value / 100.0); /* Convert FBX percent to a weight. */
     set_curve_sample(curve, i, tf, val);
+    min_weight = std::min(min_weight, val);
+    max_weight = std::max(max_weight, val);
   }
+  expand_shape_key_range(block, min_weight, max_weight);
   finalize_curve(curve);
 }
 

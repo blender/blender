@@ -18,6 +18,7 @@ namespace blender {
 struct ID;
 struct Object;
 struct Key;
+struct KeyBlock;
 struct Material;
 struct bPoseChannel;
 
@@ -28,10 +29,17 @@ const char *get_fbx_name(const ufbx_string &name, const char *def = "Untitled");
 ufbx_matrix camera_light_transform_to_matrix(const ufbx_transform &transform,
                                              const ufbx_node &node);
 
+void expand_shape_key_range(KeyBlock &block, float min_weight, float max_weight);
+
+struct FbxShapeKey {
+  Key *key;
+  KeyBlock *block;
+};
+
 struct FbxElementMapping {
   Set<Object *> imported_objects;
   Map<const ufbx_element *, Object *> el_to_object;
-  Map<const ufbx_element *, Key *> el_to_shape_key;
+  Map<const ufbx_element *, FbxShapeKey> el_to_shape_key;
   Map<const ufbx_material *, Material *> mat_to_material;
   Map<const ufbx_node *, Object *> bone_to_armature;
 

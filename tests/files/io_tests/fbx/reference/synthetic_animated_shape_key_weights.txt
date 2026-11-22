@@ -1,0 +1,26 @@
+==== Meshes: 1
+- Mesh 'Triangle' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (0.000, 1.000, 0.000)
+  - shape key 'Basis' w:0.000 vgrp:'' 1:(1.000, 0.000, 0.000) 2:(0.000, 1.000, 0.000)
+  - shape key 'Lift' w:-0.250 vgrp:'' range:[-3.000, 3.000] 1:(1.000, 0.000, 2.000) 2:(0.000, 1.000, 0.000)
+
+==== Objects: 1
+- Obj 'Triangle' MESH data:'Triangle'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Actions: 1
+- Action 'Shape Weights' curverange:(1.0 .. 25.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'KEKey' curves:1
+  - fcu 'key_blocks["Lift"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, -1.250) lh:(-7.000, -1.250 AUTO_CLAMPED) rh:(9.000, -1.250 AUTO_CLAMPED)
+    - (25.000, 1.500) lh:(17.000, 1.500 AUTO_CLAMPED) rh:(33.000, 1.500 AUTO_CLAMPED)
+

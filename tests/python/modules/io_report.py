@@ -489,6 +489,8 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
                 if key:
                     for kb in key.key_blocks:
                         desc.write(f"  - shape key '{kb.name}' w:{kb.value:.3f} vgrp:'{kb.vertex_group}'")
+                        if (kb.slider_min, kb.slider_max) != (0.0, 1.0):
+                            desc.write(f" range:[{kb.slider_min:.3f}, {kb.slider_max:.3f}]")
                         # print first several deltas that are not zero from the key
                         count = 0
                         idx = 0

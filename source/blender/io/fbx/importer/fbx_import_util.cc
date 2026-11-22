@@ -6,6 +6,9 @@
  * \ingroup fbx
  */
 
+#include <algorithm>
+#include <cmath>
+
 #include "BKE_idprop.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -13,11 +16,34 @@
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 
+#include "DNA_key_types.h"
 #include "DNA_object_types.h"
 
 #include "fbx_import_util.hh"
 
+#include "CLG_log.h"
+
 namespace blender::io::fbx {
+
+static CLG_LogRef LOG = {"io.fbx"};
+
+void expand_shape_key_range(KeyBlock &block, const float min_weight, const float max_weight)
+{
+  /* Match the hard limits in ShapeKey RNA. */
+  constexpr float hard_min = -10.0f;
+  constexpr float hard_max = 10.0f;
+  /* Leave room for editing the weight, as the Python importer did. */
+  if (min_weight < block.slidermin) {
+    block.slidermin = std::max(hard_min, std::floor(2.0f * min_weight));
+  }
+  if (max_weight > block.slidermax) {
+    block.slidermax = std::min(hard_max, std::ceil(2.0f * max_weight));
+  }
+  if (min_weight < hard_min || max_weight > hard_max) {
+    CLOG_WARN(
+        &LOG, "Shape key '%s' has weights outside the supported range [-10, 10]", block.name);
+  }
+}
 
 const char *get_fbx_name(const ufbx_string &name, const char *def)
 {
