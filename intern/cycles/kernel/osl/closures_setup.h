@@ -337,7 +337,7 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
   const bool beckmann = closure->distribution == make_string("beckmann", 14712237670914973463ull);
   const bool multiggx = closure->distribution == make_string("multi_ggx", 16842698693386468366ull);
 
-  fresnel->thin_film = {closure->thinfilm_thickness, closure->thinfilm_ior};
+  fresnel->thin_film = {closure->thinfilm_thickness, closure->thinfilm_ior, 1.0f};
   fresnel->tint = {rgb_to_spectrum(closure->reflection_tint),
                    rgb_to_spectrum(closure->transmission_tint)};
   if (backfacing) {
@@ -399,6 +399,7 @@ ccl_device void osl_closure_conductor_bsdf_setup(KernelGlobals kg,
 
   fresnel->thin_film.thickness = closure->thinfilm_thickness;
   fresnel->thin_film.ior = closure->thinfilm_ior;
+  fresnel->thin_film.weight = 1.0f;
 
   fresnel->ior = {rgb_to_spectrum(closure->ior), rgb_to_spectrum(closure->extinction)};
   bsdf_microfacet_setup_fresnel_conductor(kg, bsdf, sd->wi, fresnel, preserve_energy);
@@ -502,6 +503,8 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   fresnel->exponent = closure->exponent;
   fresnel->thin_film.thickness = closure->thinfilm_thickness;
   fresnel->thin_film.ior = closure->thinfilm_ior;
+  fresnel->thin_film.weight = 1.0f;
+
   if (backfacing) {
     adjust_thin_film_ior_at_backface(fresnel->thin_film.ior, bsdf->ior);
   }
@@ -550,7 +553,7 @@ ccl_device void osl_closure_thin_glass_setup(KernelGlobals kg,
 
   const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(
       sd, safe_normalize_fallback(closure->N, sd->N));
-  const FresnelThinFilm thinfilm = {closure->thinfilm_thickness, closure->thinfilm_ior};
+  const FresnelThinFilm thinfilm = {closure->thinfilm_thickness, closure->thinfilm_ior, 1.0f};
   const FresnelCoeff tint = {rgb_to_spectrum(closure->reflection_tint),
                              rgb_to_spectrum(closure->transmission_tint)};
   const FresnelCoeff fresnel = bsdf_thin_glass_setup(kg,
@@ -714,6 +717,7 @@ ccl_device void osl_closure_microfacet_f82_tint_setup(
   fresnel->f0 = rgb_to_spectrum(closure->f0);
   fresnel->thin_film.thickness = closure->thinfilm_thickness;
   fresnel->thin_film.ior = closure->thinfilm_ior;
+  fresnel->thin_film.weight = 1.0f;
 
   bsdf_microfacet_setup_fresnel_f82_tint(
       kg, bsdf, sd->wi, fresnel, rgb_to_spectrum(closure->f82), preserve_energy);

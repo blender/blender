@@ -506,6 +506,12 @@ ccl_device_forceinline FresnelCoeff microfacet_fresnel(KernelGlobals kg,
   ccl_private FresnelThinFilm *thin_film = (ccl_private FresnelThinFilm *)fresnel_;
 
   const bool thin_film_valid = thin_film->valid();
+  if (!thin_film_valid) {
+    thin_film->weight = 0.0f;
+  }
+  const bool need_base_fresnel = thin_film->weight < 1.0f;
+
+  Spectrum F_thinfilmed = zero_spectrum();
   Spectrum F = zero_spectrum();
 
   switch (fresnel_type) {
@@ -514,9 +520,9 @@ ccl_device_forceinline FresnelCoeff microfacet_fresnel(KernelGlobals kg,
       ccl_private FresnelConductor *fresnel = (ccl_private FresnelConductor *)fresnel_;
 
       if (thin_film_valid) {
-        F = fresnel_conductor_thinfilm(kg, thin_film, fresnel->ior, cos_theta_i);
+        F_thinfilmed = fresnel_conductor_thinfilm(kg, thin_film, fresnel->ior, cos_theta_i);
       }
-      else {
+      if (need_base_fresnel) {
         F = fresnel_conductor(cos_theta_i, fresnel->ior);
       }
       break;
@@ -526,9 +532,9 @@ ccl_device_forceinline FresnelCoeff microfacet_fresnel(KernelGlobals kg,
       ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)fresnel_;
 
       if (thin_film_valid) {
-        F = fresnel_f82_thinfilm(kg, fresnel, cos_theta_i);
+        F_thinfilmed = fresnel_f82_thinfilm(kg, fresnel, cos_theta_i);
       }
-      else {
+      if (need_base_fresnel) {
         F = fresnel_f82(cos_theta_i, fresnel->f0, fresnel->b);
       }
       break;
@@ -543,7 +549,7 @@ ccl_device_forceinline FresnelCoeff microfacet_fresnel(KernelGlobals kg,
         kernel_assert(fresnel->exponent < 0.0f);
         kernel_assert(fresnel->f90 == one_spectrum());
 
-        F = fresnel_dielectric_thinfilm(kg, thin_film, ior, cos_theta_i, r_cos_theta_t);
+        F_thinfilmed = fresnel_dielectric_thinfilm(kg, thin_film, ior, cos_theta_i, r_cos_theta_t);
 
         /* Apply F0 scaling (here per-channel, since iridescence produces colored output).
          * Note that the usual approach (as used below) cannot be used here, since F may be below
@@ -551,15 +557,16 @@ ccl_device_forceinline FresnelCoeff microfacet_fresnel(KernelGlobals kg,
          * the strength of the scaling depending on how close F is to F0_real. There isn't one
          * single "correct" way to do this, it's just for artistic control anyways. */
         const float F0_real = F0_from_ior(ior);
-        if (F0_real > 1e-5f && !isequal(F, one_spectrum())) {
+        if (F0_real > 1e-5f && !isequal(F_thinfilmed, one_spectrum())) {
           FOREACH_SPECTRUM_CHANNEL (i) {
-            const float s = saturatef(inverse_lerp(1.0f, F0_real, GET_SPECTRUM_CHANNEL(F, i)));
+            const float s = saturatef(
+                inverse_lerp(1.0f, F0_real, GET_SPECTRUM_CHANNEL(F_thinfilmed, i)));
             const float factor = GET_SPECTRUM_CHANNEL(fresnel->f0, i) / F0_real;
-            GET_SPECTRUM_CHANNEL(F, i) *= mix(1.0f, factor, s);
+            GET_SPECTRUM_CHANNEL(F_thinfilmed, i) *= mix(1.0f, factor, s);
           }
         }
       }
-      else {
+      if (need_base_fresnel) {
         F = fresnel_generalized_schlick(fresnel, ior, cos_theta_i, r_cos_theta_t);
       }
 
@@ -569,9 +576,9 @@ ccl_device_forceinline FresnelCoeff microfacet_fresnel(KernelGlobals kg,
 
     case MicrofacetFresnel::DIELECTRIC_TINT:
       if (thin_film_valid) {
-        F = fresnel_dielectric_thinfilm(kg, thin_film, ior, cos_theta_i, r_cos_theta_t);
+        F_thinfilmed = fresnel_dielectric_thinfilm(kg, thin_film, ior, cos_theta_i, r_cos_theta_t);
       }
-      else {
+      if (need_base_fresnel) {
         F = make_spectrum(fresnel_dielectric(cos_theta_i, ior, r_cos_theta_t));
       }
       coeff *= ((ccl_private FresnelDielectricTint *)fresnel_)->tint;
@@ -582,7 +589,7 @@ ccl_device_forceinline FresnelCoeff microfacet_fresnel(KernelGlobals kg,
       break;
   }
 
-  return coeff * F;
+  return coeff * endvalue_preserving_mix(F, F_thinfilmed, thin_film->weight);
 }
 
 ccl_device_forceinline FresnelCoeff microfacet_fresnel(KernelGlobals kg,
