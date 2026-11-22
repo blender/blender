@@ -737,6 +737,9 @@ static ShaderNode *add_node(Scene *scene,
         NODE_PRINCIPLED_HAIR_REFLECTANCE));
     node = principled_hair;
   }
+  else if (b_node.is_type("ShaderNodeBsdfOpenPBR"_ustr)) {
+    node = graph->create_node<OpenPBRBsdfNode>();
+  }
   else if (b_node.is_type("ShaderNodeBsdfPrincipled"_ustr)) {
     PrincipledBsdfNode *principled = graph->create_node<PrincipledBsdfNode>();
     switch (b_node.custom1) {

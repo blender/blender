@@ -6,6 +6,9 @@
 #include "node_math.h"
 #include "stdcycles.h"
 
+/* A small cutoff number. Same as in `kernel/constants.h`. */
+#define EPS 1e-5
+
 shader node_principled_bsdf(string distribution = "multi_ggx",
                             string subsurface_method = "random_walk",
                             color BaseColor = color(0.8, 0.8, 0.8),
@@ -146,22 +149,16 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   if (metallic < 1.0 && TransmissionWeight > CLOSURE_WEIGHT_CUTOFF) {
     float eta = max(IOR, 1e-5);
     if (ThinWall) {
-      closure color ThinGlassBSDF = thin_glass(Normal,
-                                               vector(0.0),
-                                               specular_tint,
-                                               clamped_base_color,
-                                               eta,
-                                               r2,
-                                               ThinFilmThickness,
-                                               ThinFilmIOR);
+      closure color ThinGlassBSDF = thin_glass(
+          Normal, specular_tint, clamped_base_color, eta, r2, ThinFilmThickness, ThinFilmIOR, 0);
       BSDF = mix(ThinGlassBSDF, BSDF, 1.0 - transmission);
     }
     else {
       color F0 = F0_from_ior(eta) * specular_tint;
       color F90 = color(1.0);
       float dispersion_scale = clamp(TransmissionDispersionScale, 0.0, 1.0);
-      float abbe_number = max(TransmissionDispersionAbbeNumber, 0.0);
-      float inv_abbe = safe_divide(dispersion_scale, abbe_number);
+      float abbe_number = max(TransmissionDispersionAbbeNumber, EPS);
+      float inv_abbe = dispersion_scale / abbe_number;
       closure color TransmissionBSDF = generalized_schlick_bsdf(Normal,
                                                                 T,
                                                                 color(1.0),
@@ -207,7 +204,8 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   if (coat_weight > CLOSURE_WEIGHT_CUTOFF) {
     float coat_ior = max(CoatIOR, 1.0);
     float coat_alpha = clamp(CoatRoughness, 0.0, 1.0);
-    closure color CoatBSDF = coat_bsdf(CoatTint, coat_ior, coat_alpha, CoatNormal);
+    closure color CoatBSDF = coat_bsdf(
+        CoatTint, coat_ior, coat_alpha, 0.0, 0.0, CoatNormal, vector(0.0));
     BSDF = layer(coat_weight * CoatBSDF, BSDF);
   }
 

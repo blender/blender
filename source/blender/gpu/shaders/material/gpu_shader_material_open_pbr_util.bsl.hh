@@ -38,6 +38,7 @@ struct Coat {
   packed_float3 N;
   float ior;
   float weight;
+  float darkening;
 };
 
 struct Fuzz {

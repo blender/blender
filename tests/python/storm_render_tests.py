@@ -40,6 +40,8 @@ BLOCKLIST = [
     # Currently, image_mipmap tests are not enabled for storm-usd
     "image_cache_evict.blend",
     "image_mipmap_.*.blend",
+    # TODO(OpenPBR): Not supported yet
+    "openpbr_.*.blend",
 ]
 
 # Unsupported or broken scenarios for the Storm render engine

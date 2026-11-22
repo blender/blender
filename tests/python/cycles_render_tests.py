@@ -56,7 +56,14 @@ BLOCKLIST_OSL_ALL = BLOCKLIST_OSL_LIMITED + [
     # OSL can not specify parameters when reading attribute, which we need for stochastic sampling
     'volume_tricubic_interpolation.blend',
     # Test specifically for how SVM deals with missing derivatives, which OSL has.
-    "image_mipmap_incomplete_derivs.blend"
+    "image_mipmap_incomplete_derivs.blend",
+    # These test fail on OSL since the OSL implementation for thin_film_weight generates
+    # a different noise pattern compared to SVM.
+    # TODO(OpenPBR): find a way to enable these tests.
+    "openpbr_glass_thin_walled_thin_film.blend",
+    "openpbr_glass_thin_film.blend",
+    # OSL has a different order of mixing closures.
+    "openpbr_transmission_depth.blend",
 ]
 
 BLOCKLIST_OPTIX = [

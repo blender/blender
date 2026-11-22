@@ -658,9 +658,8 @@ void ShaderManager::device_update_common(Device * /*device*/,
     }
     if (shader->has_volume) {
       flag |= SD_HAS_VOLUME;
-      /* todo: this could check more fine grained, to skip useless volumes
-       * enclosed inside an opaque bsdf.
-       */
+      /* TODO: this could check more fine grained, to skip useless volumes enclosed inside an
+       * opaque bsdf. */
       flag |= SD_HAS_TRANSPARENT_SHADOW;
     }
     /* in this case we can assume transparent surface */
@@ -887,6 +886,11 @@ uint64_t ShaderManager::get_graph_kernel_features(ShaderGraph *graph)
     if (node->has_surface_transparent()) {
       kernel_features |= KERNEL_FEATURE_TRANSPARENT;
     }
+  }
+
+  /* Graph might have generated volume nodes when expanding certain nodes, check again here. */
+  if (graph->has_volume_connected()) {
+    kernel_features |= KERNEL_FEATURE_VOLUME;
   }
 
   return kernel_features;

@@ -35,17 +35,23 @@ closure color microfacet_f82_tint(
 closure color microfacet_multi_ggx_glass(normal N, float ag, float eta, color C) BUILTIN;
 closure color microfacet_multi_ggx_aniso(normal N, vector T, float ax, float ay, color C) BUILTIN;
 closure color thin_glass(normal N,
-                         vector T,
                          color reflection,
                          color transmission,
                          float ior,
                          float alpha,
                          float thinfilm_thickness,
-                         float thinfilm_ior) BUILTIN;
+                         float thinfilm_ior,
+                         int dielectric_tint) BUILTIN;
 closure color
 thin_subsurface(normal N, vector T, color C, float anisotropy, float roughness) BUILTIN;
 
-closure color coat_bsdf(color C, float ior, float roughness, normal N) BUILTIN;
+closure color coat_bsdf(color C,
+                        float ior,
+                        float roughness,
+                        float anisotropy,
+                        float darkening,
+                        normal N,
+                        normal T) BUILTIN;
 
 // BSSRDF
 closure color bssrdf(string method, normal N, vector radius, color albedo) BUILTIN;

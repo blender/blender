@@ -39,6 +39,7 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/bsdf_hair.h
   closure/bssrdf.h
   closure/emissive.h
+  closure/openpbr_util.h
   closure/volume.h
   closure/volume_util.h
   closure/volume_henyey_greenstein.h

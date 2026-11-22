@@ -195,3 +195,13 @@ float average(point a)
 {
   return (a[0] + a[1] + a[2]) * (1.0 / 3.0);
 }
+
+float saturate(float f)
+{
+  return clamp(f, 0.0, 1.0);
+}
+
+color saturate(color c)
+{
+  return clamp(c, color(0.0), color(1.0));
+}

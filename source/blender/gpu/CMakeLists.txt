@@ -681,6 +681,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_normal.bsl.hh
   shaders/material/gpu_shader_material_normal_map.bsl.hh
   shaders/material/gpu_shader_material_object_info.bsl.hh
+  shaders/material/gpu_shader_material_open_pbr.bsl.hh
   shaders/material/gpu_shader_material_open_pbr_util.bsl.hh
   shaders/material/gpu_shader_material_output_aov.bsl.hh
   shaders/material/gpu_shader_material_output_material.bsl.hh

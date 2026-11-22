@@ -1213,6 +1213,59 @@ struct SVMNodePrincipledBsdfData {
 static_assert(alignof(SVMNodePrincipledBsdfData) <= alignof(uint));
 static_assert(sizeof(SVMNodePrincipledBsdfData) % sizeof(uint) == 0);
 
+/* OpenPBR BSDF. */
+struct SVMNodeOpenPBRBsdfData {
+  /* Base */
+  SVMInputFloat base_weight;
+  SVMInputFloat3 base_color;
+  SVMInputFloat base_metalness;
+  SVMInputFloat base_diffuse_roughness;
+  /* Specular */
+  SVMInputFloat specular_weight;
+  SVMInputFloat3 specular_color;
+  SVMInputFloat specular_roughness;
+  SVMInputFloat specular_roughness_anisotropy;
+  SVMInputFloat specular_ior;
+  /* Transmission */
+  SVMInputFloat transmission_weight;
+  SVMInputFloat3 transmission_color;
+  SVMInputFloat transmission_dispersion_scale;
+  SVMInputFloat transmission_dispersion_abbe_number;
+  /* Subsurface Scattering */
+  SVMInputFloat subsurface_weight;
+  SVMInputFloat3 subsurface_color;
+  SVMInputFloat subsurface_radius;
+  SVMInputFloat3 subsurface_radius_scale;
+  SVMInputFloat subsurface_scatter_anisotropy;
+  /* Coat */
+  SVMInputFloat coat_weight;
+  SVMInputFloat3 coat_color;
+  SVMInputFloat coat_roughness;
+  SVMInputFloat coat_roughness_anisotropy;
+  SVMInputFloat coat_ior;
+  SVMInputFloat coat_darkening;
+  /* Fuzz */
+  SVMInputFloat fuzz_weight;
+  SVMInputFloat3 fuzz_color;
+  SVMInputFloat fuzz_roughness;
+  /* Thin-Film*/
+  SVMInputFloat thin_film_weight;
+  SVMInputFloat thin_film_thickness;
+  SVMInputFloat thin_film_ior;
+  /* Emission */
+  SVMInputFloat emission_luminance;
+  SVMInputFloat3 emission_color;
+  /* Geometry */
+  SVMInputFloat geometry_opacity;
+  SVMInputInt geometry_thin_walled;
+  SVMStackOffset geometry_normal_offset;
+  SVMStackOffset geometry_tangent_offset;
+  SVMStackOffset geometry_coat_normal_offset;
+  SVMStackOffset geometry_coat_tangent_offset;
+};
+static_assert(alignof(SVMNodeOpenPBRBsdfData) <= alignof(uint));
+static_assert(sizeof(SVMNodeOpenPBRBsdfData) % sizeof(uint) == 0);
+
 /* Principled Hair BSDF. */
 struct SVMNodePrincipledHairBsdfData {
   NodePrincipledHairParametrization parametrization;

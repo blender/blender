@@ -2667,6 +2667,511 @@ void DiffuseBsdfNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_diffuse_bsdf");
 }
 
+NODE_DEFINE(OpenPBRBsdfNode)
+{
+  NodeType *type = NodeType::add("open_pbr_bsdf", create, NodeType::SHADER);
+
+  /* Base Component */
+  SOCKET_IN_FLOAT(base_weight, "Base Weight", 1.0f);
+  SOCKET_IN_COLOR(base_color, "Base Color", make_float3(0.8f));
+  SOCKET_IN_FLOAT(base_metalness, "Base Metalness", 0.0f);
+  SOCKET_IN_FLOAT(base_diffuse_roughness, "Base Diffuse Roughness", 0.0f);
+  /* Specular Component */
+  SOCKET_IN_FLOAT(specular_weight, "Specular Weight", 1.0f);
+  SOCKET_IN_COLOR(specular_color, "Specular Color", one_float3());
+  SOCKET_IN_FLOAT(specular_roughness, "Specular Roughness", 0.3f);
+  SOCKET_IN_FLOAT(specular_roughness_anisotropy, "Specular Roughness Anisotropy", 0.0f);
+  SOCKET_IN_FLOAT(specular_ior, "Specular IOR", 1.5f);
+  /* Transmission Component */
+  SOCKET_IN_FLOAT(transmission_weight, "Transmission Weight", 0.0f);
+  SOCKET_IN_COLOR(transmission_color, "Transmission Color", one_float3());
+  SOCKET_IN_FLOAT(transmission_depth, "Transmission Depth", 0.0f);
+  SOCKET_IN_COLOR(transmission_scatter, "Transmission Scatter", zero_float3());
+  SOCKET_IN_FLOAT(transmission_scatter_anisotropy, "Transmission Scatter Anisotropy", 0.0f);
+  SOCKET_IN_FLOAT(transmission_dispersion_scale, "Transmission Dispersion Scale", 0.0f);
+  SOCKET_IN_FLOAT(
+      transmission_dispersion_abbe_number, "Transmission Dispersion Abbe Number", 20.0f);
+  /* Subsurface Component */
+  SOCKET_IN_FLOAT(subsurface_weight, "Subsurface Weight", 0.0f);
+  SOCKET_IN_COLOR(subsurface_color, "Subsurface Color", make_float3(0.8f));
+  SOCKET_IN_FLOAT(subsurface_radius, "Subsurface Radius", 1.0f);
+  SOCKET_IN_COLOR(
+      subsurface_radius_scale, "Subsurface Radius Scale", make_float3(1.0f, 0.5f, 0.25f));
+  SOCKET_IN_FLOAT(subsurface_scatter_anisotropy, "Subsurface Scatter Anisotropy", 0.0f);
+  /* Coat Component */
+  SOCKET_IN_FLOAT(coat_weight, "Coat Weight", 0.0f);
+  SOCKET_IN_COLOR(coat_color, "Coat Color", one_float3());
+  SOCKET_IN_FLOAT(coat_roughness, "Coat Roughness", 0.0f);
+  SOCKET_IN_FLOAT(coat_roughness_anisotropy, "Coat Roughness Anisotropy", 0.0f);
+  SOCKET_IN_FLOAT(coat_ior, "Coat IOR", 1.6f);
+  SOCKET_IN_FLOAT(coat_darkening, "Coat Darkening", 1.0f);
+  /* Fuzz Component */
+  SOCKET_IN_FLOAT(fuzz_weight, "Fuzz Weight", 0.0f);
+  SOCKET_IN_COLOR(fuzz_color, "Fuzz Color", one_float3());
+  SOCKET_IN_FLOAT(fuzz_roughness, "Fuzz Roughness", 0.5f);
+  /* Emission Component */
+  SOCKET_IN_FLOAT(emission_luminance, "Emission Luminance", 0.0f);
+  SOCKET_IN_COLOR(emission_color, "Emission Color", one_float3());
+  /* Thin Film Component */
+  SOCKET_IN_FLOAT(thin_film_weight, "Thin Film Weight", 0.0f);
+  SOCKET_IN_FLOAT(thin_film_thickness, "Thin Film Thickness", 0.5f);
+  SOCKET_IN_FLOAT(thin_film_ior, "Thin Film IOR", 1.4f);
+  /* Geometry Component */
+  SOCKET_IN_FLOAT(geometry_opacity, "Geometry Opacity", 1.0f);
+  SOCKET_IN_INT(geometry_thin_walled, "Geometry Thin Walled", false);
+  SOCKET_IN_NORMAL(geometry_normal, "Geometry Normal", zero_float3(), SocketType::LINK_NORMAL);
+  SOCKET_IN_NORMAL(geometry_tangent, "Geometry Tangent", zero_float3(), SocketType::LINK_TANGENT);
+  SOCKET_IN_NORMAL(
+      geometry_coat_normal, "Geometry Coat Normal", zero_float3(), SocketType::LINK_NORMAL);
+  SOCKET_IN_NORMAL(
+      geometry_coat_tangent, "Geometry Coat Tangent", zero_float3(), SocketType::LINK_TANGENT);
+
+  SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
+
+  SOCKET_OUT_CLOSURE(BSDF, "BSDF");
+
+  return type;
+}
+
+OpenPBRBsdfNode::OpenPBRBsdfNode() : BsdfBaseNode(get_node_type())
+{
+  closure = CLOSURE_BSDF_OPEN_PBR_ID;
+}
+
+void OpenPBRBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+  if (shader->has_surface_link()) {
+
+    if (!input("Geometry Tangent")->link || !input("Geometry Coat Tangent")->link) {
+      attributes->add(ATTR_STD_GENERATED);
+    }
+  }
+
+  ShaderNode::attributes(shader, attributes);
+}
+
+void OpenPBRBsdfNode::compile(SVMCompiler &compiler)
+{
+  SVMStackOffset geometry_tangent_offset = SVM_STACK_INVALID;
+  if (is_possibly_nonzero("Specular Roughness Anisotropy")) {
+    geometry_tangent_offset = compiler.input_link("Geometry Tangent");
+  }
+
+  SVMStackOffset geometry_coat_tangent_offset = SVM_STACK_INVALID;
+  if (is_possibly_nonzero("Coat Roughness Anisotropy")) {
+    geometry_coat_tangent_offset = compiler.input_link("Geometry Coat Tangent");
+  }
+
+  compiler.add_bsdf_node(
+      SVMNodeClosureBsdf{
+          .closure_type = closure,
+          .mix_weight_offset = compiler.closure_mix_weight_offset(),
+      },
+      SVMNodeOpenPBRBsdfData{
+          /* Base */
+          .base_weight = compiler.input_float("Base Weight"),
+          .base_color = compiler.input_float3("Base Color"),
+          .base_metalness = compiler.input_float("Base Metalness"),
+          .base_diffuse_roughness = compiler.input_float("Base Diffuse Roughness"),
+          /* Specular */
+          .specular_weight = compiler.input_float("Specular Weight"),
+          .specular_color = compiler.input_float3("Specular Color"),
+          .specular_roughness = compiler.input_float("Specular Roughness"),
+          .specular_roughness_anisotropy = compiler.input_float("Specular Roughness Anisotropy"),
+          .specular_ior = compiler.input_float("Specular IOR"),
+          /* Transmission */
+          .transmission_weight = compiler.input_float("Transmission Weight"),
+          .transmission_color = compiler.input_float3("Transmission Color"),
+          .transmission_dispersion_scale = compiler.input_float("Transmission Dispersion Scale"),
+          .transmission_dispersion_abbe_number = compiler.input_float(
+              "Transmission Dispersion Abbe Number"),
+          /* Subsurface Scattering */
+          .subsurface_weight = compiler.input_float("Subsurface Weight"),
+          .subsurface_color = compiler.input_float3("Subsurface Color"),
+          .subsurface_radius = compiler.input_float("Subsurface Radius"),
+          .subsurface_radius_scale = compiler.input_float3("Subsurface Radius Scale"),
+          .subsurface_scatter_anisotropy = compiler.input_float("Subsurface Scatter Anisotropy"),
+          /* Coat Component */
+          .coat_weight = compiler.input_float("Coat Weight"),
+          .coat_color = compiler.input_float3("Coat Color"),
+          .coat_roughness = compiler.input_float("Coat Roughness"),
+          .coat_roughness_anisotropy = compiler.input_float("Coat Roughness Anisotropy"),
+          .coat_ior = compiler.input_float("Coat IOR"),
+          .coat_darkening = compiler.input_float("Coat Darkening"),
+          /* Fuzz Component */
+          .fuzz_weight = compiler.input_float("Fuzz Weight"),
+          .fuzz_color = compiler.input_float3("Fuzz Color"),
+          .fuzz_roughness = compiler.input_float("Fuzz Roughness"),
+          /* Thin-film Component*/
+          .thin_film_weight = compiler.input_float("Thin Film Weight"),
+          .thin_film_thickness = compiler.input_float("Thin Film Thickness"),
+          .thin_film_ior = compiler.input_float("Thin Film IOR"),
+          /* Emission Component */
+          .emission_luminance = compiler.input_float("Emission Luminance"),
+          .emission_color = compiler.input_float3("Emission Color"),
+          /* Geometry Component */
+          .geometry_opacity = compiler.input_float("Geometry Opacity"),
+          .geometry_thin_walled = compiler.input_int("Geometry Thin Walled"),
+          .geometry_normal_offset = compiler.input_link("Geometry Normal"),
+          .geometry_tangent_offset = geometry_tangent_offset,
+          .geometry_coat_normal_offset = compiler.input_link("Geometry Coat Normal"),
+          .geometry_coat_tangent_offset = geometry_coat_tangent_offset,
+      });
+}
+
+void OpenPBRBsdfNode::compile(OSLCompiler &compiler)
+{
+  compiler.add(this, "node_open_pbr_bsdf");
+}
+
+bool OpenPBRBsdfNode::has_surface_transparent()
+{
+  if (is_possibly_nonzero("Geometry Thin Walled") && is_possibly_nonzero("Transmission Weight")) {
+    /* Smooth thin glass are treated as transparent for non-camera rays.
+     * Transmission roughness depends on roughness, IOR and specular weight, so we loosen the
+     * constraint here and do not check if the roughness is zero. */
+    return true;
+  }
+
+  return (input("Geometry Opacity")->link || geometry_opacity < (1.0f - CLOSURE_WEIGHT_CUTOFF));
+}
+
+bool OpenPBRBsdfNode::is_thin_wall()
+{
+  return (input("Geometry Thin Walled")->link == nullptr) && geometry_thin_walled;
+}
+
+bool OpenPBRBsdfNode::has_surface_emission()
+{
+  return is_possibly_nonzero("Emission Luminance") && is_possibly_nonzero("Emission Color");
+}
+
+bool OpenPBRBsdfNode::subsurface_has_positive_weight()
+{
+  return is_possibly_nonzero("Subsurface Weight") &&
+         is_possibly_nonzero("Subsurface Radius Scale") &&
+         is_possibly_nonzero("Subsurface Radius");
+}
+
+bool OpenPBRBsdfNode::has_surface_bssrdf()
+{
+  if (is_thin_wall()) {
+    /* Subsurface in thin-walled mode is approximated via diffuse lobes, it doesn't contain real
+     * subsurface. */
+    return false;
+  }
+
+  return subsurface_has_positive_weight();
+}
+
+bool OpenPBRBsdfNode::has_volume()
+{
+  if (is_thin_wall()) {
+    return false;
+  }
+  return is_possibly_nonzero("Transmission Weight") && is_possibly_nonzero("Transmission Depth");
+}
+
+bool OpenPBRBsdfNode::has_dispersion()
+{
+  return is_possibly_nonzero("Transmission Dispersion Scale") &&
+         is_possibly_nonzero("Transmission Weight");
+}
+
+bool OpenPBRBsdfNode::has_bump()
+{
+  /* Detect if anything is plugged into the normal input besides the default */
+  ShaderInput *normal_in = input("Geometry Normal");
+  return (normal_in && normal_in->link &&
+          normal_in->link->parent->special_type != SHADER_SPECIAL_TYPE_GEOMETRY);
+}
+
+bool OpenPBRBsdfNode::has_bssrdf_bump()
+{
+  return has_surface_bssrdf() && has_bump();
+}
+
+bool OpenPBRBsdfNode::is_possibly_nonzero(const char *name)
+{
+  ShaderInput *shader_input = input(name);
+  assert(shader_input);
+  if (shader_input->link != nullptr) {
+    return true;
+  }
+
+  if (shader_input->socket_type.type == SocketType::FLOAT) {
+    return (get_float(shader_input->socket_type) >= CLOSURE_WEIGHT_CUTOFF);
+  }
+  if (SocketType::is_float3(shader_input->socket_type.type)) {
+    return !is_zero(get_float3(shader_input->socket_type));
+  }
+  if (shader_input->socket_type.type == SocketType::BOOLEAN) {
+    return get_bool(shader_input->socket_type);
+  }
+  if (shader_input->socket_type.type == SocketType::INT) {
+    return get_int(shader_input->socket_type);
+  }
+
+  /* TODO: implement? */
+  assert(false);
+  return true;
+}
+
+void OpenPBRBsdfNode::simplify_settings(Scene * /* scene */)
+{
+  if (!has_surface_emission()) {
+    /* Emission will be zero, so optimize away any connected emission input. */
+    disconnect_unused_input("Emission Luminance");
+    disconnect_unused_input("Emission Color");
+  }
+
+  if (is_thin_wall()) {
+    disconnect_unused_input("Subsurface Radius");
+    disconnect_unused_input("Subsurface Radius Scale");
+  }
+  else if (!has_surface_bssrdf()) {
+    disconnect_unused_input("Subsurface Weight");
+    disconnect_unused_input("Subsurface Color");
+    disconnect_unused_input("Subsurface Radius");
+    disconnect_unused_input("Subsurface Radius Scale");
+    disconnect_unused_input("Subsurface Scatter Anisotropy");
+  }
+
+  if (!is_possibly_nonzero("Coat Weight")) {
+    disconnect_unused_input("Coat Weight");
+    disconnect_unused_input("Coat Color");
+    disconnect_unused_input("Coat Roughness");
+    disconnect_unused_input("Coat Roughness Anisotropy");
+    disconnect_unused_input("Coat IOR");
+    disconnect_unused_input("Coat Darkening");
+    disconnect_unused_input("Geometry Coat Normal");
+    disconnect_unused_input("Geometry Coat Tangent");
+  }
+
+  if (!is_possibly_nonzero("Coat Roughness Anisotropy")) {
+    disconnect_unused_input("Coat Roughness Anisotropy");
+    disconnect_unused_input("Geometry Coat Tangent");
+  }
+
+  if (!is_possibly_nonzero("Fuzz Weight")) {
+    disconnect_unused_input("Fuzz Weight");
+    disconnect_unused_input("Fuzz Color");
+    disconnect_unused_input("Fuzz Roughness");
+  }
+
+  if (!is_possibly_nonzero("Specular Roughness Anisotropy")) {
+    disconnect_unused_input("Specular Roughness Anisotropy");
+    disconnect_unused_input("Geometry Tangent");
+  }
+
+  if (!is_possibly_nonzero("Thin Film Weight") || !is_possibly_nonzero("Thin Film Thickness")) {
+    disconnect_unused_input("Thin Film Weight");
+    disconnect_unused_input("Thin Film Thickness");
+    disconnect_unused_input("Thin Film IOR");
+  }
+
+  if (!is_possibly_nonzero("Transmission Weight")) {
+    disconnect_unused_input("Transmission Weight");
+    disconnect_unused_input("Transmission Color");
+    disconnect_unused_input("Transmission Depth");
+    disconnect_unused_input("Transmission Scatter");
+    disconnect_unused_input("Transmission Scatter Anisotropy");
+    disconnect_unused_input("Transmission Dispersion Scale");
+    disconnect_unused_input("Transmission Dispersion Abbe Number");
+  }
+}
+
+/* If `transmission_depth` is none-zero, add a volume BSDF to the graph.
+ * When the sockets are not linked, we convert them to volume coefficients based on OpenPBR Surface
+ * specification v1.1, Eq. (50-53).
+ * When the sockets are linked, we create math nodes that give the equivalent conversion. */
+void OpenPBRBsdfNode::expand(ShaderGraph *graph)
+{
+  if (!has_volume() || output("BSDF")->links.empty()) {
+    return;
+  }
+
+  /* Create a volume node for non-zero transmission depth. */
+  VolumeCoefficientsNode *volume = graph->create_node<VolumeCoefficientsNode>();
+  graph->relink(input("Transmission Scatter Anisotropy"), volume->input("Anisotropy"));
+
+  ShaderInput *scatter_in = input("Transmission Scatter");
+  ShaderInput *depth_in = input("Transmission Depth");
+  ShaderInput *color_in = input("Transmission Color");
+
+  ShaderOutput *color_out = nullptr;
+  ShaderOutput *depth_out = nullptr;
+
+  /* Clamp input values to valid range. */
+  if (!depth_in->link) {
+    transmission_depth = max(transmission_depth, 0.0f);
+  }
+  else {
+    MathNode *max = graph->create_node<MathNode>();
+    max->set_math_type(NODE_MATH_MAXIMUM);
+    max->set_value2(0.0f);
+    graph->relink(depth_in, max->input("Value1"));
+
+    depth_out = max->output("Value");
+  }
+
+  if (!scatter_in->link) {
+    transmission_scatter = saturate(transmission_scatter);
+  }
+
+  if (!color_in->link) {
+    transmission_color = -log(clamp(transmission_color, make_float3(1e-5f), one_float3()));
+  }
+  else {
+    /* Clamp. */
+    VectorMathNode *min = graph->create_node<VectorMathNode>();
+    min->set_math_type(NODE_VECTOR_MATH_MINIMUM);
+    graph->connect(color_in->link, min->input("Vector1"));
+    graph->disconnect(color_in);
+    min->set_vector2(one_float3());
+
+    VectorMathNode *max = graph->create_node<VectorMathNode>();
+    max->set_math_type(NODE_VECTOR_MATH_MAXIMUM);
+    graph->connect(min->output("Vector"), max->input("Vector1"));
+    max->set_vector2(make_float3(1e-5f));
+
+    /* Log. */
+    VectorMathNode *log = graph->create_node<VectorMathNode>();
+    log->set_math_type(NODE_VECTOR_MATH_LOGARITHM);
+    graph->connect(max->output("Vector"), log->input("Vector1"));
+
+    VectorMathNode *neg = graph->create_node<VectorMathNode>();
+    neg->set_math_type(NODE_VECTOR_MATH_SUBTRACT);
+    graph->connect(log->output("Vector"), neg->input("Vector2"));
+    neg->set_vector1(zero_float3());
+
+    color_out = neg->output("Vector");
+  }
+
+  if (!(scatter_in->link || depth_out || color_out)) {
+    const float3 sigma_s = transmission_scatter / transmission_depth;
+    const float3 sigma_t = transmission_color / transmission_depth;
+    float3 sigma_a = sigma_t - sigma_s;
+    const float sigma_a_min = reduce_min(sigma_a);
+    if (sigma_a_min < 0.0f) {
+      sigma_a = sigma_a - sigma_a_min;
+    }
+    volume->set_scatter_coeffs(sigma_s);
+    volume->set_absorption_coeffs(sigma_a);
+  }
+  else {
+    /* Scatter Coefficients. */
+    MixColorNode *sigma_s = graph->create_node<MixColorNode>();
+    sigma_s->set_blend_type(NODE_MIX_DIV);
+    sigma_s->set_use_clamp(true);
+    sigma_s->set_fac(1.0f);
+    graph->relink(scatter_in, sigma_s->input("A"));
+    if (depth_out) {
+      graph->connect(depth_out, sigma_s->input("B"));
+    }
+    else {
+      sigma_s->set_b(make_float3(transmission_depth));
+    }
+    graph->connect(sigma_s->output("Result"), volume->input("Scatter Coefficients"));
+
+    /* Extinction Coefficients. */
+    VectorMathNode *sigma_t = graph->create_node<VectorMathNode>();
+    sigma_t->set_math_type(NODE_VECTOR_MATH_DIVIDE);
+
+    if (color_out) {
+      graph->connect(color_out, sigma_t->input("Vector1"));
+    }
+    else {
+      sigma_t->set_vector1(transmission_color);
+    }
+    if (depth_out) {
+      graph->connect(depth_out, sigma_t->input("Vector2"));
+    }
+    else {
+      sigma_t->set_vector2(make_float3(transmission_depth));
+    }
+
+    /* Absorption Coefficients. */
+    VectorMathNode *sigma_a = graph->create_node<VectorMathNode>();
+    sigma_a->set_math_type(NODE_VECTOR_MATH_SUBTRACT);
+    graph->connect(sigma_t->output("Vector"), sigma_a->input("Vector1"));
+    graph->connect(sigma_s->output("Result"), sigma_a->input("Vector2"));
+
+    /* Clamp */
+    SeparateXYZNode *xyz = graph->create_node<SeparateXYZNode>();
+    graph->connect(sigma_a->output("Vector"), xyz->input("Vector"));
+
+    MathNode *min_temp = graph->create_node<MathNode>();
+    min_temp->set_math_type(NODE_MATH_MINIMUM);
+    graph->connect(xyz->output("X"), min_temp->input("Value1"));
+    graph->connect(xyz->output("Y"), min_temp->input("Value2"));
+
+    MathNode *sigma_a_min = graph->create_node<MathNode>();
+    sigma_a_min->set_math_type(NODE_MATH_MINIMUM);
+    graph->connect(xyz->output("Z"), sigma_a_min->input("Value1"));
+    graph->connect(min_temp->output("Value"), sigma_a_min->input("Value2"));
+
+    MathNode *neg = graph->create_node<MathNode>();
+    neg->set_math_type(NODE_MATH_SUBTRACT);
+    neg->set_value1(0.0f);
+    graph->connect(sigma_a_min->output("Value"), neg->input("Value2"));
+
+    MathNode *less_than = graph->create_node<MathNode>();
+    less_than->set_math_type(NODE_MATH_LESS_THAN);
+    graph->connect(sigma_a_min->output("Value"), less_than->input("Value1"));
+    less_than->set_value2(0.0f);
+
+    VectorMathNode *clamped_sigma_a = graph->create_node<VectorMathNode>();
+    clamped_sigma_a->set_math_type(NODE_VECTOR_MATH_MULTIPLY_ADD);
+    graph->connect(less_than->output("Value"), clamped_sigma_a->input("Vector1"));
+    graph->connect(neg->output("Value"), clamped_sigma_a->input("Vector2"));
+    graph->connect(sigma_a->output("Vector"), clamped_sigma_a->input("Vector3"));
+
+    graph->connect(clamped_sigma_a->output("Vector"), volume->input("Absorption Coefficients"));
+  }
+
+  /* Copy mix weight. */
+  ShaderInput *surface_in = graph->output()->input("Surface");
+  ShaderOutput *openpbr_out = output("BSDF");
+  ShaderInput *volume_in = graph->output()->input("Volume");
+  ShaderOutput *volume_out = nullptr;
+  if (surface_in->link && surface_in->link != openpbr_out) {
+    const vector<ShaderInput *> inputs = openpbr_out->links;
+    graph->disconnect(openpbr_out);
+
+    for (ShaderInput *input : inputs) {
+      AddClosureNode *add = graph->create_node<AddClosureNode>();
+      graph->connect(openpbr_out, add->input("Closure1"));
+      graph->connect(volume->output("Volume"), add->input("Closure2"));
+      graph->connect(add->output("Closure"), input);
+    }
+
+    volume_out = surface_in->link;
+  }
+  else {
+    volume_out = volume->output("Volume");
+  }
+
+  /* Connect newly created volume node to the Material Output. */
+  if (graph->interior_medium_connected) {
+    /* Already connected by another OpenPBR node. */
+  }
+  else if (volume_in->link) {
+    AddClosureNode *add = graph->create_node<AddClosureNode>();
+    graph->relink(volume_in, add->input("Closure1"));
+    graph->connect(volume_out, add->input("Closure2"));
+    graph->connect(add->output("Closure"), volume_in);
+  }
+  else {
+    graph->connect(volume_out, volume_in);
+  }
+
+  graph->interior_medium_connected = true;
+
+  /* Clear transmission color. */
+  set_transmission_color(one_float3());
+}
+
 /* Disney principled BSDF Closure */
 NODE_DEFINE(PrincipledBsdfNode)
 {

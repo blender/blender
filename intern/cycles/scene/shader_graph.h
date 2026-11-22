@@ -342,6 +342,9 @@ class ShaderGraph : public NodeOwner {
   size_t num_node_ids;
   bool finalized;
   bool simplified;
+  /* If shader nodes has volume node created from a surface BSDF, and the surface output is already
+   * connected to the volume input. */
+  bool interior_medium_connected;
   string displacement_hash;
 
   ShaderGraph();

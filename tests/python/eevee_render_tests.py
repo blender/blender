@@ -536,6 +536,9 @@ def main():
         else:
             report.set_fail_percent(0.08)
         report.set_fail_threshold(8.0 / 255.0)
+    elif test_dir_name.startswith('openpbr'):
+        # Slight noise difference in volume
+        report.set_fail_percent(0.1)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
     sys.exit(not ok)

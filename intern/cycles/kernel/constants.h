@@ -23,3 +23,6 @@
 
 #define SHEEN_RES_ROUGH 32
 #define SHEEN_RES_MU 32
+
+/* A very small number, used to cut off IORs, Abbe numbers, etc. to prevent numerical issues. */
+#define CLOSURE_EPS 1e-5f

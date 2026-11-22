@@ -110,6 +110,7 @@ set(SRC_OSL
   node_uv_map.osl
   node_principled_bsdf.osl
   node_rgb_to_bw.osl
+  node_open_pbr_bsdf.osl
 )
 
 get_filename_component(OSL_SHADER_HINT ${OSL_COMPILER} DIRECTORY)

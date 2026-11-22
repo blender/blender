@@ -139,7 +139,10 @@ struct Coat {
   float ior;
   packed_float3 N;
   float roughness;
-  Spectrum weight;
+  float weight = 0.0f;
+  float darkening = 0.0f;
+  packed_float3 T = zero_float3();
+  float anisotropy = 0.0f;
 };
 
 /* -------------------------------------------------------------------- */
@@ -645,6 +648,7 @@ ccl_device_inline void microfacet_ggx_preserve_energy(KernelGlobals kg,
         kg, rough, z, avg_ofs, GGX_GLASS_E_RES_ROUGH, GGX_GLASS_E_RES_IOR);
   }
   else {
+    /* TODO(OpenPBR): use add LUT for CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID`. */
     kernel_assert(false);
     E = 1.0f;
     E_avg = 1.0f;
@@ -1370,9 +1374,13 @@ ccl_device void bsdf_dielectric_tint_setup(KernelGlobals kg,
                                            ccl_private MicrofacetBsdf *bsdf,
                                            ccl_private ShaderData *sd,
                                            ccl_private FresnelDielectricTint *fresnel,
+                                           const bool reflective_caustics,
+                                           const bool refractive_caustics,
                                            const bool is_beckmann = false,
                                            const bool preserve_energy = true)
 {
+  fresnel->tint.reflectance *= float(reflective_caustics);
+  fresnel->tint.transmittance *= float(refractive_caustics);
   const bool has_reflection = !is_zero(fresnel->tint.reflectance);
   const bool has_transmission = !is_zero(fresnel->tint.transmittance);
 
@@ -1428,6 +1436,7 @@ ccl_device void bsdf_dielectric_tint_setup(KernelGlobals kg,
 ccl_device_inline FresnelCoeff bsdf_thin_glass_fresnel(KernelGlobals kg,
                                                        const bool reflective,
                                                        const bool refractive,
+                                                       const MicrofacetFresnel fresnel_type,
                                                        const FresnelCoeff tint,
                                                        FresnelThinFilm thinfilm,
                                                        const float ior,
@@ -1435,10 +1444,19 @@ ccl_device_inline FresnelCoeff bsdf_thin_glass_fresnel(KernelGlobals kg,
 {
   /* Fresnel coefficients at the front side. */
   float cos_theta_t;
-  FresnelGeneralizedSchlick fresnel = generalized_schlick_setup(
-      ior, reflective, refractive, tint.reflectance, one_spectrum(), thinfilm);
-  const MicrofacetFresnel fresnel_type = GENERALIZED_SCHLICK;
-  const FresnelCoeff front = microfacet_fresnel(
+  FresnelGeneralizedSchlick fresnel;
+
+  if (fresnel_type == GENERALIZED_SCHLICK) {
+    fresnel = generalized_schlick_setup(
+        ior, reflective, refractive, tint.reflectance, one_spectrum(), thinfilm);
+  }
+  else {
+    kernel_assert(fresnel_type == DIELECTRIC_TINT);
+    fresnel.thin_film = thinfilm;
+    fresnel.tint = FresnelCoeff(reflective, refractive);
+  }
+
+  FresnelCoeff front = microfacet_fresnel(
       kg, fresnel_type, &fresnel, ior, cos_theta_i, &cos_theta_t);
   if (iszero(front)) {
     return front;
@@ -1454,12 +1472,22 @@ ccl_device_inline FresnelCoeff bsdf_thin_glass_fresnel(KernelGlobals kg,
   if (thinfilm.valid()) {
     const float inv_ior = 1.0f / ior;
     adjust_thin_film_ior_at_backface(thinfilm.ior, inv_ior);
-    fresnel = generalized_schlick_setup(
-        ior, reflective, refractive, tint.reflectance, one_spectrum(), thinfilm);
+    if (fresnel_type == GENERALIZED_SCHLICK) {
+      fresnel = generalized_schlick_setup(
+          ior, reflective, refractive, tint.reflectance, one_spectrum(), thinfilm);
+    }
+    else {
+      kernel_assert(fresnel_type == DIELECTRIC_TINT);
+      fresnel.thin_film = thinfilm;
+    }
     back = microfacet_fresnel(kg, fresnel_type, &fresnel, inv_ior, -cos_theta_t, &cos_theta_t);
   }
   else {
     back = front;
+  }
+
+  if (fresnel_type == DIELECTRIC_TINT) {
+    front.reflectance *= tint.reflectance;
   }
 
   /* Account for internal reflections, t' = ct1t2 + ct1(r2c)^2t2 + ct1(r2c)^4t2 + ... */
@@ -1586,6 +1614,7 @@ ccl_device FresnelCoeff bsdf_thin_glass_setup(KernelGlobals kg,
                                               ccl_private ShaderData *sd,
                                               const bool reflective,
                                               const bool refractive,
+                                              const MicrofacetFresnel fresnel_type,
                                               const FresnelCoeff tint,
                                               const Spectrum weight,
                                               const float3 N,
@@ -1597,7 +1626,7 @@ ccl_device FresnelCoeff bsdf_thin_glass_setup(KernelGlobals kg,
 {
   const float cos_theta_i = dot(N, sd->wi);
   const FresnelCoeff fresnel = bsdf_thin_glass_fresnel(
-      kg, reflective, refractive, tint, thinfilm, ior, cos_theta_i);
+      kg, reflective, refractive, fresnel_type, tint, thinfilm, ior, cos_theta_i);
 
   bsdf_thin_glass_reflection_setup(
       kg, sd, tint.reflectance, fresnel.reflectance * weight, N, alpha);
@@ -1608,6 +1637,24 @@ ccl_device FresnelCoeff bsdf_thin_glass_setup(KernelGlobals kg,
 }
 
 /** \} */
+
+/* Anisotropic mapping, OpenPBR Surface specification v1.1, Eq. (20). */
+ccl_device_inline float2 openpbr_anisotropic_roughness(const float roughness,
+                                                       const float anisotropy,
+                                                       const float3 tangent)
+{
+  float2 alpha = make_float2(sqr(roughness));
+
+  if (anisotropy > 0.0f && !is_zero(tangent) && !alpha_is_almost_specular(alpha.x, alpha.y)) {
+    alpha.x *= sqrt(2.0f / (1.0f + sqr(1.0f - anisotropy)));
+    alpha.y = (1.0f - anisotropy) * alpha.x;
+    /* Clamp so that the closure is not treated as specular. */
+    /* TODO(OpenPBR): maybe multiplicative roughness is not a good criteria. */
+    alpha = max(alpha, make_float2(1.5e-5f));
+  }
+
+  return alpha;
+}
 
 /* Given the transmittance through a slab at normal incidence, compute the transmittance at a
  * certain incident angle, based on Beer-Lambert law. */
@@ -1623,7 +1670,8 @@ ccl_device_inline Spectrum slab_color_at_angle(const float3 color,
 ccl_device Spectrum bsdf_coat_setup(KernelGlobals kg,
                                     ccl_private ShaderData *sd,
                                     const PathRayVisibility ray_visibility,
-                                    ccl_private Coat &coat)
+                                    ccl_private Coat &coat,
+                                    const float3 weight)
 
 {
 #ifdef __CAUSTICS_TRICKS__
@@ -1649,12 +1697,15 @@ ccl_device Spectrum bsdf_coat_setup(KernelGlobals kg,
   Spectrum albedo = zero_spectrum();
   if (reflective_caustics) {
     MicrofacetBsdf coat_bsdf;
-    ccl_private MicrofacetBsdf *bsdf = bsdf_alloc_maybe_emission(sd, &coat_bsdf, coat.weight);
+    ccl_private MicrofacetBsdf *bsdf = bsdf_alloc_maybe_emission(
+        sd, &coat_bsdf, coat.weight * weight);
     if (bsdf) {
       bsdf->N = coat.N;
-      bsdf->T = zero_float3();
+      bsdf->T = coat.T;
       bsdf->ior = coat.ior;
-      bsdf->alpha_x = bsdf->alpha_y = sqr(coat.roughness);
+      const float2 alpha = openpbr_anisotropic_roughness(coat.roughness, coat.anisotropy, coat.T);
+      bsdf->alpha_x = alpha.x;
+      bsdf->alpha_y = alpha.y;
 
       const int runtime_flag = bsdf_microfacet_ggx_setup(bsdf);
       if (bsdf != &coat_bsdf) {
@@ -1668,7 +1719,7 @@ ccl_device Spectrum bsdf_coat_setup(KernelGlobals kg,
   }
 
   /* Attenuate lower layers. */
-  return (1.0f - coat.tint * (1.0f - albedo)) * coat.weight;
+  return (1.0f - coat.tint * (1.0f - albedo)) * coat.weight * weight;
 }
 
 CCL_NAMESPACE_END
