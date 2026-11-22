@@ -356,13 +356,13 @@ ccl_device_inline float bsdf_glass_ior(ccl_private ShaderData *sd, float ior, co
   constexpr float fac = 1.0f / (1.0f / (lambda_F * lambda_F) - 1.0f / (lambda_C * lambda_C));
   constexpr float inv_lambda_d_sq = 1.0f / (lambda_d * lambda_d);
 
-  /* OpenPBR Surface specification v1.1.1, Eq. (56). */
+  /* OpenPBR Surface specification v1.1, Eq. (56). */
   const float B = (ior - 1.0f) * inv_abbe * fac;
   const float A = ior - B * inv_lambda_d_sq;
 
   const float wavelength = sample_wavelength(sd->rand_wavelength);
 
-  /* OpenPBR Surface specification v1.1.1, Eq. (55). */
+  /* OpenPBR Surface specification v1.1, Eq. (55). */
   ior = A + B / sqr(wavelength);
   return backfacing ? 1.0f / ior : ior;
 #else
@@ -1581,7 +1581,7 @@ ccl_device Spectrum bsdf_coat_setup(KernelGlobals kg,
 
   if (!isequal(coat.tint, one_spectrum())) {
     /* Compute the color at viewing angle, based on the given tint at normal incidence.
-     * OpenPBR Surface Specification v1.1.1, Section 3.4.2.
+     * OpenPBR Surface Specification v1.1, Section 3.4.2.
      * NOTE(OpenPBR): Eq. (77) requires the cosines of both the incoming and the outgoing
      * directions, but we only have access to the incoming direction. We therefore assume that the
      * refracted cosine of both directions are the same. The same approximation is done in Adobe's
