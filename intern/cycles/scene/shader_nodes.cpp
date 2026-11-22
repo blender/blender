@@ -7207,6 +7207,7 @@ NODE_DEFINE(VectorMathNode)
   type_enum.insert("sine", NODE_VECTOR_MATH_SINE);
   type_enum.insert("cosine", NODE_VECTOR_MATH_COSINE);
   type_enum.insert("tangent", NODE_VECTOR_MATH_TANGENT);
+  type_enum.insert("logarithm", NODE_VECTOR_MATH_LOGARITHM);
   SOCKET_ENUM(math_type, "Type", type_enum, NODE_VECTOR_MATH_ADD);
 
   SOCKET_IN_VECTOR(vector1, "Vector1", zero_float3());

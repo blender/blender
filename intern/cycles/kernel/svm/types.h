@@ -288,6 +288,7 @@ enum NodeVectorMathType : uint {
   NODE_VECTOR_MATH_POWER,
   NODE_VECTOR_MATH_SIGN,
   NODE_VECTOR_MATH_ROUND,
+  NODE_VECTOR_MATH_LOGARITHM,
 };
 
 enum NodeClampType : uint {

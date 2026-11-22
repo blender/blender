@@ -434,4 +434,9 @@ ccl_device_inline dual2 map_to_sphere(const dual3 co)
   return make_float2(u, v);
 }
 
+ccl_device_inline dual3 log(const dual3 a)
+{
+  return {log(a.val), a.dx / a.val, a.dy / a.val};
+}
+
 CCL_NAMESPACE_END

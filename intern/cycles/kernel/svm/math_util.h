@@ -112,6 +112,9 @@ ccl_device void svm_vector_math(ccl_private FloatType *value,
     case NODE_VECTOR_MATH_TANGENT:
       *vector = tan(a);
       break;
+    case NODE_VECTOR_MATH_LOGARITHM:
+      *vector = log(a);
+      break;
     default:
       *vector = Float3Type(zero_float3());
       *value = FloatType(0.0f);

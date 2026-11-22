@@ -103,6 +103,9 @@ shader node_vector_math(string math_type = "add",
   else if (math_type == "tangent") {
     Vector = tan(Vector1);
   }
+  else if (math_type == "logarithm") {
+    Vector = log(Vector1);
+  }
   else {
     warning("%s", "Unknown vector math operator!");
   }
