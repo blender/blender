@@ -350,11 +350,10 @@ static float gizmo2d_calc_rotation(const bContext *C)
 
   if (strips.size() == 1) {
     /* Only return the strip rotation if only one is selected. */
-    for (Strip *strip : strips) {
-      StripTransform *transform = strip->data->transform;
-      const float2 mirror = seq::image_transform_mirror_factor_get(strip);
-      return transform->rotation * mirror[0] * mirror[1];
-    }
+    Strip *strip = strips[0];
+    StripTransform *transform = strip->data->transform;
+    const float2 mirror = seq::image_transform_mirror_factor_get(strip);
+    return transform->rotation * mirror[0] * mirror[1];
   }
 
   return 0.0f;
