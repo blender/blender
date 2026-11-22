@@ -417,7 +417,7 @@ static void SEQUENCER_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
 
 static void SEQUENCER_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
 {
-  gzgt->name = "Sequencer Transform Gizmo Resize";
+  gzgt->name = "Sequencer Transform Gizmo Rotate";
   gzgt->idname = "SEQUENCER_GGT_gizmo2d_rotate";
 
   gzgt->flag |= (WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |

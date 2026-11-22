@@ -1011,7 +1011,7 @@ static void gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup
 static void gizmo2d_rotate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
 
-  wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_rotate", true);
+  wmOperatorType *ot_rotate = WM_operatortype_find("TRANSFORM_OT_rotate", true);
   GizmoGroup_Rotate2D *ggd = gizmogroup2d_rotate_init(gzgroup);
   gzgroup->customdata = ggd;
 
@@ -1039,7 +1039,7 @@ static void gizmo2d_rotate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
 
     /* Assign operator. */
-    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_resize, nullptr);
+    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_rotate, nullptr);
     RNA_boolean_set(ptr, "release_confirm", true);
   }
 }
