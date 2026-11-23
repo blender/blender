@@ -6,6 +6,7 @@
  * \ingroup modifiers
  */
 
+#include <algorithm>
 #include <cstring>
 #include <fmt/format.h>
 #include <sstream>
@@ -1571,8 +1572,10 @@ static void add_missing_data_block_mappings(
 {
   const int old_num = bake.data_blocks_num;
   const int new_num = old_num + missing.size();
-  bake.data_blocks = reinterpret_cast<NodesModifierDataBlock *>(
-      MEM_realloc_zeroed(bake.data_blocks, sizeof(NodesModifierDataBlock) * new_num));
+  NodesModifierDataBlock *data_blocks = MEM_new_array<NodesModifierDataBlock>(new_num, __func__);
+  std::copy_n(bake.data_blocks, old_num, data_blocks);
+  MEM_delete(bake.data_blocks);
+  bake.data_blocks = data_blocks;
   for (const int i : missing.index_range()) {
     NodesModifierDataBlock &data_block = bake.data_blocks[old_num + i];
     const bke::bake::BakeDataBlockID &key = missing[i];
