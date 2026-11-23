@@ -13,6 +13,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_listbase.hh"
 #include "BLI_sys_types.hh"
@@ -206,6 +207,13 @@ void blo_do_versions_504(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           }
         }
       }
+    }
+  }
+
+  /* Enable scene strip range for playback by default. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 504, 11)) {
+    for (WorkSpace &workspace : bmain->workspaces) {
+      workspace.flags |= WORKSPACE_USE_STRIP_SCENE_RANGE_FOR_PLAYBACK;
     }
   }
 
