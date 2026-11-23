@@ -341,9 +341,9 @@ VtDictionary HdCyclesDelegate::GetRenderStats() const
           {"percentDone", VtValue(floor_to_int(fractionDone * 100))},
           {"fractionDone", VtValue(fractionDone)},
           {"loadClockTime", VtValue(totalTime - renderTime)},
-          {"peakMemory", VtValue(stats.mem_peak)},
+          {"peakMemory", VtValue(stats.mem_peak.load())},
           {"totalClockTime", VtValue(totalTime)},
-          {"totalMemory", VtValue(stats.mem_used)},
+          {"totalMemory", VtValue(stats.mem_used.load())},
           {"renderProgressAnnotation", VtValue(status)}};
 }
 

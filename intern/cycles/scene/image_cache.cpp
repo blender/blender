@@ -11,7 +11,6 @@
 #include "scene/image_loader.h"
 #include "scene/stats.h"
 
-#include "util/atomic.h"
 #include "util/debug.h"
 #include "util/image.h"
 #include "util/image_impl.h"
@@ -22,6 +21,7 @@
 #include "util/types_image.h"
 
 #include <OpenImageIO/thread.h>
+#include <atomic>
 
 #include <algorithm>
 
@@ -685,7 +685,7 @@ void ImageCache::load_tile(Device &device,
 
   /* Atomic store so render threads reading the descriptor without a lock
    * see the pixels written above. */
-  atomic_store_uint32(&r_tile_descriptor, tile_descriptor);
+  std::atomic_ref(r_tile_descriptor).store(tile_descriptor);
 }
 
 /* Find the mip level that contains the tile index. */
@@ -712,9 +712,9 @@ static int image_tile_find_miplevel(const KernelTileDescriptor *levels,
  * failed or being loaded by another thread. */
 static bool image_tile_claim_load(KernelTileDescriptor &r_tile_descriptor)
 {
-  return atomic_cas_uint32(&r_tile_descriptor,
-                           KERNEL_TILE_LOAD_NONE,
-                           KERNEL_TILE_LOAD_IN_PROGRESS) == KERNEL_TILE_LOAD_NONE;
+  KernelTileDescriptor expected = KERNEL_TILE_LOAD_NONE;
+  return std::atomic_ref(r_tile_descriptor)
+      .compare_exchange_strong(expected, KERNEL_TILE_LOAD_IN_PROGRESS);
 }
 
 void ImageCache::load_requested_tiles(Device &device,
@@ -786,7 +786,7 @@ void ImageCache::load_requested_tile(Device &device,
   /* Wait while another thread loads the tile, or load it if we can claim it. */
   OIIO::atomic_backoff backoff;
   while (true) {
-    const KernelTileDescriptor tile_descriptor = atomic_load_uint32(&r_tile_descriptor);
+    const KernelTileDescriptor tile_descriptor = std::atomic_ref(r_tile_descriptor).load();
     if (kernel_tile_descriptor_loaded(tile_descriptor) ||
         tile_descriptor == KERNEL_TILE_LOAD_FAILED)
     {

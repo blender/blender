@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
 #include <deque>
@@ -74,8 +75,6 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 #include "RNA_types.hh"
-
-#include "atomic_ops.h"
 
 #include "lib_intern.hh"
 
@@ -5068,8 +5067,7 @@ static void lib_override_library_operations_create_cb(TaskPool *__restrict pool,
       id,
       (RNA_OVERRIDE_COMPARE_CREATE | RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE),
       &report_flags);
-  atomic_fetch_and_or_uint32(reinterpret_cast<uint32_t *>(&create_data->report_flags),
-                             report_flags);
+  std::atomic_ref(reinterpret_cast<uint32_t &>(create_data->report_flags)).fetch_or(report_flags);
 }
 
 void BKE_lib_override_library_main_operations_create(Main *bmain,

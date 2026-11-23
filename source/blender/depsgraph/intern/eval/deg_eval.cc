@@ -31,8 +31,6 @@
 #  include "BPY_extern.hh"
 #endif
 
-#include "atomic_ops.h"
-
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
 #include "intern/depsgraph_tag.hh"
@@ -291,7 +289,7 @@ void schedule_node(DepsgraphEvalState *state,
    * num_links_pending. */
   if (dec_parents) {
     BLI_assert(node->num_links_pending > 0);
-    atomic_sub_and_fetch_uint32(&node->num_links_pending, 1);
+    std::atomic_ref(node->num_links_pending).fetch_sub(1);
   }
   /* Cal not schedule operation while its dependencies are not yet
    * evaluated. */
@@ -303,8 +301,7 @@ void schedule_node(DepsgraphEvalState *state,
     return;
   }
   /* Actually schedule the node. */
-  bool is_scheduled = atomic_fetch_and_or_uint8(reinterpret_cast<uint8_t *>(&node->scheduled),
-                                                uint8_t(true));
+  const bool is_scheduled = std::atomic_ref(node->scheduled).exchange(true);
   if (!is_scheduled) {
     if (node->is_noop()) {
       /* Clear flags to avoid affecting subsequent update propagation.

@@ -6,8 +6,6 @@
 #include <atomic>
 #include <cstring>
 
-#include "atomic_ops.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.hh"
@@ -81,7 +79,7 @@ static void task_mempool_iter_func(void *userdata,
   EXPECT_TRUE(data != nullptr);
 
   *data += 1;
-  atomic_sub_and_fetch_uint32(reinterpret_cast<uint32_t *>(count), 1);
+  std::atomic_ref(*count).fetch_sub(1);
 }
 
 TEST(task, MempoolIter)

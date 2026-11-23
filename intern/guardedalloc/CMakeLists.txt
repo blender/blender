@@ -30,17 +30,9 @@ set(SRC
   ./intern/mallocn_inline.hh
   ./intern/mallocn_intern.hh
   ./intern/mallocn_intern_function_pointers.hh
-
-  # only so the header is known by cmake
-  ../atomic/atomic_ops.h
-  ../atomic/intern/atomic_ops_ext.h
-  ../atomic/intern/atomic_ops_msvc.h
-  ../atomic/intern/atomic_ops_unix.h
-  ../atomic/intern/atomic_ops_utils.h
 )
 
 set(LIB
-  PRIVATE bf::intern::atomic
   PRIVATE bf::intern::profile
   PRIVATE bf::dependencies::pthreads
 )

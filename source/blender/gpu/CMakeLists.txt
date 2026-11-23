@@ -481,7 +481,6 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::draw
   PRIVATE bf::imbuf
-  PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::nodes

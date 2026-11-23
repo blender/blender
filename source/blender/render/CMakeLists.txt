@@ -65,7 +65,6 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   bf_imbuf_openexr
-  PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::nodes
   PRIVATE bf::sequencer

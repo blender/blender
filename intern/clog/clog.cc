@@ -19,7 +19,7 @@
 /* Disable for small single threaded programs
  * to avoid having to link with pthreads. */
 #ifdef WITH_CLOG_PTHREADS
-#  include "atomic_ops.h"
+#  include <atomic>
 #  include <pthread.h>
 #endif
 
@@ -996,7 +996,7 @@ void CLG_logref_init(CLG_LogRef *clg_ref)
       clg_ty = clg_ctx_type_register(g_ctx, clg_ref->identifier);
     }
 #ifdef WITH_CLOG_PTHREADS
-    atomic_cas_ptr((void **)&clg_ref->type, clg_ref->type, clg_ty);
+    std::atomic_ref<CLG_LogType *>(clg_ref->type).store(clg_ty);
 #else
     clg_ref->type = clg_ty;
 #endif

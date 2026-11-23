@@ -662,7 +662,7 @@ bool MetalDevice::max_working_set_exceeded(const size_t safety_margin) const
   /* We're allowed to allocate beyond the safe working set size, but then if all resources are made
    * resident we will get command buffer failures at render time. */
   size_t available = [mtlDevice recommendedMaxWorkingSetSize] - safety_margin;
-  return (stats.mem_used > available);
+  return (stats.mem_used.load() > available);
 }
 
 MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)

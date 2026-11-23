@@ -33,8 +33,6 @@
 #include "IMB_imbuf.hh"
 #include "IMB_thumbs.hh"
 
-#include "atomic_ops.h"
-
 #include "BKE_preview_image.hh"
 
 namespace blender {

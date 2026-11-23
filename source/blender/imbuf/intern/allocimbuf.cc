@@ -10,6 +10,7 @@
  * should remain. */
 
 #include <algorithm>
+#include <atomic>
 #include <cstddef>
 
 #include "IMB_colormanagement.hh"
@@ -32,8 +33,6 @@
 #include "OCIO_colorspace.hh"
 
 #include "CLG_log.h"
-
-#include "atomic_ops.h"
 
 namespace blender {
 
@@ -157,7 +156,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
     return;
   }
 
-  bool needs_free = atomic_sub_and_fetch_int32(&ibuf->refcounter, 1) < 0;
+  const bool needs_free = --std::atomic_ref(ibuf->refcounter) < 0;
   if (needs_free) {
     /* Include this check here as the path may be manipulated after creation. */
     BLI_assert_msg(!(ibuf->filepath[0] == '/' && ibuf->filepath[1] == '/'),
@@ -172,7 +171,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
 
 void IMB_refImBuf(ImBuf *ibuf)
 {
-  atomic_add_and_fetch_int32(&ibuf->refcounter, 1);
+  std::atomic_ref(ibuf->refcounter).fetch_add(1);
 }
 
 ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
@@ -181,7 +180,7 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
     return nullptr;
   }
 
-  const bool is_single = (atomic_load_int32(&ibuf->refcounter) == 0);
+  const bool is_single = (std::atomic_ref(ibuf->refcounter).load() == 0);
   if (is_single) {
     return ibuf;
   }

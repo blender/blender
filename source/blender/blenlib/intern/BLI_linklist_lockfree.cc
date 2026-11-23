@@ -6,9 +6,9 @@
  * \ingroup bli
  */
 
-#include "BLI_linklist_lockfree.hh"
+#include <atomic>
 
-#include "atomic_ops.h"
+#include "BLI_linklist_lockfree.hh"
 
 #include "BLI_strict_flags.hh" /* IWYU pragma: keep. Keep last. */
 
@@ -53,13 +53,15 @@ void BLI_linklist_lockfree_insert(LockfreeLinkList *list, LockfreeLinkNode *node
   node->next = nullptr;
   do {
     tail_node = list->tail;
-    keep_working = (atomic_cas_ptr(reinterpret_cast<void **>(&tail_node->next), nullptr, node) !=
-                    nullptr);
+    LockfreeLinkNode *tail_next = nullptr;
+    keep_working = !std::atomic_ref(tail_node->next).compare_exchange_strong(tail_next, node);
     if (keep_working) {
-      atomic_cas_ptr(reinterpret_cast<void **>(&list->tail), tail_node, tail_node->next);
+      LockfreeLinkNode *expected_tail = tail_node;
+      std::atomic_ref(list->tail).compare_exchange_strong(expected_tail, tail_next);
     }
   } while (keep_working);
-  atomic_cas_ptr(reinterpret_cast<void **>(&list->tail), tail_node, node);
+  LockfreeLinkNode *expected_tail = tail_node;
+  std::atomic_ref(list->tail).compare_exchange_strong(expected_tail, node);
 }
 
 LockfreeLinkNode *BLI_linklist_lockfree_begin(LockfreeLinkList *list)

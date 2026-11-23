@@ -284,7 +284,7 @@ ConcurrentStatesParams MetalDeviceQueue::concurrent_states_params() const
 void MetalDeviceQueue::get_memory_info(size_t &total, size_t &free) const
 {
   total = [metal_device_->mtlDevice recommendedMaxWorkingSetSize];
-  free = total - std::min(stats_.mem_used, total);
+  free = total - std::min(stats_.mem_used.load(), total);
 }
 
 int MetalDeviceQueue::num_sort_partitions(int max_num_paths, uint max_scene_shaders) const

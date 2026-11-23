@@ -23,8 +23,6 @@
 
 #include "PRF_profile.hh"
 
-#include "atomic_ops.h"
-
 namespace blender::array_utils {
 
 namespace detail {
@@ -380,7 +378,7 @@ static void count_indices_atomics(const Span<int> indices, MutableSpan<int> coun
 {
   threading::parallel_for(indices.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : indices.slice(range)) {
-      atomic_add_and_fetch_int32(&counts[i], 1);
+      std::atomic_ref(counts[i]).fetch_add(1);
     }
   });
 }

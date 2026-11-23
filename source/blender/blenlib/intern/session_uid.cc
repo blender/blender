@@ -6,20 +6,20 @@
  * \ingroup bli
  */
 
-#include "BLI_session_uid.hh"
+#include <atomic>
 
-#include "atomic_ops.h"
+#include "BLI_session_uid.hh"
 
 namespace blender {
 
 /* Denotes last used UID.
  * It might eventually overflow, and easiest is to add more bits to it. */
-static SessionUID global_session_uid = detail::SESSION_UID_NONE;
+static std::atomic<uint64_t> global_session_uid = detail::SESSION_UID_NONE.uid_;
 
 SessionUID BLI_session_uid_generate()
 {
   SessionUID result;
-  result.uid_ = atomic_add_and_fetch_uint64(&global_session_uid.uid_, 1);
+  result.uid_ = global_session_uid.fetch_add(1) + 1;
   if (!result.is_generated()) {
     /* Happens when the UID overflows.
      *
@@ -27,7 +27,7 @@ SessionUID BLI_session_uid_generate()
      * which will overflow the counter once again between the previous call and this one.
      *
      * NOTE: It is possible to have collisions after such overflow. */
-    result.uid_ = atomic_add_and_fetch_uint64(&global_session_uid.uid_, 1);
+    result.uid_ = global_session_uid.fetch_add(1) + 1;
   }
   return result;
 }

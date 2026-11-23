@@ -8,6 +8,7 @@
  * Memory allocation which keeps track on allocated memory counters
  */
 
+#include <cassert>
 #include <stdarg.h>
 #include <stdio.h> /* printf */
 #include <stdlib.h>
@@ -28,7 +29,6 @@
 /* to ensure strict conversions */
 #include "../../source/blender/blenlib/BLI_strict_flags.hh"
 
-#include "atomic_ops.h"
 #include "mallocn_intern.hh"
 #include "mallocn_intern_function_pointers.hh"
 

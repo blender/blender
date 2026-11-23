@@ -8,6 +8,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <cfloat>
 #include <climits>
 #include <cmath>
@@ -35,8 +36,6 @@
 #include "BLI_task_c.hh"
 #include "BLI_threads.hh"
 #include "BLI_utildefines.hh"
-
-#include "atomic_ops.h"
 
 #include "BLT_translation.hh"
 
@@ -415,7 +414,7 @@ struct ProjPaintState {
   int bucketMin[2];
   int bucketMax[2];
   /** must lock threads while accessing these. */
-  int context_bucket_index;
+  std::atomic<int> context_bucket_index;
 
   CurveMapping *cavity_curve;
   BlurKernel *blurkernel;
@@ -5033,7 +5032,7 @@ static bool project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
     ps->bucketMax[1] = ps->buckets_y;
   }
 
-  ps->context_bucket_index = ps->bucketMin[0] + ps->bucketMin[1] * ps->buckets_x;
+  ps->context_bucket_index.store(ps->bucketMin[0] + ps->bucketMin[1] * ps->buckets_x);
   return true;
 }
 
@@ -5046,8 +5045,8 @@ static bool project_bucket_iter_next(ProjPaintState *ps,
 
   const int max_bucket_idx = ps->bucketMax[0] + (ps->bucketMax[1] - 1) * ps->buckets_x;
 
-  for (int bidx = atomic_fetch_and_add_int32(&ps->context_bucket_index, 1); bidx < max_bucket_idx;
-       bidx = atomic_fetch_and_add_int32(&ps->context_bucket_index, 1))
+  for (int bidx = ps->context_bucket_index.fetch_add(1); bidx < max_bucket_idx;
+       bidx = ps->context_bucket_index.fetch_add(1))
   {
     const int bucket_y = bidx / ps->buckets_x;
     const int bucket_x = bidx - (bucket_y * ps->buckets_x);

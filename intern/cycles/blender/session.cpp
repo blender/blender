@@ -225,7 +225,7 @@ void BlenderSession::reset_session(blender::Main &b_data, blender::Depsgraph &b_
   /* peak memory usage should show current render peak, not peak for all renders
    * made by this render session
    */
-  session->stats.mem_peak = session->stats.mem_used;
+  session->stats.mem_peak.store(session->stats.mem_used.load());
 
   if (is_new_session) {
     /* Sync object should be re-created for new scene. */
@@ -1015,8 +1015,8 @@ void BlenderSession::update_status_progress()
   double render_time;
   get_progress(progress, total_time, render_time);
 
-  const float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
-  const float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
+  const float mem_used = (float)session->stats.mem_used.load() / 1024.0f / 1024.0f;
+  const float mem_peak = (float)session->stats.mem_peak.load() / 1024.0f / 1024.0f;
   if (background) {
 
     if (progress > 0) {

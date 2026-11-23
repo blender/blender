@@ -199,7 +199,6 @@ set(LIB
   PRIVATE bf::geometry
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
-  PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::nodes

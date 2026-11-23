@@ -68,7 +68,6 @@ set(LIB
   PRIVATE bf::depsgraph
   bf::dna
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::windowmanager
 )

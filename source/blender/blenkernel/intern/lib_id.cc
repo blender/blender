@@ -9,6 +9,7 @@
  * allocate and free of all library data
  */
 
+#include <atomic>
 #include <cctype>
 #include <cstddef>
 #include <cstdio>
@@ -70,8 +71,6 @@
 
 #include "BLO_read_write.hh"
 #include "BLO_readfile.hh"
-
-#include "atomic_ops.h"
 
 #include "lib_intern.hh"
 
@@ -1642,17 +1641,17 @@ void BKE_libblock_runtime_reset_remapping_status(ID *id)
 }
 
 /* ********** ID session-wise UID management. ********** */
-static uint global_session_uid = 0;
+static std::atomic<uint> global_session_uid = 0;
 
 void BKE_lib_libblock_session_uid_ensure(ID *id)
 {
   if (id->session_uid == MAIN_ID_SESSION_UID_UNSET) {
     BLI_assert((id->tag & ID_TAG_TEMP_MAIN) == 0); /* Caller must ensure this. */
-    id->session_uid = atomic_add_and_fetch_uint32(&global_session_uid, 1);
+    id->session_uid = global_session_uid.fetch_add(1) + 1;
     /* In case overflow happens, still assign a valid ID. This way opening files many times works
      * correctly. */
     if (id->session_uid == MAIN_ID_SESSION_UID_UNSET) [[unlikely]] {
-      id->session_uid = atomic_add_and_fetch_uint32(&global_session_uid, 1);
+      id->session_uid = global_session_uid.fetch_add(1) + 1;
     }
   }
 }
@@ -2817,12 +2816,12 @@ char *BKE_id_to_unique_string_key(const ID *id)
 
 void BKE_id_tag_set_atomic(ID *id, int tag)
 {
-  atomic_fetch_and_or_int32(&id->tag, tag);
+  std::atomic_ref(id->tag).fetch_or(tag);
 }
 
 void BKE_id_tag_clear_atomic(ID *id, int tag)
 {
-  atomic_fetch_and_and_int32(&id->tag, ~tag);
+  std::atomic_ref(id->tag).fetch_and(~tag);
 }
 
 bool BKE_id_is_in_main(Main *bmain, ID *id)

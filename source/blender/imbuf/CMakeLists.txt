@@ -78,7 +78,6 @@ set(LIB
   PRIVATE bf::gpu
   bf_imbuf_openimageio
   bf_imbuf_openexr
-  PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_intern_memutil

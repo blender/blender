@@ -39,8 +39,6 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
-#include "atomic_ops.h"
-
 #include "CLG_log.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -50,6 +48,7 @@
 #endif
 
 #include <algorithm>
+#include <atomic>
 #include <cstring>
 
 namespace blender {
@@ -1195,7 +1194,8 @@ static bool driver_compile_simple_expr(ChannelDriver *driver)
 
   /* Store the result if the field is still nullptr, or discard
    * it if another thread got here first. */
-  if (atomic_cas_ptr(reinterpret_cast<void **>(&driver->expr_simple), nullptr, expr) != nullptr) {
+  ExprPyLike_Parsed *expected = nullptr;
+  if (!std::atomic_ref(driver->expr_simple).compare_exchange_strong(expected, expr)) {
     BLI_expr_pylike_free(expr);
   }
 

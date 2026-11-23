@@ -15,10 +15,9 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
-
-#include "atomic_ops.h"
 
 #include "BLI_utildefines.hh"
 
@@ -733,9 +732,8 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
       /* Begin unique to the `threadsafe` version of this function. */
       for (iter->curchunk = *ts_iter->curchunk_threaded_shared;
            (iter->curchunk != nullptr) &&
-           (atomic_cas_ptr(reinterpret_cast<void **>(ts_iter->curchunk_threaded_shared),
-                           iter->curchunk,
-                           iter->curchunk->next) != iter->curchunk);
+           !std::atomic_ref(*ts_iter->curchunk_threaded_shared)
+                .compare_exchange_strong(iter->curchunk, iter->curchunk->next);
            iter->curchunk = *ts_iter->curchunk_threaded_shared)
       {
         /* pass. */

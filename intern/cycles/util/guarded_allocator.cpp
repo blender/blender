@@ -7,7 +7,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-static Stats global_stats(Stats::static_init);
+static Stats global_stats;
 
 /* Internal API. */
 
@@ -25,12 +25,12 @@ void util_guarded_mem_free(const size_t n)
 
 size_t util_guarded_get_mem_used()
 {
-  return global_stats.mem_used;
+  return global_stats.mem_used.load();
 }
 
 size_t util_guarded_get_mem_peak()
 {
-  return global_stats.mem_peak;
+  return global_stats.mem_peak.load();
 }
 
 CCL_NAMESPACE_END

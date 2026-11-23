@@ -6,15 +6,54 @@
 
 #ifndef __KERNEL_GPU__
 
-/* Using atomic ops header from Blender. */
-#  include "atomic_ops.h"  // IWYU pragma: export
+#  include <atomic>
+#  include <type_traits>
 
-#  define atomic_add_and_fetch_float(p, x) atomic_add_and_fetch_fl((p), (x))
-#  define atomic_compare_and_swap_float(p, old_val, new_val) \
-    atomic_cas_float((p), (old_val), (new_val))
+#  include "util/defines.h"
 
-#  define atomic_fetch_and_inc_uint32(p) atomic_fetch_and_add_uint32((p), 1)
-#  define atomic_fetch_and_dec_uint32(p) atomic_fetch_and_add_uint32((p), -1)
+CCL_NAMESPACE_BEGIN
+
+ccl_device_inline float atomic_add_and_fetch_float(float *p, const float x)
+{
+  return std::atomic_ref(*p).fetch_add(x) + x;
+}
+
+/* Returns the previous value, the swap happened if it equals old_val. */
+ccl_device_inline float atomic_compare_and_swap_float(float *p, float old_val, const float new_val)
+{
+  std::atomic_ref(*p).compare_exchange_strong(old_val, new_val);
+  return old_val;
+}
+
+template<typename T>
+ccl_device_inline T atomic_fetch_and_add_uint32(T *p, const std::type_identity_t<T> x)
+{
+  return std::atomic_ref(*p).fetch_add(x);
+}
+
+template<typename T>
+ccl_device_inline T atomic_fetch_and_sub_uint32(T *p, const std::type_identity_t<T> x)
+{
+  return std::atomic_ref(*p).fetch_sub(x);
+}
+
+template<typename T> ccl_device_inline T atomic_fetch_and_inc_uint32(T *p)
+{
+  return std::atomic_ref(*p).fetch_add(1);
+}
+
+template<typename T> ccl_device_inline T atomic_fetch_and_dec_uint32(T *p)
+{
+  return std::atomic_ref(*p).fetch_sub(1);
+}
+
+template<typename T>
+ccl_device_inline T atomic_fetch_and_or_uint32(T *p, const std::type_identity_t<T> x)
+{
+  return std::atomic_ref(*p).fetch_or(x);
+}
+
+CCL_NAMESPACE_END
 
 #  define CCL_LOCAL_MEM_FENCE 0
 #  define ccl_barrier(flags) ((void)0)

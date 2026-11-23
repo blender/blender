@@ -361,7 +361,6 @@ set(LIB
   bf_compositor
   bf_io_common
   bf_io_csv
-  PRIVATE bf::intern::atomic
   PRIVATE bf::extern::xxhash
   PRIVATE bf::render
   PRIVATE bf::windowmanager

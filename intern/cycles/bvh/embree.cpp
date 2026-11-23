@@ -18,6 +18,8 @@
 
 #ifdef WITH_EMBREE
 
+#  include <atomic>
+
 #  include <embree4/rtcore_geometry.h>
 
 #  include "bvh/embree.h"
@@ -38,7 +40,7 @@ static_assert(Object::MAX_MOTION_STEPS <= RTC_MAX_TIME_STEP_COUNT,
 static_assert(Object::MAX_MOTION_STEPS == Geometry::MAX_MOTION_STEPS,
               "Object and Geometry max motion steps inconsistent");
 
-static size_t unaccounted_mem = 0;
+static std::atomic<size_t> unaccounted_mem = 0;
 
 static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bool /*unused*/)
 {
@@ -54,10 +56,10 @@ static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bo
   else {
     /* A stats pointer may not yet be available. Keep track of the memory usage for later. */
     if (bytes >= 0) {
-      atomic_add_and_fetch_z(&unaccounted_mem, bytes);
+      unaccounted_mem.fetch_add(size_t(bytes));
     }
     else {
-      atomic_sub_and_fetch_z(&unaccounted_mem, -bytes);
+      unaccounted_mem.fetch_sub(size_t(-bytes));
     }
   }
   return true;

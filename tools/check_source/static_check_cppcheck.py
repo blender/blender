@@ -212,8 +212,6 @@ def cppcheck(cppcheck_dir: str, temp_dir: str, log_fh: IO[bytes]) -> None:
         fh.write("\n")
         # Python's `pyport.h` errors without this.
         fh.write("#define UCHAR_MAX 255\n")
-        # `intern/atomic/intern/atomic_ops_utils.h` errors with `Cannot find int size` without this.
-        fh.write("#define UINT_MAX 0xFFFFFFFF\n")
 
     # Apply exclusion.
     source_info = source_info_filter(source_info, source_dir, cmake_dir)

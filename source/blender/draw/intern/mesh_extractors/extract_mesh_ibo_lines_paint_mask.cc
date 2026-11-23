@@ -7,7 +7,6 @@
  */
 
 #include "BLI_bitmap.hh"
-#include "atomic_ops.h"
 
 #include "MEM_guardedalloc.h"
 

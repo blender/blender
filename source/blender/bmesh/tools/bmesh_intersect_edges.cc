@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 
 #include "MEM_guardedalloc.h"
 
@@ -17,8 +18,6 @@
 #include "BLI_vector.hh"
 
 #include "BKE_bvhutils.hh"
-
-#include "atomic_ops.h"
 
 #include "bmesh.hh"
 
@@ -221,8 +220,8 @@ static void bm_edge_pair_elem_setup(BMEdge *e,
    * The `e->head.index` check + atomic increment will ever be true once, as
    * expected. We don't care which instance of the code actually ends up
    * incrementing `r_data_cut_edge_len`, so there is no race condition here. */
-  if (atomic_fetch_and_add_int32(&e->head.index, 1) == 0) {
-    atomic_fetch_and_add_int32(r_data_cut_edges_len, 1);
+  if (std::atomic_ref(e->head.index).fetch_add(1) == 0) {
+    std::atomic_ref(*r_data_cut_edges_len).fetch_add(1);
   }
 }
 

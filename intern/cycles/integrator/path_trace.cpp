@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <atomic>
+
 #include "integrator/path_trace.h"
 
 #include "device/cpu/device.h"
@@ -518,20 +520,20 @@ void PathTrace::adaptive_sample(RenderWork &render_work)
 
     const double start_time = time_dt();
 
-    uint num_active_pixels = 0;
+    std::atomic<uint> num_active_pixels = 0;
     parallel_for_each(path_trace_works_, [&](unique_ptr<PathTraceWork> &path_trace_work) {
       const uint num_active_pixels_in_work =
           path_trace_work->adaptive_sampling_converge_filter_count_active(
               render_work.adaptive_sampling.threshold, render_work.adaptive_sampling.reset);
       if (num_active_pixels_in_work) {
-        atomic_add_and_fetch_u(&num_active_pixels, num_active_pixels_in_work);
+        num_active_pixels.fetch_add(num_active_pixels_in_work);
       }
     });
 
     render_scheduler_.report_adaptive_filter_time(
         render_work, time_dt() - start_time, is_cancel_requested());
 
-    if (num_active_pixels == 0) {
+    if (num_active_pixels.load() == 0) {
       LOG_DEBUG << "All pixels converged.";
       if (!render_scheduler_.render_work_reschedule_on_converge(render_work)) {
         break;
@@ -541,7 +543,7 @@ void PathTrace::adaptive_sample(RenderWork &render_work)
     else if (did_reschedule_on_idle) {
       break;
     }
-    else if (num_active_pixels < 128 * 128) {
+    else if (num_active_pixels.load() < 128 * 128) {
       /* NOTE: The hardcoded value of 128^2 is more of an empirical value to keep GPU busy so that
        * there is no performance loss from the progressive noise floor feature.
        *

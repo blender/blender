@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstdio>
 
@@ -72,8 +73,6 @@
 #include "IMB_imbuf_types.hh"
 
 #include "RE_texture.h"
-
-#include "atomic_ops.h"
 
 #include "CLG_log.h"
 
@@ -2393,7 +2392,7 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *__restrict userdat
                * to non--1 *before* its tri_index is set (i.e. that it cannot be used a neighbor).
                */
               tPoint->neighbor_pixel = ind - 1;
-              atomic_add_and_fetch_uint32(&tPoint->neighbor_pixel, 1);
+              std::atomic_ref(tPoint->neighbor_pixel).fetch_add(1);
               tPoint->tri_index = i;
 
               /* Now calculate pixel data for this pixel as it was on face surface */
@@ -2418,7 +2417,7 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *__restrict userdat
 
     /* Increase the final number of active surface points if relevant. */
     if (tPoint->tri_index != -1) {
-      atomic_add_and_fetch_uint32(active_points, 1);
+      std::atomic_ref(*active_points).fetch_add(1);
     }
   }
 }
@@ -5322,7 +5321,7 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
        * this is much more efficient than a global spin lock. */
       const uint epointlock_idx = n_trgt / 8;
       const uint8_t epointlock_bitmask = 1 << (n_trgt & 7); /* 7 == 0b111 */
-      while (atomic_fetch_and_or_uint8(&point_locks[epointlock_idx], epointlock_bitmask) &
+      while (std::atomic_ref(point_locks[epointlock_idx]).fetch_or(epointlock_bitmask) &
              epointlock_bitmask)
       {
         /* pass */
@@ -5357,12 +5356,11 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
 
 #ifndef NDEBUG
       {
-        uint8_t ret = atomic_fetch_and_and_uint8(&point_locks[epointlock_idx],
-                                                 ~epointlock_bitmask);
+        uint8_t ret = std::atomic_ref(point_locks[epointlock_idx]).fetch_and(~epointlock_bitmask);
         BLI_assert(ret & epointlock_bitmask);
       }
 #else
-      atomic_fetch_and_and_uint8(&point_locks[epointlock_idx], ~epointlock_bitmask);
+      std::atomic_ref(point_locks[epointlock_idx]).fetch_and(~epointlock_bitmask);
 #endif
     }
   }
@@ -5370,7 +5368,7 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
   {
     const uint ppointlock_idx = index / 8;
     const uint8_t ppointlock_bitmask = 1 << (index & 7); /* 7 == 0b111 */
-    while (atomic_fetch_and_or_uint8(&point_locks[ppointlock_idx], ppointlock_bitmask) &
+    while (std::atomic_ref(point_locks[ppointlock_idx]).fetch_or(ppointlock_bitmask) &
            ppointlock_bitmask)
     {
       /* pass */
@@ -5381,11 +5379,11 @@ static void dynamic_paint_effect_drip_cb(void *__restrict userdata,
 
 #ifndef NDEBUG
     {
-      uint8_t ret = atomic_fetch_and_and_uint8(&point_locks[ppointlock_idx], ~ppointlock_bitmask);
+      uint8_t ret = std::atomic_ref(point_locks[ppointlock_idx]).fetch_and(~ppointlock_bitmask);
       BLI_assert(ret & ppointlock_bitmask);
     }
 #else
-    atomic_fetch_and_and_uint8(&point_locks[ppointlock_idx], ~ppointlock_bitmask);
+    std::atomic_ref(point_locks[ppointlock_idx]).fetch_and(~ppointlock_bitmask);
 #endif
   }
 }

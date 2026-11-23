@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
@@ -16,8 +17,6 @@
 #include "BLI_task.hh"
 #include "BLI_task_size_hints.hh"
 #include "BLI_threads.hh"
-
-#include "atomic_ops.h"
 
 namespace blender::offset_indices {
 
@@ -284,7 +283,7 @@ static void reverse_indices_in_groups_atomic(const Span<int> group_indices,
   threading::parallel_for(group_indices.index_range(), 1024, [&](const IndexRange range) {
     value_source_foreach(range, [&](const int64_t pos, const int value) {
       const int group_index = group_indices[pos];
-      const int index_in_group = atomic_fetch_and_add_int32(&counts[group_index], 1);
+      const int index_in_group = std::atomic_ref(counts[group_index]).fetch_add(1);
       results[offsets[group_index][index_in_group]] = value;
     });
   });

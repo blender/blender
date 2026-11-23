@@ -178,7 +178,6 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   extern_rangetree
-  PRIVATE bf::intern::atomic
   PRIVATE bf::dependencies::optional::gmp
   PRIVATE bf::dependencies::optional::tbb
   PRIVATE bf::dependencies::optional::bullet

@@ -8,6 +8,8 @@
  * Guarded memory allocation, and boundary-write detection.
  */
 
+#include <atomic>
+#include <cassert>
 #include <stdarg.h>
 #include <stddef.h> /* offsetof */
 #include <stdio.h>  /* printf */
@@ -30,7 +32,6 @@
 /* to ensure strict conversions */
 #include "../../source/blender/blenlib/BLI_strict_flags.hh"
 
-#include "atomic_ops.h"
 #include "mallocn_intern.hh"
 #include "mallocn_intern_function_pointers.hh"
 
@@ -521,8 +522,8 @@ static void make_memhead_header(MemHead *memh,
   memt = (MemTail *)(((char *)memh) + sizeof(MemHead) + len);
   memt->tag3 = MEMTAG3;
 
-  atomic_add_and_fetch_u(&totblock, 1);
-  atomic_add_and_fetch_z(&mem_in_use, len);
+  std::atomic_ref<uint>(totblock).fetch_add(1);
+  std::atomic_ref<size_t>(mem_in_use).fetch_add(len);
 
   mem_lock_thread();
   addtail(membase, &memh->next);
@@ -1206,8 +1207,8 @@ static void rem_memblock(MemHead *memh)
   }
   mem_unlock_thread();
 
-  atomic_sub_and_fetch_u(&totblock, 1);
-  atomic_sub_and_fetch_z(&mem_in_use, memh->len);
+  std::atomic_ref<uint>(totblock).fetch_sub(1);
+  std::atomic_ref<size_t>(mem_in_use).fetch_sub(memh->len);
 
 #ifdef DEBUG_MEMDUPLINAME
   if (memh->need_free_name) {

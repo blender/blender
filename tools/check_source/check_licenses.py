@@ -508,8 +508,6 @@ def main() -> None:
                 "./tools",
                 # Exclude library sources (GIT-LFS).
                 "./lib",
-                # Needs manual handling as it mixes two licenses.
-                "./intern/atomic",
                 # Practically an `./extern` within an `./intern` module, leave as-is.
                 "./intern/itasc/kdl",
 

@@ -36,8 +36,6 @@
 #  include <tbb/spin_mutex.h>
 #endif
 
-#include "atomic_ops.h"
-
 namespace blender {
 
 /**
@@ -99,7 +97,6 @@ static pthread_mutex_t _movieclip_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _fftw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _view3d_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
-static uint thread_levels = 0; /* threads can be invoked inside threads */
 static int threads_override_num = 0;
 
 /* just a max for security reasons */
@@ -141,8 +138,6 @@ void BLI_threadpool_init(ListBaseT<ThreadSlot> *threadbase, void *(*do_thread)(v
       tslot->avail = 1;
     }
   }
-
-  atomic_fetch_and_add_u(&thread_levels, 1);
 }
 
 int BLI_available_threads(ListBaseT<ThreadSlot> *threadbase)
@@ -239,8 +234,7 @@ void BLI_threadpool_clear(ListBaseT<ThreadSlot> *threadbase)
 void BLI_threadpool_end(ListBaseT<ThreadSlot> *threadbase)
 {
 
-  /* Only needed if there's actually some stuff to end
-   * this way we don't end up decrementing thread_levels on an empty `threadbase`. */
+  /* Only needed if there's actually some stuff to end. */
   if (threadbase == nullptr || threadbase->is_empty()) {
     return;
   }

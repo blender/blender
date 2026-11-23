@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <atomic>
+
 #include "integrator/path_trace_work_cpu.h"
 
 #include "device/cpu/kernel.h"
@@ -261,7 +263,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(const float
 
   float *render_buffer = buffers_->buffer.data();
 
-  uint num_active_pixels = 0;
+  std::atomic<uint> num_active_pixels = 0;
 
   tbb::task_arena local_arena = local_tbb_arena_create(device_);
 
@@ -281,7 +283,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(const float
         }
       }
 
-      atomic_fetch_and_add_uint32(&num_active_pixels, num_row_pixels_active);
+      num_active_pixels.fetch_add(num_row_pixels_active);
 
       if (!row_converged) {
         kernels_.adaptive_sampling_filter_x(
@@ -290,7 +292,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(const float
     });
   });
 
-  if (num_active_pixels) {
+  if (num_active_pixels.load()) {
     local_arena.execute([&]() {
       parallel_for(full_x, full_x + width, [&](int x) {
         ThreadKernelGlobalsCPU *kernel_globals = kernel_thread_globals_->data();
@@ -300,7 +302,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(const float
     });
   }
 
-  return num_active_pixels;
+  return num_active_pixels.load();
 }
 
 void PathTraceWorkCPU::cryptomatte_postproces()

@@ -623,7 +623,6 @@ set(LIB
   bf_simulation
   PRIVATE bf::extern::toml
   PRIVATE bf::extern::xxhash
-  PRIVATE bf::intern::atomic
   PRIVATE bf::dependencies::zlib
   PRIVATE bf::dependencies::zstd
   PRIVATE bf::dependencies::freetype  # For `vfontdata_freetype.c`.

@@ -42,8 +42,6 @@
 
 #include "gpu_node_graph.hh"
 
-#include "atomic_ops.h"
-
 namespace blender {
 
 static void gpu_material_ramp_texture_build(GPUMaterial *mat);

@@ -320,7 +320,6 @@ set(LIB
   PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::windowmanager
-  PRIVATE bf::intern::atomic
   PRIVATE bf::dependencies::optional::opensubdiv
 )
 

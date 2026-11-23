@@ -9,6 +9,7 @@
 /* global includes */
 
 #include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
@@ -61,8 +62,6 @@
 
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
-
-#include "atomic_ops.h"
 
 #include "../file_indexer.hh"
 #include "../file_intern.hh"
@@ -1424,7 +1423,7 @@ FileUID filelist_uid_generate(FileList *filelist)
   /* Using an atomic operation to avoid having to lock thread...
    * Note that we do not really need this here currently, since there is a single listing thread,
    * but better remain consistent about threading! */
-  return atomic_add_and_fetch_uint32(&filelist->filelist_intern.curr_uid, 1);
+  return ++std::atomic_ref(filelist->filelist_intern.curr_uid);
 }
 
 bool filelist_uid_is_set(const FileUID uid)

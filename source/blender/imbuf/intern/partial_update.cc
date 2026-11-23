@@ -6,6 +6,7 @@
  * \ingroup imbuf
  */
 
+#include <atomic>
 #include <mutex>
 #include <optional>
 
@@ -19,8 +20,6 @@
 #include "BLI_vector.hh"
 
 #include "MEM_guardedalloc.h"
-
-#include "atomic_ops.h"
 
 namespace blender {
 
@@ -185,7 +184,7 @@ struct Changeset {
  * as image buffers change. If they would store #ImBuf pointers, the same #ImBuf address
  * might get reused for another UDIM tile or pass.
  */
-static uint64_t g_change_id_counter = 0;
+static std::atomic<uint64_t> g_change_id_counter = 0;
 
 /** Tracker of changes to an image buffer over time. */
 struct Tracker {
@@ -388,12 +387,12 @@ static bool imb_track_updates(const ImBuf *ibuf)
 
 imbuf::ChangesetID IMB_partial_update_changeset_id_next()
 {
-  return imbuf::ChangesetID(atomic_add_and_fetch_uint64(&g_change_id_counter, 1));
+  return imbuf::ChangesetID(g_change_id_counter.fetch_add(1) + 1);
 }
 
 imbuf::ChangesetID IMB_partial_update_changeset_id_current()
 {
-  return imbuf::ChangesetID(atomic_load_uint64(&g_change_id_counter));
+  return imbuf::ChangesetID(g_change_id_counter.load());
 }
 
 void IMB_partial_update_mark_region(ImBuf *ibuf, const rcti &region)

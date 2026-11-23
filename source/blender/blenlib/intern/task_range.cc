@@ -8,6 +8,7 @@
  * Task parallel range functions.
  */
 
+#include <atomic>
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
@@ -19,8 +20,6 @@
 #include "BLI_task_c.hh"
 #include "BLI_threads.hh"
 #include "BLI_vector.hh"
-
-#include "atomic_ops.h"
 
 #ifdef WITH_TBB
 #  include <tbb/blocked_range.h>
@@ -145,11 +144,11 @@ int BLI_task_parallel_thread_id(const TaskParallelTLS * /*tls*/)
    * of the thread ID and change texture evaluation to not require per-thread
    * storage that can't be efficiently allocated on the stack. */
   static tbb::enumerable_thread_specific<int> tbb_thread_id(-1);
-  static int tbb_thread_id_counter = 0;
+  static std::atomic<int> tbb_thread_id_counter = 0;
 
   int &thread_id = tbb_thread_id.local();
   if (thread_id == -1) {
-    thread_id = atomic_fetch_and_add_int32(&tbb_thread_id_counter, 1);
+    thread_id = tbb_thread_id_counter.fetch_add(1);
     if (thread_id >= BLENDER_MAX_THREADS) {
       BLI_assert_msg(0, "Maximum number of threads exceeded for sculpting");
       thread_id = thread_id % BLENDER_MAX_THREADS;

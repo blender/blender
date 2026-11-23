@@ -15,7 +15,6 @@ set(LIB
   PRIVATE bf_blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::intern::atomic
 )
 
 set(SRC

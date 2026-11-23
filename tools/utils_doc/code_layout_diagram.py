@@ -237,7 +237,6 @@ SECTIONS = (
         source_code_call_sibling_modules=False,
         source_code_base="intern/",
         source_code_dirs=[
-            ("atomic", "Low level operations lockless concurrent programming."),
             ("clog", "C-logging library."),
             ("cycles", "Cycles rendering engine."),
             ("dbus_dynload", "Dynamic loader for D-Bus (Unix only)."),

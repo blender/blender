@@ -394,7 +394,8 @@ class MultiDevice : public Device {
     SubDevice *owner_sub = island.front();
     for (SubDevice *island_sub : island) {
       if (key ? ptr_map_contains(*island_sub, key) :
-                (island_sub->device->stats.mem_used < owner_sub->device->stats.mem_used))
+                (island_sub->device->stats.mem_used.load() <
+                 owner_sub->device->stats.mem_used.load()))
       {
         owner_sub = island_sub;
       }
