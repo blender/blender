@@ -163,22 +163,15 @@ void MTLUniformBuf::bind_as_ssbo(int slot)
 
 void MTLUniformBuf::unbind()
 {
-  /* Unbind in debug mode to validate missing binds.
-   * Otherwise, only perform a full unbind upon destruction
-   * to ensure no lingering references. */
-#ifndef NDEBUG
-  if (true)
-#else
-  if (G.debug & G_DEBUG_GPU)
-#endif
-  {
-    if (bound_ctx_ != nullptr && bind_slot_ > -1) {
-      MTLUniformBufferBinding &ctx_ubo_bind_slot =
-          bound_ctx_->pipeline_state.ubo_bindings[bind_slot_];
-      if (ctx_ubo_bind_slot.bound && ctx_ubo_bind_slot.ubo == this) {
-        ctx_ubo_bind_slot.bound = false;
-        ctx_ubo_bind_slot.ubo = nullptr;
-      }
+  /* Always remove the binding from the context it was bound to. The destructor only clears the
+   * bindings of the context active on the destroying thread, so a binding left in a context that
+   * stays active on another thread would point to a freed buffer. */
+  if (bound_ctx_ != nullptr && bind_slot_ > -1) {
+    MTLUniformBufferBinding &ctx_ubo_bind_slot =
+        bound_ctx_->pipeline_state.ubo_bindings[bind_slot_];
+    if (ctx_ubo_bind_slot.bound && ctx_ubo_bind_slot.ubo == this) {
+      ctx_ubo_bind_slot.bound = false;
+      ctx_ubo_bind_slot.ubo = nullptr;
     }
   }
 
