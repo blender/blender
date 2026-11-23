@@ -33,6 +33,7 @@ void rebuild_slot_user_cache(Main &bmain)
     for (Slot *slot : action.slots()) {
       BLI_assert_msg(slot->runtime, "Slot::runtime should always be allocated");
       slot->runtime->users.clear();
+      slot->runtime->owners.clear();
     }
   }
 
