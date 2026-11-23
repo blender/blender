@@ -1125,9 +1125,12 @@ PropertyRNA *RNA_struct_type_find_property_no_base(StructRNA *srna, const UStrin
 
 PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier)
 {
-  const UString identifier_ustr(identifier);
+  const std::optional<UString> identifier_ustr = UString::find(identifier);
+  if (!identifier_ustr) {
+    return nullptr;
+  }
   for (; srna; srna = srna->base) {
-    PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, identifier_ustr);
+    PropertyRNA *prop = RNA_struct_type_find_property_no_base(srna, *identifier_ustr);
     if (prop != nullptr) {
       return prop;
     }
