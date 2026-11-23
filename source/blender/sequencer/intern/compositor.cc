@@ -12,6 +12,7 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_scene.hh"
 
 #include "PRF_profile.hh"
 
@@ -188,6 +189,12 @@ void set_input_result_from_rna(PointerRNA &inputs_ptr,
   result.allocate_single_value();
   set_single_input_from_rna_value(
       &input_props_ptr, socket_type, result, get_socket_dimension(&socket, socket_type));
+}
+
+StringRef CompositorContext::get_view_name() const
+{
+  return BKE_scene_multiview_render_view_name_get(&this->render_data_.scene->r,
+                                                  this->render_data_.view_id);
 }
 
 compositor::ResultPrecision CompositorContext::get_precision() const

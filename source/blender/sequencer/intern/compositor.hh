@@ -79,6 +79,8 @@ class CompositorContext : public compositor::Context {
     return compositor::SideEffectOutputTypes::None;
   }
 
+  StringRef get_view_name() const override;
+
   compositor::ResultPrecision get_precision() const override;
 
   float2 get_result_translation() const
