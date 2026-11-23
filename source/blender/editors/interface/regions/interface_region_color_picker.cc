@@ -22,6 +22,7 @@
 #include "BLI_utildefines.hh"
 
 #include "BKE_context.hh"
+#include "BKE_recents.hh"
 
 #include "UI_interface_c.hh"
 #include "WM_api.hh"
@@ -37,18 +38,61 @@
 
 namespace blender::ui {
 
-enum ePickerType {
-  PICKER_TYPE_RGB = 0,
-  PICKER_TYPE_HSV = 1,
+enum class PickerType {
+  RGB = 0,
+  HSV = 1,
 };
 
-enum ePickerSpace {
-  PICKER_SPACE_LINEAR = 0,
-  PICKER_SPACE_PERCEPTUAL = 1,
+enum class PickerSpace {
+  Linear = 0,
+  Perceptual = 1,
 };
 
-static char g_color_picker_type = PICKER_TYPE_HSV;
-static char g_color_picker_space = PICKER_SPACE_PERCEPTUAL;
+static PickerType picker_type_from_name(StringRef name)
+{
+  if (name == "RGB") {
+    return PickerType::RGB;
+  }
+  return PickerType::HSV;
+}
+
+static StringRef picker_type_name(PickerType type)
+{
+  if (type == PickerType::HSV) {
+    return "HSV";
+  }
+  return "RGB";
+}
+
+static PickerType &color_picker_type()
+{
+  static PickerType color_picker_type = picker_type_from_name(
+      recents::Section("color_picker").get<std::string>("type"));
+  return color_picker_type;
+}
+
+static StringRef picker_space_name(PickerSpace type)
+{
+  if (type == PickerSpace::Linear) {
+    return "LINEAR";
+  }
+  return "PERCEPTUAL";
+}
+
+static PickerSpace picker_space_from_name(StringRef name)
+{
+  if (name == "LINEAR") {
+    return PickerSpace::Linear;
+  }
+  return PickerSpace::Perceptual;
+}
+
+static PickerSpace &color_picker_space()
+{
+  static PickerSpace color_picker_space = picker_space_from_name(
+      recents::Section("color_picker").get<std::string>("space"));
+  return color_picker_space;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Color Conversion
@@ -179,8 +223,8 @@ static void color_picker_update_from_rgb_linear(ColorPicker *cpicker,
 
   /* Convert from RGB linear to RGB perceptual for number editing. */
   if (cpicker->is_init == false ||
-      !(is_editing_sliders && g_color_picker_type == PICKER_TYPE_RGB &&
-        g_color_picker_type == PICKER_SPACE_PERCEPTUAL))
+      !(is_editing_sliders && color_picker_type() == PickerType::RGB &&
+        color_picker_space() == PickerSpace::Perceptual))
   {
     copy_v3_v3(cpicker->rgb_perceptual_slider, rgb_scene_linear);
     scene_linear_to_perceptual_space(is_gamma, cpicker->rgb_perceptual_slider);
@@ -190,8 +234,8 @@ static void color_picker_update_from_rgb_linear(ColorPicker *cpicker,
   if (cpicker->is_init == false) {
     color_picker_rgb_to_hsv(cpicker->rgb_perceptual_slider, cpicker->hsv_perceptual_slider);
   }
-  else if (!(is_editing_sliders && g_color_picker_type == PICKER_TYPE_HSV &&
-             g_color_picker_space == PICKER_SPACE_PERCEPTUAL))
+  else if (!(is_editing_sliders && color_picker_type() == PickerType::HSV &&
+             color_picker_space() == PickerSpace::Perceptual))
   {
     color_picker_rgb_to_hsv_compat(cpicker->rgb_perceptual_slider, cpicker->hsv_perceptual_slider);
   }
@@ -200,8 +244,8 @@ static void color_picker_update_from_rgb_linear(ColorPicker *cpicker,
   if (cpicker->is_init == false) {
     color_picker_rgb_to_hsv(rgb_scene_linear, cpicker->hsv_linear_slider);
   }
-  else if (!(is_editing_sliders && g_color_picker_type == PICKER_TYPE_HSV &&
-             g_color_picker_space == PICKER_SPACE_LINEAR))
+  else if (!(is_editing_sliders && color_picker_type() == PickerType::HSV &&
+             color_picker_space() == PickerSpace::Linear))
   {
     color_picker_rgb_to_hsv_compat(rgb_scene_linear, cpicker->hsv_linear_slider);
   }
@@ -455,11 +499,11 @@ static void popup_close_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
 
 static void colorpicker_hide_reveal(Block *block)
 {
-  const ePickerType type = ePickerType(g_color_picker_type);
-  const ePickerSpace space = (block->is_color_gamma_picker) ? (type == PICKER_TYPE_RGB) ?
-                                                              PICKER_SPACE_LINEAR :
-                                                              PICKER_SPACE_PERCEPTUAL :
-                                                              ePickerSpace(g_color_picker_space);
+  const PickerType type = color_picker_type();
+  const PickerSpace space = (block->is_color_gamma_picker) ? (type == PickerType::RGB) ?
+                                                             PickerSpace::Linear :
+                                                             PickerSpace::Perceptual :
+                                                             color_picker_space();
 
   /* tag buttons */
   for (Button &bt : block->buttons()) {
@@ -468,28 +512,33 @@ static void colorpicker_hide_reveal(Block *block)
     {
       /* RGB sliders (color circle and alpha are always shown) */
       SET_FLAG_FROM_TEST(
-          bt.flag, !(type == PICKER_TYPE_RGB && space == PICKER_SPACE_LINEAR), UI_HIDDEN);
+          bt.flag, !(type == PickerType::RGB && space == PickerSpace::Linear), UI_HIDDEN);
     }
     else if (bt.func == colorpicker_rgb_perceptual_slider_update_cb) {
       /* HSV sliders */
       SET_FLAG_FROM_TEST(
-          bt.flag, !(type == PICKER_TYPE_RGB && space == PICKER_SPACE_PERCEPTUAL), UI_HIDDEN);
+          bt.flag, !(type == PickerType::RGB && space == PickerSpace::Perceptual), UI_HIDDEN);
     }
     else if (bt.func == colorpicker_hsv_perceptual_slider_update_cb) {
       /* HSV sliders */
       SET_FLAG_FROM_TEST(
-          bt.flag, !(type == PICKER_TYPE_HSV && space == PICKER_SPACE_PERCEPTUAL), UI_HIDDEN);
+          bt.flag, !(type == PickerType::HSV && space == PickerSpace::Perceptual), UI_HIDDEN);
     }
     else if (bt.func == colorpicker_hsv_linear_slider_update_cb) {
       /* HSV sliders */
       SET_FLAG_FROM_TEST(
-          bt.flag, !(type == PICKER_TYPE_HSV && space == PICKER_SPACE_LINEAR), UI_HIDDEN);
+          bt.flag, !(type == PickerType::HSV && space == PickerSpace::Linear), UI_HIDDEN);
     }
   }
 }
 
 static void colorpicker_update_type_space_cb(bContext * /*C*/, void *picker_bt1, void *prop_bt1)
 {
+
+  recents::Section("color_picker").set<std::string>("type", picker_type_name(color_picker_type()));
+  recents::Section("color_picker")
+      .set<std::string>("space", picker_space_name(color_picker_space()));
+
   Button *picker_but = static_cast<Button *>(picker_bt1);
   Block *block = picker_but->block;
   ColorPicker *cpicker = static_cast<ColorPicker *>(picker_but->custom_data);
@@ -740,9 +789,9 @@ static void block_colorpicker(const bContext * /*C*/,
                    yco -= UI_UNIT_Y,
                    picker_width * 0.5,
                    UI_UNIT_Y,
-                   &g_color_picker_space,
+                   &color_picker_space(),
                    0.0,
-                   float(PICKER_TYPE_RGB),
+                   float(PickerSpace::Linear),
                    TIP_("Scene linear values in the working color space"));
     button_flag_disable(bt, BUT_UNDO);
     button_drawflag_disable(bt, BUT_TEXT_LEFT);
@@ -761,9 +810,9 @@ static void block_colorpicker(const bContext * /*C*/,
                    yco,
                    picker_width * 0.5,
                    UI_UNIT_Y,
-                   &g_color_picker_space,
+                   &color_picker_space(),
                    0.0,
-                   float(PICKER_TYPE_HSV),
+                   float(PickerSpace::Perceptual),
                    TIP_("Perceptually uniform values, matching the color picker"));
     button_flag_disable(bt, BUT_UNDO);
     button_drawflag_disable(bt, BUT_TEXT_LEFT);
@@ -790,9 +839,9 @@ static void block_colorpicker(const bContext * /*C*/,
                  yco -= UI_UNIT_Y,
                  picker_width * 0.5,
                  UI_UNIT_Y,
-                 &g_color_picker_type,
+                 &color_picker_type(),
                  0.0,
-                 float(PICKER_TYPE_RGB),
+                 float(PickerType::RGB),
                  TIP_("RGB values"));
   button_flag_disable(bt, BUT_UNDO);
   button_drawflag_disable(bt, BUT_TEXT_LEFT);
@@ -806,9 +855,9 @@ static void block_colorpicker(const bContext * /*C*/,
                  yco,
                  picker_width * 0.5,
                  UI_UNIT_Y,
-                 &g_color_picker_type,
+                 &color_picker_type(),
                  0.0,
-                 float(PICKER_TYPE_HSV),
+                 float(PickerType::HSV),
                  (U.color_picker_type == USER_CP_CIRCLE_HSL) ? TIP_("Hue, Saturation, Lightness") :
                                                                TIP_("Hue, Saturation, Value"));
   button_flag_disable(bt, BUT_UNDO);
