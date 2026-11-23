@@ -347,6 +347,10 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
   opts.load_external_files = false;
   opts.clean_skin_weights = true;
   opts.use_blender_pbr_material = true;
+  if (params.use_custom_normals) {
+    /* Preserve invalid normal indices so the importer can discard the affected layer. */
+    opts.index_error_handling = UFBX_INDEX_ERROR_HANDLING_NO_INDEX;
+  }
 
   opts.geometry_transform_handling = UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY;
   opts.pivot_handling = UFBX_PIVOT_HANDLING_ADJUST_TO_ROTATION_PIVOT;

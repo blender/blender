@@ -1,0 +1,41 @@
+==== Meshes: 2
+- Mesh 'BrokenNormals' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (0.000, 1.000, 0.000)
+
+- Mesh 'GoodNormals' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'Color' BYTE_COLOR CORNER
+    - (1.000, 0.000, 0.000, 1.000)
+    - (0.000, 1.000, 0.000, 1.000)
+    - (0.000, 1.000, 0.000, 1.000)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 1.000)
+    - (1.000, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (32767, 32767)
+    - (32767, -4681)
+    - (32767, -18724)
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (0.000, 1.000, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 
+
+==== Objects: 2
+- Obj 'BrokenNormals' MESH data:'BrokenNormals'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'GoodNormals' MESH data:'GoodNormals'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

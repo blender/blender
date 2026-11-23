@@ -175,7 +175,9 @@ static void import_uvs(const ufbx_mesh *fmesh,
     {
       BLI_assert(fuv_set.vertex_uv.indices.count == uvs.span.size());
       for (const int64_t i : uvs.span.index_range()) {
-        const int val_idx = fuv_set.vertex_uv.indices[i];
+        /* Note: we have turned off ufbx side clamping, so do it on our end. */
+        const size_t val_idx = std::min<size_t>(fuv_set.vertex_uv.indices[i],
+                                                fuv_set.vertex_uv.values.count - 1);
         const ufbx_vec2 &uv = fuv_set.vertex_uv.values[val_idx];
         uvs.span[i] = float2(uv.x, uv.y);
       }
@@ -204,7 +206,9 @@ static void import_colors(const ufbx_mesh *fmesh,
       {
         BLI_assert(fcol_set.vertex_color.indices.count == cols.span.size());
         for (const int64_t i : cols.span.index_range()) {
-          const int val_idx = fcol_set.vertex_color.indices[i];
+          /* Note: we have turned off ufbx side clamping, so do it on our end. */
+          const size_t val_idx = std::min<size_t>(fcol_set.vertex_color.indices[i],
+                                                  fcol_set.vertex_color.values.count - 1);
           const ufbx_vec4 &col = fcol_set.vertex_color.values[val_idx];
           /* Note: color values are expected to already be in sRGB space. */
           float4 fcol = float4(col.x, col.y, col.z, col.w);
@@ -223,7 +227,9 @@ static void import_colors(const ufbx_mesh *fmesh,
       {
         BLI_assert(fcol_set.vertex_color.indices.count == cols.span.size());
         for (const int64_t i : cols.span.index_range()) {
-          const int val_idx = fcol_set.vertex_color.indices[i];
+          /* Note: we have turned off ufbx side clamping, so do it on our end. */
+          const size_t val_idx = std::min<size_t>(fcol_set.vertex_color.indices[i],
+                                                  fcol_set.vertex_color.values.count - 1);
           const ufbx_vec4 &col = fcol_set.vertex_color.values[val_idx];
           cols.span[i] = ColorGeometry4f(col.x, col.y, col.z, col.w);
         }
@@ -252,13 +258,19 @@ static bool import_normals_into_temp_attribute(const ufbx_mesh *fmesh,
   {
     BLI_assert(fmesh->vertex_normal.indices.count == normals.span.size());
     for (const int64_t i : normals.span.index_range()) {
-      const int val_idx = fmesh->vertex_normal.indices[i];
+      const uint32_t val_idx = fmesh->vertex_normal.indices[i];
+      if (val_idx == UFBX_NO_INDEX) {
+        normals.finish();
+        attributes.remove(temp_custom_normals_name);
+        return false;
+      }
       const ufbx_vec3 &normal = fmesh->vertex_normal.values[val_idx];
       normals.span[i] = float3(normal.x, normal.y, normal.z);
     }
     normals.finish();
+    return true;
   }
-  return true;
+  return false;
 }
 
 static VectorSet<std::string> get_skin_bone_name_set(const FbxElementMapping &mapping,
