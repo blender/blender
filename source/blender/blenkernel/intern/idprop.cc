@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <climits>
 #include <cstddef>
@@ -234,8 +235,11 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
   }
 
   const int newsize = idp_resize_grow_size_calc(newlen);
-  prop->data.pointer = MEM_realloc_zeroed(prop->data.pointer,
-                                          sizeof(IDProperty) * size_t(newsize));
+  IDProperty *old_array = static_cast<IDProperty *>(prop->data.pointer);
+  IDProperty *new_array = MEM_new_array<IDProperty>(size_t(newsize), __func__);
+  std::copy_n(old_array, std::min(prop->len, newlen), new_array);
+  MEM_delete(old_array);
+  prop->data.pointer = new_array;
   prop->len = newlen;
   prop->totallen = newsize;
 }
