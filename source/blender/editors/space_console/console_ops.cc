@@ -314,7 +314,10 @@ static void console_line_verify_length(ConsoleLine *ci, int len)
 #else
     int new_len = (len + 1) * 2;
 #endif
-    ci->line = static_cast<char *>(MEM_realloc_zeroed_id(ci->line, new_len, "console line"));
+    char *new_data = MEM_new_array_zeroed<char>(new_len, __func__);
+    std::copy_n(ci->line, ci->len_alloc, new_data);
+    MEM_delete(ci->line);
+    ci->line = new_data;
     ci->len_alloc = new_len;
   }
 }
