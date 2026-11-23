@@ -223,7 +223,121 @@ static void calc_pixel_row_positions(const float3 P_start,
   }
 }
 
-static BitVector<> init_uv_primitives_brush_test(const Bounds<float3> &brush_bounds,
+namespace {
+
+/* TODO: Replace with #Bounds.intersects once it handles the edge case where the intersection of
+ * the two bounds loses a dimension (`is_empty` returns false when `intersects` should return
+ * true). */
+static bool isect_aabb_aabb_v2(const Bounds<float2> &a, const Bounds<float2> &b)
+{
+  return a.min.x < b.max.x && a.min.y < b.max.y && b.min.x < a.max.x && b.min.y < a.max.y;
+}
+
+/**
+ * The bounds of the brush depend on the falloff shape (Sphere / Projected). This helper class
+ * abstracts away the intersection checks with the brush bounds.
+ */
+class BrushBounds {
+  /* The falloff shape is either Sphere or Projected (PAINT_FALLOFF_SHAPE_SPHERE /
+   * PAINT_FALLOFF_SHAPE_TUBE). */
+  eBrushFalloffShape falloff_shape_;
+
+  /** Used for #PAINT_FALLOFF_SHAPE_SPHERE. */
+  Bounds<float3> sphere_bounds_;
+
+  /** Used for #PAINT_FALLOFF_SHAPE_TUBE. */
+  float3 location_;
+  float3 plane_x_;
+  float3 plane_y_;
+  Bounds<float2> view_bounds_;
+
+ public:
+  BrushBounds(const eBrushFalloffShape shape,
+              const float3 &center,
+              const float radius,
+              const float3 &view_normal)
+      : falloff_shape_(shape),
+        sphere_bounds_(center - radius, center + radius),
+        location_(center),
+        view_bounds_(float2(-radius), float2(radius))
+  {
+    if (shape == PAINT_FALLOFF_SHAPE_TUBE) {
+      /* The x and y axis of the plane we're projecting onto. */
+      plane_x_ = math::normalize(math::orthogonal(view_normal));
+      plane_y_ = math::cross(view_normal, plane_x_);
+    }
+  }
+
+  bool intersects_triangle(const float3 &p0, const float3 &p1, const float3 &p2) const
+  {
+    switch (falloff_shape_) {
+      case PAINT_FALLOFF_SHAPE_SPHERE: {
+        Bounds<float3> tri_bounds(p0);
+        math::min_max(p1, tri_bounds.min, tri_bounds.max);
+        math::min_max(p2, tri_bounds.min, tri_bounds.max);
+        /* TODO: Use #Bounds.intersects. */
+        return isect_aabb_aabb_v3(
+            sphere_bounds_.min, sphere_bounds_.max, tri_bounds.min, tri_bounds.max);
+      }
+      case PAINT_FALLOFF_SHAPE_TUBE: {
+        Bounds<float2> tri_bounds(project_2d(p0));
+        math::min_max(project_2d(p1), tri_bounds.min, tri_bounds.max);
+        math::min_max(project_2d(p2), tri_bounds.min, tri_bounds.max);
+        /* TODO: Use #Bounds.intersects. */
+        return isect_aabb_aabb_v2(view_bounds_, tri_bounds);
+      }
+    }
+    BLI_assert_unreachable();
+    return true;
+  }
+
+  bool intersects_segment(const float3 &start, const float3 &end) const
+  {
+    switch (falloff_shape_) {
+      case PAINT_FALLOFF_SHAPE_SPHERE:
+        return sphere_bounds_.intersects_segment(start, end);
+      case PAINT_FALLOFF_SHAPE_TUBE:
+        return view_bounds_.intersects_segment(project_2d(start), project_2d(end));
+    }
+    BLI_assert_unreachable();
+    return true;
+  }
+
+  bool intersects_bounds(const Bounds<float3> &bounds) const
+  {
+    switch (falloff_shape_) {
+      case PAINT_FALLOFF_SHAPE_SPHERE:
+        /* TODO: Use #Bounds.intersects. */
+        return isect_aabb_aabb_v3(sphere_bounds_.min, sphere_bounds_.max, bounds.min, bounds.max);
+      case PAINT_FALLOFF_SHAPE_TUBE: {
+        /* Project the corners of the 3D bounds to create 2D bounds. */
+        const std::array corners = bounds::corners(bounds);
+        Bounds<float2> projected_bounds(project_2d(corners[0]));
+        for (const float3 &corner : Span(corners).drop_front(1)) {
+          math::min_max(project_2d(corner), projected_bounds.min, projected_bounds.max);
+        }
+        /* TODO: Use #Bounds.intersects. */
+        return isect_aabb_aabb_v2(view_bounds_, projected_bounds);
+      }
+    }
+    BLI_assert_unreachable();
+    return true;
+  }
+
+ private:
+  /**
+   * Projects the 3D position onto the 3D plane defined by the view normal and center position.
+   */
+  float2 project_2d(const float3 &position) const
+  {
+    const float3 offset = position - location_;
+    return float2(math::dot(offset, plane_x_), math::dot(offset, plane_y_));
+  }
+};
+
+}  // namespace
+
+static BitVector<> init_uv_primitives_brush_test(const BrushBounds &brush_bounds,
                                                  const Span<int> corner_verts,
                                                  const Span<int3> corner_tris,
                                                  const Span<int> tri_indices,
@@ -233,13 +347,10 @@ static BitVector<> init_uv_primitives_brush_test(const Bounds<float3> &brush_bou
   BitVector<> brush_test(tri_indices.size());
   for (const int i : tri_indices.index_range()) {
     const int3 &tri = corner_tris[tri_indices[i]];
-
-    Bounds<float3> tri_bounds(positions[corner_verts[tri[0]]]);
-    math::min_max(positions[corner_verts[tri[1]]], tri_bounds.min, tri_bounds.max);
-    math::min_max(positions[corner_verts[tri[2]]], tri_bounds.min, tri_bounds.max);
-
-    brush_test[i].set(
-        isect_aabb_aabb_v3(brush_bounds.min, brush_bounds.max, tri_bounds.min, tri_bounds.max));
+    const float3 &p0 = positions[corner_verts[tri[0]]];
+    const float3 &p1 = positions[corner_verts[tri[1]]];
+    const float3 &p2 = positions[corner_verts[tri[2]]];
+    brush_test[i].set(brush_bounds.intersects_triangle(p0, p1, p2));
   }
   return brush_test;
 }
@@ -914,9 +1025,9 @@ static void foreach_run(const PaintStepContext &ctx,
   const MTex *mask_tex = BKE_brush_mask_texture_get(&brush, PaintMode::Texture3D);
   const bool use_mask_texture = mask_tex->tex != nullptr;
 
-  const float3 location = cache.location_symm;
-  const float radius = cache.radius;
-  const Bounds<float3> brush_bounds(location - radius, location + radius);
+  const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush.falloff_shape);
+  const BrushBounds brush_bounds(
+      falloff_shape, cache.location_symm, cache.radius, cache.view_normal_symm);
   BitVector<> brush_test = init_uv_primitives_brush_test(brush_bounds,
                                                          ctx.corner_verts,
                                                          ctx.corner_tris,
@@ -1036,8 +1147,7 @@ static void foreach_run(const PaintStepContext &ctx,
                 tri_factors.fill(1.0f);
                 calc_pixel_row_positions(
                     P_start, P_delta, tri_positions, IndexRange(tri_row_size));
-                calc_brush_distances(
-                    ss, tri_positions, eBrushFalloffShape(brush.falloff_shape), tri_distances);
+                calc_brush_distances(ss, tri_positions, falloff_shape, tri_distances);
                 filter_distances_with_radius(cache.radius, tri_distances, tri_factors);
                 apply_hardness_to_distances(cache, tri_distances);
                 calc_brush_strength_factors(cache, brush, tri_distances, tri_factors);
@@ -1447,11 +1557,11 @@ static IndexMask calculate_search_nodes(const ImageData &image_data,
                                         bke::pbvh::Tree &pbvh,
                                         MutableSpan<PixelNode> pixel_nodes,
                                         IndexMaskMemory &memory,
-                                        const Bounds<float3> &source_bounds)
+                                        const BrushBounds &brush_bounds)
 {
   const IndexMask search_nodes = bke::pbvh::search_nodes(
       pbvh, memory, [&](const bke::pbvh::Node &node) {
-        return node.bounds().intersects(source_bounds);
+        return brush_bounds.intersects_bounds(node.bounds());
       });
   const IndexMask nodes_to_build = IndexMask::from_predicate(
       search_nodes, memory, [&](const int i) { return !pixel_nodes[i].search_data; });
@@ -1910,11 +2020,12 @@ void do_3d_image_smear_brush(const Depsgraph &depsgraph,
    * than its own position is used, so these bounds contain every pixel that can be sampled. */
   const float3 location = ss.cache->location_symm + brush_delta;
   const float radius = ss.cache->radius + math::length(brush_delta);
-  const Bounds<float3> search_bounds(location - radius, location + radius);
+  const BrushBounds brush_bounds(
+      eBrushFalloffShape(brush.falloff_shape), location, radius, ss.cache->view_normal_symm);
 
   IndexMaskMemory memory;
   IndexMask search_nodes = calculate_search_nodes(
-      image_data, pbvh, pixel_nodes, memory, search_bounds);
+      image_data, pbvh, pixel_nodes, memory, brush_bounds);
   BLI_assert(search_nodes.size() >= node_mask.size());
 
   const Vector<image::TileNumber> dirty_tiles = collect_dirty_tiles(pixel_nodes, node_mask);
