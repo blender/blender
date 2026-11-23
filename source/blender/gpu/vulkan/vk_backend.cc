@@ -602,7 +602,11 @@ void VKBackend::detect_workarounds(VKDevice &device)
    */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     extensions.graphics_pipeline_library = false;
-    extensions.vertex_input_dynamic_state = false;
+    /* Keep vertex input dynamic state outside GPU debugging, it is needed for EEVEE pipeline
+     * precompilation. */
+    if (G.debug & G_DEBUG_GPU) {
+      extensions.vertex_input_dynamic_state = false;
+    }
   }
 
   /* AMD official driver always reads layer 0 for all layers in subpassLoad. The Vulkan spec
