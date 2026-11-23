@@ -653,48 +653,6 @@ void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot, const void *element, co
   BLI_ghash_insert(slot->data.ghash, const_cast<void *>(element), const_cast<void *>(data));
 }
 
-#if 0
-void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
-{
-  BMOpSlot *slot = &op->slots[slot_code];
-  void *tmp;
-  int64_t allocsize;
-
-  BLI_assert(slot->slottype == BMO_OP_SLOT_ELEMENT_BUF);
-
-  /* check if its actually a buffer */
-  if (slot->slottype != BMO_OP_SLOT_ELEMENT_BUF) {
-    return nullptr;
-  }
-
-  if (slot->flag & BMOS_DYNAMIC_ARRAY) {
-    if (slot->len >= slot->size) {
-      slot->size = (slot->size + 1 + totadd) * 2;
-
-      allocsize = BMO_OPSLOT_TYPEINFO[bmo_opdefines[op->type]->slot_types[slot_code].type] *
-                  slot->size;
-      slot->data.buf = MEM_realloc_zeroed_id(slot->data.buf, allocsize, "opslot dynamic array");
-    }
-
-    slot->len += totadd;
-  }
-  else {
-    slot->flag |= BMOS_DYNAMIC_ARRAY;
-    slot->len += totadd;
-    slot->size = slot->len + 2;
-
-    allocsize = BMO_OPSLOT_TYPEINFO[bmo_opdefines[op->type]->slot_types[slot_code].type] *
-                slot->len;
-
-    tmp = slot->data.buf;
-    slot->data.buf = MEM_new_zeroed(allocsize, "opslot dynamic array");
-    memcpy(slot->data.buf, tmp, allocsize);
-  }
-
-  return slot->data.buf;
-}
-#endif
-
 void BMO_slot_map_to_flag(BMesh *bm,
                           BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                           const char *slot_name,
