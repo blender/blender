@@ -14,6 +14,7 @@
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_mutex.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.hh"
 #include "BLI_vector.hh"
@@ -457,7 +458,11 @@ void BLF_state_print(int fontid);
 
 /* XXX, bad design */
 extern int blf_mono_font;
-extern int blf_mono_font_render; /* don't mess drawing with render threads. */
+
+/** Font to use in depsgraph and render threads, to avoid sharing state with the
+ * main thread. Must hold lock while using. */
+extern int blf_mono_font_render;
+extern Mutex blf_mono_font_render_mutex;
 
 /**
  * Result of drawing/evaluating the string

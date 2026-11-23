@@ -49,6 +49,7 @@ FontBLF *global_font[BLF_MAX_FONT] = {nullptr};
 
 int blf_mono_font = -1;
 int blf_mono_font_render = -1;
+Mutex blf_mono_font_render_mutex;
 
 static Mutex g_blf_load_mutex;
 
