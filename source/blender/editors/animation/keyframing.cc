@@ -6,6 +6,7 @@
  * \ingroup edanimation
  */
 
+#include <algorithm>
 #include <cstdio>
 
 #include <fmt/format.h>
@@ -128,8 +129,12 @@ void ED_keyframes_add(FCurve *fcu, int num_keys_to_add)
     return;
   }
 
-  fcu->bezt = static_cast<BezTriple *>(
-      MEM_realloc_zeroed(fcu->bezt, sizeof(BezTriple) * (fcu->totvert + num_keys_to_add)));
+  BezTriple *new_bezt = MEM_new_array_uninitialized<BezTriple>(fcu->totvert + num_keys_to_add,
+                                                               __func__);
+  std::copy_n(fcu->bezt, fcu->totvert, new_bezt);
+  std::fill_n(new_bezt + fcu->totvert, num_keys_to_add, BezTriple{});
+  MEM_delete(fcu->bezt);
+  fcu->bezt = new_bezt;
   BezTriple *bezt = fcu->bezt + fcu->totvert; /* Pointer to the first new one. */
 
   fcu->totvert += num_keys_to_add;
