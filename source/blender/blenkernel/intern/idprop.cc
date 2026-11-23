@@ -269,6 +269,18 @@ static void idp_resize_group_array(
   }
 }
 
+template<typename T>
+static void idp_array_reallocate(IDProperty *prop, const int newlen, const int newsize)
+{
+  T *old_data = static_cast<T *>(prop->data.pointer);
+  T *new_data = MEM_new_array_uninitialized<T>(size_t(newsize), __func__);
+  const int copy_num = std::min(prop->len, newlen);
+  std::copy_n(old_data, copy_num, new_data);
+  std::fill_n(new_data + copy_num, newsize - copy_num, T{});
+  MEM_delete(old_data);
+  prop->data.pointer = new_data;
+}
+
 void IDP_ResizeArray(IDProperty *prop, int newlen)
 {
   const bool is_grow = newlen >= prop->len;
@@ -285,8 +297,32 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
     idp_resize_group_array(prop, newlen, prop->data.pointer, true, 0);
   }
 
-  prop->data.pointer = MEM_realloc_zeroed(prop->data.pointer,
-                                          idp_size_table[int(prop->subtype)] * size_t(newsize));
+  if (prop->type == IDP_STRING) {
+    idp_array_reallocate<char>(prop, newlen, newsize);
+  }
+  else {
+    BLI_assert(prop->type == IDP_ARRAY);
+    switch (eIDPropertyType(prop->subtype)) {
+      case IDP_INT:
+        idp_array_reallocate<int>(prop, newlen, newsize);
+        break;
+      case IDP_FLOAT:
+        idp_array_reallocate<float>(prop, newlen, newsize);
+        break;
+      case IDP_DOUBLE:
+        idp_array_reallocate<double>(prop, newlen, newsize);
+        break;
+      case IDP_BOOLEAN:
+        idp_array_reallocate<int8_t>(prop, newlen, newsize);
+        break;
+      case IDP_GROUP:
+        idp_array_reallocate<IDProperty *>(prop, newlen, newsize);
+        break;
+      default:
+        BLI_assert_unreachable();
+        return;
+    }
+  }
 
   if (is_grow == true) {
     idp_resize_group_array(prop, newlen, prop->data.pointer, true, 0);
