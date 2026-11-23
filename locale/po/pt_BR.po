@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-10-20 16:12+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21124,6 +21124,82 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Stroke"
+msgstr "Traços"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Linked"
+msgstr "Vinculando"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
 msgid "Viewpoint"
 msgstr "Ponto de visualização"
 
@@ -21134,10 +21210,6 @@ msgstr "Navegação"
 
 msgid "Align View"
 msgstr "Alinhar visualização"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Align View to Active"
@@ -21160,28 +21232,20 @@ msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
 
 
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
 msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
 
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
 msgid "Select Loops"
 msgstr "Selecionar anéis"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Stroke"
-msgstr "Traços"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
 
 
 msgid "Light"
@@ -21216,28 +21280,12 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
 
 msgid "Convert"
 msgstr "Converter"
-
-
-msgid "Linked"
-msgstr "Vinculando"
-
-
-msgid "Layout"
-msgstr "Organizar"
 
 
 msgid "Hooks"
@@ -21256,20 +21304,8 @@ msgid "In-Betweens"
 msgstr "Entre as continuidades"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Propagate"
 msgstr "Propagar"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Names"
-msgstr "Nomes"
 
 
 msgid "Toggle Bone Options"
@@ -21292,44 +21328,8 @@ msgid "Face Data"
 msgstr "Dados das faces"
 
 
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
 msgid "Instances"
 msgstr "Instâncias"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
 
 
 msgid "Basic"
@@ -47817,6 +47817,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
@@ -47827,14 +47835,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
 
 
 msgid "Bone Constraints"

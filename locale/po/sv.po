@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-11-14 18:34+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -36621,60 +36621,44 @@ msgid "Write"
 msgstr "Skriv"
 
 
-msgid "Viewpoint"
-msgstr "Synpunkt"
-
-
-msgid "Navigation"
-msgstr "Navigering"
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
 msgid "Primitives"
 msgstr "Primitiv"
 
 
-msgid "Align View"
-msgstr "Justera vy"
-
-
 msgid "Import"
 msgstr "Importera"
 
 
-msgid "Align View to Active"
-msgstr "Justera vy efter aktiv"
+msgid "Show/Hide"
+msgstr "Visa/Dölj"
 
 
-msgid "View Regions"
-msgstr "Vyregioner"
-
-
-msgid "Select More/Less"
-msgstr "Välj fler/färre"
-
-
-msgid "Select Similar"
-msgstr "Välj liknande"
+msgid "Clean Up"
+msgstr "Rensa"
 
 
 msgid "Utilities"
 msgstr "Verktyg"
 
 
-msgid "Select All by Trait"
-msgstr "Välj alla efter egenskap"
-
-
 msgid "Deprecated"
 msgstr "Föråldrad"
 
 
-msgid "Select Linked"
-msgstr "Välj länkade"
+msgid "Special Characters"
+msgstr "Specialtecken"
 
 
-msgid "Select Loops"
-msgstr "Välj slingor"
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Metaball"
+msgstr "Metaklot"
 
 
 msgid "Math"
@@ -36689,6 +36673,10 @@ msgid "Read"
 msgstr "Läs"
 
 
+msgid "Names"
+msgstr "Namn"
+
+
 msgid "Render Preview"
 msgstr "Renderingsförhandsgranskning"
 
@@ -36697,16 +36685,120 @@ msgid "Sample"
 msgstr "Prov"
 
 
+msgid "Bone Roll"
+msgstr "Benrullning"
+
+
 msgid "Stroke"
 msgstr "Streck"
 
 
+msgid "Pivot Point"
+msgstr "Vridpunkt"
+
+
+msgid "Snap"
+msgstr "Fäst"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Avtagande vid proportionell redigering"
+
+
+msgid "Mask Edit"
+msgstr "Maskredigering"
+
+
+msgid "Automasking"
+msgstr "Automatisk maskning"
+
+
+msgid "Face Sets Edit"
+msgstr "Redigera ytuppsättningar"
+
+
+msgid "Vertex Group Locks"
+msgstr "Lås för hörnpunktsgrupper"
+
+
+msgid "Linked"
+msgstr "Länkad"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Mirror"
+msgstr "Spegel"
+
+
+msgid "UV Mapping"
+msgstr "UV-mappning"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Viewpoint"
+msgstr "Synpunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy efter aktiv"
+
+
+msgid "View Regions"
+msgstr "Vyregioner"
+
+
+msgid "Select More/Less"
+msgstr "Välj fler/färre"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Select Similar"
+msgstr "Välj liknande"
+
+
+msgid "Select All by Trait"
+msgstr "Välj alla efter egenskap"
+
+
+msgid "Keying"
+msgstr "Nyckling"
+
+
+msgid "Select Linked"
+msgstr "Välj länkade"
+
+
+msgid "Tracking"
+msgstr "Spårning"
+
+
+msgid "Select Loops"
+msgstr "Välj slingor"
+
+
+msgid "Creative"
+msgstr "Kreativ"
+
+
 msgid "Assign Material"
 msgstr "Tilldela material"
-
-
-msgid "Metaball"
-msgstr "Metaklot"
 
 
 msgid "Light"
@@ -36741,14 +36833,6 @@ msgid "Quick Effects"
 msgstr "Snabba effekter"
 
 
-msgid "Show/Hide"
-msgstr "Visa/Dölj"
-
-
-msgid "Clean Up"
-msgstr "Rensa"
-
-
 msgid "Asset"
 msgstr "Resurs"
 
@@ -36765,20 +36849,8 @@ msgid "Link/Transfer Data"
 msgstr "Länka/överför data"
 
 
-msgid "Linked"
-msgstr "Länkad"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Hooks"
 msgstr "Krokar"
-
-
-msgid "Vertex Group Locks"
-msgstr "Lås för hörnpunktsgrupper"
 
 
 msgid "Trim/Add"
@@ -36797,10 +36869,6 @@ msgid "Random Mask"
 msgstr "Slumpmässig mask"
 
 
-msgid "Adjust"
-msgstr "Justera"
-
-
 msgid "Clear Transform"
 msgstr "Rensa transformation"
 
@@ -36809,24 +36877,12 @@ msgid "In-Betweens"
 msgstr "Mellanlägen"
 
 
-msgid "Keying"
-msgstr "Nyckling"
-
-
 msgid "Propagate"
 msgstr "Sprid"
 
 
-msgid "Tracking"
-msgstr "Spårning"
-
-
 msgid "Bone Collections"
 msgstr "Bensamlingar"
-
-
-msgid "Names"
-msgstr "Namn"
 
 
 msgid "Toggle Bone Options"
@@ -36841,10 +36897,6 @@ msgid "Disable Bone Options"
 msgstr "Inaktivera benalternativ"
 
 
-msgid "Creative"
-msgstr "Kreativ"
-
-
 msgid "Mesh Select Mode"
 msgstr "Markeringsläge för mesh"
 
@@ -36857,68 +36909,16 @@ msgid "Select by Face Strength"
 msgstr "Välj efter ytstyrka"
 
 
-msgid "Set Face Strength"
-msgstr "Ställ in ytstyrka"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Bone Roll"
-msgstr "Benrullning"
-
-
-msgid "Pivot Point"
-msgstr "Vridpunkt"
-
-
-msgid "Snap"
-msgstr "Fäst"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Avtagande vid proportionell redigering"
-
-
-msgid "Mask Edit"
-msgstr "Maskredigering"
-
-
-msgid "Automasking"
-msgstr "Automatisk maskning"
-
-
-msgid "Face Sets Edit"
-msgstr "Redigera ytuppsättningar"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
-msgid "Mirror"
-msgstr "Spegel"
+msgid "Set Face Strength"
+msgstr "Ställ in ytstyrka"
 
 
 msgid "Instances"
 msgstr "Instanser"
-
-
-msgid "UV Mapping"
-msgstr "UV-mappning"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
 
 
 msgid "Keyframe Insert Pie"
@@ -96362,6 +96362,58 @@ msgid "Panel containing UI elements"
 msgstr "Panel med gränssnittselement"
 
 
+msgid "Active Tool"
+msgstr "Aktivt verktyg"
+
+
+msgid "View Lock"
+msgstr "Vylås"
+
+
+msgid "Selectability & Visibility"
+msgstr "Valbarhet och synlighet"
+
+
+msgid "Shadow Settings"
+msgstr "Skugginställningar"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO-inställningar"
+
+
+msgid "Cavity"
+msgstr "Hålighet"
+
+
+msgid "Render Pass"
+msgstr "Renderingspass"
+
+
+msgid "Overlays"
+msgstr "Överlägg"
+
+
+msgid "Guides"
+msgstr "Hjälplinjer"
+
+
+msgid "Viewer Node"
+msgstr "Visningsnod"
+
+
+msgid "Motion Tracking"
+msgstr "Rörelsespårning"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Meshredigeringsläge"
+
+
+msgid "Measurement"
+msgstr "Mätning"
+
+
 msgid "Curve Edit Mode"
 msgstr "Kurvredigeringsläge"
 
@@ -96380,10 +96432,6 @@ msgstr "Streckplacering"
 
 msgid "Drawing Plane"
 msgstr "Ritplan"
-
-
-msgid "Guides"
-msgstr "Hjälplinjer"
 
 
 msgid "Grease Pencil Options"
@@ -96426,14 +96474,6 @@ msgid "Viewport Debug"
 msgstr "Felsökning av vyport"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR-information"
-
-
 msgid "glTF Variants"
 msgstr "glTF-varianter"
 
@@ -96442,60 +96482,20 @@ msgid "glTF Material Variants"
 msgstr "glTF-materialvarianter"
 
 
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR-information"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF-animationer"
-
-
-msgid "Active Tool"
-msgstr "Aktivt verktyg"
-
-
-msgid "View Lock"
-msgstr "Vylås"
-
-
-msgid "Selectability & Visibility"
-msgstr "Valbarhet och synlighet"
-
-
-msgid "Shadow Settings"
-msgstr "Skugginställningar"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO-inställningar"
-
-
-msgid "Cavity"
-msgstr "Hålighet"
-
-
-msgid "Render Pass"
-msgstr "Renderingspass"
-
-
-msgid "Overlays"
-msgstr "Överlägg"
-
-
-msgid "Viewer Node"
-msgstr "Visningsnod"
-
-
-msgid "Motion Tracking"
-msgstr "Rörelsespårning"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Meshredigeringsläge"
-
-
-msgid "Measurement"
-msgstr "Mätning"
 
 
 msgid "Import Settings"
@@ -102048,10 +102048,6 @@ msgid "German - Deutsch"
 msgstr "Tyska - Deutsch"
 
 
-msgid "Locale code: de_DE. Translation progress: 35%"
-msgstr "Lokalkod: de_DE. Översättningsförlopp: 35 %"
-
-
 msgid "Greek - Ελληνικά"
 msgstr "Grekiska - Ελληνικά"
 
@@ -102110,10 +102106,6 @@ msgstr "Lokalkod: ja_JP. Översättningsförlopp: 100 %"
 
 msgid "Korean - 한국어"
 msgstr "Koreanska - 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 91%"
-msgstr "Lokalkod: ko_KR. Översättningsförlopp: 91 %"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -102266,10 +102258,6 @@ msgstr "Lokalkod: th_TH. Översättningsförlopp: 5 %"
 
 msgid "Turkish - Türkçe"
 msgstr "Turkiska - Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 73%"
-msgstr "Lokalkod: tr_TR. Översättningsförlopp: 73 %"
 
 
 msgid "Ukrainian - Українська"
@@ -144132,6 +144120,10 @@ msgid "Could not find constraint data for ObjectSolver Set Inverse"
 msgstr "Det gick inte att hitta begränsningsdata för ObjectSolver Set Inverse"
 
 
+msgid "Indices must be in range"
+msgstr "Index måste ligga inom intervallet"
+
+
 msgid "Applied constraint was not first, result may not be as expected"
 msgstr "Den tillämpade begränsningen var inte först. Resultatet kan avvika från det förväntade"
 
@@ -152548,10 +152540,6 @@ msgstr "Använd det lagrade anpassade normalattributet som de slutliga normalern
 
 msgid "Curve sizes must be greater than zero"
 msgstr "Kurvstorlekar måste vara större än noll"
-
-
-msgid "Indices must be in range"
-msgstr "Index måste ligga inom intervallet"
 
 
 msgid "Indices must be sorted in ascending order"

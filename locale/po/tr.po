@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28695,60 +28695,44 @@ msgid "Write"
 msgstr "Yazmak"
 
 
-msgid "Viewpoint"
-msgstr "Bakış açısı"
-
-
-msgid "Navigation"
-msgstr "Navigasyon"
+msgid "Merge"
+msgstr "Birleştir"
 
 
 msgid "Primitives"
 msgstr "İlkel"
 
 
-msgid "Align View"
-msgstr "Görünümü hizala"
-
-
 msgid "Import"
 msgstr "İçe Aktar"
 
 
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
 
 
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
+msgid "Clean Up"
+msgstr "Temizle"
 
 
 msgid "Utilities"
 msgstr "Kamu hizmetleri"
 
 
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
-
-
 msgid "Deprecated"
 msgstr "Kullanım dışı bırakıldı"
 
 
-msgid "Select Linked"
-msgstr "Bağlantılıyı Seç"
+msgid "Special Characters"
+msgstr "Özel Karakterler"
 
 
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Metaball"
+msgstr "Metabol"
 
 
 msgid "Math"
@@ -28763,20 +28747,124 @@ msgid "Read"
 msgstr "Okumak"
 
 
+msgid "Names"
+msgstr "Adlar"
+
+
 msgid "Sample"
 msgstr "Örnek"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
 
 
 msgid "Stroke"
 msgstr "Vuruş"
 
 
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
+
+
+msgid "Linked"
+msgstr "Bağlantılı"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
+msgid "Local View"
+msgstr "Yerel Görünüm"
+
+
+msgid "Viewpoint"
+msgstr "Bakış açısı"
+
+
+msgid "Navigation"
+msgstr "Navigasyon"
+
+
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
+
+
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
+
+
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Adjust"
+msgstr "Ayarlamak"
+
+
+msgid "Select Similar"
+msgstr "Benzerini Seç"
+
+
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
+
+
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
+msgid "Select Linked"
+msgstr "Bağlantılıyı Seç"
+
+
+msgid "Tracking"
+msgstr "Takip"
+
+
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
+
+
 msgid "Assign Material"
 msgstr "Malzeme Atamak"
-
-
-msgid "Metaball"
-msgstr "Metabol"
 
 
 msgid "Light"
@@ -28811,14 +28899,6 @@ msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
 msgid "Asset"
 msgstr "Varlık"
 
@@ -28835,20 +28915,8 @@ msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
 
-msgid "Linked"
-msgstr "Bağlantılı"
-
-
-msgid "Layout"
-msgstr "Yerleşim"
-
-
 msgid "Hooks"
 msgstr "Kancalar"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
 
 
 msgid "Trim/Add"
@@ -28867,10 +28935,6 @@ msgid "Random Mask"
 msgstr "Rastgele Maske"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
 msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
 
@@ -28879,24 +28943,12 @@ msgid "In-Betweens"
 msgstr "Arada Kalanlar"
 
 
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
 msgid "Propagate"
 msgstr "Yaymak"
 
 
-msgid "Tracking"
-msgstr "Takip"
-
-
 msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
-
-
-msgid "Names"
-msgstr "Adlar"
 
 
 msgid "Toggle Bone Options"
@@ -28927,60 +28979,8 @@ msgid "Set Face Strength"
 msgstr "Yüz Gücünü Ayarla"
 
 
-msgid "Merge"
-msgstr "Birleştir"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
-
-
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
 msgid "Instances"
 msgstr "Örnekler"
-
-
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
-msgid "Local View"
-msgstr "Yerel Görünüm"
 
 
 msgid "Keyframe Insert Pie"
@@ -75319,6 +75319,58 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Active Tool"
+msgstr "Etkin Araç"
+
+
+msgid "View Lock"
+msgstr "Görünüm Kilidi"
+
+
+msgid "Selectability & Visibility"
+msgstr "Seçilebilirlik ve Görünürlük"
+
+
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
+
+
+msgid "Cavity"
+msgstr "Boşluk"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
+
+
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
+msgid "Guides"
+msgstr "Rehberler"
+
+
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Düzenleme Modu"
+
+
+msgid "Measurement"
+msgstr "Ölçüm"
+
+
 msgid "Curve Edit Mode"
 msgstr "Eğri Düzenleme Modu"
 
@@ -75333,10 +75385,6 @@ msgstr "İnme Yerleşimi"
 
 msgid "Drawing Plane"
 msgstr "Çizim düzlemi"
-
-
-msgid "Guides"
-msgstr "Rehberler"
 
 
 msgid "Quad View"
@@ -75375,14 +75423,6 @@ msgid "Viewport Debug"
 msgstr "Görüş Alanı Hata Ayıklaması"
 
 
-msgid "VR"
-msgstr "Sanal Gerçeklik"
-
-
-msgid "VR Info"
-msgstr "VR Bilgisi"
-
-
 msgid "glTF Variants"
 msgstr "glTF Çeşitleri"
 
@@ -75391,52 +75431,12 @@ msgid "glTF Material Variants"
 msgstr "glTF Malzeme Varyantları"
 
 
-msgid "Active Tool"
-msgstr "Etkin Araç"
+msgid "VR"
+msgstr "Sanal Gerçeklik"
 
 
-msgid "View Lock"
-msgstr "Görünüm Kilidi"
-
-
-msgid "Selectability & Visibility"
-msgstr "Seçilebilirlik ve Görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
-
-
-msgid "Cavity"
-msgstr "Boşluk"
-
-
-msgid "Render Pass"
-msgstr "Render Geçişi"
-
-
-msgid "Overlays"
-msgstr "Kaplamalar"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Düzenleme Modu"
-
-
-msgid "Measurement"
-msgstr "Ölçüm"
+msgid "VR Info"
+msgstr "VR Bilgisi"
 
 
 msgid "Chain Scaling"
@@ -110019,6 +110019,10 @@ msgid "Could not find constraint data for ObjectSolver Set Inverse"
 msgstr "ObjectSolver Set Inverse için kısıtlama verisi bulunamadı"
 
 
+msgid "Indices must be in range"
+msgstr "Endeksler aralıkta olmalıdır"
+
+
 msgid "Applied constraint was not first, result may not be as expected"
 msgstr "Uygulanan kısıtlama ilk değildi, sonuç beklendiği gibi olmayabilir"
 
@@ -114863,10 +114867,6 @@ msgstr "CurveProfile tablosu başlatılmadı, initialize() çağrısı"
 
 msgid "Curve sizes must be greater than zero"
 msgstr "Eğri boyutları sıfırdan büyük olmalıdır"
-
-
-msgid "Indices must be in range"
-msgstr "Endeksler aralıkta olmalıdır"
 
 
 msgid "Sizes must be greater than zero"

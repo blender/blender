@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-11-09 06:20+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -37210,60 +37210,44 @@ msgid "Write"
 msgstr "書込"
 
 
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
+msgid "Merge"
+msgstr "マージ"
 
 
 msgid "Primitives"
 msgstr "プリミティブ"
 
 
-msgid "Align View"
-msgstr "視点を揃える"
-
-
 msgid "Import"
 msgstr "インポート"
 
 
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
+msgid "Show/Hide"
+msgstr "表示/隠す"
 
 
-msgid "View Regions"
-msgstr "ビュー領域設定"
-
-
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
-
-
-msgid "Select Similar"
-msgstr "類似選択"
+msgid "Clean Up"
+msgstr "クリーンアップ"
 
 
 msgid "Utilities"
 msgstr "ユーティリティ"
 
 
-msgid "Select All by Trait"
-msgstr "特徴で全選択"
-
-
 msgid "Deprecated"
 msgstr "廃止予定"
 
 
-msgid "Select Linked"
-msgstr "リンク選択"
+msgid "Special Characters"
+msgstr "特殊文字"
 
 
-msgid "Select Loops"
-msgstr "ループ選択"
+msgid "Kerning"
+msgstr "カーニング"
+
+
+msgid "Metaball"
+msgstr "メタボール"
 
 
 msgid "Math"
@@ -37278,6 +37262,10 @@ msgid "Read"
 msgstr "読込"
 
 
+msgid "Names"
+msgstr "名前"
+
+
 msgid "Render Preview"
 msgstr "レンダープレビュー"
 
@@ -37286,16 +37274,120 @@ msgid "Sample"
 msgstr "サンプル"
 
 
+msgid "Bone Roll"
+msgstr "ボーンロール"
+
+
 msgid "Stroke"
 msgstr "ストローク"
 
 
+msgid "Pivot Point"
+msgstr "ピボットポイント"
+
+
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "プロポーショナル編集の減衰タイプ"
+
+
+msgid "Mask Edit"
+msgstr "マスク編集"
+
+
+msgid "Automasking"
+msgstr "自動マスク"
+
+
+msgid "Face Sets Edit"
+msgstr "面セット編集"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂点グループのロック"
+
+
+msgid "Linked"
+msgstr "リンク"
+
+
+msgid "Layout"
+msgstr "レイアウト"
+
+
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
+
+
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Select Similar"
+msgstr "類似選択"
+
+
+msgid "Select All by Trait"
+msgstr "特徴で全選択"
+
+
+msgid "Keying"
+msgstr "キーイング"
+
+
+msgid "Select Linked"
+msgstr "リンク選択"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
+
+
+msgid "Select Loops"
+msgstr "ループ選択"
+
+
+msgid "Creative"
+msgstr "クリエイティブ"
+
+
 msgid "Assign Material"
 msgstr "マテリアルを割り当て"
-
-
-msgid "Metaball"
-msgstr "メタボール"
 
 
 msgid "Light"
@@ -37330,14 +37422,6 @@ msgid "Quick Effects"
 msgstr "クイックエフェクト"
 
 
-msgid "Show/Hide"
-msgstr "表示/隠す"
-
-
-msgid "Clean Up"
-msgstr "クリーンアップ"
-
-
 msgid "Asset"
 msgstr "アセット"
 
@@ -37354,20 +37438,8 @@ msgid "Link/Transfer Data"
 msgstr "データのリンク/転送"
 
 
-msgid "Linked"
-msgstr "リンク"
-
-
-msgid "Layout"
-msgstr "レイアウト"
-
-
 msgid "Hooks"
 msgstr "フック"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂点グループのロック"
 
 
 msgid "Trim/Add"
@@ -37386,10 +37458,6 @@ msgid "Random Mask"
 msgstr "ランダムマスク"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Clear Transform"
 msgstr "トランスフォームをクリア"
 
@@ -37398,24 +37466,12 @@ msgid "In-Betweens"
 msgstr "中間ポーズ"
 
 
-msgid "Keying"
-msgstr "キーイング"
-
-
 msgid "Propagate"
 msgstr "伝播"
 
 
-msgid "Tracking"
-msgstr "トラッキング"
-
-
 msgid "Bone Collections"
 msgstr "ボーンコレクション"
-
-
-msgid "Names"
-msgstr "名前"
 
 
 msgid "Toggle Bone Options"
@@ -37430,10 +37486,6 @@ msgid "Disable Bone Options"
 msgstr "ボーンオプションを無効化"
 
 
-msgid "Creative"
-msgstr "クリエイティブ"
-
-
 msgid "Mesh Select Mode"
 msgstr "メッシュ選択モード"
 
@@ -37446,68 +37498,16 @@ msgid "Select by Face Strength"
 msgstr "面の強さで選択"
 
 
-msgid "Set Face Strength"
-msgstr "面の強さを設定"
-
-
-msgid "Merge"
-msgstr "マージ"
-
-
-msgid "Special Characters"
-msgstr "特殊文字"
-
-
-msgid "Kerning"
-msgstr "カーニング"
-
-
-msgid "Bone Roll"
-msgstr "ボーンロール"
-
-
-msgid "Pivot Point"
-msgstr "ピボットポイント"
-
-
-msgid "Snap"
-msgstr "スナップ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "プロポーショナル編集の減衰タイプ"
-
-
-msgid "Mask Edit"
-msgstr "マスク編集"
-
-
-msgid "Automasking"
-msgstr "自動マスク"
-
-
-msgid "Face Sets Edit"
-msgstr "面セット編集"
-
-
 msgid "Gizmo"
 msgstr "ギズモ"
 
 
-msgid "Mirror"
-msgstr "ミラー"
+msgid "Set Face Strength"
+msgstr "面の強さを設定"
 
 
 msgid "Instances"
 msgstr "インスタンス"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
 
 
 msgid "Keyframe Insert Pie"
@@ -97666,6 +97666,58 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
+msgid "Active Tool"
+msgstr "アクティブツール"
+
+
+msgid "View Lock"
+msgstr "ビューのロック"
+
+
+msgid "Selectability & Visibility"
+msgstr "選択可否と可視性"
+
+
+msgid "Shadow Settings"
+msgstr "影の設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO設定"
+
+
+msgid "Cavity"
+msgstr "キャビティ"
+
+
+msgid "Render Pass"
+msgstr "レンダーパス"
+
+
+msgid "Overlays"
+msgstr "オーバーレイ"
+
+
+msgid "Guides"
+msgstr "ガイド"
+
+
+msgid "Viewer Node"
+msgstr "ビューアーノード"
+
+
+msgid "Motion Tracking"
+msgstr "モーショントラッキング"
+
+
+msgid "Mesh Edit Mode"
+msgstr "メッシュ編集モード"
+
+
+msgid "Measurement"
+msgstr "計測"
+
+
 msgid "Curve Edit Mode"
 msgstr "カーブ編集モード"
 
@@ -97684,10 +97736,6 @@ msgstr "ストロークの基準"
 
 msgid "Drawing Plane"
 msgstr "ドロー平面"
-
-
-msgid "Guides"
-msgstr "ガイド"
 
 
 msgid "Grease Pencil Options"
@@ -97730,14 +97778,6 @@ msgid "Viewport Debug"
 msgstr "ビューポートデバッグ"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR情報"
-
-
 msgid "glTF Variants"
 msgstr "glTFバリアント"
 
@@ -97746,60 +97786,20 @@ msgid "glTF Material Variants"
 msgstr "glTFマテリアルバリアント"
 
 
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR情報"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTFアニメーション"
-
-
-msgid "Active Tool"
-msgstr "アクティブツール"
-
-
-msgid "View Lock"
-msgstr "ビューのロック"
-
-
-msgid "Selectability & Visibility"
-msgstr "選択可否と可視性"
-
-
-msgid "Shadow Settings"
-msgstr "影の設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO設定"
-
-
-msgid "Cavity"
-msgstr "キャビティ"
-
-
-msgid "Render Pass"
-msgstr "レンダーパス"
-
-
-msgid "Overlays"
-msgstr "オーバーレイ"
-
-
-msgid "Viewer Node"
-msgstr "ビューアーノード"
-
-
-msgid "Motion Tracking"
-msgstr "モーショントラッキング"
-
-
-msgid "Mesh Edit Mode"
-msgstr "メッシュ編集モード"
-
-
-msgid "Measurement"
-msgstr "計測"
 
 
 msgid "Import Settings"
@@ -103471,10 +103471,6 @@ msgid "German - Deutsch"
 msgstr "ドイツ語 - Deutsch"
 
 
-msgid "Locale code: de_DE. Translation progress: 35%"
-msgstr "ロケールコード：de_DE．翻訳の進行状況: 35％"
-
-
 msgid "Greek - Ελληνικά"
 msgstr "ギリシャ語 - Ελληνικά"
 
@@ -103525,10 +103521,6 @@ msgstr "日本語 - Japanese"
 
 msgid "Korean - 한국어"
 msgstr "韓国語 - 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 91%"
-msgstr "ロケールコード：ko_KR．翻訳の進行状況: 91％"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -103681,10 +103673,6 @@ msgstr "ロケールコード：th_TH．翻訳の進行状況: 5％"
 
 msgid "Turkish - Türkçe"
 msgstr "トルコ語 - Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 73%"
-msgstr "ロケールコード：tr_TR．翻訳の進行状況: 73％"
 
 
 msgid "Ukrainian - Українська"
@@ -145926,6 +145914,10 @@ msgid "Could not find constraint data for ObjectSolver Set Inverse"
 msgstr "オブジェクトソルバーの逆補正用のコンストレイントデータがありません"
 
 
+msgid "Indices must be in range"
+msgstr "`indices` は範囲内にしてください"
+
+
 msgid "Applied constraint was not first, result may not be as expected"
 msgstr "適用したコンストレイントは一番上ではなかったため，望んだ結果ではないかもしれません"
 
@@ -154358,10 +154350,6 @@ msgstr "格納されているカスタム法線属性を最終的な法線とし
 
 msgid "Curve sizes must be greater than zero"
 msgstr "`sizes` は０より大きくしてください"
-
-
-msgid "Indices must be in range"
-msgstr "`indices` は範囲内にしてください"
 
 
 msgid "Indices must be sorted in ascending order"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-10-23 06:12+0000\n"
 "Last-Translator: 游博凱 <augustus85918@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -26344,60 +26344,44 @@ msgid "Write"
 msgstr "寫入"
 
 
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
+msgid "Merge"
+msgstr "合併"
 
 
 msgid "Primitives"
 msgstr "原形"
 
 
-msgid "Align View"
-msgstr "對齊檢視"
-
-
 msgid "Import"
 msgstr "匯入"
 
 
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
 
 
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
+msgid "Clean Up"
+msgstr "清理"
 
 
 msgid "Utilities"
 msgstr "效用"
 
 
-msgid "Select All by Trait"
-msgstr "依特徵全選"
-
-
 msgid "Deprecated"
 msgstr "已棄用"
 
 
-msgid "Select Linked"
-msgstr "選取連結項"
+msgid "Special Characters"
+msgstr "特殊字元"
 
 
-msgid "Select Loops"
-msgstr "選取迴圈"
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Metaball"
+msgstr "變幻球"
 
 
 msgid "Math"
@@ -26412,6 +26396,10 @@ msgid "Read"
 msgstr "讀取"
 
 
+msgid "Names"
+msgstr "名稱"
+
+
 msgid "Render Preview"
 msgstr "算繪預覽"
 
@@ -26420,16 +26408,120 @@ msgid "Sample"
 msgstr "取樣"
 
 
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
 msgid "Stroke"
 msgstr "筆觸"
 
 
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Mask Edit"
+msgstr "遮罩編輯"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂點群組鎖定"
+
+
+msgid "Linked"
+msgstr "已連結"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select All by Trait"
+msgstr "依特徵全選"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
+
+
+msgid "Select Loops"
+msgstr "選取迴圈"
+
+
+msgid "Creative"
+msgstr "創意"
+
+
 msgid "Assign Material"
 msgstr "指派材質"
-
-
-msgid "Metaball"
-msgstr "變幻球"
 
 
 msgid "Light"
@@ -26464,14 +26556,6 @@ msgid "Quick Effects"
 msgstr "快速效果"
 
 
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
 msgid "Asset"
 msgstr "素材"
 
@@ -26488,20 +26572,8 @@ msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
 
 
-msgid "Linked"
-msgstr "已連結"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
 msgid "Hooks"
 msgstr "鉤"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂點群組鎖定"
 
 
 msgid "Trim/Add"
@@ -26520,10 +26592,6 @@ msgid "Random Mask"
 msgstr "隨機遮罩"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Clear Transform"
 msgstr "清除變換"
 
@@ -26532,24 +26600,12 @@ msgid "In-Betweens"
 msgstr "內部之間"
 
 
-msgid "Keying"
-msgstr "鍵處理"
-
-
 msgid "Propagate"
 msgstr "增生"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
-
-
 msgid "Bone Collections"
 msgstr "骨骼集盒"
-
-
-msgid "Names"
-msgstr "名稱"
 
 
 msgid "Toggle Bone Options"
@@ -26564,10 +26620,6 @@ msgid "Disable Bone Options"
 msgstr "停用骨骼設定"
 
 
-msgid "Creative"
-msgstr "創意"
-
-
 msgid "Mesh Select Mode"
 msgstr "網格選取模式"
 
@@ -26576,68 +26628,16 @@ msgid "Face Data"
 msgstr "面資料"
 
 
-msgid "Set Face Strength"
-msgstr "設定面強度"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Mask Edit"
-msgstr "遮罩編輯"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
 msgid "Gizmo"
 msgstr "操縱器"
 
 
-msgid "Mirror"
-msgstr "鏡像"
+msgid "Set Face Strength"
+msgstr "設定面強度"
 
 
 msgid "Instances"
 msgstr "實例化"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
 
 
 msgid "Keyframe Insert Pie"
@@ -61140,6 +61140,54 @@ msgid "Palette Splines"
 msgstr "調色盤雲型線"
 
 
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "View Lock"
+msgstr "視圖鎖定"
+
+
+msgid "Shadow Settings"
+msgstr "陰影設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 設定"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通道"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Guides"
+msgstr "引導"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
+msgid "Mesh Edit Mode"
+msgstr "網格編輯模式"
+
+
+msgid "Measurement"
+msgstr "測量"
+
+
 msgid "Curve Edit Mode"
 msgstr "曲線編輯模式"
 
@@ -61158,10 +61206,6 @@ msgstr "筆觸放置"
 
 msgid "Drawing Plane"
 msgstr "描繪平面"
-
-
-msgid "Guides"
-msgstr "引導"
 
 
 msgid "Grease Pencil Options"
@@ -61192,14 +61236,6 @@ msgid "Viewport Debug"
 msgstr "視圖除錯"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 資訊"
-
-
 msgid "glTF Variants"
 msgstr "glTF 變體"
 
@@ -61208,56 +61244,20 @@ msgid "glTF Material Variants"
 msgstr "glTF 材質變體"
 
 
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 資訊"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF 動畫"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "View Lock"
-msgstr "視圖鎖定"
-
-
-msgid "Shadow Settings"
-msgstr "陰影設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 設定"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通道"
-
-
-msgid "Overlays"
-msgstr "疊層"
-
-
-msgid "Viewer Node"
-msgstr "檢視器節點"
-
-
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Mesh Edit Mode"
-msgstr "網格編輯模式"
-
-
-msgid "Measurement"
-msgstr "測量"
 
 
 msgid "Import Settings"

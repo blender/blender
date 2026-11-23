@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-11-07 23:26+0000\n"
 "Last-Translator: Ramal Rahimov <jhonaluman@gmail.com>\n"
 "Language-Team: Azerbaijani <https://translate.blender.org/projects/blender-ui/ui/az/>\n"
@@ -36621,60 +36621,44 @@ msgid "Write"
 msgstr "Yaz"
 
 
-msgid "Viewpoint"
-msgstr "Baxış nöqtəsi"
-
-
-msgid "Navigation"
-msgstr "Naviqasiya"
+msgid "Merge"
+msgstr "Birləşdir"
 
 
 msgid "Primitives"
 msgstr "İlkellər"
 
 
-msgid "Align View"
-msgstr "Görünüşü düzləndir"
-
-
 msgid "Import"
 msgstr "İdxal"
 
 
-msgid "Align View to Active"
-msgstr "Görünüşü aktivə düzləndir"
+msgid "Show/Hide"
+msgstr "Göstər/Gizlət"
 
 
-msgid "View Regions"
-msgstr "Bölgələri göstər"
-
-
-msgid "Select More/Less"
-msgstr "Daha çox/Daha az seç"
-
-
-msgid "Select Similar"
-msgstr "Oxşar seçimi"
+msgid "Clean Up"
+msgstr "Təmizlə"
 
 
 msgid "Utilities"
 msgstr "Köməkçi"
 
 
-msgid "Select All by Trait"
-msgstr "Xüsusiyyətə görə hamısını seç"
-
-
 msgid "Deprecated"
 msgstr "Köhnəlmiş"
 
 
-msgid "Select Linked"
-msgstr "Bağlıları seç"
+msgid "Special Characters"
+msgstr "Xüsusi simvollar"
 
 
-msgid "Select Loops"
-msgstr "Döngüləri seç"
+msgid "Kerning"
+msgstr "Hərf aralığı"
+
+
+msgid "Metaball"
+msgstr "Metabol"
 
 
 msgid "Math"
@@ -36689,6 +36673,10 @@ msgid "Read"
 msgstr "Oxu"
 
 
+msgid "Names"
+msgstr "Adlar"
+
+
 msgid "Render Preview"
 msgstr "Render önbaxışı"
 
@@ -36697,16 +36685,120 @@ msgid "Sample"
 msgstr "Nümunə"
 
 
+msgid "Bone Roll"
+msgstr "Sümük rulosu"
+
+
 msgid "Stroke"
 msgstr "Cizgi"
 
 
+msgid "Pivot Point"
+msgstr "Fırlanma mərkəzi"
+
+
+msgid "Snap"
+msgstr "Yapışdırma"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Mütənasib redaktə zəifləməsi"
+
+
+msgid "Mask Edit"
+msgstr "Maska redaktəsi"
+
+
+msgid "Automasking"
+msgstr "Avtomatik maskalama"
+
+
+msgid "Face Sets Edit"
+msgstr "Üz dəstlərini redaktə et"
+
+
+msgid "Vertex Group Locks"
+msgstr "Təpə qrupu kilidləri"
+
+
+msgid "Linked"
+msgstr "Bağlı"
+
+
+msgid "Layout"
+msgstr "Tərtibat"
+
+
+msgid "Mirror"
+msgstr "Güzgü"
+
+
+msgid "UV Mapping"
+msgstr "UV xəritələmə"
+
+
+msgid "Local View"
+msgstr "Lokal görünüş"
+
+
+msgid "Viewpoint"
+msgstr "Baxış nöqtəsi"
+
+
+msgid "Navigation"
+msgstr "Naviqasiya"
+
+
+msgid "Align View"
+msgstr "Görünüşü düzləndir"
+
+
+msgid "Align View to Active"
+msgstr "Görünüşü aktivə düzləndir"
+
+
+msgid "View Regions"
+msgstr "Bölgələri göstər"
+
+
+msgid "Select More/Less"
+msgstr "Daha çox/Daha az seç"
+
+
+msgid "Adjust"
+msgstr "Tənzimlə"
+
+
+msgid "Select Similar"
+msgstr "Oxşar seçimi"
+
+
+msgid "Select All by Trait"
+msgstr "Xüsusiyyətə görə hamısını seç"
+
+
+msgid "Keying"
+msgstr "Açarlama"
+
+
+msgid "Select Linked"
+msgstr "Bağlıları seç"
+
+
+msgid "Tracking"
+msgstr "İzləmə"
+
+
+msgid "Select Loops"
+msgstr "Döngüləri seç"
+
+
+msgid "Creative"
+msgstr "Yaradıcı"
+
+
 msgid "Assign Material"
 msgstr "Material təyin et"
-
-
-msgid "Metaball"
-msgstr "Metabol"
 
 
 msgid "Light"
@@ -36741,14 +36833,6 @@ msgid "Quick Effects"
 msgstr "Sürətli effektlər"
 
 
-msgid "Show/Hide"
-msgstr "Göstər/Gizlət"
-
-
-msgid "Clean Up"
-msgstr "Təmizlə"
-
-
 msgid "Asset"
 msgstr "Aktiv"
 
@@ -36765,20 +36849,8 @@ msgid "Link/Transfer Data"
 msgstr "Məlumatı bağla/ötür"
 
 
-msgid "Linked"
-msgstr "Bağlı"
-
-
-msgid "Layout"
-msgstr "Tərtibat"
-
-
 msgid "Hooks"
 msgstr "Qarmaqlar"
-
-
-msgid "Vertex Group Locks"
-msgstr "Təpə qrupu kilidləri"
 
 
 msgid "Trim/Add"
@@ -36797,10 +36869,6 @@ msgid "Random Mask"
 msgstr "Təsadüfi maska"
 
 
-msgid "Adjust"
-msgstr "Tənzimlə"
-
-
 msgid "Clear Transform"
 msgstr "Transformasiyanı təmizlə"
 
@@ -36809,24 +36877,12 @@ msgid "In-Betweens"
 msgstr "Aralıq kadrlar"
 
 
-msgid "Keying"
-msgstr "Açarlama"
-
-
 msgid "Propagate"
 msgstr "Yayılma"
 
 
-msgid "Tracking"
-msgstr "İzləmə"
-
-
 msgid "Bone Collections"
 msgstr "Sümük kolleksiyaları"
-
-
-msgid "Names"
-msgstr "Adlar"
 
 
 msgid "Toggle Bone Options"
@@ -36841,10 +36897,6 @@ msgid "Disable Bone Options"
 msgstr "Sümük seçimlərini söndür"
 
 
-msgid "Creative"
-msgstr "Yaradıcı"
-
-
 msgid "Mesh Select Mode"
 msgstr "Mesh seçim rejimi"
 
@@ -36857,68 +36909,16 @@ msgid "Select by Face Strength"
 msgstr "Üz gücünə görə seç"
 
 
-msgid "Set Face Strength"
-msgstr "Üz gücünü təyin et"
-
-
-msgid "Merge"
-msgstr "Birləşdir"
-
-
-msgid "Special Characters"
-msgstr "Xüsusi simvollar"
-
-
-msgid "Kerning"
-msgstr "Hərf aralığı"
-
-
-msgid "Bone Roll"
-msgstr "Sümük rulosu"
-
-
-msgid "Pivot Point"
-msgstr "Fırlanma mərkəzi"
-
-
-msgid "Snap"
-msgstr "Yapışdırma"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Mütənasib redaktə zəifləməsi"
-
-
-msgid "Mask Edit"
-msgstr "Maska redaktəsi"
-
-
-msgid "Automasking"
-msgstr "Avtomatik maskalama"
-
-
-msgid "Face Sets Edit"
-msgstr "Üz dəstlərini redaktə et"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
-msgid "Mirror"
-msgstr "Güzgü"
+msgid "Set Face Strength"
+msgstr "Üz gücünü təyin et"
 
 
 msgid "Instances"
 msgstr "Nüsxələr"
-
-
-msgid "UV Mapping"
-msgstr "UV xəritələmə"
-
-
-msgid "Local View"
-msgstr "Lokal görünüş"
 
 
 msgid "Keyframe Insert Pie"
@@ -96354,6 +96354,58 @@ msgid "Panel containing UI elements"
 msgstr "UI elementlərini ehtiva edən panel"
 
 
+msgid "Active Tool"
+msgstr "Aktiv alət"
+
+
+msgid "View Lock"
+msgstr "Görünüş kilidi"
+
+
+msgid "Selectability & Visibility"
+msgstr "Seçilə bilənlik və görünürlük"
+
+
+msgid "Shadow Settings"
+msgstr "Kölgə tənzimləmələri"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO tənzimləmələri"
+
+
+msgid "Cavity"
+msgstr "Oyuqluq"
+
+
+msgid "Render Pass"
+msgstr "Render keçidi"
+
+
+msgid "Overlays"
+msgstr "Örtüklər"
+
+
+msgid "Guides"
+msgstr "Bələdçilər"
+
+
+msgid "Viewer Node"
+msgstr "Baxıcı düyünü"
+
+
+msgid "Motion Tracking"
+msgstr "Hərəkət izləmə"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh redaktə rejimi"
+
+
+msgid "Measurement"
+msgstr "Ölçmələr"
+
+
 msgid "Curve Edit Mode"
 msgstr "Əyri redaktə rejimi"
 
@@ -96372,10 +96424,6 @@ msgstr "Cizgi yerləşdirilməsi"
 
 msgid "Drawing Plane"
 msgstr "Çəkiliş müstəvisi"
-
-
-msgid "Guides"
-msgstr "Bələdçilər"
 
 
 msgid "Grease Pencil Options"
@@ -96418,14 +96466,6 @@ msgid "Viewport Debug"
 msgstr "Görünüş sahəsi sazlaması"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR məlumatı"
-
-
 msgid "glTF Variants"
 msgstr "glTF variantları"
 
@@ -96434,60 +96474,20 @@ msgid "glTF Material Variants"
 msgstr "glTF material variantları"
 
 
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR məlumatı"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF animasiyaları"
-
-
-msgid "Active Tool"
-msgstr "Aktiv alət"
-
-
-msgid "View Lock"
-msgstr "Görünüş kilidi"
-
-
-msgid "Selectability & Visibility"
-msgstr "Seçilə bilənlik və görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Kölgə tənzimləmələri"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO tənzimləmələri"
-
-
-msgid "Cavity"
-msgstr "Oyuqluq"
-
-
-msgid "Render Pass"
-msgstr "Render keçidi"
-
-
-msgid "Overlays"
-msgstr "Örtüklər"
-
-
-msgid "Viewer Node"
-msgstr "Baxıcı düyünü"
-
-
-msgid "Motion Tracking"
-msgstr "Hərəkət izləmə"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh redaktə rejimi"
-
-
-msgid "Measurement"
-msgstr "Ölçmələr"
 
 
 msgid "Import Settings"
@@ -102032,10 +102032,6 @@ msgid "German - Deutsch"
 msgstr "Alman - Deutsch"
 
 
-msgid "Locale code: de_DE. Translation progress: 35%"
-msgstr "Lokal kodu: de_DE. Tərcümə irəliləyişi: 35%"
-
-
 msgid "Greek - Ελληνικά"
 msgstr "Greek - Ελληνικά"
 
@@ -102086,10 +102082,6 @@ msgstr "Yapon - 日本語"
 
 msgid "Korean - 한국어"
 msgstr "Koreyca - 한국어"
-
-
-msgid "Locale code: ko_KR. Translation progress: 91%"
-msgstr "Lokal kodu: ko_KR. Tərcümə irəliləyişi: 91%"
 
 
 msgid "Kyrgyz - Кыргыз тили"
@@ -102242,10 +102234,6 @@ msgstr "Yerli kod: th_TH. Tərcümə irəliləyişi: 5%"
 
 msgid "Turkish - Türkçe"
 msgstr "Turkish - Türkçe"
-
-
-msgid "Locale code: tr_TR. Translation progress: 73%"
-msgstr "Lokal kodu: tr_TR. Tərcümə irəliləyişi: 73%"
 
 
 msgid "Ukrainian - Українська"
@@ -144076,6 +144064,10 @@ msgid "Could not find constraint data for ObjectSolver Set Inverse"
 msgstr "ObjectSolver Set Inverse üçün məhdudiyyət məlumatı tapılmadı"
 
 
+msgid "Indices must be in range"
+msgstr "İndekslər diapazonda olmalıdır"
+
+
 msgid "Applied constraint was not first, result may not be as expected"
 msgstr "Tətbiq olunan məhdudiyyət birinci deyildi, nəticə gözlənildiyi kimi olmaya bilər"
 
@@ -152480,10 +152472,6 @@ msgstr "Yadda saxlanılmış fərdi normal atributunu son normallar kimi istifad
 
 msgid "Curve sizes must be greater than zero"
 msgstr "Əyri ölçüləri sıfırdan böyük olmalıdır"
-
-
-msgid "Indices must be in range"
-msgstr "İndekslər diapazonda olmalıdır"
 
 
 msgid "Indices must be sorted in ascending order"

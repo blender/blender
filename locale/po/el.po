@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-11-01 16:12+0000\n"
 "Last-Translator: Marios1Gr <mariosvas2@gmail.com>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -2129,16 +2129,32 @@ msgid "Screen"
 msgstr "Οθόνη"
 
 
+msgid "Merge"
+msgstr "Συγχώνευση"
+
+
 msgid "Import"
 msgstr "Εισαγωγή"
 
 
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
-
-
 msgid "Metaball"
 msgstr "Μετα-σφαίρα"
+
+
+msgid "Snap"
+msgstr "Προσκόλληση"
+
+
+msgid "Linked"
+msgstr "Συνδεδεμένο/α"
+
+
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
+
+
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
 
 
 msgid "Light"
@@ -2159,22 +2175,6 @@ msgstr "Ανίχνευση"
 
 msgid "Make Single User"
 msgstr "Ορισμός Ενός Χρήστη"
-
-
-msgid "Linked"
-msgstr "Συνδεδεμένο/α"
-
-
-msgid "Merge"
-msgstr "Συγχώνευση"
-
-
-msgid "Snap"
-msgstr "Προσκόλληση"
-
-
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
 
 
 msgid "Cache"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1132,8 +1132,16 @@ msgid "ID Type"
 msgstr "ID тип"
 
 
+msgid "Merge"
+msgstr "Слей"
+
+
 msgid "Import"
 msgstr "Внеси"
+
+
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Light"
@@ -1158,14 +1166,6 @@ msgstr "Куки"
 
 msgid "In-Betweens"
 msgstr "Междинни Кадри"
-
-
-msgid "Merge"
-msgstr "Слей"
-
-
-msgid "UV Mapping"
-msgstr "UV Картиране"
 
 
 msgid "Cache"

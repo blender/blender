@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-10-15 14:12+0000\n"
 "Last-Translator: Fadhul Rahim <fadhulrahim@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -17688,8 +17688,8 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgid "Import"
@@ -17700,8 +17700,8 @@ msgid "Utilities"
 msgstr "Utilitas"
 
 
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Math"
@@ -17712,6 +17712,10 @@ msgid "UV"
 msgstr "UV"
 
 
+msgid "Names"
+msgstr "Nama"
+
+
 msgid "Sample"
 msgstr "Sampel"
 
@@ -17720,12 +17724,36 @@ msgid "Stroke"
 msgstr "Sapuan"
 
 
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Linked"
+msgstr "Terkoleksi"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
+msgid "Tracking"
+msgstr "Pelacakan"
+
+
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
-
-
-msgid "Metaball"
-msgstr "Metabola"
 
 
 msgid "Light"
@@ -17752,40 +17780,12 @@ msgid "Asset"
 msgstr "Aset"
 
 
-msgid "Linked"
-msgstr "Terkoleksi"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
-
-
 msgid "Hooks"
 msgstr "Kait"
 
 
-msgid "Tracking"
-msgstr "Pelacakan"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
-
-
-msgid "Mirror"
-msgstr "Cermin"
 
 
 msgid "Instances"
