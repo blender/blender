@@ -189,9 +189,9 @@
   - posed bone 'joint1'
     - props: int:lockInfluenceWeights=False
   - posed bone 'joint2'
-      0.558 0.520 0.647 0.000
-      -0.076 0.808 -0.584 0.000
-      -0.826 0.277 0.490 0.000
+      0.808 0.076 0.584 0.000
+      -0.520 0.558 0.647 0.000
+      -0.277 -0.826 0.490 0.000
     - props: int:lockInfluenceWeights=False
   - anim act:Take 001 slot:OBcube1 blend:REPLACE drivers:0
 - Obj 'cube1_text_target' MESH data:'Mesh.001'
@@ -207,9 +207,9 @@
   - posed bone 'joint4'
     - props: int:lockInfluenceWeights=False
   - posed bone 'joint5'
-      0.308 0.946 -0.099 0.000
-      -0.916 0.267 -0.298 0.000
-      -0.256 0.183 0.949 0.000
+      0.267 0.916 0.298 0.000
+      -0.946 0.308 -0.099 0.000
+      -0.183 -0.256 0.949 0.000
     - props: int:lockInfluenceWeights=False
   - anim act:Take 001 slot:OBcube2 blend:REPLACE drivers:0
 - Obj 'cube2_text_target' MESH data:'Mesh'
@@ -365,17 +365,17 @@
   - fcu 'pose.bones["joint2"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
     - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
     - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
+    - (17.000, -2.169) lh:(12.000, -2.169 AUTO_CLAMPED) rh:(17.333, -2.169 AUTO_CLAMPED)
+    - (18.000, -2.001) lh:(17.667, -2.085 AUTO_CLAMPED) rh:(22.333, -0.909 AUTO_CLAMPED)
+    - (31.000, 0.182) lh:(26.667, 0.182 AUTO_CLAMPED) rh:(34.600, 0.182 AUTO_CLAMPED)
+    - (41.800, 0.182) lh:(38.200, 0.182 AUTO_CLAMPED) rh:(45.400, 0.182 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
     - (17.000, 0.000) lh:(12.000, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
     - (18.000, 0.000) lh:(17.667, 0.000 AUTO_CLAMPED) rh:(22.333, 0.000 AUTO_CLAMPED)
     - (31.000, 0.000) lh:(26.667, 0.000 AUTO_CLAMPED) rh:(34.600, 0.000 AUTO_CLAMPED)
     - (41.800, 0.000) lh:(38.200, 0.000 AUTO_CLAMPED) rh:(45.400, 0.000 AUTO_CLAMPED)
-  - fcu 'pose.bones["joint2"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
-    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
-    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
-    - (17.000, 2.169) lh:(12.000, 2.169 AUTO_CLAMPED) rh:(17.333, 2.169 AUTO_CLAMPED)
-    - (18.000, 2.001) lh:(17.667, 2.085 AUTO_CLAMPED) rh:(22.333, 0.909 AUTO_CLAMPED)
-    - (31.000, -0.182) lh:(26.667, -0.182 AUTO_CLAMPED) rh:(34.600, -0.182 AUTO_CLAMPED)
-    - (41.800, -0.182) lh:(38.200, -0.182 AUTO_CLAMPED) rh:(45.400, -0.182 AUTO_CLAMPED)
   - fcu 'pose.bones["joint2"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
     - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
     - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(7.000, 0.000 AUTO_CLAMPED)
@@ -391,19 +391,19 @@
     - (31.000, -0.079) lh:(26.667, 0.201 AUTO_CLAMPED) rh:(34.600, -0.312 AUTO_CLAMPED)
     - (41.800, -0.500) lh:(38.200, -0.500 AUTO_CLAMPED) rh:(45.400, -0.500 AUTO_CLAMPED)
   - fcu 'pose.bones["joint2"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
+    - (1.000, -0.436) lh:(0.667, -0.436 AUTO_CLAMPED) rh:(1.333, -0.436 AUTO_CLAMPED)
+    - (2.000, -0.347) lh:(1.667, -0.391 AUTO_CLAMPED) rh:(7.000, 0.317 AUTO_CLAMPED)
+    - (17.000, 0.843) lh:(12.000, 0.843 AUTO_CLAMPED) rh:(17.333, 0.843 AUTO_CLAMPED)
+    - (18.000, 0.831) lh:(17.667, 0.831 AUTO_CLAMPED) rh:(22.333, 0.831 AUTO_CLAMPED)
+    - (31.000, 0.894) lh:(26.667, 0.894 AUTO_CLAMPED) rh:(34.600, 0.894 AUTO_CLAMPED)
+    - (41.800, 0.610) lh:(38.200, 0.610 AUTO_CLAMPED) rh:(45.400, 0.610 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint2"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
     - (1.000, 0.255) lh:(0.667, 0.255 AUTO_CLAMPED) rh:(1.333, 0.255 AUTO_CLAMPED)
     - (2.000, 0.339) lh:(1.667, 0.339 AUTO_CLAMPED) rh:(7.000, 0.339 AUTO_CLAMPED)
     - (17.000, 0.093) lh:(12.000, 0.339 AUTO_CLAMPED) rh:(17.333, 0.077 AUTO_CLAMPED)
     - (18.000, 0.040) lh:(17.667, 0.040 AUTO_CLAMPED) rh:(22.333, 0.040 AUTO_CLAMPED)
     - (31.000, 0.371) lh:(26.667, 0.276 AUTO_CLAMPED) rh:(34.600, 0.450 AUTO_CLAMPED)
     - (41.800, 0.450) lh:(38.200, 0.450 AUTO_CLAMPED) rh:(45.400, 0.450 AUTO_CLAMPED)
-  - fcu 'pose.bones["joint2"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
-    - (1.000, 0.436) lh:(0.667, 0.436 AUTO_CLAMPED) rh:(1.333, 0.436 AUTO_CLAMPED)
-    - (2.000, 0.347) lh:(1.667, 0.391 AUTO_CLAMPED) rh:(7.000, -0.317 AUTO_CLAMPED)
-    - (17.000, -0.843) lh:(12.000, -0.843 AUTO_CLAMPED) rh:(17.333, -0.843 AUTO_CLAMPED)
-    - (18.000, -0.831) lh:(17.667, -0.831 AUTO_CLAMPED) rh:(22.333, -0.831 AUTO_CLAMPED)
-    - (31.000, -0.894) lh:(26.667, -0.894 AUTO_CLAMPED) rh:(34.600, -0.894 AUTO_CLAMPED)
-    - (41.800, -0.610) lh:(38.200, -0.610 AUTO_CLAMPED) rh:(45.400, -0.610 AUTO_CLAMPED)
   - fcu 'pose.bones["joint2"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:6 grp:'joint2'
     - (1.000, -0.176) lh:(0.667, -0.176 AUTO_CLAMPED) rh:(1.333, -0.176 AUTO_CLAMPED)
     - (2.000, -0.252) lh:(1.667, -0.252 AUTO_CLAMPED) rh:(7.000, -0.252 AUTO_CLAMPED)
@@ -436,13 +436,13 @@
   - fcu 'pose.bones["joint5"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
     - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
     - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
-    - (16.000, 0.042) lh:(11.333, 0.042 AUTO_CLAMPED) rh:(21.000, 0.042 AUTO_CLAMPED)
-    - (31.000, -0.002) lh:(26.000, -0.002 AUTO_CLAMPED) rh:(36.000, -0.002 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(11.333, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(26.000, 0.000 AUTO_CLAMPED) rh:(36.000, 0.000 AUTO_CLAMPED)
   - fcu 'pose.bones["joint5"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
     - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
     - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
-    - (16.000, 0.000) lh:(11.333, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
-    - (31.000, 0.000) lh:(26.000, 0.000 AUTO_CLAMPED) rh:(36.000, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.042) lh:(11.333, 0.042 AUTO_CLAMPED) rh:(21.000, 0.042 AUTO_CLAMPED)
+    - (31.000, -0.002) lh:(26.000, -0.002 AUTO_CLAMPED) rh:(36.000, -0.002 AUTO_CLAMPED)
   - fcu 'pose.bones["joint5"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
     - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
     - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(6.667, 0.000 AUTO_CLAMPED)
@@ -454,15 +454,15 @@
     - (16.000, 0.286) lh:(11.333, 0.464 AUTO_CLAMPED) rh:(21.000, 0.096 AUTO_CLAMPED)
     - (31.000, -0.162) lh:(26.000, -0.162 AUTO_CLAMPED) rh:(36.000, -0.162 AUTO_CLAMPED)
   - fcu 'pose.bones["joint5"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
+    - (1.000, -0.049) lh:(0.667, -0.049 AUTO_CLAMPED) rh:(1.333, -0.049 AUTO_CLAMPED)
+    - (2.000, -0.025) lh:(1.667, -0.037 AUTO_CLAMPED) rh:(6.667, 0.139 AUTO_CLAMPED)
+    - (16.000, 0.397) lh:(11.333, 0.252 AUTO_CLAMPED) rh:(21.000, 0.553 AUTO_CLAMPED)
+    - (31.000, 0.746) lh:(26.000, 0.746 AUTO_CLAMPED) rh:(36.000, 0.746 AUTO_CLAMPED)
+  - fcu 'pose.bones["joint5"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
     - (1.000, 0.151) lh:(0.667, 0.151 AUTO_CLAMPED) rh:(1.333, 0.151 AUTO_CLAMPED)
     - (2.000, 0.171) lh:(1.667, 0.166 AUTO_CLAMPED) rh:(6.667, 0.238 AUTO_CLAMPED)
     - (16.000, 0.238) lh:(11.333, 0.238 AUTO_CLAMPED) rh:(21.000, 0.238 AUTO_CLAMPED)
     - (31.000, -0.122) lh:(26.000, -0.122 AUTO_CLAMPED) rh:(36.000, -0.122 AUTO_CLAMPED)
-  - fcu 'pose.bones["joint5"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
-    - (1.000, 0.049) lh:(0.667, 0.049 AUTO_CLAMPED) rh:(1.333, 0.049 AUTO_CLAMPED)
-    - (2.000, 0.025) lh:(1.667, 0.037 AUTO_CLAMPED) rh:(6.667, -0.139 AUTO_CLAMPED)
-    - (16.000, -0.397) lh:(11.333, -0.252 AUTO_CLAMPED) rh:(21.000, -0.553 AUTO_CLAMPED)
-    - (31.000, -0.746) lh:(26.000, -0.746 AUTO_CLAMPED) rh:(36.000, -0.746 AUTO_CLAMPED)
   - fcu 'pose.bones["joint5"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'joint5'
     - (1.000, -0.586) lh:(0.667, -0.586 AUTO_CLAMPED) rh:(1.333, -0.586 AUTO_CLAMPED)
     - (2.000, -0.617) lh:(1.667, -0.602 AUTO_CLAMPED) rh:(6.667, -0.826 AUTO_CLAMPED)
@@ -486,22 +486,22 @@
 
 ==== Armatures: 2
 - Armature 'cube1' 2 bones
-  - bone 'joint1' h:(-5.436, 0.000, 0.891) t:(-5.436, 2.419, 0.891) radius h:0.100 t:0.050
-      0.993 0.000 0.118 -5.436
-      0.000 1.000 0.000 0.000
-      -0.118 0.000 0.993 0.891
-  - bone 'joint2' parent:'joint1' h:(2.419, -2.419, 0.000) t:(2.419, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      -0.214 0.000 0.977 -3.034
-      0.000 1.000 0.000 0.000
-      -0.977 0.000 -0.214 0.605
+  - bone 'joint1' h:(-5.436, 0.000, 0.891) t:(-3.034, 0.000, 0.605) radius h:0.100 t:0.050
+      0.000 0.993 0.118 -5.436
+      -1.000 0.000 0.000 0.000
+      0.000 -0.118 0.993 0.891
+  - bone 'joint2' parent:'joint1' h:(0.000, 0.000, 0.000) t:(0.000, -0.234, -2.407) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -0.214 0.977 -3.034
+      -1.000 0.000 0.000 0.000
+      0.000 -0.977 -0.214 0.605
 
 - Armature 'cube2' 2 bones
-  - bone 'joint4' h:(5.470, 0.000, 0.394) t:(5.470, 5.407, 0.394) radius h:0.100 t:0.050
-      -1.000 0.000 0.016 5.470
-      0.000 1.000 0.000 0.000
-      -0.016 0.000 -1.000 0.394
-  - bone 'joint5' parent:'joint4' h:(5.406, -5.407, 0.057) t:(5.406, 0.000, 0.057) inh_scale:NONE radius h:0.100 t:0.050
-      0.003 0.000 1.000 0.066
-      0.000 1.000 0.000 0.000
-      -1.000 0.000 0.003 0.251
+  - bone 'joint4' h:(5.470, 0.000, 0.394) t:(0.064, 0.000, 0.308) radius h:0.100 t:0.050
+      0.000 -1.000 0.016 5.470
+      -1.000 0.000 0.000 0.000
+      0.000 -0.016 -1.000 0.394
+  - bone 'joint5' parent:'joint4' h:(0.000, 0.000, 0.057) t:(0.000, 0.070, 5.464) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.003 1.000 0.066
+      -1.000 0.000 0.000 0.000
+      0.000 -1.000 0.003 0.251
 

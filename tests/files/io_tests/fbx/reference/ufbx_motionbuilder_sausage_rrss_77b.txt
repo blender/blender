@@ -37,12 +37,12 @@
   - rot 1.571, 0.000, 0.000 (XYZ)
   - scl 0.010, 0.010, 0.010
   - posed bone 'Bottom'
-      2.000 0.000 0.000 0.000
-      0.000 1.000 0.000 0.000
+      1.000 0.000 0.000 0.000
+      0.000 2.000 0.000 0.000
       0.000 0.000 1.000 0.000
   - posed bone 'Middle'
-      0.707 1.414 0.000 0.000
-      -0.707 1.414 0.000 0.000
+      1.414 0.707 0.000 0.000
+      -1.414 0.707 0.000 0.000
       0.000 0.000 1.000 0.000
   - posed bone 'Skeleton'
     - props: int:Look=1
@@ -106,11 +106,11 @@
     - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
     - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
   - fcu 'pose.bones["Bottom"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
-    - (1.000, 2.000) lh:(-7.000, 2.000 AUTO_CLAMPED) rh:(9.000, 2.000 AUTO_CLAMPED)
-    - (25.000, 3.000) lh:(17.000, 3.000 AUTO_CLAMPED) rh:(33.000, 3.000 AUTO_CLAMPED)
-  - fcu 'pose.bones["Bottom"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
     - (1.000, 1.000) lh:(-7.000, 1.000 AUTO_CLAMPED) rh:(9.000, 1.000 AUTO_CLAMPED)
     - (25.000, 1.000) lh:(17.000, 1.000 AUTO_CLAMPED) rh:(33.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 2.000) lh:(-7.000, 2.000 AUTO_CLAMPED) rh:(9.000, 2.000 AUTO_CLAMPED)
+    - (25.000, 3.000) lh:(17.000, 3.000 AUTO_CLAMPED) rh:(33.000, 3.000 AUTO_CLAMPED)
   - fcu 'pose.bones["Bottom"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
     - (1.000, 1.000) lh:(-7.000, 1.000 AUTO_CLAMPED) rh:(9.000, 1.000 AUTO_CLAMPED)
     - (25.000, 1.000) lh:(17.000, 1.000 AUTO_CLAMPED) rh:(33.000, 1.000 AUTO_CLAMPED)
@@ -132,20 +132,20 @@
 
 ==== Armatures: 1
 - Armature 'Armature' 4 bones
-  - bone 'Bottom' parent:'Skeleton' h:(0.000, -0.010, 0.000) t:(-1.900, -0.010, 0.000) radius h:0.100 t:0.050
-      0.000 -1.000 0.000 0.000
+  - bone 'Bottom' parent:'Skeleton' h:(0.000, -0.010, 0.000) t:(0.000, -0.010, 1.900) radius h:0.100 t:0.050
       1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 0.000
       0.000 0.000 1.000 0.000
-  - bone 'Middle' parent:'Bottom' h:(1.900, -1.900, 0.000) t:(1.900, 0.000, 0.000) radius h:0.100 t:0.050
-      0.000 -1.000 0.000 0.000
-      1.000 0.000 0.000 1.900
-      0.000 0.000 1.000 0.000
-  - bone 'Skeleton' h:(0.000, 0.000, 0.000) t:(0.000, 0.000, -0.010) radius h:0.100 t:0.050
+  - bone 'Middle' parent:'Bottom' h:(0.000, 0.000, 0.000) t:(0.000, 1.900, 0.000) connect radius h:0.100 t:0.050
       1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 1.900
       0.000 0.000 1.000 0.000
-      0.000 -1.000 0.000 0.000
-  - bone 'Top' parent:'Middle' h:(1.900, -1.900, 0.000) t:(1.900, 0.000, 0.000) radius h:0.100 t:0.050
-      0.000 -1.000 0.000 0.000
-      1.000 0.000 0.000 3.800
+  - bone 'Skeleton' h:(0.000, 0.000, 0.000) t:(0.010, 0.000, 0.000) radius h:0.100 t:0.050
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+      1.000 0.000 0.000 0.000
+  - bone 'Top' parent:'Middle' h:(0.000, 0.000, 0.000) t:(0.000, 1.900, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 3.800
       0.000 0.000 1.000 0.000
 

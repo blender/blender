@@ -61,12 +61,30 @@ struct FbxElementMapping {
    * precedence if it exists). */
   Map<const ufbx_node *, ufbx_matrix> bone_to_bind_matrix;
   Map<const ufbx_node *, ufbx_real> bone_to_length;
+  /* Bone orientation correction (only rotations, only multiples of 90 degrees).
+   * `blender_matrix = fbx_matrix * correction_matrix` */
+  Map<const ufbx_node *, ufbx_matrix> bone_to_correction;
   Set<const ufbx_node *> bone_is_skinned;
   ufbx_matrix global_conv_matrix;
 
   ufbx_matrix get_node_bind_matrix(const ufbx_node *node) const
   {
     return this->bone_to_bind_matrix.lookup_default(node, node->geometry_to_world);
+  }
+
+  const ufbx_matrix *find_bone_correction(const ufbx_node *node) const
+  {
+    return this->bone_to_correction.lookup_ptr(node);
+  }
+
+  /* For objects parented to a bone: matrix that goes from the bone tail (bone parent space) back
+   * to the FBX bone node space, i.e. undoes bone length offset and orientation correction. */
+  ufbx_matrix calc_bone_child_offset_matrix(const ufbx_node *bone_node) const
+  {
+    const ufbx_matrix *correction = this->find_bone_correction(bone_node);
+    ufbx_matrix offset_mtx = correction ? ufbx_matrix_invert(correction) : ufbx_identity_matrix;
+    offset_mtx.cols[3].y = -this->bone_to_length.lookup_default(bone_node, 0.0);
+    return offset_mtx;
   }
 
   ufbx_matrix calc_local_bind_matrix(const ufbx_node *bone_node,
@@ -94,7 +112,8 @@ void read_custom_properties(const ufbx_props &props, bPoseChannel &pchan, bool e
 
 ufbx_matrix calc_bone_pose_matrix(const ufbx_transform &local_xform,
                                   const ufbx_node &node,
-                                  const ufbx_matrix &local_bind_inv_matrix);
+                                  const ufbx_matrix &local_bind_inv_matrix,
+                                  const ufbx_matrix *correction);
 
 //@TODO remove debug file print once things are working properly
 // #define FBX_DEBUG_PRINT

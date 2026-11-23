@@ -23,12 +23,12 @@
   - anim act:AnimStack slot:OBArmature blend:REPLACE drivers:0
 - Obj 'MeshUnderChild' MESH data:'MeshUnderChild' par:'Armature' par_type:BONE par_bone:'ChildBone'
   - pos 0.000, -1.000, -1.000
-  - rot 0.000, 0.000, 0.000 (XYZ)
+  - rot 0.000, 0.000, 3.142 (XYZ)
   - scl 1.000, 1.000, 1.000
   - anim act:AnimStack slot:OBMeshUnderChild blend:REPLACE drivers:0
 - Obj 'MeshUnderRoot' MESH data:'MeshUnderRoot' par:'Armature' par_type:BONE par_bone:'MeshUnderRoot'
   - pos 0.000, -1.000, 0.000
-  - rot 0.000, 0.000, 0.000 (XYZ)
+  - rot 0.000, 0.000, 3.142 (XYZ)
   - scl 1.000, 1.000, 1.000
 
 ==== Actions: 1
@@ -136,16 +136,16 @@
 
 ==== Armatures: 1
 - Armature 'Armature' 3 bones
-  - bone 'ChildBone' parent:'MeshUnderRoot' h:(0.000, -2.000, 0.000) t:(0.000, -1.000, 0.000) radius h:0.100 t:0.050
-      1.000 0.000 0.000 0.000
-      0.000 1.000 0.000 1.000
+  - bone 'ChildBone' parent:'MeshUnderRoot' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) connect radius h:0.100 t:0.050
+      -1.000 0.000 0.000 0.000
+      0.000 -1.000 0.000 1.000
       0.000 0.000 1.000 3.000
-  - bone 'MeshUnderRoot' parent:'RootBone' h:(-1.000, -1.000, 0.000) t:(-1.000, 0.000, 0.000) radius h:0.100 t:0.050
-      1.000 0.000 0.000 0.000
-      0.000 1.000 0.000 2.000
+  - bone 'MeshUnderRoot' parent:'RootBone' h:(0.000, 0.000, 0.000) t:(-1.000, 0.000, 0.000) connect radius h:0.100 t:0.050
+      -1.000 0.000 0.000 0.000
+      0.000 -1.000 0.000 2.000
       0.000 0.000 1.000 3.000
-  - bone 'RootBone' h:(1.000, 2.000, 3.000) t:(1.000, 3.000, 3.000) radius h:0.100 t:0.050
-      1.000 0.000 0.000 1.000
-      0.000 1.000 0.000 2.000
+  - bone 'RootBone' h:(1.000, 2.000, 3.000) t:(0.000, 2.000, 3.000) radius h:0.100 t:0.050
+      0.000 -1.000 0.000 1.000
+      1.000 0.000 0.000 2.000
       0.000 0.000 1.000 3.000
 

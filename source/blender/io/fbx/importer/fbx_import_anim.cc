@@ -301,6 +301,20 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
     bone_xform = ufbx_matrix_invert(&bone_xform);
   }
 
+  /* Objects parented to a bone have their transform relative to the bone tail, apply the same
+   * offset to the animated transform. */
+  bool has_bone_parent_offset = false;
+  ufbx_matrix bone_parent_offset = ufbx_identity_matrix;
+  if (!is_bone && GS(anim.target_id->name) == ID_OB) {
+    const Object *obj = reinterpret_cast<const Object *>(anim.target_id);
+    if (obj->parent != nullptr && obj->partype == PARBONE && fnode->parent != nullptr &&
+        mapping.node_is_blender_bone.contains(fnode->parent))
+    {
+      has_bone_parent_offset = true;
+      bone_parent_offset = mapping.calc_bone_child_offset_matrix(fnode->parent);
+    }
+  }
+
   int rot_channels = 3;
   /* Bones are created with quaternion rotation. */
   eRotationModes rot_mode = is_bone ? ROT_MODE_QUAT : anim.object_rotmode;
@@ -387,7 +401,13 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
     }
 
     if (is_bone) {
-      ufbx_matrix matrix = calc_bone_pose_matrix(xform, *fnode, bone_xform);
+      ufbx_matrix matrix = calc_bone_pose_matrix(
+          xform, *fnode, bone_xform, mapping.find_bone_correction(fnode));
+      xform = ufbx_matrix_to_transform(&matrix);
+    }
+    else if (has_bone_parent_offset) {
+      ufbx_matrix matrix = ufbx_transform_to_matrix(&xform);
+      matrix = ufbx_matrix_mul(&bone_parent_offset, &matrix);
       xform = ufbx_matrix_to_transform(&matrix);
     }
     else {

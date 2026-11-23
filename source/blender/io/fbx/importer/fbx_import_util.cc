@@ -72,7 +72,8 @@ void matrix_to_m44(const ufbx_matrix &src, float dst[4][4])
 
 ufbx_matrix calc_bone_pose_matrix(const ufbx_transform &local_xform,
                                   const ufbx_node &node,
-                                  const ufbx_matrix &local_bind_inv_matrix)
+                                  const ufbx_matrix &local_bind_inv_matrix,
+                                  const ufbx_matrix *correction)
 {
   ufbx_transform xform = local_xform;
 
@@ -88,6 +89,16 @@ ufbx_matrix calc_bone_pose_matrix(const ufbx_transform &local_xform,
   /* Transformed to the bind transform in joint-local space. */
   ufbx_matrix matrix = ufbx_transform_to_matrix(&xform);
   matrix = ufbx_matrix_mul(&local_bind_inv_matrix, &matrix);
+
+  if (correction != nullptr) {
+    /* Automatic orientation changes bone local axes while preserving the motion.
+     * We need to express the pose transform in the new axes: 1) map from the corrected axes
+     * to the original ones, 2) apply the original pose, 3) map back to the corrected axes,
+     * or `inverse(correction) * matrix * correction` in matrix terms. */
+    const ufbx_matrix correction_inv = ufbx_matrix_invert(correction);
+    matrix = ufbx_matrix_mul(&correction_inv, &matrix);
+    matrix = ufbx_matrix_mul(&matrix, correction);
+  }
   return matrix;
 }
 
@@ -150,17 +161,14 @@ void node_matrix_to_obj(const ufbx_node *node, Object *obj, const FbxElementMapp
   if (obj->parent == nullptr && parbone && mapping.node_is_blender_bone.contains(parbone)) {
     Object *arm = mapping.bone_to_armature.lookup_default(parbone, nullptr);
     if (arm != nullptr) {
-      ufbx_matrix offset_mtx = ufbx_identity_matrix;
-      offset_mtx.cols[3].y = -mapping.bone_to_length.lookup_default(parbone, 0.0);
       if (mapping.node_is_blender_bone.contains(node)) {
         /* The node itself is a "fake bone", in which case parent it to the matching
          * fake bone, and matrix is just what puts transform at the bone tail. */
         parbone = node;
-        mtx = offset_mtx;
+        mtx = ufbx_identity_matrix;
       }
-      else {
-        mtx = ufbx_matrix_mul(&offset_mtx, &mtx);
-      }
+      const ufbx_matrix offset_mtx = mapping.calc_bone_child_offset_matrix(parbone);
+      mtx = ufbx_matrix_mul(&offset_mtx, &mtx);
 
       obj->parent = arm;
       obj->partype = PARBONE;
