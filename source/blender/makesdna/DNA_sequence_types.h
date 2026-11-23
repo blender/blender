@@ -365,7 +365,7 @@ struct Strip {
   eStripFlag flag = SEQ_FLAG_NONE;
   StripType type = STRIP_TYPE_IMAGE;
   /** The length of the contents of this strip before handles are applied. To be used with
-   * #content_length() and #content_length_set(). */
+   * #source_duration() and #source_duration_set(). */
   int len = 0;
   /**
    * Start frame of contents of strip in absolute frame coordinates.
@@ -502,10 +502,17 @@ struct Strip {
    */
   float content_end(const Scene *scene) const;
   /**
-   * Get number of frames (in timeline) that can be rendered.
-   * This can change depending on scene FPS or strip speed factor.
+   * Number of timeline frames spanned by the content, i.e. #source_duration() after adjusting
+   * for frame rate differences and retiming. Exposed in RNA as `content_duration`.
    */
-  int length(const Scene *scene) const;
+  int content_duration(const Scene *scene) const;
+  /**
+   * Number of frames in the strip source's own time (the valid range of frame indices), before
+   * handles, frame rate differences or retiming are applied. See #content_duration() for
+   * timeline frames.
+   */
+  int source_duration() const;
+  void source_duration_set(int new_source_duration);
   /**
    * Get the sound offset (if any) and round it to the nearest integer.
    * This is mostly used in places where subframe data is not allowed (like re-timing key
@@ -550,18 +557,12 @@ struct Strip {
    * Get difference between scene and movie strip frame-rate.
    * Returns 1.0f for all other strip types.
    */
-  float media_playback_rate_factor(float scene_fps) const;
+  float source_playback_rate_factor(float scene_fps) const;
   /**
    * Get FPS rate of source media. Movie, scene and movie-clip strips are supported.
    * Returns 0 for unsupported strip or if media can't be loaded.
    */
-  float media_fps(Scene *scene);
-
-  /**
-   * Raw frame count before any handles are applied.
-   * */
-  int content_length() const;
-  void content_length_set(int new_length);
+  float source_fps(Scene *scene);
 
   /**
    * Frame distance from the right handle to the content end.

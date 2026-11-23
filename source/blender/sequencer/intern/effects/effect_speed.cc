@@ -88,7 +88,7 @@ void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
   float target_frame = 0;
   for (int frame_index = 1; frame_index < effect_strip_length; frame_index++) {
     target_frame += evaluate_fcurve(fcu, strip->left_handle() + frame_index);
-    const int target_frame_max = strip->input1->length(scene);
+    const int target_frame_max = strip->input1->content_duration(scene);
     CLAMP(target_frame, 0, target_frame_max);
     v->frameMap[frame_index] = target_frame;
   }
@@ -122,7 +122,7 @@ float strip_speed_effect_target_frame_get(Scene *scene,
   switch (s->speed_control_type) {
     case SEQ_SPEED_STRETCH: {
       /* Only right handle controls effect speed! */
-      const float target_content_length = source->length(scene) - source->startofs;
+      const float target_content_length = source->content_duration(scene) - source->startofs;
       const float speed_effetct_length = strip_speed->right_handle(scene) -
                                          strip_speed->left_handle();
       const float ratio = frame_index / speed_effetct_length;
@@ -139,20 +139,20 @@ float strip_speed_effect_target_frame_get(Scene *scene,
         target_frame = frame_index * s->speed_fader;
         if (s->speed_fader < 0) {
           /* Treat `target_frame` as a negative offset from the last frame of the strip. */
-          target_frame += source->length(scene);
+          target_frame += source->content_duration(scene);
         }
       }
       break;
     }
     case SEQ_SPEED_LENGTH:
-      target_frame = source->length(scene) * (s->speed_fader_length / 100.0f);
+      target_frame = source->content_duration(scene) * (s->speed_fader_length / 100.0f);
       break;
     case SEQ_SPEED_FRAME_NUMBER:
       target_frame = s->speed_fader_frame_number;
       break;
   }
 
-  CLAMP(target_frame, 0, source->length(scene));
+  CLAMP(target_frame, 0, source->content_duration(scene));
   target_frame += strip_speed->start;
 
   /* No interpolation. */

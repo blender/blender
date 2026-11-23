@@ -311,7 +311,7 @@ static float transition_fader_calc(const Scene *scene, const Strip *strip, float
     fac /= strip->enddisp - strip->startdisp;
   }
   else {
-    fac /= strip->length(scene);
+    fac /= strip->content_duration(scene);
   }
   fac = math::clamp(fac, 0.0f, 1.0f);
   return fac;

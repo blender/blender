@@ -620,7 +620,7 @@ static StripElem *rna_StripElements_append(ID *id, Strip *strip, const char *fil
   se += old_len;
   STRNCPY(se->filename, filename);
   strip->data->stripdata_num = old_len + 1;
-  strip->content_length_set(strip->content_length() + 1);
+  strip->source_duration_set(strip->source_duration() + 1);
 
   strip->flag &= ~SEQ_SINGLE_FRAME_CONTENT;
 
@@ -654,8 +654,8 @@ static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int
   }
 
   const bool is_visible = index >= strip->anim_startofs &&
-                          index < strip->anim_startofs + strip->content_length();
-  if (is_visible && strip->content_length() == 1) {
+                          index < strip->anim_startofs + strip->source_duration();
+  if (is_visible && strip->source_duration() == 1) {
     BKE_report(reports, RPT_ERROR, "StripElements.pop: cannot pop the last element");
     return;
   }
@@ -669,8 +669,8 @@ static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int
     strip->anim_endofs--;
   }
   else {
-    strip->content_length_set(strip->content_length() - 1);
-    if (strip->content_length() == 1) {
+    strip->source_duration_set(strip->source_duration() - 1);
+    if (strip->source_duration() == 1) {
       strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
     }
   }

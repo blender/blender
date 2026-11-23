@@ -496,7 +496,7 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
 
     /* If both handles are selected, there must be enough underlying content to clamp holds. */
     bool can_clamp_holds = !(left_sel && right_sel) ||
-                           (strip->content_length() >=
+                           (strip->source_duration() >=
                             strip->right_handle(scene) - strip->left_handle());
     can_clamp_holds &= !seq::transform_single_image_check(strip);
 

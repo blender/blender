@@ -46,7 +46,7 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
 {
   char name[sizeof(strip_a->name)];
 
-  if (strip_a->length(scene) != strip_b->length(scene)) {
+  if (strip_a->content_duration(scene) != strip_b->content_duration(scene)) {
     *r_error_str = N_("Strips must be the same length");
     return false;
   }
@@ -280,11 +280,11 @@ static void seq_split_set_right_hold_offset(Main *bmain,
   else if ((timeline_frame >= content_start) && (timeline_frame <= content_end)) {
     strip->end_offset_set(0);
     const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-    const float speed_factor = strip->media_playback_rate_factor(scene_fps);
+    const float speed_factor = strip->source_playback_rate_factor(scene_fps);
     strip->anim_endofs += round_fl_to_int((content_end - timeline_frame) * speed_factor);
   }
 
-  add_update_content_length(bmain, scene, strip);
+  add_update_source_duration(bmain, scene, strip);
   strip->right_handle_set(scene, timeline_frame);
 }
 
@@ -299,7 +299,7 @@ static void seq_split_set_left_hold_offset(Main *bmain,
   /* Adjust within range of strip contents. */
   if ((timeline_frame >= content_start) && (timeline_frame <= content_end)) {
     const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-    const float speed_factor = strip->media_playback_rate_factor(scene_fps);
+    const float speed_factor = strip->source_playback_rate_factor(scene_fps);
     strip->anim_startofs += round_fl_to_int((timeline_frame - content_start) * speed_factor);
     strip->start = timeline_frame;
     strip->startofs = 0;
@@ -311,7 +311,7 @@ static void seq_split_set_left_hold_offset(Main *bmain,
     strip->end_offset_set(strip->end_offset() + offset);
   }
 
-  add_update_content_length(bmain, scene, strip);
+  add_update_source_duration(bmain, scene, strip);
   strip->left_handle_set(scene, timeline_frame);
 }
 

@@ -291,7 +291,7 @@ Strip *strip_from_strip_elem(ListBaseT<Strip> *seqbase, StripElem *se)
 {
   for (Strip &istrip : *seqbase) {
     if ((istrip.data && istrip.data->stripdata) &&
-        ARRAY_HAS_ITEM(se, istrip.data->stripdata, istrip.content_length()))
+        ARRAY_HAS_ITEM(se, istrip.data->stripdata, istrip.source_duration()))
     {
       return &istrip;
     }

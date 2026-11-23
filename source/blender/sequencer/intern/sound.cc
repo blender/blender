@@ -72,12 +72,12 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain,
         continue;
       }
 
-      int old = strip.content_length();
+      int old = strip.source_duration();
       float fac;
 
-      strip.content_length_set(std::max(
+      strip.source_duration_set(std::max(
           1, int(round((info.length - strip.sound->offset_time) * scene->frames_per_second()))));
-      fac = float(strip.content_length()) / float(old);
+      fac = float(strip.source_duration()) / float(old);
       old = strip.startofs;
       strip.startofs *= fac;
       strip.endofs = strip.end_offset() * fac;

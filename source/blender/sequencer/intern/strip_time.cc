@@ -66,16 +66,16 @@ float give_frame_index(const Scene *scene, const Strip *strip, float timeline_fr
   frame_index = max_ff(frame_index, 0);
 
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  frame_index *= strip->media_playback_rate_factor(scene_fps);
+  frame_index *= strip->source_playback_rate_factor(scene_fps);
 
   if (retiming_has_keys(strip)) {
     const float retiming_factor = strip_retiming_evaluate(strip, frame_index);
     /* Retiming maps frame index from 0 up to `strip->len`, because key is positioned at the end of
      * last frame. Otherwise the last frame could not be retimed. */
-    frame_index = retiming_factor * strip->content_length();
+    frame_index = retiming_factor * strip->source_duration();
   }
   /* Clamp frame index to strip content frame range. */
-  float frame_index_max = strip->is_effect() ? end - sta : strip->content_length() - 1;
+  float frame_index_max = strip->is_effect() ? end - sta : strip->source_duration() - 1;
   frame_index = clamp_f(frame_index, 0, frame_index_max);
 
   if (strip->strobe > 1.0f) {
@@ -92,7 +92,7 @@ static int metastrip_start_get(const Strip *strip_meta)
 
 static int metastrip_end_get(const Strip *strip_meta)
 {
-  return strip_meta->start + strip_meta->content_length() - strip_meta->end_offset();
+  return strip_meta->start + strip_meta->source_duration() - strip_meta->end_offset();
 }
 
 /**
@@ -110,12 +110,12 @@ static Bounds<int> strip_sound_bounds_in_meta(const Strip &strip,
     startofs = start - strip.start;
   }
 
-  if (strip.start + strip.content_length() - strip.end_offset() > end) {
-    endofs = strip.start + strip.content_length() - end;
+  if (strip.start + strip.source_duration() - strip.end_offset() > end) {
+    endofs = strip.start + strip.source_duration() - end;
   }
 
   r_startofs = startofs;
-  return {int(strip.start + startofs), int(strip.start + strip.content_length() - endofs)};
+  return {int(strip.start + startofs), int(strip.start + strip.source_duration() - endofs)};
 }
 
 static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
@@ -197,13 +197,13 @@ void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)
   }
 
   strip_meta->start = min + strip_meta->anim_startofs;
-  strip_meta->content_length_set(max - strip_meta->anim_endofs - strip_meta->start);
+  strip_meta->source_duration_set(max - strip_meta->anim_endofs - strip_meta->start);
 
   /* Functions `SEQ_time_*_handle_frame_set()` can not be used here, because they are clamped, so
    * change must be done at once. */
   strip_meta->startofs = strip_start - strip_meta->start;
   strip_meta->startdisp = strip_start; /* Only to make files usable in older versions. */
-  strip_meta->end_offset_set(strip_meta->start + strip_meta->length(scene) - strip_end);
+  strip_meta->end_offset_set(strip_meta->start + strip_meta->content_duration(scene) - strip_end);
   strip_meta->enddisp = strip_end; /* Only to make files usable in older versions. */
 
   strip_update_sound_bounds_recursive(scene, strip_meta);
@@ -258,7 +258,7 @@ void strip_time_effect_range_set(const Scene *scene, Strip *strip)
   strip->startofs = strip->anim_startofs = strip->anim_endofs = 0;
   strip->end_offset_set(0);
   strip->start = strip->startdisp;
-  strip->content_length_set(strip->enddisp - strip->startdisp);
+  strip->source_duration_set(strip->enddisp - strip->startdisp);
 }
 
 void strip_time_update_effects_strip_range(const Scene *scene, const Span<Strip *> effects)
@@ -509,7 +509,7 @@ void time_slip_strip(
 
 }  // namespace seq
 
-float Strip::media_playback_rate_factor(float scene_fps) const
+float Strip::source_playback_rate_factor(float scene_fps) const
 {
   if ((this->flag & SEQ_AUTO_PLAYBACK_RATE) == 0) {
     return 1.0f;
@@ -520,7 +520,7 @@ float Strip::media_playback_rate_factor(float scene_fps) const
   return this->media_playback_rate / scene_fps;
 }
 
-float Strip::media_fps(Scene *scene)
+float Strip::source_fps(Scene *scene)
 {
   switch (this->type) {
     case STRIP_TYPE_MOVIE: {
@@ -561,10 +561,10 @@ void Strip::content_start_set(const Scene *scene, int timeline_frame)
 
 float Strip::content_end(const Scene *scene) const
 {
-  return this->content_start() + this->length(scene);
+  return this->content_start() + this->content_duration(scene);
 }
 
-int Strip::length(const Scene *scene) const
+int Strip::content_duration(const Scene *scene) const
 {
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   if (seq::retiming_has_keys(this)) {
@@ -575,7 +575,7 @@ int Strip::length(const Scene *scene) const
     return last_key_frame - this->content_start() - sound_offset;
   }
 
-  return this->content_length() / this->media_playback_rate_factor(scene_fps);
+  return this->source_duration() / this->source_playback_rate_factor(scene_fps);
 }
 
 int Strip::rounded_sound_offset(float scene_fps) const
@@ -672,7 +672,7 @@ bool Strip::intersects_frame(const Scene *scene, const int timeline_frame) const
   return (this->left_handle() <= timeline_frame) && (this->right_handle(scene) > timeline_frame);
 }
 
-int Strip::content_length() const
+int Strip::source_duration() const
 {
   if (this->scene && this->type == STRIP_TYPE_SCENE) {
     float new_length = this->scene->r.efra - this->scene->r.sfra + 1 - this->anim_startofs -
@@ -685,20 +685,20 @@ int Strip::content_length() const
 float Strip::end_offset() const
 {
   if (this->type == STRIP_TYPE_SCENE) {
-    return this->content_length() - (this->len - this->endofs);
+    return this->source_duration() - (this->len - this->endofs);
   }
   return this->endofs;
 }
 
-void Strip::content_length_set(int new_length)
+void Strip::source_duration_set(int new_source_duration)
 {
-  this->len = new_length;
+  this->len = new_source_duration;
 }
 
 void Strip::end_offset_set(float new_end_offset)
 {
   if (this->type == STRIP_TYPE_SCENE) {
-    this->len = this->content_length();
+    this->len = this->source_duration();
   }
   this->endofs = new_end_offset;
 }

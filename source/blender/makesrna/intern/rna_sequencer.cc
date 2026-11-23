@@ -707,7 +707,7 @@ static void rna_Strip_right_handle_offset_set(PointerRNA *ptr, float value)
 static int strip_content_trim_max(const Strip *strip, const int anim_offset)
 {
   /* Hold frames (negative `startofs`/`end_offset`) must not be counted as available content. */
-  return strip->content_length() + anim_offset - std::max(0, int(strip->startofs)) -
+  return strip->source_duration() + anim_offset - std::max(0, int(strip->startofs)) -
          std::max(0, int(strip->end_offset())) - 1;
 }
 
@@ -723,7 +723,7 @@ static void rna_Strip_content_trim_start_set(PointerRNA *ptr, int value)
   seq::transform_translate_strip(scene, strip, value - strip->anim_startofs);
   strip->anim_startofs = value;
 
-  seq::add_update_content_length(G.main, scene, strip);
+  seq::add_update_source_duration(G.main, scene, strip);
   do_strip_frame_change_update(scene, strip);
 }
 
@@ -734,7 +734,7 @@ static void rna_Strip_content_trim_end_set(PointerRNA *ptr, int value)
 
   strip->anim_endofs = std::clamp(value, 0, strip_content_trim_max(strip, strip->anim_endofs));
 
-  seq::add_update_content_length(G.main, scene, strip);
+  seq::add_update_source_duration(G.main, scene, strip);
   do_strip_frame_change_update(scene, strip);
 }
 
@@ -784,7 +784,7 @@ static void rna_Strip_duration_range(
   Strip *strip = static_cast<Strip *>(ptr->data);
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
 
-  *softmax = strip->length(scene) - strip->startofs;
+  *softmax = strip->content_duration(scene) - strip->startofs;
   *min = 1;
   *max = INT_MAX;
 }
@@ -794,7 +794,7 @@ static void rna_Strip_left_handle_offset_range(
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
   *min = INT_MIN;
-  *max = strip->content_length() - strip->end_offset() - 1;
+  *max = strip->source_duration() - strip->end_offset() - 1;
 }
 
 static void rna_Strip_right_handle_offset_range(
@@ -802,7 +802,7 @@ static void rna_Strip_right_handle_offset_range(
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
   *min = INT_MIN;
-  *max = strip->content_length() - strip->startofs - 1;
+  *max = strip->source_duration() - strip->startofs - 1;
 }
 
 static void rna_Strip_duration_set(PointerRNA *ptr, int value)
@@ -826,7 +826,7 @@ static int rna_Strip_content_duration_get(PointerRNA *ptr)
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
   Scene *scene = reinterpret_cast<Scene *>(ptr->owner_id);
-  return strip->length(scene);
+  return strip->content_duration(scene);
 }
 
 static int strip_default_duration(const Strip *strip, const Scene *scene)
@@ -834,7 +834,7 @@ static int strip_default_duration(const Strip *strip, const Scene *scene)
   if (seq::transform_single_image_check(strip)) {
     return seq::default_strip_length(scene->frames_per_second());
   }
-  return strip->length(scene);
+  return strip->content_duration(scene);
 }
 
 static int rna_Strip_duration_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
@@ -1895,7 +1895,7 @@ static float rna_Strip_fps_get(PointerRNA *ptr)
 {
   Scene *scene = id_cast<Scene *>(ptr->owner_id);
   Strip *strip = static_cast<Strip *>(ptr->data);
-  return strip->media_fps(scene);
+  return strip->source_fps(scene);
 }
 
 static void rna_Strip_separate(ID *id, Strip *strip_meta, Main *bmain)
@@ -2742,7 +2742,9 @@ static void rna_def_strip(BlenderRNA *brna)
   RNA_def_property_range(prop, 1, MAXFRAME);
   RNA_def_property_ui_text(prop,
                            "Content Duration",
-                           "Length of the underlying strip source in frames, excluding handles");
+                           "Number of timeline frames spanned by the underlying strip source, "
+                           "after adjusting for frame rate differences and retiming, excluding "
+                           "handles");
 
   prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, nullptr, "start");
