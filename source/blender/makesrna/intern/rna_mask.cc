@@ -6,6 +6,7 @@
  * \ingroup RNA
  */
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "DNA_mask_types.h"
@@ -510,8 +511,11 @@ static void rna_MaskSpline_points_add(ID *id, MaskSpline *spline, int count)
     active_point_index = layer->act_point - spline->points;
   }
 
-  spline->points = static_cast<MaskSplinePoint *>(
-      MEM_realloc_zeroed(spline->points, sizeof(MaskSplinePoint) * (spline->tot_point + count)));
+  MaskSplinePoint *new_points = MEM_new_array<MaskSplinePoint>(spline->tot_point + count,
+                                                               __func__);
+  std::copy_n(spline->points, spline->tot_point, new_points);
+  MEM_delete(spline->points);
+  spline->points = new_points;
   spline->tot_point += count;
 
   if (active_point_index >= 0) {
