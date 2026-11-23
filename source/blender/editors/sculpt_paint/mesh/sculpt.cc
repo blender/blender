@@ -7569,6 +7569,59 @@ void calc_brush_texture_factors(const PaintMode paint_mode,
   }
 }
 
+void calc_brush_texture_factors(const PaintMode paint_mode,
+                                const SculptSession &ss,
+                                const Brush &brush,
+                                const Span<float3> positions,
+                                const Span<float> factors,
+                                const MutableSpan<float> texture_alpha_values)
+{
+  PRF_scope(ProfileCategory::Editor);
+  BLI_assert(positions.size() == factors.size());
+  BLI_assert(positions.size() == texture_alpha_values.size());
+
+  const MTex *mtex = BKE_brush_mask_texture_get(&brush, paint_mode);
+  if (!mtex->tex) {
+    texture_alpha_values.fill(1.0f);
+    return;
+  }
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
+
+  for (const int i : positions.index_range()) {
+    if (factors[i] == 0.0f) {
+      texture_alpha_values[i] = 0.0f;
+      continue;
+    }
+    float texture_value;
+    float4 texture_rgba;
+    /* NOTE: This is not a thread-safe call. */
+    apply_brush_texture(
+        paint_mode, ss, brush, positions[i], thread_id, &texture_value, texture_rgba);
+
+    texture_alpha_values[i] = std::clamp(texture_value, 0.0f, 1.0f);
+  }
+}
+
+void apply_texture_pressure_mask(const BrushMaskPressureFlags mask_pressure,
+                                 const float pressure,
+                                 const MutableSpan<float> texture_alpha_values)
+{
+  switch (mask_pressure) {
+    case BRUSH_MASK_PRESSURE_CUTOFF:
+      for (float &value : texture_alpha_values) {
+        value = ((1.0f - value) < pressure) ? 1.0f : 0.0f;
+      }
+      break;
+    case BRUSH_MASK_PRESSURE_RAMP:
+      for (float &value : texture_alpha_values) {
+        value = pressure + value * (1.0f - pressure);
+      }
+      break;
+    default:
+      break;
+  }
+}
+
 void reset_translations_to_original(const MutableSpan<float3> translations,
                                     const Span<float3> positions,
                                     const Span<float3> orig_positions)

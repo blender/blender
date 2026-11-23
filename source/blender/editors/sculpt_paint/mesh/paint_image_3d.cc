@@ -555,6 +555,7 @@ struct PaintLocalData {
   Vector<float3> pixel_positions;
   Vector<float> distances;
   Vector<float> factors;
+  Vector<float> texture_alpha_values;
 
   Vector<float4> paint_blend_pixels;
   Vector<float4> texture_colors;
@@ -910,6 +911,8 @@ static void foreach_run(const PaintStepContext &ctx,
   const StrokeCache &cache = ctx.cache;
   const ImageData *mask_data = ctx.mask_data;
   const bool is_mask_inverted = ctx.is_mask_inverted;
+  const MTex *mask_tex = BKE_brush_mask_texture_get(&brush, PaintMode::Texture3D);
+  const bool use_mask_texture = mask_tex->tex != nullptr;
 
   const float3 location = cache.location_symm;
   const float radius = cache.radius;
@@ -992,9 +995,11 @@ static void foreach_run(const PaintStepContext &ctx,
         tls.factors.resize(run_size);
         tls.pixel_positions.resize(run_size);
         tls.distances.resize(run_size);
+        tls.texture_alpha_values.resize(run_size);
         const MutableSpan<float> factors = tls.factors;
         const MutableSpan<float3> positions = tls.pixel_positions;
         const MutableSpan<float> distances = tls.distances;
+        const MutableSpan<float> texture_alpha_values = tls.texture_alpha_values;
 
         /* Tracking for active subset of run with nonzero factors. */
         int run_active_begin = -1;
@@ -1025,6 +1030,8 @@ static void foreach_run(const PaintStepContext &ctx,
                                                                           tri_row_size);
                 const MutableSpan<float> tri_distances = distances.slice(tri_row_offset,
                                                                          tri_row_size);
+                const MutableSpan<float> tri_texture_alpha_values = texture_alpha_values.slice(
+                    tri_row_offset, tri_row_size);
 
                 tri_factors.fill(1.0f);
                 calc_pixel_row_positions(
@@ -1034,8 +1041,17 @@ static void foreach_run(const PaintStepContext &ctx,
                 filter_distances_with_radius(cache.radius, tri_distances, tri_factors);
                 apply_hardness_to_distances(cache, tri_distances);
                 calc_brush_strength_factors(cache, brush, tri_distances, tri_factors);
-                calc_brush_texture_factors(
-                    PaintMode::Texture3D, ss, brush, tri_positions, tri_factors);
+                if (use_mask_texture) {
+                  calc_brush_texture_factors(PaintMode::Texture3D,
+                                             ss,
+                                             brush,
+                                             tri_positions,
+                                             tri_factors,
+                                             tri_texture_alpha_values);
+                  apply_texture_pressure_mask(
+                      brush.mask_pressure, cache.pressure, tri_texture_alpha_values);
+                  scale_factors(tri_factors, tri_texture_alpha_values);
+                }
                 scale_factors(tri_factors, cache.bstrength);
                 if (std::holds_alternative<Span<float4>>(mask_buffer)) {
                   calc_stencil_mask_factors<float4>(

@@ -428,6 +428,17 @@ void calc_brush_texture_factors(PaintMode paint_mode,
                                 const Brush &brush,
                                 Span<float3> positions,
                                 MutableSpan<float> factors);
+/* TODO: Replace this with overload with the one above once more places support
+ * #BrushMaskPressureFlags. */
+void calc_brush_texture_factors(PaintMode paint_mode,
+                                const SculptSession &ss,
+                                const Brush &brush,
+                                Span<float3> positions,
+                                Span<float> factors,
+                                MutableSpan<float> texture_alpha_values);
+void apply_texture_pressure_mask(BrushMaskPressureFlags mask_pressure,
+                                 float pressure,
+                                 MutableSpan<float> texture_alpha_values);
 
 /**
  * Many brushes end up calculating translations from the original positions. Instead of applying
