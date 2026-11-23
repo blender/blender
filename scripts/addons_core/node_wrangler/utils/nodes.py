@@ -8,6 +8,9 @@ from math import hypot, inf
 from bpy.app.translations import pgettext_tip as tip_
 
 
+collapsed_node_offset = 10
+
+
 def force_update(context):
     context.space_data.node_tree.update_tag()
 
@@ -22,14 +25,60 @@ def prefs_line_width():
     return prefs.pixel_size
 
 
-def node_mid_pt(node, axis):
-    if axis == 'x':
-        d = node.location.x + (node.dimensions.x / 2)
-    elif axis == 'y':
-        d = node.location.y - (node.dimensions.y / 2)
+def get_width(node):
+    return node.width
+
+
+def get_height(node):
+    if node.type == "FRAME":
+        return node.height
     else:
-        d = 0
-    return d
+        return node.dimensions.y / dpi_fac()
+
+
+def get_left(node):
+    return node.location_absolute.x
+
+
+def get_center(node):
+    if node.type == "REROUTE":
+        return node.location_absolute.x
+    else:
+        return node.location_absolute.x + (0.5 * node.width)
+
+
+def get_right(node):
+    if node.type == "REROUTE":
+        return node.location_absolute.x
+    else:
+        return node.location_absolute.x + node.width
+
+
+def get_top(node):
+    if node.type == "REROUTE":
+        return node.location_absolute.y
+    elif node.hide:
+        return node.location_absolute.y + (0.5 * get_height(node)) - collapsed_node_offset
+    else:
+        return node.location_absolute.y
+
+
+def get_middle(node):
+    if node.type == "REROUTE":
+        return node.location_absolute.y
+    elif node.hide:
+        return node.location_absolute.y - collapsed_node_offset
+    else:
+        return node.location_absolute.y - (0.5 * get_height(node))
+
+
+def get_bottom(node):
+    if node.type == "REROUTE":
+        return node.location_absolute.y
+    elif node.hide:
+        return node.location_absolute.y - (0.5 * get_height(node)) - collapsed_node_offset
+    else:
+        return node.location_absolute.y - get_height(node)
 
 
 def autolink(node1, node2, links):

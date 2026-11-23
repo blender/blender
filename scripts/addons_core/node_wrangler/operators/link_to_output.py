@@ -13,6 +13,7 @@ from ..utils.nodes import (
     nw_check_space_type,
     is_visible_socket,
     force_update,
+    get_width,
 )
 
 
@@ -59,7 +60,7 @@ class NODE_OT_link_to_output(Operator):
         else:  # No output node exists
             bpy.ops.node.select_all(action="DESELECT")
             output_node = nodes.new(output_type)
-            output_node.location.x = active.location.x + active.dimensions.x + 80
+            output_node.location.x = active.location.x + get_width(active) + 80
             output_node.location.y = active.location.y
 
         if active.outputs:

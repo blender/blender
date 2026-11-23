@@ -258,7 +258,7 @@ class NODE_OT_merge_selected(Operator, NWBase):
                             output_type = 'RGBA'
                             valid_mode = True
                         if output_type == type and valid_mode:
-                            dst.append([i, node.location.x, node.location.y, node.dimensions.x, node.hide])
+                            dst.append([i, node.location.x, node.location.y, node.width, node.hide])
                 else:
                     for (type, types_list, dst) in (
                             ('SHADER', ('MIX', 'ADD'), selected_shader),
@@ -271,7 +271,7 @@ class NODE_OT_merge_selected(Operator, NWBase):
                     ):
                         if (merge_type == type and mode in types_list):
                             dst.append(
-                                [i, node.location.x, node.location.y, node.dimensions.x, node.hide])
+                                [i, node.location.x, node.location.y, node.width, node.hide])
         # When nodes with output kinds 'RGBA' and 'VALUE' are selected at the same time
         # use only 'Mix' nodes for merging.
         # For that we add selected_math list to selected_mix list and clear selected_math.

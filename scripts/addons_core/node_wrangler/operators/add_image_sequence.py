@@ -15,7 +15,7 @@ from ..utils.nodes import (
     NWBase,
     nw_check,
     nw_check_space_type,
-    node_mid_pt,
+    get_middle,
 )
 
 
@@ -121,7 +121,7 @@ class NODE_OT_add_image_sequence(Operator, NWBase, ImportHelper):
             yloc = 0
             for node in nodes:
                 node.select = False
-                yloc += node_mid_pt(node, 'y')
+                yloc += get_middle(node)
             yloc = yloc / len(nodes)
         else:
             yloc = 0
