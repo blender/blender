@@ -780,8 +780,10 @@ static int create_primitive_from_points(bContext *C,
 
   MaskSpline *new_spline = BKE_mask_spline_add(mask_layer);
   new_spline->flag = MASK_SPLINE_CYCLIC | MASK_SPLINE_SELECT;
-  new_spline->points = static_cast<MaskSplinePoint *>(
-      MEM_realloc_zeroed(new_spline->points, sizeof(MaskSplinePoint) * num_points));
+  MaskSplinePoint *new_points = MEM_new_array<MaskSplinePoint>(num_points, __func__);
+  std::copy_n(new_spline->points, new_spline->tot_point, new_points);
+  MEM_delete(new_spline->points);
+  new_spline->points = new_points;
 
   mask_layer->act_spline = new_spline;
   mask_layer->act_point = nullptr;
