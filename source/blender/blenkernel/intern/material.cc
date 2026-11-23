@@ -1215,10 +1215,16 @@ static void object_material_assign(
 
   if (act > ob->totcol) {
     /* Need more space in the material arrays */
-    ob->mat = static_cast<Material **>(
-        MEM_realloc_zeroed_id(ob->mat, sizeof(void *) * act, "matarray2"));
-    ob->matbits = static_cast<char *>(
-        MEM_realloc_zeroed_id(ob->matbits, sizeof(char) * act, "matbits1"));
+    Material **new_mat = MEM_new_array_zeroed<Material *>(act, "matarray2");
+    std::copy_n(ob->mat, ob->totcol, new_mat);
+    MEM_delete(ob->mat);
+    ob->mat = new_mat;
+
+    char *new_matbits = MEM_new_array_zeroed<char>(act, "matbits1");
+    std::copy_n(ob->matbits, ob->totcol, new_matbits);
+    MEM_delete(ob->matbits);
+    ob->matbits = new_matbits;
+
     ob->totcol = act;
   }
 
