@@ -93,29 +93,6 @@ void _bli_array_permute(
   }
 }
 
-uint _bli_array_deduplicate_ordered(void *arr, uint arr_len, size_t arr_stride)
-{
-  if (arr_len <= 1) [[unlikely]] {
-    return arr_len;
-  }
-
-  const uint arr_stride_uint = uint(arr_stride);
-  uint j = 0;
-  for (uint i = 0; i < arr_len; i++) {
-    if ((i == j) || (memcmp(POINTER_OFFSET(arr, arr_stride_uint * i),
-                            POINTER_OFFSET(arr, arr_stride_uint * j),
-                            arr_stride) == 0))
-    {
-      continue;
-    }
-    j += 1;
-    memcpy(POINTER_OFFSET(arr, arr_stride_uint * j),
-           POINTER_OFFSET(arr, arr_stride_uint * i),
-           arr_stride);
-  }
-  return j + 1;
-}
-
 int _bli_array_findindex(const void *arr, uint arr_len, size_t arr_stride, const void *p)
 {
   const char *arr_step = static_cast<const char *>(arr);

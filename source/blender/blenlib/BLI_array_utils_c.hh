@@ -45,17 +45,6 @@ void _bli_array_permute(
   _bli_array_permute(arr, arr_len, sizeof(*(arr)), order, arr_temp)
 
 /**
- * In-place array de-duplication of an ordered array.
- *
- * \return The new length of the array.
- *
- * Access via #BLI_array_deduplicate_ordered
- */
-uint _bli_array_deduplicate_ordered(void *arr, uint arr_len, size_t arr_stride);
-#define BLI_array_deduplicate_ordered(arr, arr_len) \
-  _bli_array_deduplicate_ordered(arr, arr_len, sizeof(*(arr)))
-
-/**
  * Find the first index of an item in an array.
  *
  * Access via #BLI_array_findindex
