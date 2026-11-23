@@ -488,88 +488,67 @@ struct Strip {
     return this->effect_num_inputs_get() != 0;
   }
 
-  /**
-   * Get timeline frame where strip content starts.
-   */
+  /** Timeline frame where the content starts. Setting it will also move strip handles. */
   float content_start() const;
-  /**
-   * Set frame where strip content starts.
-   * This function will also move strip handles.
-   */
   void content_start_set(const Scene *scene, int timeline_frame);
-  /**
-   * Get timeline frame where strip content ends.
-   */
+
+  /** Timeline frame where the underlying content ends. */
   float content_end(const Scene *scene) const;
-  /**
-   * Number of timeline frames spanned by the content, i.e. #source_duration() after adjusting
-   * for frame rate differences and retiming. Exposed in RNA as `content_duration`.
-   */
+
+  /** Timeline frames spanned by the content after frame rate adjustment and retiming. */
   int content_duration(const Scene *scene) const;
-  /**
-   * Number of frames in the strip source's own time (the valid range of frame indices), before
-   * handles, frame rate differences or retiming are applied. See #content_duration() for
-   * timeline frames.
-   */
-  int source_duration() const;
-  void source_duration_set(int new_source_duration);
-  /**
-   * Get the sound offset (if any) and round it to the nearest integer.
-   * This is mostly used in places where subframe data is not allowed (like re-timing key
-   * positions). Returns zero if strip is not a sound strip or if there is no offset.
-   */
-  int rounded_sound_offset(float scene_fps) const;
-  /**
-   * Get timeline frame where strip boundary starts.
-   */
-  int left_handle() const;
-  /**
-   * Get timeline frame where strip boundary ends.
-   */
-  int right_handle(const Scene *scene) const;
-  /**
-   * Set frame where strip boundary starts. This function moves only handle, content is not moved.
-   */
-  void left_handle_set(const Scene *scene, int timeline_frame);
-  /**
-   * Set frame where strip boundary ends.
-   * This function moves only handle, content is not moved.
-   */
-  void right_handle_set(const Scene *scene, int timeline_frame);
-  /**
-   * Set the left and right handles of the strip.
-   * \note `left_frame` must be less than `right_frame`.
-   */
-  void handles_set(const Scene *scene, int left_frame, int right_frame);
-  /**
-   * Set the strip's channel, clamped between 1 and #MAX_CHANNELS.
-   */
-  void channel_set(int channel);
-  /**
-   * Test if this strip would be rendered at the given frame.
-   *
-   * \param timeline_frame: absolute frame in the timeline
-   * \return true if \a timeline_frame exists in the strip's [start_frame, end_frame) range,
-   * i.e., inclusive start and exclusive end.
-   */
-  bool intersects_frame(const Scene *scene, int timeline_frame) const;
-  /**
-   * Get difference between scene and movie strip frame-rate.
-   * Returns 1.0f for all other strip types.
-   */
-  float source_playback_rate_factor(float scene_fps) const;
-  /**
-   * Get FPS rate of source media. Movie, scene and movie-clip strips are supported.
-   * Returns 0 for unsupported strip or if media can't be loaded.
-   */
-  float source_fps(Scene *scene);
 
   /**
-   * Frame distance from the right handle to the content end.
+   * Number of frames in the source before any frame rate adjustment or retiming.
+   * For single-image strips and effects, this is always 1.
    */
+  int source_duration() const;
+  /**
+   * Initialize or update the number of frames in the strip's source. Setting the source duration
+   * is done when strips are first created, but can also be done to "fake" a certain duration for
+   * various reasons.
+   */
+  void source_duration_set(int new_source_duration);
+
+  /** Timeline frames of the handles. Setting them does not move the content. */
+  int left_handle() const;
+  int right_handle(const Scene *scene) const;
+  void left_handle_set(const Scene *scene, int timeline_frame);
+  void right_handle_set(const Scene *scene, int timeline_frame);
+
+  /**
+   * Set both left and right handles of a strip at once.
+   * \note #left_frame must be less than #right_frame.
+   */
+  void handles_set(const Scene *scene, int left_frame, int right_frame);
+
+  /** Frame distance from the right handle to the content end. */
   float end_offset() const;
   void end_offset_set(float new_end_offset);
 
+  /** Set the strip's channel, clamped between 1 and #MAX_CHANNELS. */
+  void channel_set(int channel);
+
+  /**
+   * Test if this strip would be rendered at the given frame.
+   *
+   * \return true if \a timeline_frame lies in the strip's [left_handle, right_handle) range, i.e.
+   * inclusive start and exclusive end.
+   */
+  bool intersects_frame(const Scene *scene, int timeline_frame) const;
+
+  /** Ratio of media playback rate to scene fps with auto playback rate set, 1.0f otherwise. */
+  float source_playback_rate_factor(float scene_fps) const;
+
+  /** Frame rate of the source media, or 0 if unsupported or it can't be loaded. */
+  float source_fps(Scene *scene);
+
+  /**
+   * Sound offset rounded to whole frames, or 0 for non-sound strips.
+   * This is mostly used in places where subframe data is not allowed (like re-timing key
+   * positions).
+   */
+  int rounded_sound_offset(float scene_fps) const;
 #endif
 };
 
