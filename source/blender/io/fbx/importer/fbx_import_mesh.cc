@@ -560,6 +560,7 @@ void import_meshes(Main &bmain,
       }
 
       Object *first_armature = nullptr;
+      const ufbx_skin_cluster *first_bind_cluster = nullptr;
 
       /* Skinned mesh. */
       if (fmesh->skin_deformers.count > 0) {
@@ -569,12 +570,14 @@ void import_meshes(Main &bmain,
             continue;
           }
           Object *arm_obj = nullptr;
+          const ufbx_skin_cluster *bind_cluster = nullptr;
           for (const ufbx_skin_cluster *cluster : skin->clusters) {
             if (cluster->num_weights == 0) {
               continue;
             }
             arm_obj = mapping.bone_to_armature.lookup_default(cluster->bone_node, nullptr);
             if (arm_obj != nullptr) {
+              bind_cluster = cluster;
               break;
             }
           }
@@ -589,6 +592,7 @@ void import_meshes(Main &bmain,
 
             if (first_armature == nullptr) {
               first_armature = arm_obj;
+              first_bind_cluster = bind_cluster;
             }
           }
         }
@@ -645,7 +649,7 @@ void import_meshes(Main &bmain,
         read_custom_properties(node->props, obj->id, params.props_enum_as_string);
       }
       if (first_armature != nullptr) {
-        mapping.skinned_meshes.append({node, obj, first_armature});
+        mapping.skinned_meshes.append({node, obj, first_armature, first_bind_cluster});
       }
       node_matrix_to_obj(node, obj, mapping);
       mapping.el_to_object.add(&node->element, obj);
@@ -677,11 +681,14 @@ void setup_skinned_mesh_parenting(FbxElementMapping &mapping)
     const ufbx_matrix local = ufbx_matrix_mul(&world_to_arm, &mesh.node->geometry_to_world);
     ufbx_matrix_to_obj(local, obj);
 
-    /* Account for differences between the node and bind transforms. */
+    /* The skin cluster binds the mesh geometry to a bone. Compose that with the bone's bind
+     * transform to recover the mesh's world-space bind transform. */
     const ufbx_matrix world_to_arm_pose = mapping.armature_world_to_arm_pose_matrix.lookup_default(
         arm_obj, ufbx_identity_matrix);
     const ufbx_matrix local_inv = ufbx_matrix_invert(&local);
-    const ufbx_matrix mesh_bind = mapping.get_node_bind_matrix(mesh.node);
+    const ufbx_skin_cluster &cluster = *mesh.bind_cluster;
+    const ufbx_matrix mesh_bind = ufbx_matrix_mul(&cluster.bind_to_world,
+                                                  &cluster.geometry_to_bone);
     const ufbx_matrix bind_to_local = ufbx_matrix_mul(&mesh_bind, &local_inv);
     const ufbx_matrix parent_inverse = ufbx_matrix_mul(&world_to_arm_pose, &bind_to_local);
     matrix_to_m44(parent_inverse, obj->parentinv);

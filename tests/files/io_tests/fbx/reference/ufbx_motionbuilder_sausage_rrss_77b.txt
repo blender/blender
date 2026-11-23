@@ -53,9 +53,9 @@
   - anim act:Take 001 slot:OBArmature blend:REPLACE drivers:0
 - Obj 'Skin' MESH data:'Mesh' par:'Armature'
   - matrix_parent_inverse:
-      0.000 -1.000 0.000 0.000
+      1.000 0.000 0.000 0.000
       0.000 0.000 1.000 0.000
-      -1.000 0.000 0.000 0.000
+      0.000 -1.000 0.000 0.000
   - pos 0.000, 0.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000

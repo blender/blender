@@ -41,6 +41,7 @@ struct FbxSkinnedMesh {
   const ufbx_node *node;
   Object *object;
   Object *armature;
+  const ufbx_skin_cluster *bind_cluster;
 };
 
 struct FbxElementMapping {
