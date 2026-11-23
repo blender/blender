@@ -384,6 +384,8 @@ bool blf_character_to_curves(FontBLF *font,
                              float *r_advance,
                              rctf *r_bounds)
 {
+  std::scoped_lock lock(ft_lib_mutex);
+
   FT_GlyphSlot glyph = blf_glyphslot_ensure_outline(font, unicode, use_fallback);
   if (!glyph) {
     *r_advance = 0.0f;

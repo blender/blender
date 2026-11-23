@@ -136,6 +136,7 @@ GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font)
   GlyphCacheBLF *gc = blf_glyph_cache_find(font);
 
   if (!gc) {
+    std::scoped_lock lock(ft_lib_mutex);
     gc = blf_glyph_cache_new(font);
   }
 
@@ -1382,6 +1383,9 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
   if (g) {
     return g;
   }
+
+  /* Rendering may use and change the state of fallback fonts. */
+  std::scoped_lock lock(ft_lib_mutex);
 
   /* Glyph might not come from the initial font. */
   FontBLF *font_with_glyph = font;

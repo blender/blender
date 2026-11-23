@@ -53,6 +53,8 @@ Mutex blf_mono_font_render_mutex;
 
 static Mutex g_blf_load_mutex;
 
+static void blf_font_unregister(int fontid);
+
 static FontBLF *blf_get(int fontid)
 {
   if (fontid >= 0 && fontid < BLF_MAX_FONT) {
@@ -92,8 +94,8 @@ void BLF_reset_fonts()
         !(font->flags & BLF_DEFAULT))
     {
       /* Remove fonts that are not used in the UI or part of the stack. */
+      blf_font_unregister(i);
       blf_font_free(font);
-      global_font[i] = nullptr;
     }
   }
 }
@@ -140,6 +142,13 @@ static int blf_search_by_filepath(const char *filepath)
   return -1;
 }
 
+static void blf_font_unregister(const int fontid)
+{
+  /* Lock because fallback font detection iterates over this array. */
+  std::scoped_lock lock(ft_lib_mutex);
+  global_font[fontid] = nullptr;
+}
+
 static int blf_search_available()
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
@@ -155,6 +164,7 @@ bool BLF_has_glyph(int fontid, uint unicode)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
+    std::scoped_lock lock(ft_lib_mutex);
     return blf_get_char_index(font, unicode) != FT_Err_Ok;
   }
   return false;
@@ -273,8 +283,8 @@ void BLF_unload(const char *filepath)
       font->reference_count--;
 
       if (font->reference_count == 0) {
+        blf_font_unregister(i);
         blf_font_free(font);
-        global_font[i] = nullptr;
       }
     }
   }
@@ -289,8 +299,8 @@ bool BLF_unload_id(int fontid)
     font->reference_count--;
 
     if (font->reference_count == 0) {
+      blf_font_unregister(fontid);
       blf_font_free(font);
-      global_font[fontid] = nullptr;
       return true;
     }
   }
@@ -302,8 +312,8 @@ void BLF_unload_all()
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *font = global_font[i];
     if (font) {
+      blf_font_unregister(i);
       blf_font_free(font);
-      global_font[i] = nullptr;
     }
   }
   blf_mono_font = -1;
@@ -1150,6 +1160,7 @@ bool BLF_get_vfont_metrics(int fontid, float *ascend_ratio, float *em_ratio, flo
     return false;
   }
 
+  std::scoped_lock lock(ft_lib_mutex);
   if (!blf_ensure_face(font)) {
     return false;
   }

@@ -65,14 +65,7 @@ static FT_Library ft_lib = nullptr;
 static FTC_Manager ftc_manager = nullptr;
 static FTC_CMapCache ftc_charmap_cache = nullptr;
 
-/* Mutex around face creation and deletion. */
-static Mutex ft_face_load_mutex;
-
-/* Lock around places that query free type caching system, and use the
- * calculated ft_size result. `FTC_Manager_LookupSize` can remove
- * ft_size of a completely different font instance, when the cache
- * is full! */
-static Mutex ft_cache_size_mutex;
+std::recursive_mutex ft_lib_mutex;
 
 /* May be set to #widgetbase_draw_cache_flush. */
 static void (*blf_draw_cache_flush)() = nullptr;
@@ -109,7 +102,6 @@ static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
   FontBLF *font = static_cast<FontBLF *>(faceID);
   int err = FT_Err_Cannot_Open_Resource;
 
-  std::scoped_lock lock(ft_face_load_mutex);
   if (font->filepath) {
     err = FT_New_Face(lib, font->filepath, 0, face);
   }
@@ -160,7 +152,7 @@ uint blf_get_char_index(FontBLF *font, const uint charcode)
 /* Convert a FreeType 26.6 value representing an unscaled design size to fractional pixels. */
 static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, const FT_Pos value)
 {
-  std::lock_guard lock(ft_cache_size_mutex);
+  std::scoped_lock lock(ft_lib_mutex);
   blf_ensure_size(font);
 
   /* Scale value by font size using integer-optimized multiplication. */
@@ -376,9 +368,15 @@ BLI_INLINE ft_pix blf_kerning(FontBLF *font, const GlyphBLF *g_prev, const Glyph
     }
 
     /* If not ASCII or not found in cache, ask FreeType for kerning. */
-    if (font->face && delta.x == KERNING_ENTRY_UNSET) [[unlikely]] {
-      /* Note that this function sets delta values to zero on any error. */
-      FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNSCALED, &delta);
+    if (delta.x == KERNING_ENTRY_UNSET) [[unlikely]] {
+      std::scoped_lock lock(ft_lib_mutex);
+      if (blf_ensure_face(font)) {
+        /* Note that this function sets delta values to zero on any error. */
+        FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNSCALED, &delta);
+      }
+      else {
+        delta.x = 0;
+      }
     }
 
     /* If ASCII we save this value to our cache for quicker access next time. */
@@ -1728,7 +1726,7 @@ Vector<StringRef> blf_font_string_wrap(FontBLF *font,
 
 static ft_pix blf_font_height_max_ft_pix(FontBLF *font)
 {
-  std::lock_guard lock(ft_cache_size_mutex);
+  std::scoped_lock lock(ft_lib_mutex);
   blf_ensure_size(font);
   /* #Metrics::height is rounded to pixel. Force minimum of one pixel. */
   return std::max(ft_pix(font->ft_size->metrics.height), ft_pix_from_int(1));
@@ -1741,7 +1739,7 @@ int blf_font_height_max(FontBLF *font)
 
 static ft_pix blf_font_width_max_ft_pix(FontBLF *font)
 {
-  std::lock_guard lock(ft_cache_size_mutex);
+  std::scoped_lock lock(ft_lib_mutex);
   blf_ensure_size(font);
   /* #Metrics::max_advance is rounded to pixel. Force minimum of one pixel. */
   return std::max(ft_pix(font->ft_size->metrics.max_advance), ft_pix_from_int(1));
@@ -1754,20 +1752,21 @@ int blf_font_width_max(FontBLF *font)
 
 int blf_font_descender(FontBLF *font)
 {
-  std::lock_guard lock(ft_cache_size_mutex);
+  std::scoped_lock lock(ft_lib_mutex);
   blf_ensure_size(font);
   return ft_pix_to_int(ft_pix(font->ft_size->metrics.descender));
 }
 
 int blf_font_ascender(FontBLF *font)
 {
-  std::lock_guard lock(ft_cache_size_mutex);
+  std::scoped_lock lock(ft_lib_mutex);
   blf_ensure_size(font);
   return ft_pix_to_int(ft_pix(font->ft_size->metrics.ascender));
 }
 
 bool blf_font_bounds_max(FontBLF *font, rctf *r_bounds)
 {
+  std::scoped_lock lock(ft_lib_mutex);
   if (!blf_ensure_face(font)) {
     return false;
   }
@@ -1781,6 +1780,7 @@ bool blf_font_bounds_max(FontBLF *font, rctf *r_bounds)
 
 char *blf_display_name(FontBLF *font)
 {
+  std::scoped_lock lock(ft_lib_mutex);
   if (!blf_ensure_face(font) || !font->face->family_name) {
     return nullptr;
   }
@@ -2226,7 +2226,9 @@ static FontBLF *blf_font_new_impl(const char *filepath,
   }
 
   if (face_needed) {
+    std::unique_lock lock(ft_lib_mutex);
     if (!blf_ensure_face(font)) {
+      lock.unlock();
       blf_font_free(font);
       return nullptr;
     }
@@ -2269,6 +2271,8 @@ void blf_font_attach_from_mem(FontBLF *font, const uchar *mem, const size_t mem_
   open.flags = FT_OPEN_MEMORY;
   open.memory_base = static_cast<const FT_Byte *>(mem);
   open.memory_size = FT_Long(mem_size);
+
+  std::scoped_lock lock(ft_lib_mutex);
   if (blf_ensure_face(font)) {
     FT_Attach_Stream(font->face, &open);
   }
@@ -2277,6 +2281,8 @@ void blf_font_attach_from_mem(FontBLF *font, const uchar *mem, const size_t mem_
 void blf_font_free(FontBLF *font)
 {
   blf_glyph_cache_clear(font);
+
+  std::scoped_lock lock(ft_lib_mutex);
 
   if (font->kerning_cache) {
     MEM_delete(font->kerning_cache);
@@ -2287,7 +2293,6 @@ void blf_font_free(FontBLF *font)
   }
 
   if (font->face) {
-    std::scoped_lock lock(ft_face_load_mutex);
     FTC_Manager_RemoveFaceID(ftc_manager, font);
     font->face = nullptr;
   }
@@ -2331,6 +2336,8 @@ void blf_ensure_size(FontBLF *font)
 
 bool blf_font_size(FontBLF *font, float size)
 {
+  std::scoped_lock lock(ft_lib_mutex);
+
   if (!blf_ensure_face(font)) {
     return false;
   }
@@ -2341,7 +2348,6 @@ bool blf_font_size(FontBLF *font, float size)
   size = float(ft_size) / 64.0f;
 
   if (font->size != size) {
-    std::lock_guard lock(ft_cache_size_mutex);
     FTC_ScalerRec scaler = {nullptr};
     scaler.face_id = font;
     scaler.width = 0;

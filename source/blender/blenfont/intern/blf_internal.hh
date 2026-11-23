@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
@@ -66,6 +68,18 @@ enum class BLFWrapMode;
 
 /** Font array. */
 extern FontBLF *global_font[BLF_MAX_FONT];
+
+/**
+ * Global mutex lock for the freetype library. Functions like
+ * `FTC_Manager_LookupSize` are not safe to call from multiple threads
+ * and cache lookups can free the face or size of a different font.
+ *
+ * Recursive since locked functions call each other, for example glyph rendering
+ * changing the size of a fallback font.
+ *
+ * Lock order: #FontBLF::glyph_cache_mutex before this, never the other way around.
+ */
+extern std::recursive_mutex ft_lib_mutex;
 
 void blf_batch_draw_begin(FontBLF *font);
 void blf_batch_draw();
