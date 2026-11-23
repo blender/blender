@@ -416,6 +416,7 @@
   - pos -0.001, -0.461, 0.036
   - rot -1.590, 0.000, -0.003 (XYZ)
   - scl 1.000, 1.000, 1.000
+  - anim act:Head|Robot_Dance slot:OBHead blend:REPLACE drivers:0
 - Obj 'Leg.L' MESH data:'Cylinder.011' par:'RobotArmature' par_type:BONE par_bone:'UpperLeg.L'
   - pos -0.007, -0.279, -0.003
   - rot 1.782, -0.006, 0.001 (XYZ)
@@ -610,7 +611,7 @@
 ==== Actions: 4
 - Action 'Head|Robot_Dance' curverange:(1.0 .. 81.0) layers:1
 - ActionLayer Layer strips:1
- - Keyframe strip channelbags:1
+ - Keyframe strip channelbags:2
  - Channelbag slot 'KEKey' curves:3
   - fcu 'key_blocks["Angry"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
     - (1.000, 0.300) lh:(-25.667, 0.300 AUTO_CLAMPED) rh:(27.667, 0.300 AUTO_CLAMPED)
@@ -621,6 +622,34 @@
   - fcu 'key_blocks["Surprised"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
     - (1.000, 0.500) lh:(-25.667, 0.500 AUTO_CLAMPED) rh:(27.667, 0.500 AUTO_CLAMPED)
     - (81.000, 0.500) lh:(54.333, 0.500 AUTO_CLAMPED) rh:(107.667, 0.500 AUTO_CLAMPED)
+ - Channelbag slot 'OBHead' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Head'
+    - (1.000, -0.001) lh:(-25.667, -0.001 AUTO_CLAMPED) rh:(27.667, -0.001 AUTO_CLAMPED)
+    - (81.000, -0.001) lh:(54.333, -0.001 AUTO_CLAMPED) rh:(107.667, -0.001 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Head'
+    - (1.000, -0.461) lh:(-25.667, -0.461 AUTO_CLAMPED) rh:(27.667, -0.461 AUTO_CLAMPED)
+    - (81.000, -0.461) lh:(54.333, -0.461 AUTO_CLAMPED) rh:(107.667, -0.461 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Head'
+    - (1.000, 0.036) lh:(-25.667, 0.036 AUTO_CLAMPED) rh:(27.667, 0.036 AUTO_CLAMPED)
+    - (81.000, 0.036) lh:(54.333, 0.036 AUTO_CLAMPED) rh:(107.667, 0.036 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Head'
+    - (1.000, -1.590) lh:(-25.667, -1.590 AUTO_CLAMPED) rh:(27.667, -1.590 AUTO_CLAMPED)
+    - (81.000, -1.590) lh:(54.333, -1.590 AUTO_CLAMPED) rh:(107.667, -1.590 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Head'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Head'
+    - (1.000, -0.003) lh:(-25.667, -0.003 AUTO_CLAMPED) rh:(27.667, -0.003 AUTO_CLAMPED)
+    - (81.000, -0.003) lh:(54.333, -0.003 AUTO_CLAMPED) rh:(107.667, -0.003 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Head'
+    - (1.000, 1.000) lh:(-25.667, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(54.333, 1.000 AUTO_CLAMPED) rh:(107.667, 1.000 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Head'
+    - (1.000, 1.000) lh:(-25.667, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(54.333, 1.000 AUTO_CLAMPED) rh:(107.667, 1.000 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Head'
+    - (1.000, 1.000) lh:(-25.667, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(54.333, 1.000 AUTO_CLAMPED) rh:(107.667, 1.000 AUTO_CLAMPED)
 
 - Action 'RobotArmature|Robot_Dance' curverange:(1.0 .. 81.0) layers:1
 - ActionLayer Layer strips:1

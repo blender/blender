@@ -49,6 +49,8 @@ struct SymbolVariable : Symbol {
   ast::Expr capacity_value = {};
   /* Condition set when declaring a resource using the condition attribute. */
   ast::Expr condition = {};
+  /* For member variable, default initializer value. */
+  ast::Expr default_value = {};
 
   /* Value if constexpr. */
   ConstexprValue value = ConstexprError(0);

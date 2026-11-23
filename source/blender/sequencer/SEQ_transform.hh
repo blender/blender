@@ -126,8 +126,13 @@ float2 image_transform_origin_preview_offset_get(const Scene *scene, const Strip
 /**
  * Get \a strip image transformation matrix relative to its origin in view-space, including axis
  * mirror and viewport pixel aspect.
+ *
+ * \param apply_rotation: When false, leave out the strip's rotation, as if the strip were rotated
+ * back to 0 around its origin.
  */
-float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip);
+float3x3 image_transform_matrix_get(const Scene *scene,
+                                    const Strip *strip,
+                                    bool apply_rotation = true);
 
 /**
  * Get the size of the drawn \a strip quad before any cropping, scaling, or transformation.
@@ -148,7 +153,9 @@ int2 image_transform_box_size_get(const Scene *scene, const Strip *strip);
  * |  |
  * 2--1
  */
-Array<float2> image_transform_quad_get(const Scene *scene, const Strip *strip);
+Array<float2> image_transform_quad_get(const Scene *scene,
+                                       const Strip *strip,
+                                       bool apply_rotation = true);
 
 float2 image_preview_unit_to_px(const Scene *scene, float2 co_src);
 float2 image_preview_unit_from_px(const Scene *scene, float2 co_src);

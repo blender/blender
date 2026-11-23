@@ -224,7 +224,7 @@ T *SymbolScope::lookup_generic(const SymbolTable &table,
     const SymbolClass &cls = this_var->type;
     const SymbolScope &this_scope = static_cast<const SymbolScope &>(cls);
     if (auto v = this_scope.lookup_generic<T>(table, id, loc); v && !v->is_error) {
-      LOOKUP_LOG("[Lookup] Symbol found in class scope '" << cls->identifier << "'.\n")
+      LOOKUP_LOG("[Lookup] Symbol found in class scope '" << cls.identifier << "'.\n")
       return v;
     }
   }

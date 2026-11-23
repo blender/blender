@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_math_matrix_c.hh"
 #include "BLI_math_rotation_c.hh"
 #include "BLI_math_vector_c.hh"
@@ -107,12 +108,14 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
   return true;
 }
 
-static void gizmo2d_pivot_point_message_subscribe(wmGizmoGroup *gzgroup,
-                                                  wmMsgBus *mbus, /* Additional args. */
-                                                  bScreen *screen,
-                                                  ScrArea *area,
-                                                  ARegion *region)
+static void gizmo2d_pivot_point_message_subscribe(const bContext *C,
+                                                  wmGizmoGroup *gzgroup,
+                                                  wmMsgBus *mbus /* Additional args. */)
 {
+  bScreen *screen = CTX_wm_screen(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = CTX_wm_region(C);
+
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh{};
   msg_sub_value_gz_tag_refresh.owner = region;
   msg_sub_value_gz_tag_refresh.user_data = gzgroup->parent_gzmap;
@@ -223,6 +226,28 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
   return ggd;
 }
 
+static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
+{
+  zero_v2(r_pivot);
+
+  Editing *ed = seq::editing_get(scene);
+  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
+  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
+  VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
+  bool has_select = !strips.is_empty();
+
+  if (has_select) {
+    for (Strip *strip : strips) {
+      const float2 origin = seq::image_transform_origin_preview_offset_get(scene, strip);
+      add_v2_v2(r_pivot, origin);
+    }
+    mul_v2_fl(r_pivot, 1.0f / strips.size());
+  }
+
+  return has_select;
+}
+
 /**
  * Calculates origin in view space, use with #gizmo2d_origin_to_region.
  */
@@ -271,13 +296,29 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
     VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
     strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
     int selected_strips = strips.size();
-    if (selected_strips > 0) {
-      has_select = true;
-      const Bounds<float2> box = seq::image_transform_bounding_box_from_strips_get(scene, strips);
+    has_select = selected_strips > 0;
+    if (selected_strips == 1) {
+      /* Gizmo system needs unrotated quad min and max to properly calculate matrices later. */
+      const Array<float2> quad = seq::image_transform_quad_get(scene, strips[0], false);
+      const Bounds<float2> box = *bounds::min_max(quad.as_span());
       copy_v2_v2(r_min, box.min);
       copy_v2_v2(r_max, box.max);
     }
     if (selected_strips > 1) {
+      const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
+      if (pivot_point == V3D_AROUND_CURSOR) {
+        SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
+        const float2 cursor_pixel = seq::image_preview_unit_to_px(scene, sseq->cursor);
+        copy_v2_v2(r_center, cursor_pixel);
+      }
+      else if (pivot_point == V3D_AROUND_CENTER_BOUNDS) {
+        const Bounds<float2> box = seq::image_transform_bounding_box_from_strips_get(scene,
+                                                                                     strips);
+        mid_v2_v2v2(r_center, box.min, box.max);
+      }
+      else {
+        seq_get_strip_pivot_median(scene, r_center);
+      }
       /* Don't draw the cage as transforming multiple strips isn't currently very useful as it
        * doesn't behave as one would expect.
        *
@@ -286,15 +327,6 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
        * In addition to this, the rotation of the bounding box can not currently be hooked up
        * properly to read the result from the transform system (when transforming multiple strips).
        */
-      const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
-      if (pivot_point == V3D_AROUND_CURSOR) {
-        SpaceSeq *sseq = area->spacedata.first_as<SpaceSeq>();
-        const float2 cursor_pixel = seq::image_preview_unit_to_px(scene, sseq->cursor);
-        copy_v2_v2(r_center, cursor_pixel);
-      }
-      else {
-        mid_v2_v2v2(r_center, r_min, r_max);
-      }
       zero_v2(r_min);
       zero_v2(r_max);
       return has_select;
@@ -348,36 +380,13 @@ static float gizmo2d_calc_rotation(const bContext *C)
 
   if (strips.size() == 1) {
     /* Only return the strip rotation if only one is selected. */
-    for (Strip *strip : strips) {
-      StripTransform *transform = strip->data->transform;
-      const float2 mirror = seq::image_transform_mirror_factor_get(strip);
-      return transform->rotation * mirror[0] * mirror[1];
-    }
+    Strip *strip = strips[0];
+    StripTransform *transform = strip->data->transform;
+    const float2 mirror = seq::image_transform_mirror_factor_get(strip);
+    return transform->rotation * mirror[0] * mirror[1];
   }
 
   return 0.0f;
-}
-
-static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
-{
-  zero_v2(r_pivot);
-
-  Editing *ed = seq::editing_get(scene);
-  ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
-  ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
-  VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
-  strips.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
-  bool has_select = !strips.is_empty();
-
-  if (has_select) {
-    for (Strip *strip : strips) {
-      const float2 origin = seq::image_transform_origin_preview_offset_get(scene, strip);
-      add_v2_v2(r_pivot, origin);
-    }
-    mul_v2_fl(r_pivot, 1.0f / strips.size());
-  }
-
-  return has_select;
 }
 
 static bool gizmo2d_calc_transform_pivot(const bContext *C,
@@ -791,21 +800,11 @@ static void gizmo2d_xform_setup_no_cage(const bContext *C, wmGizmoGroup *gzgroup
   ggd->no_cage = true;
 }
 
-static void gizmo2d_xform_no_cage_message_subscribe(const bContext *C,
-                                                    wmGizmoGroup *gzgroup,
-                                                    wmMsgBus *mbus)
-{
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, area, region);
-}
-
 void ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(wmGizmoGroupType *gzgt)
 {
   ED_widgetgroup_gizmo2d_xform_callbacks_set(gzgt);
   gzgt->setup = gizmo2d_xform_setup_no_cage;
-  gzgt->message_subscribe = gizmo2d_xform_no_cage_message_subscribe;
+  gzgt->message_subscribe = gizmo2d_pivot_point_message_subscribe;
 }
 
 /** \} */
@@ -951,16 +950,6 @@ static void gizmo2d_resize_invoke_prepare(const bContext *C,
   RNA_enum_set(&gzop->ptr, "orient_type", orient_type);
 }
 
-static void gizmo2d_resize_message_subscribe(const bContext *C,
-                                             wmGizmoGroup *gzgroup,
-                                             wmMsgBus *mbus)
-{
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, area, region);
-}
-
 void ED_widgetgroup_gizmo2d_resize_callbacks_set(wmGizmoGroupType *gzgt)
 {
   gzgt->poll = gizmo2d_generic_poll;
@@ -969,7 +958,7 @@ void ED_widgetgroup_gizmo2d_resize_callbacks_set(wmGizmoGroupType *gzgt)
   gzgt->refresh = gizmo2d_resize_refresh;
   gzgt->draw_prepare = gizmo2d_resize_draw_prepare;
   gzgt->invoke_prepare = gizmo2d_resize_invoke_prepare;
-  gzgt->message_subscribe = gizmo2d_resize_message_subscribe;
+  gzgt->message_subscribe = gizmo2d_pivot_point_message_subscribe;
 }
 
 /** \} */
@@ -1029,7 +1018,7 @@ static void gizmo2d_rotate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup
 static void gizmo2d_rotate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
 
-  wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_rotate", true);
+  wmOperatorType *ot_rotate = WM_operatortype_find("TRANSFORM_OT_rotate", true);
   GizmoGroup_Rotate2D *ggd = gizmogroup2d_rotate_init(gzgroup);
   gzgroup->customdata = ggd;
 
@@ -1057,19 +1046,9 @@ static void gizmo2d_rotate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
 
     /* Assign operator. */
-    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_resize, nullptr);
+    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_rotate, nullptr);
     RNA_boolean_set(ptr, "release_confirm", true);
   }
-}
-
-static void gizmo2d_rotate_message_subscribe(const bContext *C,
-                                             wmGizmoGroup *gzgroup,
-                                             wmMsgBus *mbus)
-{
-  bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  gizmo2d_pivot_point_message_subscribe(gzgroup, mbus, screen, area, region);
 }
 
 void ED_widgetgroup_gizmo2d_rotate_callbacks_set(wmGizmoGroupType *gzgt)
@@ -1079,7 +1058,7 @@ void ED_widgetgroup_gizmo2d_rotate_callbacks_set(wmGizmoGroupType *gzgt)
   gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
   gzgt->refresh = gizmo2d_rotate_refresh;
   gzgt->draw_prepare = gizmo2d_rotate_draw_prepare;
-  gzgt->message_subscribe = gizmo2d_rotate_message_subscribe;
+  gzgt->message_subscribe = gizmo2d_pivot_point_message_subscribe;
 }
 
 /** \} */

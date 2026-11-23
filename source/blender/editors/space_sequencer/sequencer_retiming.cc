@@ -77,13 +77,13 @@ static wmOperatorStatus sequencer_retiming_data_show_exec(bContext *C, wmOperato
   VectorSet<Strip *> selected = seq::query_selected_strips(seq::active_seqbase_get(ed));
   selected.remove_if([](Strip *strip) { return !seq::retiming_is_allowed(strip); });
 
-  Set<Strip *> selected_keys;
+  bool keys_selected = false;
   Map<SeqRetimingKey *, Strip *> retiming_sel = seq::retiming_selection_get(ed);
   for (Strip *retiming_strip : retiming_sel.values()) {
     if (seq::retiming_show_keys(retiming_strip)) {
       selected.add(retiming_strip);
     }
-    selected_keys.add(retiming_strip);
+    keys_selected |= selected.contains(retiming_strip);
   }
 
   if (selected.is_empty()) {
@@ -103,8 +103,8 @@ static wmOperatorStatus sequencer_retiming_data_show_exec(bContext *C, wmOperato
     }
     else {
       strip->flag |= SEQ_SHOW_RETIMING;
-      /* If retiming keys are selected, deselect the strip, since both can't happen. */
-      if (selected_keys.contains(strip)) {
+      /* If any retiming keys are selected, deselect all strips, since both can't happen. */
+      if (keys_selected) {
         strip->flag &= ~SEQ_SELECT;
       }
     }

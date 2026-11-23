@@ -322,6 +322,7 @@ static void add_strip_effects(StripImportContext &ctx,
     load_data.effect.type = *type;
     load_data.effect.input1 = &input;
     Strip *strip = seq::add_effect_strip(ctx.scene, &seqbase, &load_data);
+    SET_FLAG_FROM_TEST(strip->flag, !effect->enabled(), SEQ_MUTE);
 
     if (time_warp) {
       SpeedControlVars *speed = static_cast<SpeedControlVars *>(strip->effectdata);
@@ -397,6 +398,7 @@ static void add_transition(StripImportContext &ctx,
   load_data.effect.input1 = &from;
   load_data.effect.input2 = &to;
   Strip *strip = seq::add_effect_strip(ctx.scene, &seqbase, &load_data);
+  SET_FLAG_FROM_TEST(strip->flag, !transition.enabled(), SEQ_MUTE);
   ctx.strip_metadata.append({strip, &transition});
 }
 

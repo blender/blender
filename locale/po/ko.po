@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-09-06 05:02+0000\n"
 "Last-Translator: Benjamin Anshin <benanshin@gmail.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -34999,60 +34999,44 @@ msgid "Write"
 msgstr "쓰기"
 
 
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
+msgid "Merge"
+msgstr "병합"
 
 
 msgid "Primitives"
 msgstr "프리미티브"
 
 
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
 msgid "Import"
 msgstr "가져오기"
 
 
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
+msgid "Show/Hide"
+msgstr "표시/숨기기"
 
 
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
+msgid "Clean Up"
+msgstr "정리"
 
 
 msgid "Utilities"
 msgstr "유틸리티"
 
 
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
 msgid "Deprecated"
 msgstr "사용 중단"
 
 
-msgid "Select Linked"
-msgstr "연결된 선택"
+msgid "Special Characters"
+msgstr "특수 문자"
 
 
-msgid "Select Loops"
-msgstr "루프를 선택"
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Metaball"
+msgstr "메타볼"
 
 
 msgid "Math"
@@ -35067,6 +35051,10 @@ msgid "Read"
 msgstr "읽기"
 
 
+msgid "Names"
+msgstr "이름"
+
+
 msgid "Render Preview"
 msgstr "렌더링 미리보기"
 
@@ -35075,16 +35063,120 @@ msgid "Sample"
 msgstr "샘플"
 
 
+msgid "Bone Roll"
+msgstr "뼈대 롤"
+
+
 msgid "Stroke"
 msgstr "스트로크"
 
 
+msgid "Pivot Point"
+msgstr "피벗 포인트"
+
+
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Automasking"
+msgstr "오토마스킹"
+
+
+msgid "Face Sets Edit"
+msgstr "페이스 세트 편집"
+
+
+msgid "Vertex Group Locks"
+msgstr "버텍스 그룹 잠금"
+
+
+msgid "Linked"
+msgstr "연결됨"
+
+
+msgid "Layout"
+msgstr "레이아웃"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Adjust"
+msgstr "조정"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Tracking"
+msgstr "트래킹"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Creative"
+msgstr "크리에이티브"
+
+
 msgid "Assign Material"
 msgstr "머티리얼을 할당"
-
-
-msgid "Metaball"
-msgstr "메타볼"
 
 
 msgid "Light"
@@ -35119,14 +35211,6 @@ msgid "Quick Effects"
 msgstr "빠른 이펙트"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
 msgid "Asset"
 msgstr "에셋"
 
@@ -35143,20 +35227,8 @@ msgid "Link/Transfer Data"
 msgstr "데이터 연결/전송"
 
 
-msgid "Linked"
-msgstr "연결됨"
-
-
-msgid "Layout"
-msgstr "레이아웃"
-
-
 msgid "Hooks"
 msgstr "후크"
-
-
-msgid "Vertex Group Locks"
-msgstr "버텍스 그룹 잠금"
 
 
 msgid "Trim/Add"
@@ -35175,10 +35247,6 @@ msgid "Random Mask"
 msgstr "랜덤 마스크"
 
 
-msgid "Adjust"
-msgstr "조정"
-
-
 msgid "Clear Transform"
 msgstr "변환을 지우기"
 
@@ -35187,24 +35255,12 @@ msgid "In-Betweens"
 msgstr "사이에서"
 
 
-msgid "Keying"
-msgstr "키잉"
-
-
 msgid "Propagate"
 msgstr "전파"
 
 
-msgid "Tracking"
-msgstr "트래킹"
-
-
 msgid "Bone Collections"
 msgstr "뼈대 컬렉션"
-
-
-msgid "Names"
-msgstr "이름"
 
 
 msgid "Toggle Bone Options"
@@ -35219,10 +35275,6 @@ msgid "Disable Bone Options"
 msgstr "뼈대 옵션을 사용 중지"
 
 
-msgid "Creative"
-msgstr "크리에이티브"
-
-
 msgid "Mesh Select Mode"
 msgstr "메시 선택 모드"
 
@@ -35235,68 +35287,16 @@ msgid "Select by Face Strength"
 msgstr "페이스 강도로 선택"
 
 
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Bone Roll"
-msgstr "뼈대 롤"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
-msgid "Automasking"
-msgstr "오토마스킹"
-
-
-msgid "Face Sets Edit"
-msgstr "페이스 세트 편집"
-
-
 msgid "Gizmo"
 msgstr "기즈모"
 
 
-msgid "Mirror"
-msgstr "미러"
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
 
 
 msgid "Instances"
 msgstr "인스턴스"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
 
 
 msgid "Keyframe Insert Pie"
@@ -90455,6 +90455,58 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Active Tool"
+msgstr "활성 도구"
+
+
+msgid "View Lock"
+msgstr "뷰 잠금"
+
+
+msgid "Selectability & Visibility"
+msgstr "선택성 및 가시성"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Cavity"
+msgstr "캐비티"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
+
+
+msgid "Overlays"
+msgstr "오버레이"
+
+
+msgid "Guides"
+msgstr "가이드"
+
+
+msgid "Viewer Node"
+msgstr "뷰어 노드"
+
+
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
+
+
+msgid "Mesh Edit Mode"
+msgstr "메시 에디트 모드"
+
+
+msgid "Measurement"
+msgstr "측정"
+
+
 msgid "Curve Edit Mode"
 msgstr "커브 에디트 모드"
 
@@ -90473,10 +90525,6 @@ msgstr "스트로크 배치"
 
 msgid "Drawing Plane"
 msgstr "드로잉 평면"
-
-
-msgid "Guides"
-msgstr "가이드"
 
 
 msgid "Grease Pencil Options"
@@ -90519,14 +90567,6 @@ msgid "Viewport Debug"
 msgstr "뷰포트 디버그"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR 정보"
-
-
 msgid "glTF Variants"
 msgstr "glTF 변형"
 
@@ -90535,60 +90575,20 @@ msgid "glTF Material Variants"
 msgstr "glTF 머티리얼 배리언트"
 
 
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR 정보"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF 애니메이션"
-
-
-msgid "Active Tool"
-msgstr "활성 도구"
-
-
-msgid "View Lock"
-msgstr "뷰 잠금"
-
-
-msgid "Selectability & Visibility"
-msgstr "선택성 및 가시성"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Cavity"
-msgstr "캐비티"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
-
-
-msgid "Overlays"
-msgstr "오버레이"
-
-
-msgid "Viewer Node"
-msgstr "뷰어 노드"
-
-
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
-
-
-msgid "Mesh Edit Mode"
-msgstr "메시 에디트 모드"
-
-
-msgid "Measurement"
-msgstr "측정"
 
 
 msgid "Import Settings"
@@ -133051,6 +133051,10 @@ msgid "Could not find constraint data for ObjectSolver Set Inverse"
 msgstr "오브젝트 솔버 세트 인버스에 대한 제약 데이터를 찾을 수 없음"
 
 
+msgid "Indices must be in range"
+msgstr "인덱스는 범위 내에 있어야 함"
+
+
 msgid "Applied constraint was not first, result may not be as expected"
 msgstr "적용된 제약이 우선이 아니므로 결과가 예상과 다를 수 있음"
 
@@ -140149,10 +140153,6 @@ msgstr "저장된 사용자 정의 정규 속성을 최종 정규로 사용함"
 
 msgid "Curve sizes must be greater than zero"
 msgstr "곡선 크기는 0보다 커야 함"
-
-
-msgid "Indices must be in range"
-msgstr "인덱스는 범위 내에 있어야 함"
 
 
 msgid "Indices must be sorted in ascending order"

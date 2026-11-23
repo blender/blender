@@ -4,12 +4,12 @@
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
 - Obj 'Camera' CAMERA data:'Camera' par:'Armature' par_type:BONE par_bone:'Bone'
-  - pos 0.000, 0.000, 0.000
+  - pos 0.000, -2.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 2.000, 3.000
   - anim act:Transforms slot:OBCamera blend:REPLACE drivers:0
 - Obj 'Spot' LIGHT data:'Spot' par:'Armature' par_type:BONE par_bone:'Bone'
-  - pos 10.000, 0.000, 0.000
+  - pos 10.000, -2.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 2.000, 3.000
   - anim act:Transforms slot:OBSpot blend:REPLACE drivers:0
@@ -32,8 +32,8 @@
     - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
     - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
   - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
-    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
-    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+    - (1.000, -2.000) lh:(-7.000, -2.000 AUTO_CLAMPED) rh:(9.000, -2.000 AUTO_CLAMPED)
+    - (25.000, -2.000) lh:(17.000, -2.000 AUTO_CLAMPED) rh:(33.000, -2.000 AUTO_CLAMPED)
   - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera'
     - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
     - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
@@ -60,8 +60,8 @@
     - (1.000, 10.000) lh:(-7.000, 10.000 AUTO_CLAMPED) rh:(9.000, 10.000 AUTO_CLAMPED)
     - (25.000, 10.000) lh:(17.000, 10.000 AUTO_CLAMPED) rh:(33.000, 10.000 AUTO_CLAMPED)
   - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
-    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
-    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+    - (1.000, -2.000) lh:(-7.000, -2.000 AUTO_CLAMPED) rh:(9.000, -2.000 AUTO_CLAMPED)
+    - (25.000, -2.000) lh:(17.000, -2.000 AUTO_CLAMPED) rh:(33.000, -2.000 AUTO_CLAMPED)
   - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Spot'
     - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
     - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)

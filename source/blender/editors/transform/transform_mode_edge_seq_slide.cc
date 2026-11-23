@@ -172,8 +172,8 @@ static void seq_slide_status(TransInfo *t)
         IFACE_("Axis"), keymap, TFM_MODAL_AXIS_Y, has_constraint && (t->con.mode & CON_AXIS1));
   }
 
-  const bool y_locked = ts->offset_clamp.ymin == 0 && ts->offset_clamp.ymax == 0;
-  const bool handles_selected = y_locked && t->data_type == &TransConvertType_Sequencer;
+  const bool handles_selected = t->data_type == &TransConvertType_Sequencer &&
+                                (ts->hold_clamp_min != INT_MIN || ts->hold_clamp_max != INT_MAX);
   if (has_constraint) {
     status.modal_keymap(IFACE_("Clear Constraints"), keymap, TFM_MODAL_CONS_OFF);
   }

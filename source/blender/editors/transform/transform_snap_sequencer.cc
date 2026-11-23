@@ -84,7 +84,6 @@ static VectorSet<Strip *> query_strip_sources_timeline(const Scene *scene)
   ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
 
   VectorSet<Strip *> strip_sources = seq::query_selected_strips(seqbase);
-  strip_sources.remove_if([&](Strip *strip) { return seq::transform_is_locked(channels, strip); });
 
   const Map retiming_selection = seq::retiming_selection_get(ed);
   /* Strips owned by retiming keys are technically not selected,
@@ -93,6 +92,7 @@ static VectorSet<Strip *> query_strip_sources_timeline(const Scene *scene)
     strip_sources.add(strip);
   }
 
+  strip_sources.remove_if([&](Strip *strip) { return seq::transform_is_locked(channels, strip); });
   return strip_sources;
 }
 
@@ -219,9 +219,13 @@ static void build_sources_timeline(const Scene *scene,
 static void build_sources_timeline_retiming(const Scene *scene, TransSeqSnapData *snap_data)
 {
   const Editing *ed = seq::editing_get(scene);
+  const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   const Map retiming_selection = seq::retiming_selection_get(ed);
 
   for (auto item : retiming_selection.items()) {
+    if (seq::transform_is_locked(channels, item.value)) {
+      continue;
+    }
     const int channel = item.value->channel;
     const int key_frame = seq::retiming_key_frame_get(scene, item.value, item.key);
     snap_data->sources.append(float2(key_frame, channel));

@@ -20,7 +20,7 @@ def _animated_properties_get(strip):
     animated_properties = []
     if hasattr(strip, "volume"):
         animated_properties.append("volume")
-    if hasattr(strip, "blend_alpha"):
+    if hasattr(strip, "blend_alpha") and strip.type != 'SOUND':
         animated_properties.append("blend_alpha")
     return animated_properties
 

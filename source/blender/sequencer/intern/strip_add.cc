@@ -21,6 +21,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BLI_listbase.hh"
 #include "BLI_math_base.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.hh"
@@ -617,6 +618,23 @@ static void add_reload_new_file_impl(
     }
     case STRIP_TYPE_SCENE: {
       int new_len = (strip->scene) ? strip->scene->r.efra - strip->scene->r.sfra + 1 : 0;
+      new_len -= strip->anim_startofs;
+      new_len -= strip->anim_endofs;
+      new_len = std::max(new_len, 0);
+      strip->content_length_set(new_len);
+      break;
+    }
+    case STRIP_TYPE_META: {
+      if (strip->seqbase.is_empty()) {
+        break;
+      }
+      int min = MAXFRAME * 2;
+      int max = -MAXFRAME * 2;
+      for (Strip &child : strip->seqbase) {
+        min = std::min(child.left_handle(), min);
+        max = std::max(child.right_handle(scene), max);
+      }
+      int new_len = max - min;
       new_len -= strip->anim_startofs;
       new_len -= strip->anim_endofs;
       new_len = std::max(new_len, 0);

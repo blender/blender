@@ -12,6 +12,7 @@
 #include "BKE_object.hh"
 
 #include "BLI_math_vector.hh"
+#include "BLI_stack.hh"
 
 #include "DNA_object_types.h"
 
@@ -23,11 +24,23 @@
 
 namespace blender::io::fbx {
 
+static constexpr float auto_orient_min_length = 1.0e-5f;
+
 struct ArmatureImportContext {
   Main &bmain;
   const ufbx_scene &fbx;
   const FBXImportParams &params;
   FbxElementMapping &mapping;
+
+  /* Bone lengths calculated by automatic bone orientation. */
+  Map<const ufbx_node *, float> auto_bone_length;
+  /* Animated transform properties (translation, rotation, scale) of each node, in anim layer
+   * order. Used to check whether a bone has translation animation. */
+  struct NodeTransformAnim {
+    const ufbx_anim_layer *layer;
+    const ufbx_anim_prop *prop;
+  };
+  Map<const ufbx_node *, Vector<NodeTransformAnim>> node_transform_anims;
 
   ArmatureImportContext(Main &main,
                         const ufbx_scene &fbx,
@@ -37,6 +50,13 @@ struct ArmatureImportContext {
   {
   }
 
+  float3 calc_child_bone_local_pos(const ufbx_node *child, const ufbx_matrix &world_to_arm) const;
+  float3 calc_bone_incoming_dir(const ufbx_node *node, const ufbx_matrix &world_to_arm) const;
+  void calc_bone_orientations(const ufbx_node *arm_node,
+                              const Set<const ufbx_node *> &bone_nodes,
+                              const ufbx_matrix &world_to_arm);
+  void gather_node_transform_anims();
+  bool is_translation_animated(const ufbx_node *node) const;
   Object *create_armature_for_node(const ufbx_node *node);
   void create_armature_bones(const ufbx_node *node,
                              Object *arm_obj,
@@ -48,6 +68,286 @@ struct ArmatureImportContext {
   void find_armatures(const ufbx_node *node);
   void calc_bone_bind_matrices();
 };
+
+float3 ArmatureImportContext::calc_child_bone_local_pos(const ufbx_node *child,
+                                                        const ufbx_matrix &world_to_arm) const
+{
+  /* Estimate child position from local transform. If the child
+   * is skinned/posed, then use the posed transform. */
+  ufbx_vec3 pos = child->local_transform.translation;
+  if (this->mapping.bone_to_bind_matrix.contains(child)) {
+    ufbx_matrix local_mtx = this->mapping.calc_local_bind_matrix(child, world_to_arm);
+    pos = local_mtx.cols[3];
+  }
+  return float3(pos.x, pos.y, pos.z);
+}
+
+float3 ArmatureImportContext::calc_bone_incoming_dir(const ufbx_node *node,
+                                                     const ufbx_matrix &world_to_arm) const
+{
+  /* Direction from parent joint towards this joint, in the local space of this joint. */
+  ufbx_matrix local_mtx;
+  if (this->mapping.bone_to_bind_matrix.contains(node)) {
+    local_mtx = this->mapping.calc_local_bind_matrix(node, world_to_arm);
+  }
+  else {
+    local_mtx = ufbx_transform_to_matrix(&node->local_transform);
+  }
+  const ufbx_vec3 &pos = local_mtx.cols[3];
+  if (math::length(float3(pos.x, pos.y, pos.z)) < auto_orient_min_length) {
+    /* Coincident joints have no sensible incoming direction. */
+    return float3(0.0f);
+  }
+  const ufbx_matrix local_inv = ufbx_matrix_invert(&local_mtx);
+  const float3 dir = -float3(local_inv.cols[3].x, local_inv.cols[3].y, local_inv.cols[3].z);
+  return math::normalize(dir);
+}
+
+/* Build bone correction matrix that rotates bone Y axis to point along the given
+ * axis (0=X, 1=Y, 2=Z) with the given sign. Resulting matrix is rotation only,
+ * by multiples of 90 degrees. */
+static ufbx_matrix make_bone_correction_matrix(int axis, float sign)
+{
+  float3 new_x, new_y(0.0f), new_z;
+  new_y[axis] = sign;
+  if (axis != 2) {
+    new_z = float3(0.0f, 0.0f, 1.0f);
+    new_x = math::cross(new_y, new_z);
+  }
+  else {
+    new_x = float3(1.0f, 0.0f, 0.0f);
+    new_z = math::cross(new_x, new_y);
+  }
+  ufbx_matrix mtx = ufbx_identity_matrix;
+  for (int i = 0; i < 3; i++) {
+    mtx.cols[0].v[i] = new_x[i];
+    mtx.cols[1].v[i] = new_y[i];
+    mtx.cols[2].v[i] = new_z[i];
+  }
+  return mtx;
+}
+
+/* Automatic bone orientation logic.
+ *
+ * Blender bones always point along their Y axis, and are visualized as such. But in FBX, joints
+ * do not have a "direction", rather just parent-child hierarchy. FBX files produced by
+ * other applications often have for example X axis pointing along the bone direction.
+ *
+ * - For each bone, figure out local direction it "should" point to: towards the child joint
+ *   (with multiple children, the one that best continues the parent->bone direction), or for
+ *   leaf bones, continuing the parent->bone direction.
+ * - Pick one axis (X/Y/Z, ignoring the sign) for the whole armature, by majority vote among
+ *   bones that have a single child.
+ * - Pick the sign per bone, since with mirrored skeletons some bones might point along
+ *   the +axis, and others point along the -axis. If the bone direction is not clearly along the
+ *   axis, use the sign of the parent bone.
+ * - Bones with a child far away from the armature axis (most often happens with root bones or
+ *   various helper bones) use the axis closest to the child direction instead.
+ * - If the skeleton already follows the Blender convention (+Y axis), do not change anything.
+ *
+ * The correction is always rotation by multiples of 90 degrees, so that non-uniform bone scaling
+ * stays representable. */
+void ArmatureImportContext::calc_bone_orientations(const ufbx_node *arm_node,
+                                                   const Set<const ufbx_node *> &bone_nodes,
+                                                   const ufbx_matrix &world_to_arm)
+{
+  struct BoneDir {
+    float3 dir = float3(0.0f); /* Normalized, or zero if unknown. */
+    int child_count = 0;
+  };
+  Map<const ufbx_node *, BoneDir> bone_dirs;
+
+  /* Bone lengths to use, if any correction ends up being done. */
+  Map<const ufbx_node *, float> bone_lengths;
+
+  for (const ufbx_node *node : bone_nodes) {
+    BoneDir info;
+    const float3 incoming = this->calc_bone_incoming_dir(node, world_to_arm);
+    float best_score = 0.0f;
+    float3 best_pos(0.0f);
+    bool has_coincident_children = false;
+    for (const ufbx_node *fchild : node->children) {
+      if (!bone_nodes.contains(fchild)) {
+        continue;
+      }
+      const float3 pos = this->calc_child_bone_local_pos(fchild, world_to_arm);
+      const float len = math::length(pos);
+      if (len < auto_orient_min_length) {
+        has_coincident_children = true;
+        continue;
+      }
+      info.child_count++;
+
+      /* Prefer the child that best continues the parent->bone direction. If that is not known,
+       * then use the farthest child. */
+      const float score = math::is_zero(incoming) ? len : math::dot(pos / len, incoming);
+      if (info.child_count == 1 || score > best_score) {
+        best_score = score;
+        best_pos = pos;
+      }
+    }
+    if (info.child_count > 0) {
+      info.dir = math::normalize(best_pos);
+      bone_lengths.add(node, math::length(best_pos));
+    }
+    else {
+      info.dir = incoming;
+      if (has_coincident_children) {
+        /* All children are at the bone head, minimum bone length clamp will handle this. */
+        bone_lengths.add(node, 0.0f);
+      }
+    }
+    bone_dirs.add(node, info);
+  }
+
+  /* Vote on the axis. Prefer bones with a single child, since their direction is unambiguous;
+   * use all bones with children if there are no such bones. */
+  int votes[3] = {0, 0, 0};
+  for (const bool single_only : {true, false}) {
+    for (const BoneDir &info : bone_dirs.values()) {
+      if (single_only ? info.child_count != 1 : info.child_count == 0) {
+        continue;
+      }
+      votes[math::dominant_axis(info.dir)]++;
+    }
+    if (votes[0] + votes[1] + votes[2] > 0) {
+      break;
+    }
+  }
+
+  /* For ties, prefer Y (no change compared to Blender), then X. */
+  int axis = 1;
+  for (const int candidate : {0, 2}) {
+    if (votes[candidate] > votes[axis]) {
+      axis = candidate;
+    }
+  }
+
+#ifdef FBX_DEBUG_PRINT
+  fprintf(g_debug_file,
+          "auto bone orientation for %s: votes X %i Y %i Z %i, axis %i\n",
+          arm_node->name.data,
+          votes[0],
+          votes[1],
+          votes[2],
+          axis);
+#endif
+
+  /* Pick sign for each bone, going down the hierarchy from the root bones. */
+  Stack<std::pair<const ufbx_node *, float>> stack;
+  for (const ufbx_node *fchild : arm_node->children) {
+    if (bone_nodes.contains(fchild)) {
+      stack.push({fchild, 1.0f});
+    }
+  }
+  /* Only switch sign from parent when bone direction is within 60 degrees of the axis. */
+  const float min_axis_cos = 0.5f;
+  bool any_correction = false;
+  Vector<const ufbx_node *> outlier_bones;
+  while (!stack.is_empty()) {
+    const auto [node, parent_sign] = stack.pop();
+    const BoneDir &info = bone_dirs.lookup(node);
+    const float dir_along_axis = info.dir[axis];
+    float sign = parent_sign;
+    if (math::abs(dir_along_axis) >= min_axis_cos) {
+      sign = dir_along_axis > 0.0f ? 1.0f : -1.0f;
+    }
+    else if (info.child_count > 0) {
+      /* Outlier, will probably get its own axis below. */
+      outlier_bones.append(node);
+    }
+    if (axis != 1 || sign != 1.0f) {
+      this->mapping.bone_to_correction.add(node, make_bone_correction_matrix(axis, sign));
+      any_correction = true;
+    }
+    for (const ufbx_node *fchild : node->children) {
+      if (bone_nodes.contains(fchild)) {
+        stack.push({fchild, sign});
+      }
+    }
+  }
+
+  /* Leave the skeleton as-is if there is no correction needed. */
+  if (!any_correction) {
+    return;
+  }
+
+  /* Outlier bones that have children use the axis closest to their child direction. */
+  for (const ufbx_node *node : outlier_bones) {
+    const float3 dir = bone_dirs.lookup(node).dir;
+    const int bone_axis = math::dominant_axis(dir);
+    const float bone_sign = dir[bone_axis] > 0.0f ? 1.0f : -1.0f;
+    if (bone_axis == 1 && bone_sign == 1.0f) {
+      this->mapping.bone_to_correction.remove(node);
+    }
+    else {
+      this->mapping.bone_to_correction.add_overwrite(
+          node, make_bone_correction_matrix(bone_axis, bone_sign));
+    }
+  }
+
+  for (const auto item : bone_lengths.items()) {
+    this->auto_bone_length.add(item.key, item.value);
+  }
+}
+
+void ArmatureImportContext::gather_node_transform_anims()
+{
+  for (const ufbx_anim_layer *layer : this->fbx.anim_layers) {
+    for (const ufbx_anim_prop &prop : layer->anim_props) {
+      if (prop.element->type != UFBX_ELEMENT_NODE || prop.anim_value == nullptr) {
+        continue;
+      }
+      if (!STREQ(prop.prop_name.data, UFBX_Lcl_Translation) &&
+          !STREQ(prop.prop_name.data, UFBX_Lcl_Rotation) &&
+          !STREQ(prop.prop_name.data, UFBX_Lcl_Scaling))
+      {
+        continue;
+      }
+      const ufbx_node *node = ufbx_as_node(prop.element);
+      this->node_transform_anims.lookup_or_add_default(node).append({layer, &prop});
+    }
+  }
+}
+
+bool ArmatureImportContext::is_translation_animated(const ufbx_node *node) const
+{
+  const Vector<NodeTransformAnim> *anims = this->node_transform_anims.lookup_ptr(node);
+  if (anims == nullptr) {
+    return false;
+  }
+
+  /* It is not enough to check just presence of translation animation, because
+   * translation can change due to rotation/scale around a pivot too. Evaluate the transform
+   * the same way as animation import does. */
+  const ufbx_vec3 &cur_pos = node->local_transform.translation;
+  Set<double> key_times;
+  for (int64_t i = 0; i < anims->size();) {
+    const ufbx_anim_layer *layer = (*anims)[i].layer;
+    key_times.clear();
+    for (; i < anims->size() && (*anims)[i].layer == layer; i++) {
+      for (const ufbx_anim_curve *curve : (*anims)[i].prop->anim_value->curves) {
+        if (curve == nullptr) {
+          continue;
+        }
+        for (const ufbx_keyframe &key : curve->keyframes) {
+          key_times.add(key.time);
+        }
+      }
+    }
+
+    for (const double time : key_times) {
+      const ufbx_transform xform = ufbx_evaluate_transform(layer->anim, node, time);
+      for (int axis = 0; axis < 3; axis++) {
+        const ufbx_real eps = 1.0e-4 * math::max(ufbx_real(1.0), math::abs(cur_pos.v[axis]));
+        if (math::abs(xform.translation.v[axis] - cur_pos.v[axis]) > eps) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
 
 Object *ArmatureImportContext::create_armature_for_node(const ufbx_node *node)
 {
@@ -152,18 +452,13 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
     if (!bone_nodes.contains(fchild)) {
       continue;
     }
-
-    /* Estimate child position from local transform, but if the child
-     * is skinned/posed then use the posed transform instead. */
-    ufbx_vec3 pos = fchild->local_transform.translation;
-    if (this->mapping.bone_to_bind_matrix.contains(fchild)) {
-      ufbx_matrix local_mtx = this->mapping.calc_local_bind_matrix(fchild, world_to_arm);
-      pos = local_mtx.cols[3];
-    }
-    bone_size += math::length(float3(pos.x, pos.y, pos.z));
+    bone_size += math::length(this->calc_child_bone_local_pos(fchild, world_to_arm));
     child_bone_count++;
   }
-  if (child_bone_count > 0) {
+  if (const float *auto_length = this->auto_bone_length.lookup_ptr(node)) {
+    bone_size = *auto_length;
+  }
+  else if (child_bone_count > 0) {
     bone_size /= child_bone_count;
   }
   else {
@@ -191,9 +486,16 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
   bone->tail[0] = 0.0f;
   bone->tail[1] = bone_size;
   bone->tail[2] = 0.0f;
-  /* Set bone matrix. */
+  /* Set bone matrix. Note: the uncorrected `bone_mtx` is what gets passed to the children. */
+  const ufbx_matrix *correction = this->mapping.find_bone_correction(node);
   float bone_matrix[4][4];
-  matrix_to_m44(bone_mtx, bone_matrix);
+  if (correction != nullptr) {
+    const ufbx_matrix corrected_mtx = ufbx_matrix_mul(&bone_mtx, correction);
+    matrix_to_m44(corrected_mtx, bone_matrix);
+  }
+  else {
+    matrix_to_m44(bone_mtx, bone_matrix);
+  }
   ED_armature_ebone_from_mat4(bone, bone_matrix);
 
 #ifdef FBX_DEBUG_PRINT
@@ -209,7 +511,9 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
 #endif
 
   /* Mark bone as connected to parent if head approximately in the same place as parent tail, in
-   * both rest pose and current pose. */
+   * both rest pose and current pose.
+   * Connected bones ignore their pose translation, so do not connect bones that have
+   * translation animation. */
   if (parent_bone != nullptr) {
     float3 self_head_rest(bone->head);
     float3 par_tail_rest(parent_bone->tail);
@@ -223,13 +527,15 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
       par_tail.x = 0;
       par_tail.y = parent_bone_size;
       par_tail.z = 0;
+      if (const ufbx_matrix *par_correction = this->mapping.find_bone_correction(node->parent)) {
+        par_tail = ufbx_transform_position(par_correction, par_tail);
+      }
       ufbx_vec3 par_tail_cur_u = ufbx_transform_position(&node->parent->node_to_world, par_tail);
       float3 self_head_cur(self_head_cur_u.x, self_head_cur_u.y, self_head_cur_u.z);
       float3 par_tail_cur(par_tail_cur_u.x, par_tail_cur_u.y, par_tail_cur_u.z);
       float dist_sq_cur = math::distance_squared(self_head_cur, par_tail_cur);
 
-      if (dist_sq_cur < connect_dist_sq) {
-        /* Connected in both cases. */
+      if (dist_sq_cur < connect_dist_sq && !this->is_translation_animated(node)) {
         bone->flag |= BONE_CONNECTED;
       }
     }
@@ -328,6 +634,10 @@ void ArmatureImportContext::find_armatures(const ufbx_node *node)
 
     Set<const ufbx_node *> bone_nodes = find_all_bones(node);
 
+    if (this->params.auto_bone_orientation) {
+      this->calc_bone_orientations(node, bone_nodes, world_to_arm);
+    }
+
     /* Create bones in edit mode. */
     bArmature *arm = id_cast<bArmature *>(arm_obj->data);
     ED_armature_to_edit(arm);
@@ -364,7 +674,8 @@ void ArmatureImportContext::find_armatures(const ufbx_node *node)
           ufbx_matrix matrix = ufbx_matrix_mul(&world_to_arm, &fbone->node_to_world);
           xform = ufbx_matrix_to_transform(&matrix);
         }
-        ufbx_matrix pose_mtx = calc_bone_pose_matrix(xform, *fbone, bind_local_mtx_inv);
+        ufbx_matrix pose_mtx = calc_bone_pose_matrix(
+            xform, *fbone, bind_local_mtx_inv, this->mapping.find_bone_correction(fbone));
 
         float pchan_matrix[4][4];
         matrix_to_m44(pose_mtx, pchan_matrix);
@@ -427,6 +738,9 @@ void import_armatures(Main &bmain,
 {
   ArmatureImportContext context(bmain, fbx, params, mapping);
   context.calc_bone_bind_matrices();
+  if (params.use_anim) {
+    context.gather_node_transform_anims();
+  }
   context.find_armatures(fbx.root_node);
 }
 

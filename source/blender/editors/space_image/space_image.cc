@@ -515,7 +515,7 @@ static void IMAGE_GGT_gizmo2d_resize(wmGizmoGroupType *gzgt)
 
 static void IMAGE_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
 {
-  gzgt->name = "UV Transform Gizmo Resize";
+  gzgt->name = "UV Transform Gizmo Rotate";
   gzgt->idname = "IMAGE_GGT_gizmo2d_rotate";
 
   gzgt->flag |= (WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |

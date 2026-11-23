@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-08-25 20:13+0000\n"
 "Last-Translator: \"Mattis V.\" <mattis@users.noreply.translate.blender.org>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -19280,6 +19280,98 @@ msgid "Write"
 msgstr "Schreiben"
 
 
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
+
+
+msgid "Import"
+msgstr "Importieren"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Math"
+msgstr "Mathe"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Read"
+msgstr "Lesen"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Stroke"
+msgstr "Pinselstrich"
+
+
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
+msgid "Linked"
+msgstr "Verknüpft"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
 msgid "Viewpoint"
 msgstr "Ansicht"
 
@@ -19288,16 +19380,8 @@ msgid "Navigation"
 msgstr "Navigation"
 
 
-msgid "Primitives"
-msgstr "Grundkörper"
-
-
 msgid "Align View"
 msgstr "Ansicht ausrichten"
-
-
-msgid "Import"
-msgstr "Importieren"
 
 
 msgid "Align View to Active"
@@ -19320,40 +19404,24 @@ msgid "Select All by Trait"
 msgstr "Alles nach Merkmal auswählen"
 
 
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
 msgid "Select Linked"
 msgstr "Verknüpfte auswählen"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
 
 
 msgid "Select Loops"
 msgstr "Schleifen auswählen"
 
 
-msgid "Math"
-msgstr "Mathe"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Read"
-msgstr "Lesen"
-
-
-msgid "Sample"
-msgstr "Beispiel"
-
-
-msgid "Stroke"
-msgstr "Pinselstrich"
-
-
 msgid "Assign Material"
 msgstr "Material zuweisen"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Light"
@@ -19388,14 +19456,6 @@ msgid "Quick Effects"
 msgstr "Schnelle Effekte"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
 msgid "Asset"
 msgstr "Asset"
 
@@ -19408,20 +19468,8 @@ msgid "Convert"
 msgstr "Konvertieren"
 
 
-msgid "Linked"
-msgstr "Verknüpft"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Hooks"
 msgstr "Haken"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
 
 
 msgid "Random Mask"
@@ -19434,18 +19482,6 @@ msgstr "Transformation löschen"
 
 msgid "In-Betweens"
 msgstr "Dazwischen"
-
-
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
-
-
-msgid "Names"
-msgstr "Namen"
 
 
 msgid "Toggle Bone Options"
@@ -19468,44 +19504,8 @@ msgid "Face Data"
 msgstr "Flächendaten"
 
 
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
 msgid "Instances"
 msgstr "Instanzen"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
 
 
 msgid "Assets"
@@ -39300,42 +39300,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -39364,6 +39328,10 @@ msgid "Overlays"
 msgstr "Überlagerungen"
 
 
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -39374,6 +39342,38 @@ msgstr "Maschenbearbeitungsmodus"
 
 msgid "Measurement"
 msgstr "Messung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Chain Scaling"

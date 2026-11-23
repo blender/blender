@@ -145,7 +145,7 @@
     - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
       ...
     - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
-    - (151.000, -0.259) lh:(141.000, -0.259 AUTO_CLAMPED) rh:(161.000, -0.259 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
     - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
   - fcu 'pose.bones["left_arm_1"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
     - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
@@ -153,7 +153,7 @@
     - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
       ...
     - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
-    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+    - (151.000, -0.259) lh:(141.000, -0.259 AUTO_CLAMPED) rh:(161.000, -0.259 AUTO_CLAMPED)
     - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
   - fcu 'pose.bones["left_arm_1"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
     - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
@@ -225,69 +225,69 @@
     - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
       ...
     - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
-    - (151.000, -0.259) lh:(141.000, -0.259 AUTO_CLAMPED) rh:(161.000, -0.259 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
     - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
 
 ==== Armatures: 1
 - Armature 'Armature' 15 bones
-  - bone 'left_arm_1' parent:'root_bone' h:(50.000, -50.000, 0.000) t:(50.000, -20.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 50.000
-      0.000 1.000 0.000 0.000
+  - bone 'left_arm_1' parent:'root_bone' h:(0.000, 0.000, 0.000) t:(0.000, 30.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 1.000 0.000 50.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 1.000 0.000
-  - bone 'left_arm_2' parent:'left_arm_1' h:(30.000, -30.000, 0.000) t:(30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 80.000
-      0.000 1.000 0.000 0.000
+  - bone 'left_arm_2' parent:'left_arm_1' h:(0.000, 0.000, 0.000) t:(0.000, 30.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 1.000 0.000 80.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 1.000 0.000
-  - bone 'left_arm_3' parent:'left_arm_2' h:(30.000, -30.000, 0.000) t:(30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 110.000
-      0.000 1.000 0.000 0.000
+  - bone 'left_arm_3' parent:'left_arm_2' h:(0.000, 0.000, 0.000) t:(0.000, 30.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 1.000 0.000 110.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 1.000 0.000
-  - bone 'left_arm_4' parent:'left_arm_3' h:(30.000, -30.000, 0.000) t:(30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 140.000
-      0.000 1.000 0.000 0.000
+  - bone 'left_arm_4' parent:'left_arm_3' h:(0.000, 0.000, 0.000) t:(0.000, 30.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 1.000 0.000 140.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 1.000 0.000
-  - bone 'left_arm_5' parent:'left_arm_4' h:(30.000, -30.000, 0.000) t:(30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 170.000
-      0.000 1.000 0.000 0.000
+  - bone 'left_arm_5' parent:'left_arm_4' h:(0.000, 0.000, 0.000) t:(0.000, 30.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 1.000 0.000 170.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 1.000 0.000
-  - bone 'left_arm_end' parent:'left_arm_5' h:(30.000, -30.000, 0.000) t:(30.000, -25.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 200.000
-      0.000 1.000 0.000 0.000
+  - bone 'left_arm_end' parent:'left_arm_5' h:(0.000, 0.000, 0.000) t:(0.000, 5.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 1.000 0.000 200.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 1.000 0.000
-  - bone 'left_arm_end_detail' parent:'left_arm_end' h:(5.000, -5.000, 0.000) t:(5.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 205.000
-      0.000 1.000 0.000 0.000
+  - bone 'left_arm_end_detail' parent:'left_arm_end' h:(0.000, 0.000, 0.000) t:(0.000, 5.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 1.000 0.000 205.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 1.000 0.000
-  - bone 'right_arm_1' parent:'root_bone' h:(-50.000, -50.000, 0.000) t:(-50.000, -80.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 -50.000
-      0.000 -1.000 0.000 0.000
+  - bone 'right_arm_1' parent:'root_bone' h:(0.000, -100.000, 0.000) t:(0.000, -130.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -1.000 0.000 -50.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 -1.000 0.000
-  - bone 'right_arm_2' parent:'right_arm_1' h:(-30.000, -30.000, 0.000) t:(-30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 -80.000
-      0.000 -1.000 0.000 0.000
+  - bone 'right_arm_2' parent:'right_arm_1' h:(0.000, 0.000, 0.000) t:(0.000, 30.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -1.000 0.000 -80.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 -1.000 0.000
-  - bone 'right_arm_3' parent:'right_arm_2' h:(-30.000, -30.000, 0.000) t:(-30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 -110.000
-      0.000 -1.000 0.000 0.000
+  - bone 'right_arm_3' parent:'right_arm_2' h:(0.000, 0.000, 0.000) t:(0.000, 30.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -1.000 0.000 -110.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 -1.000 0.000
-  - bone 'right_arm_4' parent:'right_arm_3' h:(-30.000, -30.000, 0.000) t:(-30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 -140.000
-      0.000 -1.000 0.000 0.000
+  - bone 'right_arm_4' parent:'right_arm_3' h:(0.000, 0.000, 0.000) t:(0.000, 30.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -1.000 0.000 -140.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 -1.000 0.000
-  - bone 'right_arm_5' parent:'right_arm_4' h:(-30.000, -30.000, 0.000) t:(-30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 -170.000
-      0.000 -1.000 0.000 0.000
+  - bone 'right_arm_5' parent:'right_arm_4' h:(0.000, 0.000, 0.000) t:(0.000, 30.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -1.000 0.000 -170.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 -1.000 0.000
-  - bone 'right_arm_end' parent:'right_arm_5' h:(-30.000, -30.000, 0.000) t:(-30.000, -25.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 -200.000
-      0.000 -1.000 0.000 0.000
+  - bone 'right_arm_end' parent:'right_arm_5' h:(0.000, 0.000, 0.000) t:(0.000, 5.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -1.000 0.000 -200.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 -1.000 0.000
-  - bone 'right_arm_end_detail' parent:'right_arm_end' h:(-5.000, -5.000, 0.000) t:(-5.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
-      1.000 0.000 0.000 -205.000
-      0.000 -1.000 0.000 0.000
+  - bone 'right_arm_end_detail' parent:'right_arm_end' h:(0.000, 0.000, 0.000) t:(0.000, 5.000, 0.000) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -1.000 0.000 -205.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 -1.000 0.000
-  - bone 'root_bone' h:(0.000, 0.000, 0.000) t:(0.000, 50.000, 0.000) radius h:0.100 t:0.050
-      1.000 0.000 0.000 0.000
+  - bone 'root_bone' h:(0.000, 0.000, 0.000) t:(50.000, 0.000, 0.000) radius h:0.100 t:0.050
       0.000 1.000 0.000 0.000
+      -1.000 0.000 0.000 0.000
       0.000 0.000 1.000 0.000
 

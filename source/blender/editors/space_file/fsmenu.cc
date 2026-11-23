@@ -225,7 +225,7 @@ short fsmenu_can_save(FSMenu *fsmenu, FSMenuCategory category, int idx)
   return fsm_iter ? fsm_iter->save : 0;
 }
 
-void fsmenu_insert_entry(FSMenu *fsmenu,
+bool fsmenu_insert_entry(FSMenu *fsmenu,
                          FSMenuCategory category,
                          const char *path,
                          const char *name,
@@ -244,7 +244,7 @@ void fsmenu_insert_entry(FSMenu *fsmenu,
   const uint path_len = strlen(path);
   BLI_assert(path_len > 0);
   if (path_len == 0) {
-    return;
+    return false;
   }
   BLI_assert(!BLI_path_is_rel(path));
   const bool has_trailing_slash = (path[path_len - 1] == SEP);
@@ -270,7 +270,7 @@ void fsmenu_insert_entry(FSMenu *fsmenu,
             ED_fsmenu_set_category(fsmenu, category, fsm_iter);
           }
         }
-        return;
+        return false;
       }
       if ((flag & FS_INSERT_SORTED) && cmp_ret < 0) {
         break;
@@ -348,6 +348,8 @@ void fsmenu_insert_entry(FSMenu *fsmenu,
     fsm_iter->next = fsm_head;
     ED_fsmenu_set_category(fsmenu, category, fsm_iter);
   }
+
+  return true;
 }
 
 void fsmenu_remove_entry(FSMenu *fsmenu, FSMenuCategory category, int idx)

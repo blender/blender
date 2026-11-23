@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2025-07-23 15:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -553,6 +553,10 @@ msgid "Import"
 msgstr "Inportatu"
 
 
+msgid "Show/Hide"
+msgstr "Erakutsi/Ezkutatu"
+
+
 msgid "UV"
 msgstr "UV"
 
@@ -563,10 +567,6 @@ msgstr "Trazua"
 
 msgid "Relations"
 msgstr "Loturak"
-
-
-msgid "Show/Hide"
-msgstr "Erakutsi/Ezkutatu"
 
 
 msgid "Show/Hide Faces"

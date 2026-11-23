@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.4.0 Alpha (b'023dcaed86e9')\n"
+"Project-Id-Version: Blender 5.4.0 Alpha (b'6c6f527b5ffb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 11:03+0000\n"
+"POT-Creation-Date: 2026-11-23 08:41+0000\n"
 "PO-Revision-Date: 2026-11-14 15:13+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34666,60 +34666,44 @@ msgid "Write"
 msgstr "Write"
 
 
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
+msgid "Merge"
+msgstr "Merge"
 
 
 msgid "Primitives"
 msgstr "Primitives"
 
 
-msgid "Align View"
-msgstr "Align View"
-
-
 msgid "Import"
 msgstr "Import"
 
 
-msgid "Align View to Active"
-msgstr "Align View to Active"
+msgid "Show/Hide"
+msgstr "Show/Hide"
 
 
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
+msgid "Clean Up"
+msgstr "Clean Up"
 
 
 msgid "Utilities"
 msgstr "Utilities"
 
 
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
 msgid "Deprecated"
 msgstr "Deprecated"
 
 
-msgid "Select Linked"
-msgstr "Select Linked"
+msgid "Special Characters"
+msgstr "Special Characters"
 
 
-msgid "Select Loops"
-msgstr "Select Loops"
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Math"
@@ -34734,6 +34718,10 @@ msgid "Read"
 msgstr "Read"
 
 
+msgid "Names"
+msgstr "Names"
+
+
 msgid "Render Preview"
 msgstr "Render Preview"
 
@@ -34742,16 +34730,120 @@ msgid "Sample"
 msgstr "Sample"
 
 
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
 msgid "Stroke"
 msgstr "Stroke"
 
 
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Linked"
+msgstr "Linked"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Creative"
+msgstr "Creative"
+
+
 msgid "Assign Material"
 msgstr "Assign Material"
-
-
-msgid "Metaball"
-msgstr "Metaball"
 
 
 msgid "Light"
@@ -34786,14 +34878,6 @@ msgid "Quick Effects"
 msgstr "Quick Effects"
 
 
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
 msgid "Asset"
 msgstr "Asset"
 
@@ -34810,20 +34894,8 @@ msgid "Link/Transfer Data"
 msgstr "Link/Transfer Data"
 
 
-msgid "Linked"
-msgstr "Linked"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Hooks"
 msgstr "Hooks"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
 
 
 msgid "Trim/Add"
@@ -34842,10 +34914,6 @@ msgid "Random Mask"
 msgstr "Random Mask"
 
 
-msgid "Adjust"
-msgstr "Adjust"
-
-
 msgid "Clear Transform"
 msgstr "Clear Transform"
 
@@ -34854,24 +34922,12 @@ msgid "In-Betweens"
 msgstr "In-Betweens"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Propagate"
 msgstr "Propagate"
 
 
-msgid "Tracking"
-msgstr "Tracking"
-
-
 msgid "Bone Collections"
 msgstr "Bone Collections"
-
-
-msgid "Names"
-msgstr "Names"
 
 
 msgid "Toggle Bone Options"
@@ -34886,10 +34942,6 @@ msgid "Disable Bone Options"
 msgstr "Disable Bone Options"
 
 
-msgid "Creative"
-msgstr "Creative"
-
-
 msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
 
@@ -34902,68 +34954,16 @@ msgid "Select by Face Strength"
 msgstr "Select by Face Strength"
 
 
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
-msgid "Mirror"
-msgstr "Mirror"
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
 
 
 msgid "Instances"
 msgstr "Instances"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
 
 
 msgid "Keyframe Insert Pie"
@@ -90799,6 +90799,58 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
+
+
+msgid "Overlays"
+msgstr "Overlays"
+
+
+msgid "Guides"
+msgstr "Guides"
+
+
+msgid "Viewer Node"
+msgstr "Viewer Node"
+
+
+msgid "Motion Tracking"
+msgstr "Motion Tracking"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
+
+
 msgid "Curve Edit Mode"
 msgstr "Curve Edit Mode"
 
@@ -90817,10 +90869,6 @@ msgstr "Stroke Placement"
 
 msgid "Drawing Plane"
 msgstr "Drawing Plane"
-
-
-msgid "Guides"
-msgstr "Guides"
 
 
 msgid "Grease Pencil Options"
@@ -90863,14 +90911,6 @@ msgid "Viewport Debug"
 msgstr "Viewport Debug"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
 msgid "glTF Variants"
 msgstr "glTF Variants"
 
@@ -90879,60 +90919,20 @@ msgid "glTF Material Variants"
 msgstr "glTF Material Variants"
 
 
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
+
+
 msgid "glTF"
 msgstr "glTF"
 
 
 msgid "glTF Animations"
 msgstr "glTF Animations"
-
-
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
-
-
-msgid "Overlays"
-msgstr "Overlays"
-
-
-msgid "Viewer Node"
-msgstr "Viewer Node"
-
-
-msgid "Motion Tracking"
-msgstr "Motion Tracking"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
-
-
-msgid "Measurement"
-msgstr "Measurement"
 
 
 msgid "Import Settings"
@@ -134365,6 +134365,10 @@ msgid "Could not find constraint data for ObjectSolver Set Inverse"
 msgstr "Could not find constraint data for ObjectSolver Set Inverse"
 
 
+msgid "Indices must be in range"
+msgstr "Indices must be in range"
+
+
 msgid "Applied constraint was not first, result may not be as expected"
 msgstr "Applied constraint was not first, result may not be as expected"
 
@@ -141679,10 +141683,6 @@ msgstr "Use the stored custom normal attribute as the final normals"
 
 msgid "Curve sizes must be greater than zero"
 msgstr "Curve sizes must be greater than zero"
-
-
-msgid "Indices must be in range"
-msgstr "Indices must be in range"
 
 
 msgid "Indices must be sorted in ascending order"

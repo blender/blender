@@ -752,6 +752,25 @@ class VExportTree:
                 self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[uuid].flag_status.is_selected
             if self.filter_renderability:
                 self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[uuid].flag_status.is_rendered
+        else:
+            # For Bones:
+            # They are filtered base of the status of the armature too
+            # Warning: There is a special case if we are trying to remove the armature object itself
+            armature_uuid = self.nodes[uuid].armature
+            if hasattr(self.nodes[armature_uuid], "arma_exported"):
+                # This "arma_exported" is set only if we are removing the armature object itself
+                # whatever the keep_tag of the armature is (removed only because we are removing the armature object itself,
+                # or because of some other filters applied to the armature)
+                # So checking directly the status of the armature
+                if self.filter_visibility:
+                    self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[armature_uuid].flag_status.is_visible
+                if self.filter_selectability:
+                    self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[armature_uuid].flag_status.is_selected
+                if self.filter_renderability:
+                    self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[armature_uuid].flag_status.is_rendered
+            else:
+                # Otherwise, we also use the status of the armature to determine if the bone should be kept
+                self.nodes[uuid].keep_tag = self.nodes[uuid].keep_tag and self.nodes[armature_uuid].keep_tag
 
         for child in self.nodes[uuid].children:
             if self.nodes[uuid].blender_type == VExportNode.INST_COLLECTION or self.nodes[uuid].is_instancer:
@@ -1177,18 +1196,36 @@ class VExportTree:
         for coll in node.bone_collections.collections.values():  # Root collections
             node.bone_collections.recursive_set_visibility_collection(coll, None)
 
-        # Calculate visibility for bones
-        for bone in node.bone_collections.bones:
-            node.bone_collections.bone_visibility[bone] = any(
-                node.bone_collections.collections[coll].is_visible
-                for coll in node.bone_collections.bones[bone]
-            ) and not node.blender_object.pose.bones[bone].hide
+        # Check if there is any collection marked as solo
+        any_solo = any(coll.is_solo for coll in node.bone_collections.collections.values())
 
-        # Some bones may not belong to any collection
-        # In that case, the bone is considered visible if it is not hidden in the pose
-        for bone in node.blender_object.pose.bones:
-            if bone.name not in node.bone_collections.bone_visibility:
-                node.bone_collections.bone_visibility[bone.name] = not bone.hide
+        # If any collection is solo, only those collections are considered visible
+        # (No check on collection visibility is done here, only solo status is considered)
+        if any_solo:
+            for bone in node.bone_collections.bones:
+                node.bone_collections.bone_visibility[bone] = any(
+                    node.bone_collections.collections[coll].is_solo for coll in node.bone_collections.bones[bone])
+
+            # Some bones may not belong to any collection
+            # In that case, the bone is considered not visible, whatever its hidden state in the pose
+            for bone in node.blender_object.pose.bones:
+                if bone.name not in node.bone_collections.bone_visibility:
+                    node.bone_collections.bone_visibility[bone.name] = False
+
+        else:
+            # No solo, so check visibility base on the collection's visibility
+            # Calculate visibility for bones
+            for bone in node.bone_collections.bones:
+                node.bone_collections.bone_visibility[bone] = any(
+                    node.bone_collections.collections[coll].is_visible
+                    for coll in node.bone_collections.bones[bone]
+                ) and not node.blender_object.pose.bones[bone].hide
+
+            # Some bones may not belong to any collection
+            # In that case, the bone is considered visible if it is not hidden in the pose
+            for bone in node.blender_object.pose.bones:
+                if bone.name not in node.bone_collections.bone_visibility:
+                    node.bone_collections.bone_visibility[bone.name] = not bone.hide
 
 
 class BoneCollection:
@@ -1196,6 +1233,7 @@ class BoneCollection:
         self.name = name
         self.children = []
         self.is_visible = True
+        self.is_solo = False
 
     def add_child(self, child):
         self.children.append(child)
@@ -1225,6 +1263,7 @@ class BoneCollectionTree:
         # Create the collection in the node's bone collection tree
         coll = node.bone_collections.add_collection(collection.name)
         coll.is_visible = collection.is_visible
+        coll.is_solo = collection.is_solo
 
         # Store bones of the collection
         for bone in collection.bones:

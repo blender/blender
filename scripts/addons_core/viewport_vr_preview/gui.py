@@ -39,6 +39,7 @@ class VIEW3D_PT_vr_session(VRButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         session_settings = context.window_manager.xr_session_settings
+        session_state = context.window_manager.xr_session_state
         scene = context.scene
 
         layout.use_property_split = True
@@ -50,8 +51,20 @@ class VIEW3D_PT_vr_session(VRButtonsPanel, Panel):
         # have commit rights...
         toggle_info = ((iface_("Start VR Session"), 'PLAY') if not is_session_running
                        else (iface_("Stop VR Session"), 'SNAP_FACE'))
+
         layout.operator("wm.xr_session_toggle", text=toggle_info[0],
                         translate=False, icon=toggle_info[1])
+
+        row = layout.box().row()
+        row.alignment = 'CENTER'
+        if is_session_running and session_state:
+            row.label(
+                text=f"{iface_('Connected:')} {session_state.runtime_name}",
+                translate=False,
+            )
+        else:
+            row.active = False
+            row.label(text="Disconnected")
 
         layout.separator()
 

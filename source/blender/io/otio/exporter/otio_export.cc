@@ -313,6 +313,7 @@ static SerializableObject::Retainer<otio::Effect> strip_to_effect(const StripExp
   else {
     effect = new FreezeFrame(name);
   }
+  effect->set_enabled(!(effect_strip.flag & SEQ_MUTE));
   add_strip_metadata(ctx, effect_strip, *effect);
   return effect;
 }
@@ -464,6 +465,7 @@ static void add_transition(const StripExportContext &ctx,
                                                           Transition::Type::SMPTE_Dissolve,
                      frames(ctx, in_offset),
                      frames(ctx, out_offset)));
+  otio_transition->set_enabled(!(transition.flag & SEQ_MUTE));
   add_strip_metadata(ctx, transition, *otio_transition);
   if (ctx.params.use_resolve_metadata) {
     resolve_add_transition_data(*ctx.scene, transition, *otio_transition);

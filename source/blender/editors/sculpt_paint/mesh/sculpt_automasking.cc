@@ -1703,7 +1703,10 @@ void Cache::calc_cavity_factor(const Depsgraph &depsgraph,
       const Span<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
       node_mask.foreach_index(
           [&](const int i) {
-            const Span<int> verts = nodes[i].verts();
+            /* Normally we'd use `verts()` here but for texture painting, we need vertices shared
+             * with other nodes to correctly interpolate between them. This shouldn't add much
+             * overhead so just use `all_verts()` to include the shared ones. */
+            const Span<int> verts = nodes[i].all_verts();
             for (const int vert : verts) {
               calc_cavity_factor_mesh(depsgraph, *this, object, vert);
             }

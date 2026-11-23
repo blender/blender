@@ -725,6 +725,36 @@ template float f<float>(float);
     auto [output, _, error] = process_test_string(input, shader::Language::BSL);
     EXPECT_EQ(error, "Redefinition of function 'f<float>'");
   }
+  {
+    /* Method template hiding a base class method is not a redefinition. */
+    string input = R"(
+struct B { float x; float f(float a) { return a; } };
+struct D : B { template<typename T> T f(T a) { return a; } };
+template float D::f<float>(float);
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    /* Template instances must not be bound to a plain prototype with the same signature. */
+    string input = R"(
+template<typename T> T f() { return T(0); }
+float f();
+template<> float f<float>() { return 1.0f; }
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+template<typename T> float g(int a) { return float(a); }
+float g(int a);
+template float g<float>(int);
+template float g<int>(int);
+)";
+    auto [output, _, error] = process_test_string(input, shader::Language::BSL);
+    EXPECT_EQ(error, "");
+  }
 }
 
 TEST(shader_tool, ForwardDecl)

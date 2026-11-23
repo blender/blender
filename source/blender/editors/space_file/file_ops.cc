@@ -1179,9 +1179,12 @@ static wmOperatorStatus bookmark_add_exec(bContext *C, wmOperator *op)
   }
 
   if (params->dir[0] != '\0') {
-
-    fsmenu_insert_entry(
-        fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, nullptr, ICON_FILE_FOLDER, FS_INSERT_SAVE);
+    if (!fsmenu_insert_entry(
+            fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, nullptr, ICON_FILE_FOLDER, FS_INSERT_SAVE))
+    {
+      BKE_reportf(op->reports, RPT_INFO, "Already bookmarked: \"%s\"", params->dir);
+      return OPERATOR_CANCELLED;
+    }
     fsmenu_write_file_and_refresh_or_report_error(fsmenu, area, op->reports);
   }
   return OPERATOR_FINISHED;

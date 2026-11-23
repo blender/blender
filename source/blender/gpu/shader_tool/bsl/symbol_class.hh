@@ -143,6 +143,7 @@ struct SymbolClass : SymbolScope {
   /* e.g. image2D, sampler2d, string_t ... */
   bool is_opaque = false;
   bool is_crtp = false;
+  bool is_default_initialized = false;
 
   SymbolClass(SymbolScope &parent, ast::ClassDecl decl, const string &suffix = "");
 

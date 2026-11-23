@@ -30,6 +30,7 @@ from bl_ui.properties_paint_common import (
     brush_settings,
     brush_settings_advanced,
     draw_color_settings,
+    draw_texture_paint_automasking_settings,
     supports_shape_panel,
     show_experimental_texture_paint,
 )
@@ -688,7 +689,12 @@ class VIEW3D_PT_mask(Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        pass
+        ipaint = context.tool_settings.image_paint
+        if not show_experimental_texture_paint(ipaint.brush):
+            return
+
+        layout = self.layout
+        draw_texture_paint_automasking_settings(layout, ipaint.mesh_automasking_settings)
 
 
 class VIEW3D_PT_stencil_projectpaint(Panel):
@@ -1409,6 +1415,11 @@ class VIEW3D_PT_tools_imagepaint_options_cavity(Panel):
     bl_label = "Cavity Mask"
     bl_parent_id = "VIEW3D_PT_mask"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        # Replaced by auto-masking.
+        return not show_experimental_texture_paint(context.tool_settings.image_paint.brush)
 
     def draw_header(self, context):
         tool_settings = context.tool_settings

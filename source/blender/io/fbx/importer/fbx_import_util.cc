@@ -6,6 +6,9 @@
  * \ingroup fbx
  */
 
+#include <algorithm>
+#include <cmath>
+
 #include "BKE_idprop.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -13,11 +16,34 @@
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 
+#include "DNA_key_types.h"
 #include "DNA_object_types.h"
 
 #include "fbx_import_util.hh"
 
+#include "CLG_log.h"
+
 namespace blender::io::fbx {
+
+static CLG_LogRef LOG = {"io.fbx"};
+
+void expand_shape_key_range(KeyBlock &block, const float min_weight, const float max_weight)
+{
+  /* Match the hard limits in ShapeKey RNA. */
+  constexpr float hard_min = -10.0f;
+  constexpr float hard_max = 10.0f;
+  /* Leave room for editing the weight, as the Python importer did. */
+  if (min_weight < block.slidermin) {
+    block.slidermin = std::max(hard_min, std::floor(2.0f * min_weight));
+  }
+  if (max_weight > block.slidermax) {
+    block.slidermax = std::min(hard_max, std::ceil(2.0f * max_weight));
+  }
+  if (min_weight < hard_min || max_weight > hard_max) {
+    CLOG_WARN(
+        &LOG, "Shape key '%s' has weights outside the supported range [-10, 10]", block.name);
+  }
+}
 
 const char *get_fbx_name(const ufbx_string &name, const char *def)
 {
@@ -46,7 +72,8 @@ void matrix_to_m44(const ufbx_matrix &src, float dst[4][4])
 
 ufbx_matrix calc_bone_pose_matrix(const ufbx_transform &local_xform,
                                   const ufbx_node &node,
-                                  const ufbx_matrix &local_bind_inv_matrix)
+                                  const ufbx_matrix &local_bind_inv_matrix,
+                                  const ufbx_matrix *correction)
 {
   ufbx_transform xform = local_xform;
 
@@ -62,6 +89,16 @@ ufbx_matrix calc_bone_pose_matrix(const ufbx_transform &local_xform,
   /* Transformed to the bind transform in joint-local space. */
   ufbx_matrix matrix = ufbx_transform_to_matrix(&xform);
   matrix = ufbx_matrix_mul(&local_bind_inv_matrix, &matrix);
+
+  if (correction != nullptr) {
+    /* Automatic orientation changes bone local axes while preserving the motion.
+     * We need to express the pose transform in the new axes: 1) map from the corrected axes
+     * to the original ones, 2) apply the original pose, 3) map back to the corrected axes,
+     * or `inverse(correction) * matrix * correction` in matrix terms. */
+    const ufbx_matrix correction_inv = ufbx_matrix_invert(correction);
+    matrix = ufbx_matrix_mul(&correction_inv, &matrix);
+    matrix = ufbx_matrix_mul(&matrix, correction);
+  }
   return matrix;
 }
 
@@ -124,17 +161,14 @@ void node_matrix_to_obj(const ufbx_node *node, Object *obj, const FbxElementMapp
   if (obj->parent == nullptr && parbone && mapping.node_is_blender_bone.contains(parbone)) {
     Object *arm = mapping.bone_to_armature.lookup_default(parbone, nullptr);
     if (arm != nullptr) {
-      ufbx_matrix offset_mtx = ufbx_identity_matrix;
-      offset_mtx.cols[3].y = -mapping.bone_to_length.lookup_default(parbone, 0.0);
       if (mapping.node_is_blender_bone.contains(node)) {
         /* The node itself is a "fake bone", in which case parent it to the matching
          * fake bone, and matrix is just what puts transform at the bone tail. */
         parbone = node;
-        mtx = offset_mtx;
+        mtx = ufbx_identity_matrix;
       }
-      else {
-        mtx = ufbx_matrix_mul(&offset_mtx, &mtx);
-      }
+      const ufbx_matrix offset_mtx = mapping.calc_bone_child_offset_matrix(parbone);
+      mtx = ufbx_matrix_mul(&offset_mtx, &mtx);
 
       obj->parent = arm;
       obj->partype = PARBONE;

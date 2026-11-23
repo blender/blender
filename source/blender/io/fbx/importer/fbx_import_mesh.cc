@@ -6,6 +6,8 @@
  * \ingroup fbx
  */
 
+#include <algorithm>
+
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
@@ -347,7 +349,9 @@ static bool import_blend_shapes(Main &bmain,
       }
 
       KeyBlock *kb = BKE_keyblock_add(mesh_key, fchan->target_shape->name.data);
-      kb->curval = fchan->weight;
+      const float weight = float(fchan->weight);
+      expand_shape_key_range(*kb, weight, weight);
+      kb->curval = std::clamp(weight, kb->slidermin, kb->slidermax);
       BKE_keyblock_convert_from_mesh(mesh, mesh_key, kb);
       if (!kb->data) {
         /* Nothing to do. This can happen if the mesh has no vertices. */
@@ -362,7 +366,7 @@ static bool import_blend_shapes(Main &bmain,
         const ufbx_vec3 &delta = fchan->target_shape->position_offsets[i];
         kb_data[idx] += float3(delta.x, delta.y, delta.z);
       }
-      mapping.el_to_shape_key.add(&fchan->element, mesh_key);
+      mapping.el_to_shape_key.add(&fchan->element, {mesh_key, kb});
     }
   }
   return mesh_key != nullptr;
@@ -377,18 +381,15 @@ static void import_blend_shape_full_weights(const FbxElementMapping &mapping,
 {
   for (const ufbx_blend_deformer *fdeformer : fmesh->blend_deformers) {
     for (const ufbx_blend_channel *fchan : fdeformer->channels) {
-      Key *key = mapping.el_to_shape_key.lookup_default(&fchan->element, nullptr);
-      if (fchan->target_shape == nullptr || key == nullptr) {
+      const FbxShapeKey *shape_key = mapping.el_to_shape_key.lookup_ptr(&fchan->element);
+      if (shape_key == nullptr) {
         continue;
       }
       if (fchan->target_shape->offset_weights.count != fchan->target_shape->num_offsets) {
         continue;
       }
 
-      KeyBlock *kb = BKE_keyblock_find_name(key, fchan->target_shape->name.data);
-      if (kb == nullptr) {
-        continue;
-      }
+      KeyBlock *kb = shape_key->block;
 
       /* Ignore cases where all weights are 1.0 (group has no effect),
        * and cases where any weights are outside of 0..1 range (apparently some files have

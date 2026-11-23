@@ -150,10 +150,16 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const ufbx_materi
   set_bsdf_float_param(bsdf, fmat.pbr.subsurface_scale, "Subsurface Scale", 0.05f);
   set_bsdf_float_param(bsdf, fmat.pbr.subsurface_anisotropy, "Subsurface Anisotropy", 0.0f);
 
+  const bool blender_phong = fmat.shader_type == UFBX_SHADER_BLENDER_PHONG;
+  if (fmat.features.specular.enabled || blender_phong) {
+    /* ufbx Blender Phong mapping leaves specular in the standard FBX maps. */
+    const ufbx_material_map &specular = blender_phong && !fmat.pbr.specular_factor.has_value ?
+                                            fmat.fbx.specular_factor :
+                                            fmat.pbr.specular_factor;
+    mat->spec = set_bsdf_float_param(
+        bsdf, specular, "Specular IOR Level", 0.25f, 0.0f, 1.0f, 2.0f);
+  }
   if (fmat.features.specular.enabled) {
-    float spec = set_bsdf_float_param(
-        bsdf, fmat.pbr.specular_factor, "Specular IOR Level", 0.25f, 0.0f, 1.0f, 2.0f);
-    mat->spec = spec;
     set_bsdf_color_param(bsdf, fmat.pbr.specular_color, "Specular Tint", float3(1.0f));
     set_bsdf_float_param(bsdf, fmat.pbr.specular_anisotropy, "Anisotropic", 0.0f);
     set_bsdf_float_param(bsdf, fmat.pbr.specular_rotation, "Anisotropic Rotation", 0.0f);
@@ -406,14 +412,30 @@ static void add_image_textures(Main *bmain,
       continue; /* Already connected. */
     }
 
-    const ufbx_texture *ftex = fmat.pbr.maps[entry.slot].texture;
-    if (ftex == nullptr || !fmat.pbr.maps[entry.slot].texture_enabled) {
+    const ufbx_material_map *map = &fmat.pbr.maps[entry.slot];
+    if (entry.slot == UFBX_MATERIAL_PBR_SPECULAR_FACTOR &&
+        fmat.shader_type == UFBX_SHADER_BLENDER_PHONG && !(map->texture && map->texture_enabled))
+    {
+      map = &fmat.fbx.specular_factor;
+      /* Match Python FBX importer behavior: treat SpecularColor texture as intensity. */
+      if (!(map->texture && map->texture_enabled)) {
+        map = &fmat.fbx.specular_color;
+      }
+    }
+    if (map->texture == nullptr || !map->texture_enabled) {
       /* No texture used for this slot. */
       continue;
     }
 
-    add_image_texture(
-        bmain, file_dir, ntree, bsdf, fmat, ftex, entry.socket, node_locy, done_bsdf_inputs);
+    add_image_texture(bmain,
+                      file_dir,
+                      ntree,
+                      bsdf,
+                      fmat,
+                      map->texture,
+                      entry.socket,
+                      node_locy,
+                      done_bsdf_inputs);
     node_locy -= node_locy_step;
   }
 

@@ -5154,6 +5154,8 @@ def km_image_paint(params):
         *_template_items_context_panel("VIEW3D_PT_paint_texture_context_menu", params.context_menu_event),
         *_template_asset_shelf_popup("VIEW3D_AST_brush_texture_paint", params.spacebar_action),
         *_template_asset_shelf_popup("IMAGE_AST_brush_paint", params.spacebar_action),
+        # Pie Menu
+        op_menu_pie("VIEW3D_MT_mesh_paint_automasking_pie", {"type": 'A', "alt": True, "value": 'PRESS'}),
     ])
 
     if params.legacy:

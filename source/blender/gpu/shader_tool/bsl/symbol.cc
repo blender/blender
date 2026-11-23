@@ -833,9 +833,15 @@ struct SymbolParser : NodeErrorHandler {
       }
     }
 
+    const bool is_template = !suffix.empty();
+
     bool is_overload = false;
     SymbolScope &scope = ns ? *ns : def_scope;
-    if (auto [fdecl, fn_ptr] = scope.lookup_function_forward_decl(func); fdecl.is_valid()) {
+    if (auto [fdecl, fn_ptr] = scope.lookup_function_forward_decl(func);
+        /* Template instances are not the definition of a plain prototype with
+         * the same signature. Reusing it would link it twice in the overload list. */
+        !is_template && fdecl.is_valid())
+    {
       fn = fn_ptr;
       /* Modify symbol location if it is forward declared. */
       fn->loc = fdecl.front();
@@ -1028,7 +1034,16 @@ struct SymbolParser : NodeErrorHandler {
        * instantiation. */
       SymbolFunction *fn = &table.fun_arena.alloc(scope, *table.err_cls, fn_decl);
       fn->is_complete = false;
-      fn = scope.functions.emplace(fn).first;
+
+      auto [existing, inserted] = scope.functions.emplace(fn);
+      if (!inserted && existing->is_method() && scope.as_class() != existing->parent_class()) {
+        /* Hide inherited base class method instead of attaching the template to it. */
+        scope.functions.insert_override(fn);
+      }
+      else {
+        fn = existing;
+      }
+
       if (fn->template_data) {
         error(fn_decl.identifier(), Diag::RedefinitionTemplate, fn_decl.identifier().str());
       }
@@ -1408,6 +1423,7 @@ struct SymbolParser : NodeErrorHandler {
       SymbolVariable &sym = table.var_arena.alloc(scope, type, decl, table);
       sym.res_type = attr.res_type;
       sym.is_static |= attr.res_type != ResourceType::NONE;
+      sym.default_value = decl.initial_value().expr();
       if (scope.variable_emplace(&sym)) {
         /* Check if redefinition is simply hiding a base class member. */
         SymbolVariable *other = scope.variables.find(sym.identifier)->second.second;
@@ -1421,6 +1437,10 @@ struct SymbolParser : NodeErrorHandler {
                sym.identifier);
           error(sym.loc.tok, Diag::Redefinition, sym.identifier);
         }
+      }
+
+      if (cls && sym.default_value.is_valid()) {
+        cls->is_default_initialized = true;
       }
 
       if (sym.is_ptr) {
