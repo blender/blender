@@ -597,11 +597,10 @@ void VKBackend::detect_workarounds(VKDevice &device)
                                     VK_TRUE;
 
   /* During testing graphics pipeline library feature it was detected that it would crash on
-   * official AMD drivers.
+   * official AMD drivers. The driver fault is reliably reproduced when compiling a shader that
+   * uses ray queries.
    */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
-      bool(G.debug & G_DEBUG_GPU))
-  {
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     extensions.graphics_pipeline_library = false;
     extensions.vertex_input_dynamic_state = false;
   }
@@ -612,12 +611,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
    */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     extensions.dynamic_rendering_local_read = false;
-  }
-
-  /* AMD official driver can crash when using HWRT. Disabling for now, but investigation will still
-   * continue. (See #166550) */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    GCaps.ray_query_support = false;
   }
 
   /* Disable vertex input dynamic state for Qualcomm devices (#153414).
