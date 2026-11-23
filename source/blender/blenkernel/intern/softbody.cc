@@ -595,8 +595,13 @@ static void add_mesh_quad_diag_springs(Object *ob)
       BodySpring *bs;
 
       /* resize spring-array to hold additional quad springs */
-      ob->soft->bspring = static_cast<BodySpring *>(MEM_realloc_zeroed(
-          ob->soft->bspring, sizeof(BodySpring) * (ob->soft->totspring + nofquads * 2)));
+      const int springs_num_old = ob->soft->totspring;
+      const int springs_num_new = springs_num_old + nofquads * 2;
+      BodySpring *springs = MEM_new_array_uninitialized<BodySpring>(springs_num_new, __func__);
+      std::copy_n(ob->soft->bspring, springs_num_old, springs);
+      std::fill_n(springs + springs_num_old, springs_num_new - springs_num_old, BodySpring{});
+      MEM_delete(ob->soft->bspring);
+      ob->soft->bspring = springs;
 
       /* fill the tail */
       bs = &ob->soft->bspring[ob->soft->totspring];
