@@ -35,6 +35,17 @@ class SlotRuntime {
    * \note This is NOT thread-safe.
    */
   Vector<ID *> users;
+
+  /**
+   * Vector that has the same number of elements as #users, and tracks the owner ID of those users.
+   *
+   * This is normally the same value, but for embedded IDs, this is the real ID that owns it.
+   *
+   * This is a temporary hack until #167041 is implemented. That's also why this is tracked in a
+   * secondary vector: it allows me to add this now to fix #166948, without changing the public API
+   * too much: it is now still possible to return `users` as span or vector.
+   */
+  Vector<ID *> owners;
 };
 
 namespace internal {

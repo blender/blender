@@ -1077,25 +1077,59 @@ Span<ID *> Slot::users(Main &bmain) const
 Vector<ID *> Slot::runtime_users()
 {
   BLI_assert_msg(this->runtime, "Slot::runtime should always be allocated");
-  return this->runtime->users;
+  return this->runtime->owners;
 }
 
 void Slot::users_add(ID &animated_id)
 {
   BLI_assert(this->runtime);
-  this->runtime->users.append_non_duplicates(&animated_id);
+  BLI_assert(this->runtime->users.size() == this->runtime->owners.size());
+
+  if (this->runtime->users.contains(&animated_id)) {
+    /* Already tracked, so don't bother adding again. */
+    return;
+  }
+  this->runtime->users.append(&animated_id);
+
+  ID *owner_id = (animated_id.flag & ID_FLAG_EMBEDDED_DATA) ? BKE_id_owner_get(&animated_id) :
+                                                              &animated_id;
+  BLI_assert(owner_id);
+  this->runtime->owners.append(owner_id);
+  BLI_assert(this->runtime->users.size() == this->runtime->owners.size());
 }
 
 void Slot::users_remove(ID &animated_id)
 {
   BLI_assert(this->runtime);
   Vector<ID *> &users = this->runtime->users;
+  Vector<ID *> &owners = this->runtime->owners;
+  BLI_assert(users.size() == owners.size());
 
   /* Even though users_add() ensures that there are no duplicates, there's still things like
    * pointer swapping etc. that can happen via the foreach-id looping code. That means that the
    * entries in the user map are not 100% under control of the user_add() and user_remove()
    * function, and thus we cannot assume that there are no duplicates. */
-  users.remove_if([&](const ID *user) { return user == &animated_id; });
+
+  while (true) {
+    const int index = users.first_index_of_try(&animated_id);
+    if (index < 0) {
+      break;
+    }
+    users.remove_and_reorder(index);
+    owners.remove_and_reorder(index);
+  }
+
+  /* When an owner ID is removed, its embedded IDs should also be removed. */
+  while (true) {
+    const int index = owners.first_index_of_try(&animated_id);
+    if (index < 0) {
+      break;
+    }
+    users.remove_and_reorder(index);
+    owners.remove_and_reorder(index);
+  }
+
+  BLI_assert(users.size() == owners.size());
 }
 
 void Slot::users_invalidate(Main &bmain)
