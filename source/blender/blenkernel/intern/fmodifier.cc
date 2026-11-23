@@ -123,6 +123,17 @@ static void fcm_generator_new_data(void *mdata)
   cp[1] = 1; /* gradient */
 }
 
+static void fcm_generator_coefficients_resize(FMod_Generator *data, const int arraysize_new)
+{
+  float *coefficients = MEM_new_array_uninitialized<float>(arraysize_new, __func__);
+  const int copy_num = std::min(int(data->arraysize), arraysize_new);
+  std::copy_n(data->coefficients, copy_num, coefficients);
+  std::fill_n(coefficients + copy_num, arraysize_new - copy_num, 0.0f);
+  MEM_delete(data->coefficients);
+  data->coefficients = coefficients;
+  data->arraysize = arraysize_new;
+}
+
 static void fcm_generator_verify(FModifier *fcm)
 {
   FMod_Generator *data = static_cast<FMod_Generator *>(fcm->data);
@@ -134,9 +145,7 @@ static void fcm_generator_verify(FModifier *fcm)
       const int arraysize_new = data->poly_order + 1;
       /* arraysize needs to be order+1, so resize if not */
       if (data->arraysize != arraysize_new) {
-        data->coefficients = static_cast<float *>(
-            MEM_realloc_zeroed(data->coefficients, sizeof(float) * arraysize_new));
-        data->arraysize = arraysize_new;
+        fcm_generator_coefficients_resize(data, arraysize_new);
       }
       break;
     }
@@ -145,9 +154,7 @@ static void fcm_generator_verify(FModifier *fcm)
       const int arraysize_new = data->poly_order * 2;
       /* arraysize needs to be (2 * order), so resize if not */
       if (data->arraysize != arraysize_new) {
-        data->coefficients = static_cast<float *>(
-            MEM_realloc_zeroed(data->coefficients, sizeof(float) * arraysize_new));
-        data->arraysize = arraysize_new;
+        fcm_generator_coefficients_resize(data, arraysize_new);
       }
       break;
     }
