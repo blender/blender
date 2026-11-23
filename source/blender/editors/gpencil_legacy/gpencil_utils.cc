@@ -6,6 +6,7 @@
  * \ingroup edgpencil
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -271,9 +272,12 @@ tGPspoint *ED_gpencil_sbuffer_ensure(tGPspoint *buffer_array,
       *buffer_size = GP_STROKE_BUFFER_CHUNK;
     }
     else {
+      const int old_size = *buffer_size;
       *buffer_size += GP_STROKE_BUFFER_CHUNK;
-      p = static_cast<tGPspoint *>(
-          MEM_realloc_zeroed(buffer_array, sizeof(tGPspoint) * *buffer_size));
+      p = MEM_new_array_uninitialized<tGPspoint>(*buffer_size, "GPencil Sbuffer");
+      std::copy_n(buffer_array, old_size, p);
+      std::fill_n(p + old_size, GP_STROKE_BUFFER_CHUNK, tGPspoint{});
+      MEM_delete(buffer_array);
     }
 
     if (p == nullptr) {
