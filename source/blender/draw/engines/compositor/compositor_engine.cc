@@ -318,7 +318,7 @@ class Context : public compositor::Context {
 
     ViewLayer *view_layer = static_cast<ViewLayer *>(
         BLI_findlink(&original_scene->view_layers, view_layer_index));
-    if (StringRef(view_layer->name) != DRW_context_get()->view_layer->name) {
+    if (!view_layer || StringRef(view_layer->name) != DRW_context_get()->view_layer->name) {
       return this->get_invalid_pass();
     }
 
@@ -365,8 +365,11 @@ class Context : public compositor::Context {
     compositor::SceneCompositorEffectsOperation operation =
         compositor::SceneCompositorEffectsOperation(*this);
 
-    const int active_view_layer_index = BLI_findstringindex(
-        &scene_->view_layers, DRW_context_get()->view_layer->name, offsetof(ViewLayer, name));
+    /* Use original scene since it contains viewlayers that get_pass() relies on.*/
+    const Scene *original_scene = DEG_get_original(scene_);
+    const int active_view_layer_index = BLI_findstringindex(&original_scene->view_layers,
+                                                            DRW_context_get()->view_layer->name,
+                                                            offsetof(ViewLayer, name));
     compositor::Result combined_pass = this->get_pass(
         scene_, active_view_layer_index, RE_PASSNAME_COMBINED);
     operation.map_input_to_result(&combined_pass);
