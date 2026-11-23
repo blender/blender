@@ -772,10 +772,13 @@ class Context : public compositor::Context {
     const bool needs_viewer_output = flag_is_set(this->needed_side_effect_output_types(),
                                                  compositor::SideEffectOutputTypes::ViewerNode);
     BLI_SCOPED_DEFER([&]() {
-      /* If a viewer node exists, we need a viewer output, and no viewer was written, we free the
-       * stale viewer image data. This can happen for instance if the active viewer node is inside
-       * a repeat zone whose iterations is zero and thus didn't run. */
-      if (this->viewer_compute_context() && needs_viewer_output && !viewer_was_written_) {
+      /* If a viewer node exists, execution was not canceled, we need a viewer output, and no
+       * viewer was written, we free the stale viewer image data. This can happen for instance if
+       * the active viewer node is inside a repeat zone whose iterations is zero and thus didn't
+       * run. */
+      if (this->viewer_compute_context() && needs_viewer_output && !viewer_was_written_ &&
+          !this->is_canceled())
+      {
         Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
         BLI_thread_lock(LOCK_DRAW_IMAGE);
         BKE_image_free_buffers(image);
