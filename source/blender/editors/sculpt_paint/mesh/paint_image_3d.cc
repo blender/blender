@@ -1788,10 +1788,9 @@ static float4 brush_paint_color_get(const Paint &paint,
                                     const Brush &brush,
                                     const StrokeCache &cache)
 {
-  if (cache.toggle_settings.invert) {
-    return float4(BKE_brush_secondary_color_get(&paint, &brush), 1.0f);
-  }
-  const float3 color = BKE_brush_color_get(&paint, &brush);
+  const float3 color = cache.toggle_settings.invert ?
+                           BKE_brush_secondary_color_get(&paint, &brush) :
+                           BKE_brush_color_get(&paint, &brush);
   const std::optional<BrushColorJitterSettings> color_jitter_settings =
       BKE_brush_color_jitter_get_settings(&paint, &brush);
   if (!color_jitter_settings) {
