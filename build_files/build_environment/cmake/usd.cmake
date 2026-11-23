@@ -216,13 +216,13 @@ if(WIN32)
       ExternalProject_Add_Step(external_usd after_install
         COMMAND ${CMAKE_COMMAND} -E rename
           ${LIBDIR}/usd/lib/usd
-          ${LIBDIR}/usd/lib/debug/usd
+          ${LIBDIR}/usd/lib/debug_usd
         COMMAND ${CMAKE_COMMAND} -E rename
           ${LIBDIR}/usd/lib/site-packages
-          ${LIBDIR}/usd/lib/debug/site-packages
+          ${LIBDIR}/usd/lib/debug_site-packages
         COMMAND ${CMAKE_COMMAND} -E rename
           ${LIBDIR}/usd/plugin
-          ${LIBDIR}/usd/debug/plugin
+          ${LIBDIR}/usd/debug_plugin
         COMMAND ${CMAKE_COMMAND} -E copy_directory
           ${LIBDIR}/usd
           ${HARVEST_TARGET}/usd
