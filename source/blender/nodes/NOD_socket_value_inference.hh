@@ -98,6 +98,24 @@ class SocketValueInferencer {
   InferenceValue get_socket_value(const SocketInContext &socket);
 };
 
+enum class ValueInferenceContext {
+  GeometryNodesModifier,
+  GeometryNodesOperator,
+  CompositorStripModifier,
+  CompositorStripEffect,
+  CompositorSceneEffect,
+};
+
+/**
+ * Get input values for the node tree for static value/usage inferencing. Inferencing does not
+ * fully evaluate the node tree (would be way to slow), and does not support all socket types. So
+ * this function may return #InferenceValue::Unknown for some sockets.
+ */
+Vector<InferenceValue> get_input_inference_values(ValueInferenceContext inference_context,
+                                                  const bNodeTree &tree,
+                                                  const PointerRNA &properties_ptr,
+                                                  ResourceScope &scope);
+
 namespace switch_node_inference_utils {
 
 bool is_socket_selected__switch(const SocketInContext &socket, const InferenceValue &condition);

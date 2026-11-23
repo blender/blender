@@ -967,7 +967,11 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
   ctx.input_usages.reinitialize(tree.interface_inputs().size());
   ctx.output_usages.reinitialize(tree.interface_outputs().size());
   nodes::socket_usage_inference::infer_group_interface_inputs_usage(
-      tree, *ctx.properties_ptr, ctx.input_usages, ctx.output_usages);
+      ValueInferenceContext::GeometryNodesOperator,
+      tree,
+      *ctx.properties_ptr,
+      ctx.input_usages,
+      ctx.output_usages);
   draw_interface_panel_content(
       C,
       layout,

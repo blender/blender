@@ -394,8 +394,8 @@ static void foreach_active_gizmo_exposed_to_modifier(
   PointerRNA properties_ptr = RNA_pointer_get(&nmd_ptr, "properties");
 
   ResourceScope scope;
-  const Vector<InferenceValue> input_values = get_geometry_nodes_input_inference_values(
-      *nmd.node_group, properties_ptr, scope);
+  const Vector<InferenceValue> input_values = get_input_inference_values(
+      ValueInferenceContext::GeometryNodesModifier, *nmd.node_group, properties_ptr, scope);
 
   const auto get_input_value = [&](const int group_input_i) {
     return input_values[group_input_i];

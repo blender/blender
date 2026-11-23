@@ -299,8 +299,8 @@ void compositor_effect_nodes_input_usages(const Scene &sequencer_scene,
   }
 
   ResourceScope scope;
-  Vector<nodes::InferenceValue> input_values = nodes::get_geometry_nodes_input_inference_values(
-      tree, properties_ptr, scope);
+  Vector<nodes::InferenceValue> input_values = nodes::get_input_inference_values(
+      nodes::ValueInferenceContext::CompositorStripEffect, tree, properties_ptr, scope);
 
   /* Effect fader and first N color inputs are supplied by the strips during evaluation, so
    * treat them as unknown. Otherwise an input with usage conditional on the fader (e.g. mixed

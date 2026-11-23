@@ -57,6 +57,7 @@ struct bNodeTree;
 struct bNodeTreeExec;
 
 class CPPType;
+class ResourceScope;
 namespace nodes {
 struct GeneratedTreeSrnaData;
 class NodeMultiFunctionBuilder;
@@ -65,6 +66,8 @@ class NodeDeclaration;
 class NodeDeclarationBuilder;
 class GatherAddNodeSearchParams;
 class GatherLinkSearchOpParams;
+class InferenceValue;
+struct GeoNodesCallData;
 struct NodeExtraInfoParams;
 namespace value_elem {
 class InverseElemEvalParams;
@@ -154,6 +157,22 @@ using SocketMakeNodesInputSrnaFunction = void (*)(const bNodeTree &tree,
                                                   StructRNA &srna,
                                                   const bNodeTreeInterfaceSocket &io_socket,
                                                   nodes::GeneratedTreeSrnaData &r_generated);
+struct GetSocketInferenceValueParams {
+  const bNodeTree &tree;
+  const bNodeTreeInterfaceSocket &io_socket;
+  ResourceScope &scope;
+  PointerRNA &props;
+  nodes::InferenceValue &r_value;
+};
+using SocketSrnaToInferenceValueFunction = void (*)(GetSocketInferenceValueParams &p);
+struct GetSocketEvalValueParams {
+  const bNodeTree &tree;
+  const bNodeTreeInterfaceSocket &io_socket;
+  const nodes::GeoNodesCallData *call_data;
+  PointerRNA &props;
+};
+using SocketSrnaToEvalValueFunction =
+    std::optional<SocketValueVariant> (*)(GetSocketEvalValueParams &p);
 
 /**
  * \brief Defines a socket type.
@@ -214,6 +233,14 @@ struct bNodeSocketType {
   SocketGetGeometryNodesCPPValueFunction get_geometry_nodes_cpp_value = nullptr;
   /* Default value for this socket type. */
   const SocketValueVariant *geometry_nodes_default_value = nullptr;
+
+  /** Get the values that is passed into the geometry nodes evaluation. */
+  SocketSrnaToEvalValueFunction get_eval_value_from_rna_props__geometry_nodes = nullptr;
+
+  /** Get the InferenceValue that is passed into usage-inferencing. */
+  SocketSrnaToInferenceValueFunction get_inference_value_from_rna_props__geometry_nodes = nullptr;
+  SocketSrnaToInferenceValueFunction get_inference_value_from_rna_props__compositor_nodes =
+      nullptr;
 
   SocketMakeNodesInputSrnaFunction make_geometry_nodes_input_srna = nullptr;
   SocketMakeNodesInputSrnaFunction make_compositor_nodes_input_srna = nullptr;

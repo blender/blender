@@ -340,7 +340,11 @@ void draw_compositor_nodes_modifier_ui(const bContext &C,
     ctx.input_usages.reinitialize(tree.interface_inputs().size());
     ctx.output_usages.reinitialize(tree.interface_outputs().size());
     nodes::socket_usage_inference::infer_group_interface_inputs_usage(
-        tree, *ctx.properties_ptr, ctx.input_usages, ctx.output_usages);
+        ValueInferenceContext::CompositorStripModifier,
+        tree,
+        *ctx.properties_ptr,
+        ctx.input_usages,
+        ctx.output_usages);
     const Array<bool> supplied_inputs = find_automatic_inputs(tree, 0, is_mask_used ? 2 : 1);
     draw_interface_root_panel_content(
         ctx, layout, tree.tree_interface.root_panel, supplied_inputs);

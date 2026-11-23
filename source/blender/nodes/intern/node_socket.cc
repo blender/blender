@@ -25,7 +25,9 @@
 
 #include "BKE_action.hh"
 #include "BKE_animsys.hh"
+#include "BKE_attribute.hh"
 #include "BKE_compositor.hh"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
@@ -56,10 +58,13 @@
 #include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
+#include "NOD_geometry_nodes_execute.hh"
+#include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_geometry_nodes_srna.hh"
 #include "NOD_menu_value.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_value_inference.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
@@ -998,6 +1003,92 @@ static void set_scene_compositor_effect_property_common_properties(PropertyRNA *
   RNA_def_property_update_notifier(property, NC_SCENE | ND_COMPO_RESULT);
 }
 
+static nodes::GeometryNodesInputType get_geometry_nodes_input_type(
+    const bNodeTree &tree, const bNodeTreeInterfaceSocket &io_socket, PointerRNA &props)
+{
+  if (PropertyRNA *prop = RNA_struct_find_property(&props, "type")) {
+    const int input_index = tree.interface_input_index(io_socket);
+    if (nodes::input_has_attribute_toggle(tree, input_index)) {
+      return nodes::GeometryNodesInputType(RNA_property_enum_get(&props, prop));
+    }
+    return nodes::GeometryNodesInputType::Value;
+  }
+  return nodes::GeometryNodesInputType::Fallback;
+}
+
+static nodes::GeometryNodesInputType get_geometry_nodes_input_type(
+    const bke::GetSocketEvalValueParams &p)
+{
+  return get_geometry_nodes_input_type(p.tree, p.io_socket, p.props);
+}
+
+static bool is_geometry_nodes_value_input(const bke::GetSocketInferenceValueParams &p)
+{
+  return get_geometry_nodes_input_type(p.tree, p.io_socket, p.props) ==
+         nodes::GeometryNodesInputType::Value;
+}
+
+template<typename T>
+[[nodiscard]] static std::optional<SocketValueVariant> load_attribute_field_input(
+    PointerRNA &input_props_ptr)
+{
+  const std::string attribute_name = RNA_string_get(&input_props_ptr, "attribute_name");
+  if (!bke::allow_procedural_attribute_access(attribute_name)) {
+    return std::nullopt;
+  }
+  return SocketValueVariant::from(bke::AttributeFieldInput::from<T>(attribute_name));
+}
+
+template<typename T>
+static SocketValueVariant load_data_block_input(const nodes::GeoNodesCallData *call_data,
+                                                PointerRNA &input_props_ptr)
+{
+  PropertyRNA &prop = *RNA_struct_find_property(&input_props_ptr, "value");
+  if (RNA_property_type(&prop) == PROP_STRING) {
+    if (!call_data) {
+      return SocketValueVariant::from(static_cast<T *>(nullptr));
+    }
+    BLI_assert(call_data->operator_data);
+    const std::string name = RNA_string_get(&input_props_ptr, "value");
+    const ID *id_orig = call_data->operator_data->input_ids->lookup_default(name, nullptr);
+    if (!id_orig) {
+      return SocketValueVariant::from(static_cast<T *>(nullptr));
+    }
+    const ID *id_eval = call_data->operator_data->depsgraphs->get_evaluated_id(*id_orig);
+    return SocketValueVariant::from(id_cast<T *>(const_cast<ID *>(id_eval)));
+  }
+
+  BLI_assert(RNA_property_type(&prop) == PROP_POINTER);
+  T *data_block = id_cast<T *>(RNA_pointer_get(&input_props_ptr, "value").owner_id);
+  return SocketValueVariant::from(data_block);
+}
+
+template<typename T>
+static std::optional<SocketValueVariant> get_data_block_eval_value_from_rna_props(
+    bke::GetSocketEvalValueParams &p)
+{
+  if (get_geometry_nodes_input_type(p) == nodes::GeometryNodesInputType::Value) {
+    return load_data_block_input<T>(p.call_data, p.props);
+  }
+  return std::nullopt;
+}
+
+template<typename T>
+static void get_data_block_inference_value_from_rna_props(bke::GetSocketInferenceValueParams &p)
+{
+  SocketValueVariant value = load_data_block_input<T>(nullptr, p.props);
+  p.r_value = nodes::InferenceValue::from_primitive(&p.scope.add_value(value.extract<T *>()));
+}
+
+template<typename T>
+static void get_data_block_inference_value_from_rna_props__geometry_nodes(
+    bke::GetSocketInferenceValueParams &p)
+{
+  if (is_geometry_nodes_value_input(p)) {
+    get_data_block_inference_value_from_rna_props<T>(p);
+  }
+}
+
 static bke::bNodeSocketType *make_socket_type_bool()
 {
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_BOOLEAN, PROP_NONE);
@@ -1069,6 +1160,37 @@ static bke::bNodeSocketType *make_socket_type_bool()
         PropertyRNA *property = RNA_def_boolean(
             &srna, "value", data->value, socket.name().c_str(), socket.description().c_str());
         set_scene_compositor_effect_property_common_properties(property);
+      };
+  static constexpr auto get_rna_value = [](PointerRNA &props) {
+    return RNA_boolean_get(&props, "value");
+  };
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketEvalValueParams &p) -> std::optional<SocketValueVariant> {
+    const nodes::GeometryNodesInputType type = get_geometry_nodes_input_type(p);
+    if (type == nodes::GeometryNodesInputType::Value) {
+      return SocketValueVariant(get_rna_value(p.props));
+    }
+    if (type == nodes::GeometryNodesInputType::Attribute) {
+      return load_attribute_field_input<bool>(p.props);
+    }
+    if (type == nodes::GeometryNodesInputType::Layer) {
+      const std::string layer_name = RNA_string_get(&p.props, "layer_name");
+      return SocketValueVariant::from(
+          fn::GField::from_input<bke::NamedLayerSelectionFieldInput>(layer_name));
+    }
+    return std::nullopt;
+  };
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        if (is_geometry_nodes_value_input(p)) {
+          p.r_value = nodes::InferenceValue::from_primitive(
+              &p.scope.add_value(get_rna_value(p.props)));
+        }
+      };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(get_rna_value(p.props)));
       };
   return socktype;
 }
@@ -1152,6 +1274,34 @@ static bke::bNodeSocketType *make_socket_type_rotation()
                                                        FLT_MAX);
         set_scene_compositor_effect_property_common_properties(property);
       };
+  static constexpr auto get_rna_value = [](PointerRNA &props) {
+    float3 value_euler;
+    RNA_float_get_array(&props, "value", value_euler);
+    return math::to_quaternion(math::EulerXYZ(value_euler));
+  };
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketEvalValueParams &p) -> std::optional<SocketValueVariant> {
+    const nodes::GeometryNodesInputType type = get_geometry_nodes_input_type(p);
+    if (type == nodes::GeometryNodesInputType::Value) {
+      return SocketValueVariant(get_rna_value(p.props));
+    }
+    if (type == nodes::GeometryNodesInputType::Attribute) {
+      return load_attribute_field_input<math::Quaternion>(p.props);
+    }
+    return std::nullopt;
+  };
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        if (is_geometry_nodes_value_input(p)) {
+          p.r_value = nodes::InferenceValue::from_primitive(
+              &p.scope.add_value(get_rna_value(p.props)));
+        }
+      };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(get_rna_value(p.props)));
+      };
   return socktype;
 }
 
@@ -1183,6 +1333,18 @@ static bke::bNodeSocketType *make_socket_type_matrix()
                           nodes::CompositorNodesInputType::Fallback,
                           r_generated);
   };
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        if (is_geometry_nodes_value_input(p)) {
+          p.r_value = nodes::InferenceValue::from_primitive(
+              &p.scope.add_value(float4x4::identity()));
+        }
+      };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(float4x4::identity()));
+      };
   return socktype;
 }
 
@@ -1339,6 +1501,32 @@ static bke::bNodeSocketType *make_socket_type_float(PropertySubType subtype)
         set_float_property_ui_range(*property, *data);
         set_scene_compositor_effect_property_common_properties(property);
       };
+  static constexpr auto get_rna_value = [](PointerRNA &props) {
+    return RNA_float_get(&props, "value");
+  };
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketEvalValueParams &p) -> std::optional<SocketValueVariant> {
+    const nodes::GeometryNodesInputType type = get_geometry_nodes_input_type(p);
+    if (type == nodes::GeometryNodesInputType::Value) {
+      return SocketValueVariant(get_rna_value(p.props));
+    }
+    if (type == nodes::GeometryNodesInputType::Attribute) {
+      return load_attribute_field_input<float>(p.props);
+    }
+    return std::nullopt;
+  };
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        if (is_geometry_nodes_value_input(p)) {
+          p.r_value = nodes::InferenceValue::from_primitive(
+              &p.scope.add_value(get_rna_value(p.props)));
+        }
+      };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(get_rna_value(p.props)));
+      };
   return socktype;
 }
 
@@ -1417,6 +1605,32 @@ static bke::bNodeSocketType *make_socket_type_int(PropertySubType subtype)
                                             data->max);
         RNA_def_property_subtype(property, PropertySubType(data->subtype));
         set_scene_compositor_effect_property_common_properties(property);
+      };
+  static constexpr auto get_rna_value = [](PointerRNA &props) {
+    return RNA_int_get(&props, "value");
+  };
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketEvalValueParams &p) -> std::optional<SocketValueVariant> {
+    const nodes::GeometryNodesInputType type = get_geometry_nodes_input_type(p);
+    if (type == nodes::GeometryNodesInputType::Value) {
+      return SocketValueVariant(get_rna_value(p.props));
+    }
+    if (type == nodes::GeometryNodesInputType::Attribute) {
+      return load_attribute_field_input<int>(p.props);
+    }
+    return std::nullopt;
+  };
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        if (is_geometry_nodes_value_input(p)) {
+          p.r_value = nodes::InferenceValue::from_primitive(
+              &p.scope.add_value(get_rna_value(p.props)));
+        }
+      };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(get_rna_value(p.props)));
       };
   return socktype;
 }
@@ -1501,6 +1715,35 @@ static bke::bNodeSocketType *make_socket_type_vector(PropertySubType subtype, co
         RNA_def_property_subtype(property, PropertySubType(data->subtype));
         set_scene_compositor_effect_property_common_properties(property);
       };
+  static constexpr auto get_rna_value = [](PointerRNA &props) {
+    /* Vector can have variable length. Zero initialize in case length is below 3. */
+    float4 value = float4(0.0f);
+    RNA_float_get_array(&props, "value", value);
+    return float3(value);
+  };
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketEvalValueParams &p) -> std::optional<SocketValueVariant> {
+    const nodes::GeometryNodesInputType type = get_geometry_nodes_input_type(p);
+    if (type == nodes::GeometryNodesInputType::Value) {
+      return SocketValueVariant(get_rna_value(p.props));
+    }
+    if (type == nodes::GeometryNodesInputType::Attribute) {
+      return load_attribute_field_input<float3>(p.props);
+    }
+    return std::nullopt;
+  };
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        if (is_geometry_nodes_value_input(p)) {
+          p.r_value = nodes::InferenceValue::from_primitive(
+              &p.scope.add_value(get_rna_value(p.props)));
+        }
+      };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(get_rna_value(p.props)));
+      };
   return socktype;
 }
 
@@ -1555,6 +1798,17 @@ static bke::bNodeSocketType *make_socket_type_int_vector(PropertySubType subtype
                                                    data->max);
         RNA_def_property_subtype(property, PropertySubType(data->subtype));
         set_scene_compositor_effect_property_common_properties(property);
+      };
+  static constexpr auto get_rna_value = [](PointerRNA &props) {
+    /* Vector can have variable length. Zero initialize in case length is below 3. */
+    int4 value = int4(0);
+    RNA_int_get_array(&props, "value", value);
+    return int3(value);
+  };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(get_rna_value(p.props)));
       };
   return socktype;
 }
@@ -1633,6 +1887,34 @@ static bke::bNodeSocketType *make_socket_type_rgba()
                                                     0.0f,
                                                     1.0f);
         set_scene_compositor_effect_property_common_properties(property);
+      };
+  static constexpr auto get_rna_value = [](PointerRNA &props) {
+    ColorGeometry4f value;
+    RNA_float_get_array(&props, "value", value);
+    return value;
+  };
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketEvalValueParams &p) -> std::optional<SocketValueVariant> {
+    const nodes::GeometryNodesInputType type = get_geometry_nodes_input_type(p);
+    if (type == nodes::GeometryNodesInputType::Value) {
+      return SocketValueVariant(get_rna_value(p.props));
+    }
+    if (type == nodes::GeometryNodesInputType::Attribute) {
+      return load_attribute_field_input<ColorGeometry4f>(p.props);
+    }
+    return std::nullopt;
+  };
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        if (is_geometry_nodes_value_input(p)) {
+          p.r_value = nodes::InferenceValue::from_primitive(
+              &p.scope.add_value(get_rna_value(p.props)));
+        }
+      };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(get_rna_value(p.props)));
       };
   return socktype;
 }
@@ -1717,7 +1999,28 @@ static bke::bNodeSocketType *make_socket_type_string(PropertySubType subtype)
         }
         set_scene_compositor_effect_property_common_properties(property);
       };
-
+  static constexpr auto get_rna_value = [](PointerRNA &props) {
+    return RNA_string_get(&props, "value");
+  };
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketEvalValueParams &p) -> std::optional<SocketValueVariant> {
+    if (get_geometry_nodes_input_type(p) == nodes::GeometryNodesInputType::Value) {
+      return SocketValueVariant(get_rna_value(p.props));
+    }
+    return std::nullopt;
+  };
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        if (is_geometry_nodes_value_input(p)) {
+          p.r_value = nodes::InferenceValue::from_primitive(
+              &p.scope.add_value(get_rna_value(p.props)));
+        }
+      };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(get_rna_value(p.props)));
+      };
   return socktype;
 }
 
@@ -1821,6 +2124,28 @@ static bke::bNodeSocketType *make_socket_type_menu()
                                              socket.description().c_str());
         set_scene_compositor_effect_property_common_properties(property);
       };
+  static constexpr auto get_rna_value = [](PointerRNA &props) {
+    return nodes::MenuValue(RNA_enum_get(&props, "value"));
+  };
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketEvalValueParams &p) -> std::optional<SocketValueVariant> {
+    if (get_geometry_nodes_input_type(p) == nodes::GeometryNodesInputType::Value) {
+      return SocketValueVariant::from(get_rna_value(p.props));
+    }
+    return std::nullopt;
+  };
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        if (is_geometry_nodes_value_input(p)) {
+          p.r_value = nodes::InferenceValue::from_primitive(
+              &p.scope.add_value(get_rna_value(p.props)));
+        }
+      };
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      [](bke::GetSocketInferenceValueParams &p) {
+        p.r_value = nodes::InferenceValue::from_primitive(
+            &p.scope.add_value(get_rna_value(p.props)));
+      };
   return socktype;
 }
 
@@ -1839,6 +2164,12 @@ static bke::bNodeSocketType *make_socket_type_object()
   static SocketValueVariant default_value = SocketValueVariant::from(
       static_cast<Object *>(nullptr));
   socktype->geometry_nodes_default_value = &default_value;
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      get_data_block_eval_value_from_rna_props<Object>;
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      get_data_block_inference_value_from_rna_props__geometry_nodes<Object>;
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      get_data_block_inference_value_from_rna_props<Object>;
   socktype->make_geometry_nodes_input_srna = [](const bNodeTree & /*tree*/,
                                                 StructRNA &srna,
                                                 const bNodeTreeInterfaceSocket &socket,
@@ -1937,6 +2268,10 @@ static bke::bNodeSocketType *make_socket_type_collection()
   static SocketValueVariant default_value = SocketValueVariant::from(
       static_cast<Collection *>(nullptr));
   socktype->geometry_nodes_default_value = &default_value;
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      get_data_block_eval_value_from_rna_props<Collection>;
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      get_data_block_inference_value_from_rna_props__geometry_nodes<Collection>;
   socktype->make_geometry_nodes_input_srna = [](const bNodeTree & /*tree*/,
                                                 StructRNA &srna,
                                                 const bNodeTreeInterfaceSocket &socket,
@@ -1980,6 +2315,10 @@ static bke::bNodeSocketType *make_socket_type_texture()
   };
   static SocketValueVariant default_value = SocketValueVariant::from(static_cast<Tex *>(nullptr));
   socktype->geometry_nodes_default_value = &default_value;
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      get_data_block_eval_value_from_rna_props<Tex>;
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      get_data_block_inference_value_from_rna_props__geometry_nodes<Tex>;
   socktype->make_geometry_nodes_input_srna = [](const bNodeTree & /*tree*/,
                                                 StructRNA &srna,
                                                 const bNodeTreeInterfaceSocket &socket,
@@ -2019,6 +2358,10 @@ static bke::bNodeSocketType *make_socket_type_image()
   static SocketValueVariant default_value = SocketValueVariant::from(
       static_cast<Image *>(nullptr));
   socktype->geometry_nodes_default_value = &default_value;
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      get_data_block_eval_value_from_rna_props<Image>;
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      get_data_block_inference_value_from_rna_props__geometry_nodes<Image>;
   socktype->make_geometry_nodes_input_srna = [](const bNodeTree & /*tree*/,
                                                 StructRNA &srna,
                                                 const bNodeTreeInterfaceSocket &socket,
@@ -2063,6 +2406,10 @@ static bke::bNodeSocketType *make_socket_type_material()
   static SocketValueVariant default_value = SocketValueVariant::from(
       static_cast<Material *>(nullptr));
   socktype->geometry_nodes_default_value = &default_value;
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      get_data_block_eval_value_from_rna_props<Material>;
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      get_data_block_inference_value_from_rna_props__geometry_nodes<Material>;
   socktype->make_geometry_nodes_input_srna = [](const bNodeTree & /*tree*/,
                                                 StructRNA &srna,
                                                 const bNodeTreeInterfaceSocket &socket,
@@ -2107,6 +2454,12 @@ static bke::bNodeSocketType *make_socket_type_font()
   static SocketValueVariant default_value = SocketValueVariant::from(
       static_cast<VFont *>(nullptr));
   socktype->geometry_nodes_default_value = &default_value;
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      get_data_block_eval_value_from_rna_props<VFont>;
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      get_data_block_inference_value_from_rna_props__geometry_nodes<VFont>;
+  socktype->get_inference_value_from_rna_props__compositor_nodes =
+      get_data_block_inference_value_from_rna_props<VFont>;
   socktype->make_geometry_nodes_input_srna = [](const bNodeTree & /*tree*/,
                                                 StructRNA &srna,
                                                 const bNodeTreeInterfaceSocket &socket,
@@ -2224,6 +2577,10 @@ static bke::bNodeSocketType *make_socket_type_sound()
   static SocketValueVariant default_value = SocketValueVariant::from(
       static_cast<bSound *>(nullptr));
   socktype->geometry_nodes_default_value = &default_value;
+  socktype->get_eval_value_from_rna_props__geometry_nodes =
+      get_data_block_eval_value_from_rna_props<bSound>;
+  socktype->get_inference_value_from_rna_props__geometry_nodes =
+      get_data_block_inference_value_from_rna_props__geometry_nodes<bSound>;
   socktype->make_geometry_nodes_input_srna = [](const bNodeTree & /*tree*/,
                                                 StructRNA &srna,
                                                 const bNodeTreeInterfaceSocket &socket,

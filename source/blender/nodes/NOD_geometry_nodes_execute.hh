@@ -64,14 +64,5 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
                                                     GeoNodesCallData &call_data,
                                                     bke::GeometrySet input_geometry);
 
-/**
- * Get input values for the node tree for static value/usage inferencing. Inferencing does not
- * fully evaluate the node tree (would be way to slow), and does not support all socket types. So
- * this function may return #InferenceValue::Unknown for some sockets.
- */
-Vector<InferenceValue> get_geometry_nodes_input_inference_values(const bNodeTree &btree,
-                                                                 const PointerRNA &properties_ptr,
-                                                                 ResourceScope &scope);
-
 }  // namespace nodes
 }  // namespace blender

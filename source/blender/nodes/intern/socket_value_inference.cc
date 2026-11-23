@@ -30,6 +30,8 @@
 #include "BLI_listbase.hh"
 #include "BLI_stack.hh"
 
+#include "RNA_access.hh"
+
 namespace blender::nodes {
 
 class SocketValueInferencerImpl {
@@ -1042,5 +1044,52 @@ bool is_socket_selected__shader_mix_node(const SocketInContext &socket,
 }
 
 }  // namespace switch_node_inference_utils
+
+Vector<InferenceValue> get_input_inference_values(ValueInferenceContext inference_context,
+                                                  const bNodeTree &tree,
+                                                  const PointerRNA &properties_ptr,
+                                                  ResourceScope &scope)
+{
+  /* Assume that all inputs have unknown values by default. */
+  Vector<InferenceValue> inference_values(tree.interface_inputs().size(),
+                                          InferenceValue::Unknown());
+
+  PointerRNA inputs_ptr = RNA_pointer_get(const_cast<PointerRNA *>(&properties_ptr), "inputs");
+
+  tree.ensure_interface_cache();
+
+  for (const int input_i : tree.interface_inputs().index_range()) {
+    const bNodeTreeInterfaceSocket &io_input = *tree.interface_inputs()[input_i];
+    const bke::bNodeSocketType *stype = io_input.socket_typeinfo();
+    if (!stype) {
+      continue;
+    }
+    bke::SocketSrnaToInferenceValueFunction get_inference_value_fn = nullptr;
+    switch (inference_context) {
+      case ValueInferenceContext::GeometryNodesModifier:
+      case ValueInferenceContext::GeometryNodesOperator: {
+        get_inference_value_fn = stype->get_inference_value_from_rna_props__geometry_nodes;
+        break;
+      }
+      case ValueInferenceContext::CompositorStripModifier:
+      case ValueInferenceContext::CompositorStripEffect:
+      case ValueInferenceContext::CompositorSceneEffect: {
+        get_inference_value_fn = stype->get_inference_value_from_rna_props__compositor_nodes;
+        break;
+      }
+    }
+    if (!get_inference_value_fn) {
+      continue;
+    }
+    PointerRNA socket_props_ptr = RNA_pointer_get(&inputs_ptr, io_input.identifier);
+    if (!socket_props_ptr) {
+      continue;
+    }
+    bke::GetSocketInferenceValueParams params = {
+        tree, io_input, scope, socket_props_ptr, inference_values[input_i]};
+    get_inference_value_fn(params);
+  }
+  return inference_values;
+}
 
 }  // namespace blender::nodes

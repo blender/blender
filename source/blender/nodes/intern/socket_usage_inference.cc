@@ -1067,43 +1067,15 @@ void infer_group_interface_usage(const bNodeTree &group,
   }
 }
 
-void infer_group_interface_inputs_usage(const bNodeTree &group,
-                                        Span<const bNodeSocket *> input_sockets,
-                                        MutableSpan<SocketUsage> r_input_usages)
-{
-  BLI_assert(group.interface_inputs().size() == input_sockets.size());
-
-  AlignedBuffer<1024, 8> allocator_buffer;
-  ResourceScope scope(allocator_buffer);
-
-  Array<InferenceValue> input_values(input_sockets.size(), InferenceValue::Unknown());
-  for (const int i : input_sockets.index_range()) {
-    const bNodeSocket &socket = *input_sockets[i];
-    if (socket.is_directly_linked()) {
-      continue;
-    }
-
-    const bke::bNodeSocketType &stype = *socket.typeinfo;
-    const CPPType *base_type = stype.base_cpp_type;
-    if (base_type == nullptr) {
-      continue;
-    }
-    void *value = scope.allocate_owned(*base_type);
-    stype.get_base_cpp_value(socket.default_value, value);
-    input_values[i] = InferenceValue::from_primitive(value);
-  }
-
-  infer_group_interface_usage(group, input_values, r_input_usages, {});  // TODO
-}
-
-void infer_group_interface_inputs_usage(const bNodeTree &group,
+void infer_group_interface_inputs_usage(const ValueInferenceContext inference_context,
+                                        const bNodeTree &group,
                                         const PointerRNA &properties_ptr,
                                         MutableSpan<SocketUsage> r_input_usages,
                                         std::optional<MutableSpan<SocketUsage>> r_output_usages)
 {
   ResourceScope scope;
-  const Vector<InferenceValue> group_input_values =
-      nodes::get_geometry_nodes_input_inference_values(group, properties_ptr, scope);
+  const Vector<InferenceValue> group_input_values = nodes::get_input_inference_values(
+      inference_context, group, properties_ptr, scope);
   nodes::socket_usage_inference::infer_group_interface_usage(
       group, group_input_values, r_input_usages, r_output_usages);
 }

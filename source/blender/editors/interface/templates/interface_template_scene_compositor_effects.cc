@@ -244,7 +244,10 @@ static void draw_effect_inputs(const bContext &C, PointerRNA &effect_ptr, ui::La
   Array<nodes::socket_usage_inference::SocketUsage> input_usages;
   input_usages.reinitialize(effect.node_group->interface_inputs().size());
   nodes::socket_usage_inference::infer_group_interface_inputs_usage(
-      *effect.node_group, properties_ptr, input_usages);
+      nodes::ValueInferenceContext::CompositorSceneEffect,
+      *effect.node_group,
+      properties_ptr,
+      input_usages);
 
   for (const bNodeTreeInterfaceItem *item : effect.node_group->tree_interface.root_panel.items()) {
     switch (item->item_type) {

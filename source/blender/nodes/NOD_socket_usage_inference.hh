@@ -118,18 +118,10 @@ void infer_group_interface_usage(
     std::optional<MutableSpan<SocketUsage>> r_output_usages = std::nullopt);
 
 /**
- * Same as above, but automatically retrieves the input values from the given sockets..
- * This is used for group nodes.
- */
-void infer_group_interface_inputs_usage(const bNodeTree &group,
-                                        Span<const bNodeSocket *> input_sockets,
-                                        MutableSpan<SocketUsage> r_input_usages);
-
-/**
  * Same as above, but automatically retrieves the input values from the given properties.
- * This is used with the geometry nodes modifier and node tools.
  */
 void infer_group_interface_inputs_usage(
+    ValueInferenceContext inference_context,
     const bNodeTree &group,
     const PointerRNA &properties_ptr,
     MutableSpan<SocketUsage> r_input_usages,
