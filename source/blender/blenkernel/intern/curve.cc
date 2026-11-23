@@ -885,8 +885,11 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
 
 void BKE_nurb_points_add(Nurb *nu, int number)
 {
-  nu->bp = static_cast<BPoint *>(
-      MEM_realloc_zeroed(nu->bp, (nu->pntsu + number) * sizeof(BPoint)));
+  BPoint *points = MEM_new_array_uninitialized<BPoint>(nu->pntsu + number, __func__);
+  std::copy_n(nu->bp, nu->pntsu, points);
+  std::fill_n(points + nu->pntsu, number, BPoint{});
+  MEM_delete(nu->bp);
+  nu->bp = points;
 
   BPoint *bp;
   int i;
@@ -902,8 +905,11 @@ void BKE_nurb_bezierPoints_add(Nurb *nu, int number)
   BezTriple *bezt;
   int i;
 
-  nu->bezt = static_cast<BezTriple *>(
-      MEM_realloc_zeroed(nu->bezt, (nu->pntsu + number) * sizeof(BezTriple)));
+  BezTriple *points = MEM_new_array_uninitialized<BezTriple>(nu->pntsu + number, __func__);
+  std::copy_n(nu->bezt, nu->pntsu, points);
+  std::fill_n(points + nu->pntsu, number, BezTriple{});
+  MEM_delete(nu->bezt);
+  nu->bezt = points;
 
   for (i = 0, bezt = &nu->bezt[nu->pntsu]; i < number; i++, bezt++) {
     bezt->radius = 1.0f;
