@@ -5084,8 +5084,9 @@ static wmOperatorStatus animchannels_channel_select_keys_invoke(bContext *C,
 
   channel_index = animchannels_channel_get(&ac, event->mval);
   if (USER_EXPERIMENTAL_TEST(&U, use_new_animfilter)) {
-    /* TODO This is never reached because the tree view eats the double click event even for
-     * channels that cannot be renamed. */
+    /* TODO: This is never reached because the tree view eats the double click event even for
+     * channels that cannot be renamed. This will be tackled after the main animfilter replacemend
+     * PR lands. */
   }
   else {
     /* handle click */
