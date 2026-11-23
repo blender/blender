@@ -20,6 +20,10 @@ CCL_NAMESPACE_BEGIN
 struct FresnelThinFilm {
   float thickness;
   float ior;
+  ccl_device_inline_method bool valid() const
+  {
+    return thickness > THINFILM_THICKNESS_CUTOFF;
+  }
 };
 
 template<typename T> struct complex {
