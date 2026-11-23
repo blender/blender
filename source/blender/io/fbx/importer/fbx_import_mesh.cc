@@ -7,6 +7,7 @@
  */
 
 #include <algorithm>
+#include <cmath>
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
@@ -19,9 +20,11 @@
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 
+#include "BLI_array.hh"
 #include "BLI_color_types.hh"
 #include "BLI_listbase.hh"
 #include "BLI_math_color_c.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_string.hh"
 #include "BLI_string_utf8.hh"
 #include "BLI_task.hh"
@@ -52,30 +55,142 @@ static bool is_skin_deformer_usable(const ufbx_mesh *mesh, const ufbx_skin_defor
          mesh->num_vertices > 0 && skin->vertices.count == mesh->num_vertices;
 }
 
+static const ufbx_skin_cluster *find_bind_cluster(const ufbx_skin_deformer &skin,
+                                                  const FbxElementMapping &mapping)
+{
+  for (const ufbx_skin_cluster *cluster : skin.clusters) {
+    if (cluster->num_weights > 0 && mapping.bone_to_armature.contains(cluster->bone_node)) {
+      return cluster;
+    }
+  }
+  return nullptr;
+}
+
+static ufbx_matrix mesh_bind_matrix(const ufbx_skin_cluster &cluster)
+{
+  return ufbx_matrix_mul(&cluster.bind_to_world, &cluster.geometry_to_bone);
+}
+
+/* FBX supports different bind pose for each skinned mesh (bind_to_world in skin cluster),
+ * this allows several meshes at different bind poses to be driven by the same skeleton.
+ * Blender's armature has just one rest pose that is shared by all the meshes, so the above
+ * scenario produces incorrect deformations.
+ *
+ * Work around this similar to glTF importer: "bake" the mesh into armature's shared rest
+ * pose (`bone_to_bind_matrix`):
+ * - for each cluster, calculate matrix that takes geometry into that bone space at mesh own
+ *   bind pose,
+ * - then take that to world space using the shared rest pose of the bone,
+ * - and finally back into the mesh local space as defined by bind cluster.
+ *
+ * The per-cluster matrices are blended by the per-vertex skin weights. Result is a matrix per
+ * vertex.
+ *
+ * Returns an empty array when no correction is needed, or when it cannot be applied
+ * (multiple armature skins, bones from another armature, non-invertible matrices).
+ * The caller should apply the result to vertex positions and shape key offsets. Custom
+ * normals should be set before the correction - they are stored relative to the surface,
+ * so they follow the corrected shape. */
+static Array<float4x4> calc_mesh_bind_corrections(const ufbx_mesh *mesh,
+                                                  const FbxElementMapping &mapping)
+{
+  /* Find skin and cluster. */
+  const ufbx_skin_deformer *skin = nullptr;
+  const ufbx_skin_cluster *bind_cluster = nullptr;
+  for (const ufbx_skin_deformer *deformer : mesh->skin_deformers) {
+    if (!is_skin_deformer_usable(mesh, deformer)) {
+      continue;
+    }
+    if (const ufbx_skin_cluster *cluster = find_bind_cluster(*deformer, mapping)) {
+      if (skin != nullptr) {
+        /* Multiple armature modifiers, can't bake. */
+        return {};
+      }
+      skin = deformer;
+      bind_cluster = cluster;
+    }
+  }
+  if (skin == nullptr) {
+    return {};
+  }
+
+  const Object *armature = mapping.bone_to_armature.lookup(bind_cluster->bone_node);
+  const ufbx_matrix mesh_bind = mesh_bind_matrix(*bind_cluster);
+  const ufbx_real determinant = ufbx_matrix_determinant(&mesh_bind);
+  if (!std::isfinite(determinant) || std::abs(determinant) < 1e-150) {
+    /* Non-invertible bind matrix, can't bake. */
+    return {};
+  }
+  const ufbx_matrix world_to_mesh = ufbx_matrix_invert(&mesh_bind);
+
+  /* Bring each cluster's bind space contribution to the armature's shared rest pose,
+   * then back to the mesh's own local space. */
+  Array<float4x4> cluster_corrections(skin->clusters.count, float4x4::identity());
+  bool has_conflict = false;
+  for (const int64_t index : cluster_corrections.index_range()) {
+    const ufbx_skin_cluster &cluster = *skin->clusters[index];
+    if (cluster.num_weights == 0) {
+      continue;
+    }
+    if (mapping.bone_to_armature.lookup_default(cluster.bone_node, nullptr) != armature) {
+      /* Cluster uses bones from another armature, can't bake. */
+      return {};
+    }
+    const ufbx_matrix &shared_bind = mapping.bone_to_bind_matrix.lookup(cluster.bone_node);
+    float4x4 shared_matrix;
+    float4x4 cluster_matrix;
+    matrix_to_m44(shared_bind, shared_matrix.ptr());
+    matrix_to_m44(cluster.bind_to_world, cluster_matrix.ptr());
+    has_conflict |= !math::is_equal(shared_matrix, cluster_matrix, 1e-5f);
+
+    const ufbx_matrix geometry_to_shared_bind = ufbx_matrix_mul(&shared_bind,
+                                                                &cluster.geometry_to_bone);
+    const ufbx_matrix correction = ufbx_matrix_mul(&world_to_mesh, &geometry_to_shared_bind);
+    matrix_to_m44(correction, cluster_corrections[index].ptr());
+  }
+  if (!has_conflict) {
+    /* Bake corrections are not needed. */
+    return {};
+  }
+
+  /* Bake the per-vertex weighted corrections. */
+  Array<float4x4> vertex_corrections(mesh->num_vertices);
+  for (const int64_t index : vertex_corrections.index_range()) {
+    const ufbx_skin_vertex &vertex = skin->vertices[index];
+    float4x4 correction = float4x4::zero();
+    float total_weight = 0.0f;
+    for (const uint32_t weight_index : IndexRange(vertex.weight_begin, vertex.num_weights)) {
+      const ufbx_skin_weight &weight = skin->weights[weight_index];
+      correction += cluster_corrections[weight.cluster_index] * float(weight.weight);
+      total_weight += float(weight.weight);
+    }
+    vertex_corrections[index] = total_weight > 0.0f && std::isfinite(total_weight) ?
+                                    correction * (1.0f / total_weight) :
+                                    float4x4::identity();
+  }
+  return vertex_corrections;
+}
+
 static void import_vertex_positions(const ufbx_mesh *fmesh, Mesh *mesh)
 {
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-#if 0  // @TODO: "bake" skinned meshes
-  if (skin != nullptr) {
-    /* For a skinned mesh, transform the vertices into bind pose position, in local space. */
-    const ufbx_matrix &geom_to_world = fmesh->instances[0]->geometry_to_world;
-    ufbx_matrix world_to_geom = ufbx_matrix_invert(&geom_to_world);
-    for (size_t i = 0; i < fmesh->vertex_position.values.count; i++) {
-      ufbx_matrix skin_mat = ufbx_get_skin_vertex_matrix(skin, i, &geom_to_world);
-      skin_mat = ufbx_matrix_mul(&world_to_geom, &skin_mat);
-      ufbx_vec3 val = ufbx_transform_position(&skin_mat, fmesh->vertex_position.values[i]);
-      positions[i] = float3(val.x, val.y, val.z);
-      //@TODO: skin normals
-    }
-    return;
-  }
-#endif
-
   BLI_assert(positions.size() == fmesh->vertex_position.values.count);
   for (const int64_t i : positions.index_range()) {
     ufbx_vec3 val = fmesh->vertex_position.values[i];
     positions[i] = float3(val.x, val.y, val.z);
   }
+}
+
+static void apply_bind_corrections(Mesh &mesh, const Span<float4x4> bind_corrections)
+{
+  if (bind_corrections.is_empty()) {
+    return;
+  }
+  MutableSpan<float3> positions = mesh.vert_positions_for_write();
+  for (const int64_t i : positions.index_range()) {
+    positions[i] = math::transform_point(bind_corrections[i], positions[i]);
+  }
+  mesh.tag_positions_changed();
 }
 
 static void import_faces(const ufbx_mesh *fmesh, Mesh *mesh)
@@ -340,7 +455,8 @@ static void import_skin_vertex_groups(const FbxElementMapping &mapping,
 static bool import_blend_shapes(Main &bmain,
                                 FbxElementMapping &mapping,
                                 const ufbx_mesh *fmesh,
-                                Mesh *mesh)
+                                Mesh *mesh,
+                                const Span<float4x4> bind_corrections)
 {
   Key *mesh_key = nullptr;
   for (const ufbx_blend_deformer *fdeformer : fmesh->blend_deformers) {
@@ -376,7 +492,11 @@ static bool import_blend_shapes(Main &bmain,
           continue;
         }
         const ufbx_vec3 &delta = fchan->target_shape->position_offsets[i];
-        kb_data[idx] += float3(delta.x, delta.y, delta.z);
+        float3 offset(delta.x, delta.y, delta.z);
+        if (!bind_corrections.is_empty()) {
+          offset = math::transform_direction(bind_corrections[idx], offset);
+        }
+        kb_data[idx] += offset;
       }
       mapping.el_to_shape_key.add(&fchan->element, {mesh_key, kb});
     }
@@ -451,6 +571,7 @@ void import_meshes(Main &bmain,
 {
   /* Create Mesh objects outside of Main, in parallel. */
   Vector<Mesh *> meshes(fbx.meshes.count);
+  Vector<Array<float4x4>> shape_bind_corrections(fbx.meshes.count);
   threading::parallel_for_each(IndexRange(fbx.meshes.count), [&](const int64_t index) {
     const ufbx_mesh *fmesh = fbx.meshes.data[index];
     if (fmesh->instances.count == 0) {
@@ -474,6 +595,7 @@ void import_meshes(Main &bmain,
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
     AttributeOwner attr_owner = AttributeOwner::from_id(&mesh->id);
 
+    Array<float4x4> bind_corrections = calc_mesh_bind_corrections(fmesh, mapping);
     import_vertex_positions(fmesh, mesh);
     import_faces(fmesh, mesh);
     import_face_material_indices(fmesh, attributes);
@@ -527,6 +649,13 @@ void import_meshes(Main &bmain,
       }
     }
 
+    /* Note: custom normals are stored relative to the surface, so it is correct to
+     * bake position corrections after setting them. */
+    apply_bind_corrections(*mesh, bind_corrections);
+
+    if (fmesh->blend_deformers.count > 0) {
+      shape_bind_corrections[index] = std::move(bind_corrections);
+    }
     meshes[index] = mesh;
   });
 
@@ -549,7 +678,8 @@ void import_meshes(Main &bmain,
       read_custom_properties(fmesh->props, mesh->id, params.props_enum_as_string);
     }
 
-    const bool any_shapes = import_blend_shapes(bmain, mapping, fmesh, mesh);
+    const bool any_shapes = import_blend_shapes(
+        bmain, mapping, fmesh, mesh, shape_bind_corrections[index]);
 
     /* Create objects that use this mesh. */
     for (const ufbx_node *node : fmesh->instances) {
@@ -581,20 +711,9 @@ void import_meshes(Main &bmain,
           if (!is_skin_deformer_usable(fmesh, skin)) {
             continue;
           }
-          Object *arm_obj = nullptr;
-          const ufbx_skin_cluster *bind_cluster = nullptr;
-          for (const ufbx_skin_cluster *cluster : skin->clusters) {
-            if (cluster->num_weights == 0) {
-              continue;
-            }
-            arm_obj = mapping.bone_to_armature.lookup_default(cluster->bone_node, nullptr);
-            if (arm_obj != nullptr) {
-              bind_cluster = cluster;
-              break;
-            }
-          }
           /* Add armature modifier. */
-          if (arm_obj != nullptr) {
+          if (const ufbx_skin_cluster *bind_cluster = find_bind_cluster(*skin, mapping)) {
+            Object *arm_obj = mapping.bone_to_armature.lookup(bind_cluster->bone_node);
             ModifierData *md = BKE_modifier_new(eModifierType_Armature);
             STRNCPY_UTF8(md->name, BKE_id_name(arm_obj->id));
             BLI_addtail(&obj->modifiers, md);
@@ -698,9 +817,7 @@ void setup_skinned_mesh_parenting(FbxElementMapping &mapping)
     const ufbx_matrix world_to_arm_pose = mapping.armature_world_to_arm_pose_matrix.lookup_default(
         arm_obj, ufbx_identity_matrix);
     const ufbx_matrix local_inv = ufbx_matrix_invert(&local);
-    const ufbx_skin_cluster &cluster = *mesh.bind_cluster;
-    const ufbx_matrix mesh_bind = ufbx_matrix_mul(&cluster.bind_to_world,
-                                                  &cluster.geometry_to_bone);
+    const ufbx_matrix mesh_bind = mesh_bind_matrix(*mesh.bind_cluster);
     const ufbx_matrix bind_to_local = ufbx_matrix_mul(&mesh_bind, &local_inv);
     const ufbx_matrix parent_inverse = ufbx_matrix_mul(&world_to_arm_pose, &bind_to_local);
     matrix_to_m44(parent_inverse, obj->parentinv);

@@ -1,0 +1,66 @@
+==== Meshes: 2
+- Mesh 'FirstMesh' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (16384, 0)
+    - (16384, -14043)
+    - (16384, -28086)
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 1.000)
+    - (2.000, 0.000, 1.000)
+    - (0.000, 1.000, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 1=1.000
+  - shape key 'Basis' w:0.000 vgrp:'' 0:(0.000, 0.000, 1.000) 1:(2.000, 0.000, 1.000) 2:(0.000, 1.000, 0.000)
+  - shape key 'Lift' w:0.000 vgrp:'' 0:(0.000, 0.000, 1.000) 1:(4.000, 0.000, 2.000) 2:(0.000, 1.000, 0.000)
+
+- Mesh 'SecondMesh' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (0.000, 1.000, 0.000)
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+
+==== Objects: 3
+- Obj 'FirstMesh' MESH data:'FirstMesh' par:'Rig'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 2 vertex groups
+    - 'Joint' 'Anchor' 
+  - 1 modifiers
+    - ARMATURE 'Rig'
+- Obj 'Rig' ARMATURE data:'Rig'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'SecondMesh' MESH data:'SecondMesh' par:'Rig'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 vertex groups
+    - 'Joint' 
+  - 1 modifiers
+    - ARMATURE 'Rig'
+
+==== Armatures: 1
+- Armature 'Rig' 2 bones
+  - bone 'Anchor' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'Joint' h:(0.000, 0.000, 1.000) t:(0.000, 1.000, 1.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 1.000
+
