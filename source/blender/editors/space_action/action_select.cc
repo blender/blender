@@ -1159,7 +1159,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
                   static_cast<bGPDlayer *>(ale.data), &ked.cfra_elem_list, true);
               break;
             case ANIMTYPE_GREASE_PENCIL_LAYER:
-              ed::greasepencil ::create_keyframe_edit_data_selected_frames_list(
+              ed::greasepencil::create_keyframe_edit_data_selected_frames_list(
                   &ked, static_cast<GreasePencilLayer *>(ale.data)->wrap());
               break;
             default:
@@ -1942,8 +1942,9 @@ static wmOperatorStatus mouse_action_keys(bAnimContext *ac,
     /* reset selection mode for next steps */
     select_mode = SELECT_ADD;
 
-    /* Rather than deselecting others, users may want to drag to box-select (drag from empty space)
-     * or tweak-translate an already selected item. If these cases may apply, delay deselection. */
+    /* Rather than deselecting others, users may want to drag to box-select (drag from empty
+     * space) or tweak-translate an already selected item. If these cases may apply, delay
+     * deselection. */
     if (wait_to_deselect_others && (!found || is_selected)) {
       ret_value = OPERATOR_RUNNING_MODAL;
     }
