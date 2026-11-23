@@ -1297,7 +1297,8 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache &cache,
                                    gpu::VertBuf *pos,
                                    gpu::VertBuf *vert_normals,
                                    gpu::VertBuf *subdiv_corner_verts,
-                                   gpu::VertBuf *lnor)
+                                   gpu::VertBuf *lnor,
+                                   const bool use_vert_normals)
 {
   if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
@@ -1320,6 +1321,7 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache &cache,
   /* Outputs */
   GPU_vertbuf_bind_as_ssbo(lnor, LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT);
   GPU_shader_uniform_1b(shader, "use_hq", lnor->format.stride == 8);
+  GPU_shader_uniform_1b(shader, "use_vert_normals", use_vert_normals);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache.num_subdiv_quads);
 

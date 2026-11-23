@@ -96,7 +96,8 @@ gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr, MeshBufferCache &
 }
 
 gpu::VertBufPtr extract_vert_normals_subdiv(const MeshRenderData &mr,
-                                            const DRWSubdivCache &subdiv_cache)
+                                            const DRWSubdivCache &subdiv_cache,
+                                            gpu::VertBuf &pos)
 {
   const GPUVertFormat &format = get_vert_normals_format();
 
@@ -108,12 +109,21 @@ gpu::VertBufPtr extract_vert_normals_subdiv(const MeshRenderData &mr,
     return vnor;
   }
 
-  const Mesh *coarse_mesh = subdiv_cache.mesh;
-  const uint corner_count = coarse_mesh->corner_normals().size();
-  gpu::VertBufPtr src = gpu::VertBuf::from_span(coarse_mesh->corner_normals());
-  gpu::VertBufPtr src_compressed = gpu::VertBuf::device_only<int1010102_norm>(corner_count);
-  mesh_compress_normals(*src, *src_compressed);
-  draw_subdiv_interp_corner_normals(subdiv_cache, *src_compressed, *vnor);
+  gpu::VertBufPtr subdiv_corner_verts = gpu::VertBufPtr(draw_subdiv_build_origindex_buffer(
+      subdiv_cache.subdiv_loop_subdiv_vert_index, subdiv_cache.num_subdiv_loops));
+
+  /* Calculate normals of the subdivided vertices, and copy them to all face corners, also for
+   * flat faces. */
+  gpu::VertBufPtr vert_normals = gpu::VertBufPtr(
+      GPU_vertbuf_create_on_device(format, subdiv_cache.num_subdiv_verts));
+  draw_subdiv_accumulate_normals(subdiv_cache,
+                                 &pos,
+                                 subdiv_cache.subdiv_vert_face_adjacency_offsets,
+                                 subdiv_cache.subdiv_vert_face_adjacency,
+                                 subdiv_corner_verts.get(),
+                                 vert_normals.get());
+  draw_subdiv_build_lnor_buffer(
+      subdiv_cache, &pos, vert_normals.get(), subdiv_corner_verts.get(), vnor.get(), true);
 
   update_loose_normals(mr, subdiv_cache, *vnor);
   return vnor;

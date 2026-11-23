@@ -271,7 +271,7 @@ gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
    *
    * TODO: Avoid using face normals or vertex normals if possible, using `mr.normals_domain`. */
   draw_subdiv_build_lnor_buffer(
-      subdiv_cache, &pos, vert_normals.get(), subdiv_corner_verts.get(), lnor.get());
+      subdiv_cache, &pos, vert_normals.get(), subdiv_corner_verts.get(), lnor.get(), false);
 
   update_loose_normals(mr, subdiv_cache, *lnor);
 

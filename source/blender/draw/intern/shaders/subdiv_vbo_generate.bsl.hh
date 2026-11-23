@@ -312,6 +312,8 @@ struct LoopNormalsResource {
   [[storage(LOOP_NORMALS_VERTEX_LOOP_MAP_BUF_SLOT, read)]] uint (&vert_loop_map)[];
   /* Output is either SNORM_16_16_16_16 or SNORM_10_10_10_2. */
   [[push_constant]] const bool use_hq;
+  /* Use vertex normals for flat faces too. */
+  [[push_constant]] const bool use_vert_normals;
   [[storage(LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT, write)]] uint (&output_lnor)[];
 
   void write_output(uint index, float3 nor)
@@ -345,8 +347,8 @@ void loop_normals_main([[resource_table]] const SubdivResources &srt,
   const uint coarse_quad_index = poly_ofs.coarse_face_index_from_subdiv_quad_index(
       quad_index, uint(srt.shader_data.coarse_face_count));
 
-  if ((lnors.extra_coarse_face_data[coarse_quad_index] &
-       srt.shader_data.coarse_face_smooth_mask) != 0)
+  if (lnors.use_vert_normals || (lnors.extra_coarse_face_data[coarse_quad_index] &
+                                 srt.shader_data.coarse_face_smooth_mask) != 0)
   {
     /* Face is smooth, use vertex normals. */
     for (uint i = 0; i < 4u; i++) [[unroll]] {

@@ -336,7 +336,8 @@ gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
                                        bool use_hq);
 gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr, MeshBufferCache &cache);
 gpu::VertBufPtr extract_vert_normals_subdiv(const MeshRenderData &mr,
-                                            const DRWSubdivCache &subdiv_cache);
+                                            const DRWSubdivCache &subdiv_cache,
+                                            gpu::VertBuf &pos);
 gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, bool use_hq);
 gpu::VertBufPtr extract_edge_factor(const MeshRenderData &mr);
 gpu::VertBufPtr extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,

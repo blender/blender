@@ -426,7 +426,10 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
             mr, subdiv_cache, *buffers.vbos.lookup(VBOType::Position), do_hq_normals));
   }
   if (vbos_to_create.contains(VBOType::VertexNormal)) {
-    buffers.vbos.add_new(VBOType::VertexNormal, extract_vert_normals_subdiv(mr, subdiv_cache));
+    /* The vertex normals calculation uses positions stored in the `pos` VBO. */
+    buffers.vbos.add_new(
+        VBOType::VertexNormal,
+        extract_vert_normals_subdiv(mr, subdiv_cache, *buffers.vbos.lookup(VBOType::Position)));
   }
   if (vbos_to_create.contains(VBOType::EdgeFactor)) {
     buffers.vbos.add_new(

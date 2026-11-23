@@ -239,11 +239,16 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache &cache,
                                      gpu::VertBuf *fdots_nor,
                                      gpu::IndexBuf *fdots_indices);
 
+/**
+ * Build face corner normals from \a vert_normals for smooth faces and from face normals for flat
+ * faces, or from \a vert_normals for all faces when \a use_vert_normals is set.
+ */
 void draw_subdiv_build_lnor_buffer(const DRWSubdivCache &cache,
                                    gpu::VertBuf *pos,
                                    gpu::VertBuf *vert_normals,
                                    gpu::VertBuf *subdiv_corner_verts,
-                                   gpu::VertBuf *lnor);
+                                   gpu::VertBuf *lnor,
+                                   bool use_vert_normals);
 
 void draw_subdiv_build_paint_overlay_flag_buffer(const DRWSubdivCache &cache, gpu::VertBuf &flags);
 
