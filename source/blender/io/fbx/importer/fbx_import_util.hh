@@ -10,6 +10,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_set.hh"
+#include "BLI_vector.hh"
 
 #include "ufbx.h"
 
@@ -36,12 +37,20 @@ struct FbxShapeKey {
   KeyBlock *block;
 };
 
+struct FbxSkinnedMesh {
+  const ufbx_node *node;
+  Object *object;
+  Object *armature;
+};
+
 struct FbxElementMapping {
   Set<Object *> imported_objects;
   Map<const ufbx_element *, Object *> el_to_object;
   Map<const ufbx_element *, FbxShapeKey> el_to_shape_key;
   Map<const ufbx_material *, Material *> mat_to_material;
   Map<const ufbx_node *, Object *> bone_to_armature;
+  Vector<FbxSkinnedMesh> skinned_meshes;
+  Set<const Object *> meshes_reparented_to_armature;
 
   /* For the armatures we create, for different use cases we need transform
    * from world space to the root bone, either in posed transform or in

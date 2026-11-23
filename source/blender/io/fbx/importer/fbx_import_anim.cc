@@ -155,11 +155,8 @@ static Vector<ElementAnimations> gather_animated_properties(const FbxElementMapp
       if (obj == nullptr) {
         continue;
       }
-      /* Ignore animation of rigged meshes (very hard to handle; matches behavior of python fbx
-       * importer). */
-      if (obj->type == OB_MESH && obj->parent && obj->parent->type == OB_ARMATURE &&
-          (obj->partype & PARTYPE) != PARBONE)
-      {
+      /* The original animation is in the wrong space for a reparented mesh. */
+      if (mapping.meshes_reparented_to_armature.contains(obj)) {
         continue;
       }
       target_id = &obj->id;

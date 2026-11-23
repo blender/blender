@@ -22,5 +22,7 @@ void import_meshes(Main &bmain,
                    FbxElementMapping &mapping,
                    const FBXImportParams &params);
 
+void setup_skinned_mesh_parenting(FbxElementMapping &mapping);
+
 }  // namespace io::fbx
 }  // namespace blender

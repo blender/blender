@@ -439,8 +439,9 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
   ctx.import_cameras();
   ctx.import_lights();
   ctx.import_empties();
-  ctx.import_animation(fps);
   ctx.setup_hierarchy();
+  setup_skinned_mesh_parenting(ctx.mapping);
+  ctx.import_animation(fps);
 
   ufbx_free_scene(fbx);
 
