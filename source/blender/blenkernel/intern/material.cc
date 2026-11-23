@@ -650,7 +650,10 @@ void BKE_id_material_resize(Main *bmain, ID *id, short totcol, bool do_id_user)
     }
   }
   else {
-    *matar = static_cast<Material **>(MEM_realloc_zeroed(*matar, sizeof(void *) * totcol));
+    Material **new_matar = MEM_new_array_zeroed<Material *>(totcol, __func__);
+    std::copy_n(*matar, std::min(int(totcol), int(*totcolp)), new_matar);
+    MEM_delete(*matar);
+    *matar = new_matar;
   }
   *totcolp = totcol;
 
