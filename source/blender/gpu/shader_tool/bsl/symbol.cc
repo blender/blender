@@ -252,6 +252,32 @@ struct SymbolParser : NodeErrorHandler {
     }
   }
 
+  const SymbolClass &parse_id_type(SymbolScope &scope,
+                                   IdType type,
+                                   const ast::Declarator auto_decl = {})
+  {
+    if (type.is_decltype()) {
+      ast::Expr expr = type.decltype_expr();
+      const SymbolClass &cls =
+          *table.expr_type_analysis(scope, expr.child_first()).unwrap(this).type;
+      if (cls.is_error) {
+        error(type, Diag::ExpectedTypedExpression);
+      }
+      return cls;
+    }
+    IdQualified type_id = type.identifier();
+
+    if (auto_decl.is_valid() && type_id.str() == "auto") {
+      return table.resolve_auto_type(scope, auto_decl).unwrap(this);
+    }
+
+    const SymbolClass &cls = scope.lookup_class(table, type_id).unwrap(this);
+    if (cls.is_error) {
+      error(type_id, Diag::UnknownTypeNameWithArg, type_id.str());
+    }
+    return cls;
+  }
+
   /* Create declaration for each function argument so name lookup will work with these.
    * Also create declaration for `this_`. */
   void parse_function_arguments(SymbolScope &scope, FuncArgList arg_list)
@@ -261,11 +287,8 @@ struct SymbolParser : NodeErrorHandler {
     for (FuncArg arg : arg_list.children_of_type<FuncArg>()) {
       auto attr = resource_type_from_attributes(arg.attributes()).unwrap(this);
 
-      const SymbolClass &type = scope.lookup_class(table, arg.type().identifier()).unwrap(this);
-      if (type.is_error) {
-        error(
-            arg.type().identifier(), Diag::UnknownTypeNameWithArg, arg.type().identifier().str());
-      }
+      const SymbolClass &type = parse_id_type(scope, arg.type());
+
       Declarator decl = arg.declarator();
       SymbolVariable &var = table.var_arena.alloc(scope, type, decl, table);
       if (scope.variable_emplace(&var)) {
@@ -523,21 +546,34 @@ struct SymbolParser : NodeErrorHandler {
   {
     if (stmt.is_namespace()) {
       error(stmt, Diag::UsingNamespaceNotSupported);
+      return;
     }
-    IdQualified aliased(stmt.aliased());
+
     IdQualified name(stmt.identifier());
     string identifier(name.name().str());
-    SymbolFunction &fun = scope.lookup_function(table, aliased).unwrap(this);
+
+    IdType aliased(stmt.aliased());
+
+    if (aliased.is_decltype()) {
+      const SymbolClass &type = parse_id_type(scope, aliased);
+      scope.classes.emplace(identifier, const_cast<SymbolClass *>(&type), name.front());
+      return;
+    }
+
+    const IdQualified aliased_id = aliased.is_valid() ? aliased.identifier() : name;
+
+    SymbolFunction &fun = scope.lookup_function(table, aliased_id).unwrap(this);
     if (!fun.is_error) {
-      scope.functions.emplace(identifier, &fun, stmt.identifier().front());
+      scope.functions.emplace(identifier, &fun, name.front());
       return;
     }
-    SymbolClass &type = scope.lookup_class(table, aliased).unwrap(this);
-    if (type.is_error && fun.is_error) {
-      error(aliased, Diag::UnknownTypeName);
+
+    SymbolClass &type = scope.lookup_class(table, aliased_id).unwrap(this);
+    if (!type.is_error) {
+      scope.classes.emplace(identifier, &type, name.front());
       return;
     }
-    scope.classes.emplace(identifier, &type, stmt.identifier().front());
+    error(aliased, Diag::UnknownTypeName);
   }
 
   void parse_enum_value(SymbolScope &scope,
@@ -1323,19 +1359,16 @@ struct SymbolParser : NodeErrorHandler {
                       SymbolVariable *&bitfield_base,
                       const std::string &prefix)
   {
-    IdQualified type_id = var.type().identifier();
-    string_view type_id_str = type_id.str();
+    IdType id_type = var.type();
 
     /* Assumes C++ compilation already checked that all declarator uses the same type.
      * Deduce type using only the first declarator. */
     Declarator first_decl = var.child_first(NodeType::Declarator);
 
-    const SymbolClass &type = (type_id_str == "auto") ?
-                                  table.resolve_auto_type(scope, first_decl).unwrap(this) :
-                                  scope.lookup_class(table, type_id).unwrap(this);
+    const SymbolClass &type = parse_id_type(scope, id_type, first_decl);
 
     if (type.is_error) {
-      error(var, Diag::UnknownTypeNameWithArg, type_id_str);
+      error(id_type, Diag::UnknownTypeNameWithArg, id_type.str());
       return;
     }
 
@@ -1345,11 +1378,11 @@ struct SymbolParser : NodeErrorHandler {
 
     SymbolClass &type_mut = const_cast<SymbolClass &>(type);
     if (attr.res_type == ResourceType::UNIFORM_BUF && !type.is_std140_compatible) {
-      NOTE(type_id, Diag::NoteInUniformBufferDeclaration, type.original);
+      NOTE(id_type, Diag::NoteInUniformBufferDeclaration, type.original);
       type_mut.ensure_size_and_align(this);
     }
     else if (attr.res_type == ResourceType::STORAGE_BUF && !type.is_std430_compatible) {
-      NOTE(type_id, Diag::NoteInStorageBufferDeclaration, type.original);
+      NOTE(id_type, Diag::NoteInStorageBufferDeclaration, type.original);
       type_mut.ensure_size_and_align(this, true);
     }
 

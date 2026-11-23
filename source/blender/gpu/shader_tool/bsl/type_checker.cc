@@ -71,8 +71,14 @@ struct ExpressionTypeParser
       case ast::NodeType::FuncCall: {
         ast::FuncCall call = t;
 
+        string_view id_str = call.identifier().str();
+        if (id_str == "decltype") {
+          error(call, Diag::UnsupportedDecltypeInExpr);
+          return {*table.err_cls, ConstexprError(0), false};
+        }
+
         /* Legacy BSL. */
-        if (call.identifier().str() == "resource_table_get") {
+        if (id_str == "resource_table_get") {
           auto [param] = call.parameters().splat_1();
           if (ast::LocalVar var = param.child_first(); var.is_valid()) {
             return scope.lookup_class(table, var.identifier()).unwrap(err);
@@ -80,9 +86,7 @@ struct ExpressionTypeParser
           error(call.parameters(), Diag::ExpectedOneTypename);
           return {*table.err_cls, ConstexprError(0), false};
         }
-        if (call.identifier().str() == "interface_get" ||
-            call.identifier().str() == "sampler_get" || call.identifier().str() == "buffer_get")
-        {
+        if (id_str == "interface_get" || id_str == "sampler_get" || id_str == "buffer_get") {
           auto [param1, param2] = call.parameters().splat_2();
           if (ast::LocalVar var = param1.child_first(), mem = param2.child_first();
               var.is_valid() && mem.is_valid())
@@ -414,10 +418,14 @@ struct ExpressionTypeParser
     switch (right.type()) {
       case ast::NodeType::FuncCall: {
         ast::FuncCall call = right;
+        string_view id_str = call.identifier().str();
+        if (id_str == "decltype") {
+          error(call, Diag::UnsupportedDecltypeInExpr);
+          return *table.err_cls;
+        }
         /* The exception is for legacy BSL. */
-        if (is_reference && call.identifier().str() != "resource_table_get" &&
-            call.identifier().str() != "interface_get" &&
-            call.identifier().str() != "sampler_get" && call.identifier().str() != "buffer_get")
+        if (is_reference && id_str != "resource_table_get" && id_str != "interface_get" &&
+            id_str != "sampler_get" && id_str != "buffer_get")
         {
           error(right, Diag::FunctionCallNotAllowedInReferenceDefinition);
         }

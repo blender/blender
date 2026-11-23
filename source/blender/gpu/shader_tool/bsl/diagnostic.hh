@@ -173,6 +173,7 @@ enum class Diag {
   ExpectedComputeShaderEntryPoint,
   ExpectedFragmentShaderEntryPoint,
   ExpectedVertexShaderEntryPoint,
+  ExpectedTypedExpression,
 
   ExprCannotContainFunctionCalls,
   ExprNotIntegralConstant,
@@ -315,6 +316,7 @@ enum class Diag {
   UnrolledLoopTooManyIterations,
 
   UnsupportedSymbolInExpr,
+  UnsupportedDecltypeInExpr,
   UnsupportedDefaultedBody,
   UnsupportedDeletedBody,
   UnsupportedPureVirtualFunctionBody,
@@ -439,6 +441,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Excess elements in scalar initializer";
     case Diag::ExpectedVertexShaderEntryPoint:
       return "Expected vertex shader entry point function";
+    case Diag::ExpectedTypedExpression:
+      return "Expected typed expression";
     case Diag::ExprCannotContainFunctionCalls:
       return "{} cannot contain function calls";
     case Diag::ExprNotIntegralConstant:
@@ -686,6 +690,9 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Non-constant expression in unrolled loop control";
     case Diag::UnrolledLoopTooManyIterations:
       return "Loop unrolling generates too many iterations (over 64)";
+    case Diag::UnsupportedDecltypeInExpr:
+      return "'decltype' is not supported inside expression, use 'using' to create an alias "
+             "instead";
     case Diag::UnsupportedSymbolInExpr:
       return "Unsupported symbol '{}' inside {}";
     case Diag::UnsupportedDefaultedBody:
@@ -714,6 +721,7 @@ struct AstNodeException {
                    const string &param3 = "")
       : node(node), diag(diag), param1(param1), param2(param2), param3(param3)
   {
+    assert(node.is_valid());
   }
 };
 

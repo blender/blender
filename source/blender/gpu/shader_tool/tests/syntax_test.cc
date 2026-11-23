@@ -816,4 +816,57 @@ struct A {
   }
 }
 
+TEST(shader_tool, Decltype)
+{
+  {
+    string input = R"(
+struct A {
+  float2 i;
+};
+
+int f(decltype(1 + 2.0) i, A j)
+{
+  using F = decltype(j);
+  decltype(1 + 2.0f) a = 2;
+  decltype(f(i, j)) b = 2;
+  decltype(A::i) c;
+  F d = j;
+  return 0;
+}
+)";
+    string expect = R"(
+struct A {
+  float2 i;
+};
+#line 2
+A A_ctor_() {A r;r.i=float2(0);return r;}
+#line 6
+int f(float i, A j)
+{
+
+  float a = 2;
+  int b = 2;
+  float2 c;
+  A d = j;
+  return 0;
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+int f(int i)
+{
+  auto c = decltype(i)(0);
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error,
+              "'decltype' is not supported inside expression, use 'using' to create an alias "
+              "instead");
+  }
+}
+
 }  // namespace blender::gpu::tests

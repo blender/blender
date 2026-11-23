@@ -1879,9 +1879,11 @@ void SourceProcessor::lower_noop_keywords_ast(Parser &parser)
   }
   /* Remove `struct`, `class`, `enum`, `union` from type declaration. */
   for (IdType type : parser.root().descendants_of_type<IdType>()) {
-    Token tok = type.identifier().front().prev();
-    if (tok == Struct || tok == Class || tok == Enum || tok == Union) {
-      parser.erase(tok);
+    if (!type.is_decltype()) {
+      Token tok = type.identifier().front().prev();
+      if (tok == Struct || tok == Class || tok == Enum || tok == Union) {
+        parser.erase(tok);
+      }
     }
   }
 }

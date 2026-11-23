@@ -29,12 +29,21 @@ Result<vector<const SymbolClass *>> SymbolFunction::to_arg_types(const SymbolTab
                                                                  const SymbolScope &scope,
                                                                  FuncArgList list)
 {
+  std::optional<AstNodeException> error;
   vector<const SymbolClass *> arg_types;
   for (FuncArg arg : list.children_of_type<FuncArg>()) {
-    auto [cls, _] = scope.lookup_class(table, arg.type().identifier());
-    arg_types.emplace_back(&cls);
+    ast::IdType type = arg.type();
+    if (type.is_decltype()) {
+      ast::Expr expr = type.decltype_expr();
+      const auto *cls = table.expr_type_analysis(scope, expr.child_first()).unwrap(error).type;
+      arg_types.emplace_back(cls);
+    }
+    else {
+      auto [cls, _] = scope.lookup_class(table, arg.type().identifier());
+      arg_types.emplace_back(&cls);
+    }
   }
-  return {arg_types, std::nullopt};
+  return {arg_types, error};
 }
 
 static string to_str(const vector<const SymbolClass *> &types)

@@ -670,22 +670,6 @@ struct ExprSub : Node {
   }
 };
 
-struct UsingStmt : Node {
-  NODE_COMMON(UsingStmt);
-
-  bool is_namespace() const;
-
-  IdQualified identifier() const
-  {
-    return child_first();
-  }
-
-  IdQualified aliased() const
-  {
-    return child_last();
-  }
-};
-
 struct LocalVar : Node {
   NODE_COMMON(LocalVar);
 
@@ -722,6 +706,11 @@ struct IdType : Node {
     return child_first(NodeType::StaticStmt).is_valid();
   }
 
+  bool is_decltype() const
+  {
+    return decltype_expr().is_valid();
+  }
+
   Const constant() const
   {
     return child_first(NodeType::Const);
@@ -740,6 +729,27 @@ struct IdType : Node {
   Reference reference() const
   {
     return child_first(NodeType::Reference);
+  }
+
+  Expr decltype_expr() const
+  {
+    return child_first(NodeType::Expr);
+  }
+};
+
+struct UsingStmt : Node {
+  NODE_COMMON(UsingStmt);
+
+  bool is_namespace() const;
+
+  IdQualified identifier() const
+  {
+    return child_first();
+  }
+
+  IdType aliased() const
+  {
+    return child_last();
   }
 };
 

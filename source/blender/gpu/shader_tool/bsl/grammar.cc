@@ -389,7 +389,20 @@ struct BSLParser {
       /* Supported because of explicit host shared struct members. */
       match_if(Struct, Class, Enum);
     }
-    qualified_id();
+    id_type_qualified_id();
+  }
+
+  void id_type_qualified_id()
+  {
+    if (peek() == "decltype") {
+      match(Word);
+      match('(');
+      expression(true, false);
+      match(')');
+    }
+    else {
+      qualified_id();
+    }
   }
 
   bool var_decl(bool is_member = false, bool expect_semicolon = true)
@@ -540,7 +553,7 @@ struct BSLParser {
     match_if(Inline);
     {
       NODE(IdType);
-      qualified_id();
+      id_type_qualified_id();
     }
     qualified_id(expect_template_params);
     function_argument_list();
@@ -683,7 +696,7 @@ struct BSLParser {
       {
         NODE(IdType);
         const_qualifier_optional();
-        qualified_id();
+        id_type_qualified_id();
       }
       declarator();
     } while (match_if(','));
@@ -1102,7 +1115,7 @@ struct BSLParser {
     match_if(Namespace);
     qualified_id();
     if (match_if(Assign)) {
-      qualified_id();
+      id_type();
     }
     match(';');
   }

@@ -566,6 +566,11 @@ struct CodegenContext : NodeErrorHandler {
 
       IdQualified id = call.identifier();
 
+      if (id.str() == "decltype") {
+        ctx.error(call, Diag::UnsupportedDecltypeInExpr);
+        return {"", *ctx.table.err_cls};
+      }
+
       /* If accessing a function in a different class, we need to set the location at the point of
        * instantiation. Otherwise we cannot use CRTP patterns. */
       SourceLocation loc = (&symbol_scope != &scope) ? poi.value_or(id.front()) : id.front();
@@ -3074,6 +3079,16 @@ struct CodegenContext : NodeErrorHandler {
     match_if(TokenType::Constexpr);
     match_if(TokenType::Const);
     skip_if(Struct, Class, Enum);
+    if (type.is_decltype()) {
+      ast::Expr expr = type.decltype_expr();
+      const auto &cls = *table.expr_type_analysis(scope, expr.child_first()).unwrap(this).type;
+      if (cls.is_error) {
+        error(type, Diag::UnknownTypeNameWithArg, type.str());
+      }
+      builder.curr = type.back();
+      builder << cls.identifier + trivia(type);
+      return cls;
+    }
     return id_type_resolved(type.identifier(), scope);
   }
 
