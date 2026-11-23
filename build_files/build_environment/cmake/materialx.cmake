@@ -39,12 +39,7 @@ ExternalProject_Add(external_materialx
   URL_HASH ${MATERIALX_HASH_TYPE}=${MATERIALX_HASH}
   PREFIX ${BUILD_DIR}/materialx
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
-
-  PATCH_COMMAND
-    ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/materialx/src/external_materialx 
-      -i ${PATCH_DIR}/materialx_2866.diff
-
+  
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/materialx
     ${DEFAULT_CMAKE_FLAGS}
