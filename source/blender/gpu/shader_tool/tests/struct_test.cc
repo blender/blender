@@ -1229,6 +1229,75 @@ void fn() {
     auto [output, _, error] = process_test_string(input, Language::BSL);
     EXPECT_EQ(error, "Field designator 'a' needs to be specified in declaration order");
   }
+  {
+    string input = R"(
+struct A {
+  float3 a = float3(1);
+  float b = 2;
+  uint c = b;
+};
+
+void f()
+{
+  A a = {.c = 3};
+  A b = {float3(2), 1, 2};
+  A c = {};
+  A d;
+}
+)";
+    string expect = R"(
+struct A {
+  float3 a            ;
+  float b    ;
+  uint c    ;
+};
+#line 2
+A A_ctor_() {A r;r.a=float3(1);r.b=2;r.c=r.b;return r;}
+#line 8
+void f()
+{
+  A a = _ctor(A)float3(1),2,3 _rotc();
+  A b = _ctor(A)float3(2), 1, 2 _rotc();
+  A c = A_ctor_();
+  A d=A_ctor_();
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct A {
+  float3 a = float3(1);
+  float b = 2;
+  uint c = b;
+};
+
+void f()
+{
+  A a = {.b = 3};
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Initializer list cannot call methods or access members");
+  }
+  {
+    string input = R"(
+struct A {
+  float3 a = float3(1);
+  float b = 2;
+  uint c = b;
+};
+
+void f()
+{
+  A a = {float3(3)};
+}
+)";
+    auto [output, _, error] = process_test_string(input, Language::BSL);
+    EXPECT_EQ(error, "Initializer list cannot call methods or access members");
+  }
 }
 
 TEST(shader_tool, BitField)

@@ -190,6 +190,7 @@ enum class Diag {
   ImplicitPaddingBeforeMember,
 
   InitializerListRequiresExplicitType,
+  InitializerListNoSelfReference,
 
   InliningNoDefinition,
 
@@ -221,6 +222,8 @@ enum class Diag {
 
   NoteDeclarationUnionRequested,
   NoteInDeclarationOfVariable,
+  NoteInDesignatedInitializerList,
+  NoteInInitializerList,
   NoteInInliningOf,
   NoteInStorageBufferDeclaration,
   NoteInUniformBufferDeclaration,
@@ -267,6 +270,8 @@ enum class Diag {
 
   StructuredBindingNotEnoughNames,
   StructuredBindingTooManyNames,
+
+  StructInitializerExcessElement,
 
   SubscriptNotInt,
 
@@ -459,6 +464,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Implicit {} bytes padding before '{}', add manual padding";
     case Diag::InitializerListRequiresExplicitType:
       return "Initializer list requires explicit type";
+    case Diag::InitializerListNoSelfReference:
+      return "Initializer list cannot call methods or access members";
     case Diag::InliningNoDefinition:
       return "Cannot inline function '{}' without a definition";
     case Diag::InliningRecursive:
@@ -510,6 +517,10 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "In declaration of union '{}' requested here";
     case Diag::NoteInDeclarationOfVariable:
       return "In declaration of '{}' of type '{}'";
+    case Diag::NoteInDesignatedInitializerList:
+      return "In designated initializer list requested here";
+    case Diag::NoteInInitializerList:
+      return "In initializer list requested here";
     case Diag::NoteInInliningOf:
       return "In inlining of function '{}' requested here";
     case Diag::NoteInStorageBufferDeclaration:
@@ -604,6 +615,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Not enough names in structure binding";
     case Diag::StructuredBindingTooManyNames:
       return "Too many names in structure binding";
+    case Diag::StructInitializerExcessElement:
+      return "Excess elements in struct initializer";
     case Diag::SubscriptNotInt:
       return "Array subscript is not an integer";
     case Diag::TemplateInvalidArg:

@@ -1423,6 +1423,7 @@ struct SymbolParser : NodeErrorHandler {
       SymbolVariable &sym = table.var_arena.alloc(scope, type, decl, table);
       sym.res_type = attr.res_type;
       sym.is_static |= attr.res_type != ResourceType::NONE;
+      sym.default_value = decl.initial_value().expr();
       if (scope.variable_emplace(&sym)) {
         /* Check if redefinition is simply hiding a base class member. */
         SymbolVariable *other = scope.variables.find(sym.identifier)->second.second;
@@ -1436,6 +1437,10 @@ struct SymbolParser : NodeErrorHandler {
                sym.identifier);
           error(sym.loc.tok, Diag::Redefinition, sym.identifier);
         }
+      }
+
+      if (cls && sym.default_value.is_valid()) {
+        cls->is_default_initialized = true;
       }
 
       if (sym.is_ptr) {

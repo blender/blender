@@ -1477,7 +1477,7 @@ struct CodegenContext : NodeErrorHandler {
     /* Emit static variables. */
     for (VarDecl decl : body.children_of_type<VarDecl>()) {
       if (decl.type().is_static()) {
-        var_decl(decl, cls);
+        var_decl(decl, cls, true, true);
       }
     }
 
@@ -1645,7 +1645,7 @@ struct CodegenContext : NodeErrorHandler {
         case NodeType::VarDecl: {
           VarDecl decl = node;
           if (!decl.type().is_static()) {
-            member_count += var_decl(decl, cls);
+            member_count += var_decl(decl, cls, true, true);
           }
           break;
         }
@@ -1761,12 +1761,24 @@ struct CodegenContext : NodeErrorHandler {
     for (int i = 0; i < cls.size; i += 16) {
       int member_size = min(16, cls.size - i);
       SymbolClass *type = table.root.lookup_class(size_to_float_vec_type_str(member_size));
-      members += "r._" + to_string(i / 16) + "=" + default_value(*type) + ";";
+      members += "r._" + to_string(i / 16) + "=" + zero_value(*type) + ";";
     }
     return members;
   }
 
-  string default_value(const SymbolClass &type)
+  /* Default initialize. */
+  string default_value(const SymbolVariable &var, const SymbolClass &parent)
+  {
+    if (var.default_value.is_valid()) {
+      /* Default initialize. */
+      return expr(var.default_value, parent).cast(false, var.type, var.default_value, *this).str;
+    }
+    /* Zero initialize. */
+    return zero_value(var.type);
+  }
+
+  /* Zero initialize. */
+  string zero_value(const SymbolClass &type)
   {
     if (type.identifier == "float") {
       return "0.0f";
@@ -1784,7 +1796,7 @@ struct CodegenContext : NodeErrorHandler {
       return type.identifier + "(0)";
     }
     return type.identifier + "_ctor_()";
-  };
+  }
 
   /* Return temp variable name for a given index. */
   static string get_temp_name(size_t index)
@@ -1804,6 +1816,9 @@ struct CodegenContext : NodeErrorHandler {
   {
     const string &cls_id = cls.identifier;
 
+    const string original_this_identifier = this_identifier;
+    this_identifier = "r";
+
     string members;
     if (cls.is_union) {
       members = union_ctor(cls);
@@ -1820,7 +1835,6 @@ struct CodegenContext : NodeErrorHandler {
           case NodeType::VarDecl: {
             VarDecl decl = node;
             if (!decl.type().is_static()) {
-              const SymbolClass &type = id_type_lookup_resolved(decl.type().identifier(), cls);
               for (Declarator d : decl.children_of_type<Declarator>()) {
                 const SymbolVariable &var = cls.lookup_variable(table, d.identifier());
                 if (var.is_static || var.bit_offset != 0) {
@@ -1840,7 +1854,7 @@ struct CodegenContext : NodeErrorHandler {
                   access += "[" + var + "]";
                   sub = sub.next();
                 }
-                members += "r." + var.original + access + "=" + default_value(type) + ";";
+                members += "r." + var.original + access + "=" + default_value(var, cls) + ";";
                 members += close;
               }
             }
@@ -1855,7 +1869,7 @@ struct CodegenContext : NodeErrorHandler {
               SymbolClass *type = cls.lookup_class(type_id);
               string member_id = type_id + "_";
 
-              members += "r." + member_id + "=" + default_value(*type) + ";";
+              members += "r." + member_id + "=" + zero_value(*type) + ";";
             }
             ++class_id;
             break;
@@ -1870,6 +1884,8 @@ struct CodegenContext : NodeErrorHandler {
         members += "r._pad=0;";
       }
     }
+
+    this_identifier = original_this_identifier;
 
     return cls_id + " " + cls_id + "_ctor_() {" + cls_id + " r;" + members + "return r;}";
   }
@@ -3002,7 +3018,7 @@ struct CodegenContext : NodeErrorHandler {
   }
 
   /* Return true if declaration was issued. */
-  bool var_decl(VarDecl decl, SymbolScope &scope, bool jump = true)
+  bool var_decl(VarDecl decl, SymbolScope &scope, bool jump = true, bool skip_value = false)
   {
     auto attr = resource_type_from_attributes(decl.attributes()).unwrap(this);
 
@@ -3045,7 +3061,7 @@ struct CodegenContext : NodeErrorHandler {
     }
 
     for (Declarator d : decl.children_of_type<Declarator>()) {
-      declarator(*cls, d, scope);
+      declarator(*cls, d, scope, skip_value);
       match_if(',');
     }
     match_if(';');
@@ -3187,6 +3203,9 @@ struct CodegenContext : NodeErrorHandler {
     else if (var->is_ptr) {
       error(decl, Diag::PointerNeedsInitialization);
     }
+    else if (var->type.is_default_initialized) {
+      builder.ss << "=" + var->type.identifier + "_ctor_()";
+    }
   }
 
   void assignment(AssignStmt stmt, const SymbolScope &scope, const SymbolVariable *var)
@@ -3279,8 +3298,7 @@ struct CodegenContext : NodeErrorHandler {
     close += trivia(list.back());
 
     string content;
-    DesignatedInitializer designated(list.child_first());
-    if (designated.is_valid()) {
+    if (DesignatedInitializer designated(list.child_first()); designated.is_valid()) {
       if (array_dim > 0) {
         error(designated, Diag::ExpectedArrayMemberInitializer);
       }
@@ -3296,11 +3314,15 @@ struct CodegenContext : NodeErrorHandler {
           designated = designated.next();
         }
         else {
-          content += default_value(var->type) + ",";
+          /* Omitted members. */
+          string val = default_value(*var, cls);
+          if (val.find(this_identifier) != string::npos) {
+            NOTE(list, Diag::NoteInDesignatedInitializerList, "");
+            error(var->default_value, Diag::InitializerListNoSelfReference);
+          }
+          content += val + ",";
         }
       }
-
-      content = content.substr(0, content.rfind(","));
 
       if (designated.is_valid()) {
         if (auto *var = cls.lookup_variable(string(designated.identifier().str()));
@@ -3316,6 +3338,33 @@ struct CodegenContext : NodeErrorHandler {
         }
       }
     }
+    else if (array_dim == 0 && !is_empty && !cls.is_builtin()) {
+      Node child(list.child_first());
+      /* Iterate over the list of members, default initializing the omitted members. */
+      for (SymbolVariable *var : cls.non_static_variables_in_declaration_order()) {
+        if (child.is_valid()) {
+          content +=
+              init_expression_or_initializer_list(child.child_last(), scope, false, var->type).str;
+          string_view comma = opt_str(child.back().next(), Comma);
+          content += comma.empty() ? "," : comma;
+        }
+        else {
+          /* Omitted members. */
+          string val = default_value(*var, cls);
+          content += val + ",";
+          if (val.find(this_identifier) != string::npos) {
+            NOTE(list, Diag::NoteInInitializerList, "");
+            error(var->default_value, Diag::InitializerListNoSelfReference);
+          }
+        }
+
+        child = child.next();
+      }
+
+      if (child.is_valid()) {
+        error(child, Diag::StructInitializerExcessElement);
+      }
+    }
     else {
       for (Node child : list.children_range()) {
         content += init_expression_or_initializer_list(child.child_last(),
@@ -3325,9 +3374,13 @@ struct CodegenContext : NodeErrorHandler {
                                                                        *table.err_cls /* TODO */,
                                                        array_dim - 1)
                        .str;
-        content += opt_str(child.back().next(), Comma);
+        string_view comma = opt_str(child.back().next(), Comma);
+        content += comma.empty() ? "," : comma;
       }
     }
+
+    content = content.substr(0, content.rfind(","));
+
     return {open + content + close, cls};
   }
 
