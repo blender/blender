@@ -2277,6 +2277,7 @@ void BKE_image_stamp_buf(Scene *scene,
                          const StampData *stamp_data_template,
                          ImBuf *ibuf)
 {
+  std::lock_guard lock(blf_mono_font_render_mutex);
   StampData stamp_data;
   int w, h, pad;
   int x, y, y_ofs;

@@ -294,6 +294,7 @@ static void checker_board_grid_fill(
 static void checker_board_text(
     uchar *rect, float *rect_float, int width, int height, int step, int outline)
 {
+  std::lock_guard lock(blf_mono_font_render_mutex);
   int x, y;
   int pen_x, pen_y;
   char text[3] = {'A', '1', '\0'};
