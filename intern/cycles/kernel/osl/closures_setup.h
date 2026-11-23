@@ -835,7 +835,7 @@ ccl_device void osl_closure_sheen_bsdf_setup(KernelGlobals kg,
   const float3 N = safe_normalize_fallback(closure->N, sd->N);
   const Spectrum color = rgb_to_spectrum(closure->albedo);
   const Spectrum albedo = bsdf_sheen_setup(
-      kg, sd, rgb_to_spectrum(weight) * color, N, closure->roughness);
+      kg, sd, rgb_to_spectrum(weight), color, N, closure->roughness);
 
   if (layer_albedo) {
     *layer_albedo = spectrum_to_rgb(albedo);

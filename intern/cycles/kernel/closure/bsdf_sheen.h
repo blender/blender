@@ -30,6 +30,7 @@ static_assert(sizeof(ShaderClosure) >= sizeof(SheenBsdf), "SheenBsdf is too larg
 ccl_device Spectrum bsdf_sheen_setup(KernelGlobals kg,
                                      ccl_private ShaderData *sd,
                                      const Spectrum weight,
+                                     const Spectrum tint,
                                      const float3 N,
                                      const float roughness)
 {
@@ -69,18 +70,15 @@ ccl_device Spectrum bsdf_sheen_setup(KernelGlobals kg,
     return zero_spectrum();
   }
 
-  bsdf->weight *= albedo;
-  bsdf->sample_weight *= albedo;
+  bsdf->weight *= tint * albedo;
+  bsdf->sample_weight = closure_sample_weight(sd->runtime_flag, bsdf->weight);
   if (bsdf != &sheen) {
     /* Add flag only if the closure is actually allocated in `sd->closure`. */
     sd->runtime_flag |= (SR_BSDF | SR_BSDF_HAS_EVAL);
   }
 
-  /* Sheen do not tint the base. */
-  /* NOTE(OpenPBR): spec v1.1.1 mentions the albedo-scaling for sheen is explicitly modified to not
-   * tint the base, but it is unclear how to remove the tint, so we use `reduce_max` to keep
-   * compatibility. */
-  return make_spectrum(reduce_max(bsdf->weight));
+  /* OpenPBR Surface specification v1.1, Eq. (81). */
+  return weight * albedo;
 }
 
 ccl_device Spectrum bsdf_sheen_eval(const ccl_private ShaderClosure *sc,
