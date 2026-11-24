@@ -255,7 +255,8 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
    * NOTE: early-returns by BKE_LIB_FOREACHID_PROCESS_... macros are forbidden in non-readonly
    * cases (see #IDWALK_RET_STOP_ITER documentation). */
 
-  constexpr LibraryForeachIDCallbackFlag idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK;
+  constexpr LibraryForeachIDCallbackFlag idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK |
+                                                        IDWALK_CB_DIRECT_WEAK_LINK;
 
   /* Note that `bmain` can be `nullptr`. An example is in
    * `deg_eval_copy_on_write.cc`, function `deg_expand_eval_copy_datablock`. */
@@ -270,17 +271,36 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
   const bool slot_user_cache_is_known_clean = bmain && !bmain->is_action_slot_to_id_map_dirty;
 
   if (slot_user_cache_is_known_clean) {
+#ifndef NDEBUG
+    /* IDWALK_NO_ORIG_POINTERS_ACCESS should only be set when reading from blend files, and at that
+     * time the is_action_slot_to_id_map_dirty flag should be set already. */
+    const bool may_access_pointers = (BKE_lib_query_foreachid_process_flags_get(data) &
+                                      IDWALK_NO_ORIG_POINTERS_ACCESS) == 0;
+    BLI_assert(may_access_pointers);
+#endif
+
     bool should_invalidate = false;
     for (animrig::Slot *slot : action.slots()) {
       for (ID *&slot_user : slot->runtime_users()) {
         ID *const old_pointer = slot_user;
-        BKE_LIB_FOREACHID_PROCESS_ID(data, slot_user, idwalk_flags);
+
+        const bool is_embedded = (id->flag & ID_FLAG_EMBEDDED_DATA);
+        BKE_LIB_FOREACHID_PROCESS_ID(data,
+                                     slot_user,
+                                     is_embedded ? idwalk_flags | IDWALK_CB_EMBEDDED_NOT_OWNING :
+                                                   idwalk_flags);
+
         /* If slot_user changed, the cache should be invalidated. Not all pointer changes are
          * semantically correct for our use. For example, when ID-remapping is used to replace
          * MECube with MESuzanne. If MECube is animated by some slot before the remap, it will
          * remain animated by that slot after the remap, even when all `object->data` pointers now
          * reference MESuzanne instead. */
         should_invalidate |= (slot_user != old_pointer);
+      }
+      for (ID *&slot_owner : slot->runtime_owners()) {
+        ID *const old_pointer = slot_owner;
+        BKE_LIB_FOREACHID_PROCESS_ID(data, slot_owner, idwalk_flags);
+        should_invalidate |= (slot_owner != old_pointer);
       }
     }
 

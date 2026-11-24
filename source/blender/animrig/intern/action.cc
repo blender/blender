@@ -1077,6 +1077,12 @@ Span<ID *> Slot::users(Main &bmain) const
 Vector<ID *> Slot::runtime_users()
 {
   BLI_assert_msg(this->runtime, "Slot::runtime should always be allocated");
+  return this->runtime->users;
+}
+
+Vector<ID *> Slot::runtime_owners()
+{
+  BLI_assert_msg(this->runtime, "Slot::runtime should always be allocated");
   return this->runtime->owners;
 }
 
