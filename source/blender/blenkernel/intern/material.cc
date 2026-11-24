@@ -703,15 +703,12 @@ Material *BKE_id_material_pop(Main *bmain, ID *id, int index_i)
         *matar = nullptr;
       }
       else {
-        if (index + 1 != (*totcol)) {
-          memmove((*matar) + index,
-                  (*matar) + (index + 1),
-                  sizeof(void *) * ((*totcol) - (index + 1)));
-        }
-
+        Material **new_matar = MEM_new_array_uninitialized<Material *>(*totcol - 1, __func__);
+        std::copy_n(*matar, index, new_matar);
+        std::copy(*matar + index + 1, *matar + *totcol, new_matar + index);
+        MEM_delete(*matar);
+        *matar = new_matar;
         (*totcol)--;
-        *matar = static_cast<Material **>(
-            MEM_realloc_uninitialized(*matar, sizeof(void *) * (*totcol)));
         BKE_objects_materials_sync_length_all(bmain, id);
       }
 
@@ -949,12 +946,11 @@ void BKE_id_material_eval_assign(ID *id, int slot, Material *material)
   if (slot_index >= old_length) {
     /* Need to grow slots array. */
     const int new_length = slot_index + 1;
-    *materials_ptr = static_cast<Material **>(
-        MEM_realloc_uninitialized(*materials_ptr, sizeof(void *) * new_length));
+    Material **new_materials = MEM_new_array_zeroed<Material *>(new_length, __func__);
+    std::copy_n(*materials_ptr, old_length, new_materials);
+    MEM_delete(*materials_ptr);
+    *materials_ptr = new_materials;
     *len_ptr = new_length;
-    for (int i = old_length; i < new_length; i++) {
-      (*materials_ptr)[i] = nullptr;
-    }
   }
 
   (*materials_ptr)[slot_index] = material;
