@@ -39,12 +39,14 @@ struct alignas(128) Local {
   bool is_main = false;
   /**
    * Number of bytes. This can be negative when e.g. one thread allocates a lot of memory, and
-   * another frees it. It has to be an atomic, because it may be accessed by other threads when the
-   * total memory usage is counted.
+   * another frees it. It has to be an atomic, because it may be read by other threads when the
+   * total memory usage is counted. Only the thread that owns this #Local modifies it (see
+   * #local_counter_add).
    */
   std::atomic<int64_t> mem_in_use = 0;
   /**
-   * Number of allocated blocks. Can be negative and is atomic for the same reason as above.
+   * Number of allocated blocks. Can be negative, is atomic and is only modified by the owning
+   * thread, for the same reasons as above.
    */
   std::atomic<int64_t> blocks_num = 0;
   /**
@@ -109,6 +111,18 @@ static std::atomic<bool> use_local_counters = true;
  * overhead with little benefit.
  */
 static constexpr int64_t peak_update_threshold = 1024 * 1024;
+
+/**
+ * Add to a counter of the current thread's #Local. Only the owning thread modifies these counters
+ * (other threads only read them), so a relaxed load and store is enough. This is much cheaper than
+ * an atomic read-modify-write.
+ */
+static int64_t local_counter_add(std::atomic<int64_t> &counter, const int64_t delta)
+{
+  const int64_t value = counter.load(std::memory_order_relaxed) + delta;
+  counter.store(value, std::memory_order_relaxed);
+  return value;
+}
 
 static std::shared_ptr<Global> &get_global_ptr()
 {
@@ -193,11 +207,13 @@ void memory_usage_block_alloc(const size_t size)
      * cases, because each thread has these counters on a separate cache line. It may only cause
      * synchronization if another thread is computing the total current memory usage at the same
      * time, which is very rare compared to doing allocations. */
-    local.blocks_num.fetch_add(1, std::memory_order_relaxed);
-    local.mem_in_use.fetch_add(int64_t(size), std::memory_order_relaxed);
+    local_counter_add(local.blocks_num, 1);
+    const int64_t mem_in_use = local_counter_add(local.mem_in_use, int64_t(size));
 
     /* If a certain amount of new memory has been allocated, update the peak. */
-    if (local.mem_in_use - local.mem_in_use_during_peak_update > peak_update_threshold) {
+    if (mem_in_use - local.mem_in_use_during_peak_update.load(std::memory_order_relaxed) >
+        peak_update_threshold)
+    {
       update_global_peak();
     }
   }
@@ -215,8 +231,8 @@ void memory_usage_block_free(const size_t size)
     /* Decrease local memory counts. See comment in #memory_usage_block_alloc for details regarding
      * thread synchronization. */
     Local &local = get_local_data();
-    local.mem_in_use.fetch_sub(int64_t(size), std::memory_order_relaxed);
-    local.blocks_num.fetch_sub(1, std::memory_order_relaxed);
+    local_counter_add(local.mem_in_use, -int64_t(size));
+    local_counter_add(local.blocks_num, -1);
   }
   else {
     Global &global = get_global();
