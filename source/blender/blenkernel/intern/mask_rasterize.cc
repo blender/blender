@@ -1051,8 +1051,11 @@ static void maskrasterize_layer_init_scanfill(MaskRasterHandle *mr_handle,
       uint sf_vert_tot_isect = uint(sf_ctx.fillvertbase.count());
       uint i = vert_num;
 
-      face_coords = static_cast<float (*)[3]>(MEM_realloc_uninitialized(
-          face_coords, sizeof(float[3]) * (vert_num + sf_vert_tot_isect)));
+      float (*new_face_coords)[3] = MEM_new_array_uninitialized<float[3]>(
+          vert_num + sf_vert_tot_isect, __func__);
+      memcpy(new_face_coords, face_coords, sizeof(float[3]) * vert_num);
+      MEM_delete(face_coords);
+      face_coords = new_face_coords;
 
       cos = (&face_coords[vert_num][0]);
 

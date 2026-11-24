@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <optional>
@@ -924,13 +925,10 @@ MaskSplinePointUW *BKE_mask_point_sort_uw(MaskSplinePoint *point, MaskSplinePoin
 
 void BKE_mask_point_add_uw(MaskSplinePoint *point, float u, float w)
 {
-  if (!point->uw) {
-    point->uw = MEM_new_array<MaskSplinePointUW>(point->tot_uw + 1, "mask point uw");
-  }
-  else {
-    point->uw = static_cast<MaskSplinePointUW *>(
-        MEM_realloc_uninitialized(point->uw, (point->tot_uw + 1) * sizeof(*point->uw)));
-  }
+  MaskSplinePointUW *new_uw = MEM_new_array<MaskSplinePointUW>(point->tot_uw + 1, __func__);
+  std::copy_n(point->uw, point->tot_uw, new_uw);
+  MEM_delete(point->uw);
+  point->uw = new_uw;
 
   point->uw[point->tot_uw].u = u;
   point->uw[point->tot_uw].w = w;
