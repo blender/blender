@@ -3261,8 +3261,10 @@ static void textedit_string_ensure_max_length(Button *but, TextEdit &text_edit, 
   BLI_assert(text_edit.edit_string == but->editstr);
 
   if (str_maxncpy > text_edit.max_string_size) {
-    text_edit.edit_string = but->editstr = static_cast<char *>(
-        MEM_realloc_uninitialized(text_edit.edit_string, sizeof(char) * str_maxncpy));
+    char *new_string = MEM_new_array_uninitialized<char>(str_maxncpy, __func__);
+    std::copy_n(text_edit.edit_string, text_edit.max_string_size, new_string);
+    MEM_delete(text_edit.edit_string);
+    text_edit.edit_string = but->editstr = new_string;
     text_edit.max_string_size = str_maxncpy;
   }
 }
