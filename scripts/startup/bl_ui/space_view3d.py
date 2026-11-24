@@ -1367,13 +1367,7 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
         layout = self.layout
         layout.separator()
         if context.mode == 'EDIT_MESH':
-            layout.operator("mesh.circularize", text="To Circle")
-            layout.operator("mesh.flatten", text="Flatten")
             layout.operator("transform.shrink_fatten", text="Shrink/Fatten")
-            layout.operator("mesh.space_edge_loops_evenly", text="Space Edge Loops Evenly")
-            layout.operator("mesh.relax_edge_loops", text="Relax Edge Loops")
-            layout.operator("mesh.curve_edge_loops_between_selected", text="Curve Edge Loops Between Selected")
-            layout.operator("mesh.fit_edge_loops_to_annotation", text="Fit Edge Loops To Annotation")
             layout.operator("transform.skin_resize")
         elif context.mode in {'EDIT_CURVE', 'EDIT_GREASE_PENCIL', 'EDIT_CURVES', 'EDIT_POINTCLOUD'}:
             layout.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
@@ -2004,6 +1998,21 @@ class VIEW3D_MT_edit_mesh_select_loops(Menu):
 
         layout.operator("mesh.loop_to_region", text="Loop Inner-Region")
         layout.operator("mesh.region_to_loop", text="Boundary of Selected")
+
+
+class VIEW3D_MT_edit_mesh_loops(Menu):
+    bl_label = "Loops"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("mesh.bridge_edge_loops", text="Bridge")
+        layout.operator("mesh.circularize", text="To Circle")
+        layout.operator("mesh.curve_edge_loops_between_selected", text="Curve Between Selected")
+        layout.operator("mesh.flatten", text="Flatten")
+        layout.operator("mesh.relax_edge_loops", text="Relax")
+        layout.operator("mesh.space_edge_loops_evenly", text="Space Evenly")
+        layout.operator("mesh.fit_edge_loops_to_annotation", text="Fit to Annotation")
 
 
 class VIEW3D_MT_select_edit_mesh(Menu):
@@ -4665,6 +4674,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_edit_mesh_loops")
         layout.menu("VIEW3D_MT_edit_mesh_merge", text="Merge")
         layout.menu("VIEW3D_MT_edit_mesh_split", text="Split")
         layout.operator_menu_enum("mesh.separate", "type")
@@ -4757,6 +4767,10 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
+            col.menu("VIEW3D_MT_edit_mesh_loops")
+
+            col.separator()
+
             col.operator("mesh.extrude_vertices_move", text="Extrude Vertices")
             col.operator("mesh.bevel", text="Bevel Vertices").affect = 'VERTICES'
 
@@ -4808,10 +4822,13 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
+            col.menu("VIEW3D_MT_edit_mesh_loops")
+
+            col.separator()
+
             col.operator("mesh.extrude_edges_move", text="Extrude Edges")
             col.operator("mesh.bevel", text="Bevel Edges").affect = 'EDGES'
-            if selected_edges_len >= 2:
-                col.operator("mesh.bridge_edge_loops")
+
             if selected_edges_len >= 1:
                 col.operator("mesh.edge_face_add", text="New Face from Edges")
             if selected_edges_len >= 2:
@@ -4878,15 +4895,16 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
+            col.menu("VIEW3D_MT_edit_mesh_loops")
+
+            col.separator()
+
             col.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Faces")
             col.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals")
             col.operator("mesh.extrude_faces_move", text="Extrude Individual Faces")
 
             col.operator("mesh.inset")
             col.operator("mesh.poke")
-
-            if selected_faces_len >= 2:
-                col.operator("mesh.bridge_edge_loops", text="Bridge Faces")
 
             col.separator()
 
@@ -5025,7 +5043,6 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.operator("mesh.extrude_edges_move", text="Extrude Edges")
         layout.operator("mesh.bevel", text="Bevel Edges").affect = 'EDGES'
-        layout.operator("mesh.bridge_edge_loops")
         layout.operator("mesh.screw")
 
         layout.separator()
@@ -9534,6 +9551,7 @@ classes = (
     VIEW3D_MT_edit_mesh_select_mode,
     VIEW3D_MT_edit_mesh_select_linked,
     VIEW3D_MT_edit_mesh_select_loops,
+    VIEW3D_MT_edit_mesh_loops,
     VIEW3D_MT_edit_mesh_extrude,
     VIEW3D_MT_edit_mesh_vertices,
     VIEW3D_MT_edit_mesh_edges,
