@@ -872,10 +872,15 @@ static size_t draw_seq_text_get_overlay_string(const StripDrawContext &strip_ctx
         (strip->flag & SEQ_SCENE_STRIPS) == 0)
     {
       BLI_assert(strip->scene_view_layer_name != nullptr);
+      const ViewLayer *view_layer = BKE_view_layer_find(strip->scene,
+                                                        strip->scene_view_layer_name);
+      if (view_layer == nullptr) {
+        view_layer = BKE_view_layer_default_render(strip->scene);
+      }
       if (i != 0) {
         text_array[i++] = text_sep;
       }
-      text_array[i++] = strip->scene_view_layer_name;
+      text_array[i++] = view_layer->name;
     }
   }
 
