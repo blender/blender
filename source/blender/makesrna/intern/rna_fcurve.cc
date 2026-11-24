@@ -1210,15 +1210,12 @@ static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(
       return nullptr;
     }
 
-    /* realloc memory for extra point */
-    env->data = static_cast<FCM_EnvelopeData *>(MEM_realloc_uninitialized(
-        (void *)env->data, (env->totvert + 1) * sizeof(FCM_EnvelopeData)));
-
-    /* move the points after the added point */
-    if (i < env->totvert) {
-      memmove(env->data + i + 1, env->data + i, (env->totvert - i) * sizeof(FCM_EnvelopeData));
-    }
-
+    /* Allocate memory for extra point, leaving space for it at index i. */
+    FCM_EnvelopeData *new_data = MEM_new_array<FCM_EnvelopeData>(env->totvert + 1, __func__);
+    std::copy_n(env->data, i, new_data);
+    std::copy(env->data + i, env->data + env->totvert, new_data + i + 1);
+    MEM_delete(env->data);
+    env->data = new_data;
     env->totvert++;
   }
   else {
@@ -1249,16 +1246,13 @@ static void rna_FModifierEnvelope_points_remove(
   rna_tag_animation_update(bmain, id);
 
   if (env->totvert > 1) {
-    /* move data after the removed point */
-
-    memmove(env->data + index,
-            env->data + (index + 1),
-            sizeof(FCM_EnvelopeData) * ((env->totvert - index) - 1));
-
-    /* realloc smaller array */
+    /* Copy the data around the removed point to a smaller array. */
+    FCM_EnvelopeData *new_data = MEM_new_array<FCM_EnvelopeData>(env->totvert - 1, __func__);
+    std::copy_n(env->data, index, new_data);
+    std::copy(env->data + index + 1, env->data + env->totvert, new_data + index);
+    MEM_delete(env->data);
+    env->data = new_data;
     env->totvert--;
-    env->data = static_cast<FCM_EnvelopeData *>(
-        MEM_realloc_uninitialized((void *)env->data, (env->totvert) * sizeof(FCM_EnvelopeData)));
   }
   else {
     /* just free array, since the only vert was deleted */

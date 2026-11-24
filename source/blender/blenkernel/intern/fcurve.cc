@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstddef>
@@ -1686,15 +1687,17 @@ void BKE_fcurve_bezt_resize(FCurve &fcu, const int new_totvert)
     return;
   }
 
-  fcu.bezt = static_cast<BezTriple *>(
-      MEM_realloc_uninitialized(fcu.bezt, new_totvert * sizeof(*(fcu.bezt))));
+  const int old_totvert = fcu.totvert;
+  BezTriple *new_bezt = MEM_new_array_uninitialized<BezTriple>(new_totvert, __func__);
+  std::copy_n(fcu.bezt, std::min(old_totvert, new_totvert), new_bezt);
 
   /* Zero out all the newly-allocated beztriples. This is necessary, as it is likely that only some
    * of the fields will actually be updated by the caller. */
-  const int old_totvert = fcu.totvert;
   if (new_totvert > old_totvert) {
-    std::fill_n(fcu.bezt + old_totvert, new_totvert - old_totvert, BezTriple{});
+    std::fill_n(new_bezt + old_totvert, new_totvert - old_totvert, BezTriple{});
   }
+  MEM_delete(fcu.bezt);
+  fcu.bezt = new_bezt;
 
   fcu.totvert = new_totvert;
 }
@@ -1789,15 +1792,13 @@ BezTriple *BKE_bezier_array_merge(
     (*r_merged_size)++;
   }
 
-  BezTriple *minimal_array;
-  if (*r_merged_size < size_a + size_b) {
-    minimal_array = static_cast<BezTriple *>(
-        MEM_realloc_uninitialized(large_array, sizeof(BezTriple) * (*r_merged_size)));
-  }
-  else {
-    minimal_array = large_array;
+  if (*r_merged_size == size_a + size_b) {
+    return large_array;
   }
 
+  BezTriple *minimal_array = MEM_new_array_uninitialized<BezTriple>(*r_merged_size, __func__);
+  std::copy_n(large_array, *r_merged_size, minimal_array);
+  MEM_delete(large_array);
   return minimal_array;
 }
 

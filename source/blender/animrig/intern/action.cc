@@ -49,6 +49,7 @@
 
 #include "action_runtime.hh"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -2140,9 +2141,11 @@ static void cyclic_keying_ensure_cycle_range_exists(FCurve &fcurve, const float2
   fcurve.bezt[0].vec[2][0] -= fix;
 
   /* Reallocate the array to make space for the 2nd point. */
+  BezTriple *new_bezt = MEM_new_array_uninitialized<BezTriple>(fcurve.totvert + 1, __func__);
+  std::copy_n(fcurve.bezt, fcurve.totvert, new_bezt);
+  MEM_delete(fcurve.bezt);
+  fcurve.bezt = new_bezt;
   fcurve.totvert++;
-  fcurve.bezt = static_cast<BezTriple *>(
-      MEM_realloc_uninitialized(fcurve.bezt, sizeof(BezTriple) * fcurve.totvert));
 
   /* Duplicate and offset the keyframe. */
   fcurve.bezt[1] = fcurve.bezt[0];
