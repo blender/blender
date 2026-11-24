@@ -2934,6 +2934,22 @@ class TestMaterials(TestImageComparison_MixIn, unittest.TestCase):
                 (0.4, 0.4, 0.4),  # K - Key (dark gray)
             ],
         ),
+        # Combining marks using different materials from their base.
+        CaseVFont(
+            name="combining_mark",
+            text=(
+                TextFormatCompose()
+                .style(material=0).text("x")
+                .style(material=1).text("\u0301")
+                .style(material=0).text(" q")
+                .style(material=1).text("\u0301")
+                .style(material=2).text("\u0323")
+            ),
+            materials=[(1.0, 0.2, 0.2), (0.2, 1.0, 0.2), (0.2, 0.4, 1.0)],
+            size=(85, 81),
+            expected_dimensions=(0.893544, 0.843578),
+            position_offset=(9.1, 31.6),
+        ),
     ]
 
 
@@ -3075,6 +3091,50 @@ class TestStyles(TestImageComparison_MixIn, unittest.TestCase):
             expected_dimensions=(1.875172, 0.528846),
             position_offset=(5.2, 10.5),
         ),
+        # Kerning on a base character with combining marks.
+        CaseVFont(
+            name="kern_combining",
+            text=(
+                TextFormatCompose()
+                .style(kerning=10.0).text("x")
+                .style(kerning=0.0).text("\u0301o x")
+                .style(kerning=10.0).text("\u0301")
+                .style(kerning=0.0).text("o ")
+                .style(kerning=10.0).text("x\u0301")
+                .style(kerning=0.0).text("o")
+            ),
+            size=(224, 60),
+            expected_dimensions=(2.825893, 0.543355),
+            position_offset=(9.1, 10.5),
+        ),
+        # Bold changes between a base character and its combining mark:
+        # NOTE: marks currently use their own style, not the style of their base.
+        CaseVFont(
+            name="bold_split_cluster",
+            text=(
+                TextFormatCompose()
+                .style(bold=True).text("x")
+                .style(bold=False).text("\u0301 x")
+                .style(bold=True).text("\u0301")
+            ),
+            size=(87, 60),
+            expected_dimensions=(0.922537, 0.542841),
+            position_offset=(9.8, 10.0),
+        ),
+        # Italic changes between a base character and its combining mark:
+        # NOTE: marks currently use their own style, not the style of their base.
+        CaseVFont(
+            name="italic_split_cluster",
+            text=(
+                TextFormatCompose()
+                .style(italic=True).text("x")
+                .style(italic=False).text("\u0301 x")
+                .style(italic=True).text("\u0301")
+            ),
+            size=(84, 59),
+            expected_dimensions=(0.882554, 0.535219),
+            position_offset=(11.8, 10.0),
+        ),
     ]
 
 
@@ -3154,6 +3214,16 @@ class TestSpacing(TestImageComparison_MixIn, unittest.TestCase):
             expected_dimensions=(14.176510, 0.686813),
             position_offset=(10.0, 21.9),
             space_character=1.5,
+        ),
+        # Character spacing with combining marks.
+        # NOTE: marks are currently centered over the widened advance, away from their base.
+        CaseVFont(
+            name="character_wide_combining",
+            text="x\u0301q\u0323x\u0303",
+            space_character=2.0,
+            size=(188, 81),
+            expected_dimensions=(2.331044, 0.836710),
+            position_offset=(9.1, 31.6),
         ),
     ]
 
