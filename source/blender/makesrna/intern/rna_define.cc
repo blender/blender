@@ -2855,6 +2855,12 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
       else if (dp->dnatype == "short") {
         eprop->defaultvalue = *(const short *)dp->dnadefaultdata;
       }
+      else if (dp->dnatype == "uchar") {
+        eprop->defaultvalue = *(const uchar *)dp->dnadefaultdata;
+      }
+      else if (dp->dnatype == "ushort") {
+        eprop->defaultvalue = *(const ushort *)dp->dnadefaultdata;
+      }
       else if (dp->dnatype == "int") {
         eprop->defaultvalue = *(const int *)dp->dnadefaultdata;
       }
