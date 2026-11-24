@@ -690,13 +690,10 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
    * Our profiles are only valid for RGB channels. */
   const ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
   if (colorspace && cinfo->in_color_space == JCS_RGB) {
-    Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
+    const Vector<char> icc_profile = IMB_colormanagement_space_to_icc_profile(colorspace);
     if (!icc_profile.is_empty()) {
-      icc_profile.prepend({'I', 'C', 'C', '_', 'P', 'R', 'O', 'F', 'I', 'L', 'E', 0, 0, 1});
-      jpeg_write_marker(cinfo,
-                        JPEG_APP0 + 2,
-                        reinterpret_cast<const JOCTET *>(icc_profile.data()),
-                        icc_profile.size());
+      jpeg_write_icc_profile(
+          cinfo, reinterpret_cast<const JOCTET *>(icc_profile.data()), uint(icc_profile.size()));
     }
   }
 
