@@ -534,25 +534,35 @@ void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask, co
                                              all_writers :
                                              selection_writer;
         const IndexRange points = points_by_curve[curve];
+
+        bool change_selection = false;
+
         for (const int i : curve_writers) {
           bke::GSpanAttributeWriter &selection = selection_writers[i];
           GMutableSpan selection_curve = selection.span.slice(points);
 
-          const bool all_points_selected = is_everything_selected(selection_curve);
-          if (has_anything_selected(selection_curve)) {
-            if (unselect == all_points_selected) {
-              fill_selection(selection_curve, !unselect);
+          if (unselect) {
+            if (is_everything_selected(selection_curve)) {
+              change_selection = true;
             }
+            else {
+              /* All attributes must be selected. */
+              change_selection = false;
+              break;
+            }
+          }
+          else if (has_anything_selected(selection_curve)) {
+            change_selection = true;
+            break;
+          }
+        }
 
-            for (const int j : curve_writers) {
-              if (j == i) {
-                continue;
-              }
-              if (unselect == all_points_selected) {
-                fill_selection(selection_curve, !unselect);
-              }
-            }
-            return;
+        if (change_selection) {
+          for (const int i : curve_writers) {
+            bke::GSpanAttributeWriter &selection = selection_writers[i];
+            GMutableSpan selection_curve = selection.span.slice(points);
+
+            fill_selection(selection_curve, !unselect);
           }
         }
       },
