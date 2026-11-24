@@ -33,6 +33,7 @@
 
 #include "intern/bone_collections_internal.hh"
 
+#include <algorithm>
 #include <cstring>
 
 namespace blender {
@@ -156,10 +157,11 @@ static void bonecoll_insert_at_index(bArmature *armature, BoneCollection *bcoll,
 {
   BLI_assert(index <= armature->collection_array_num);
 
-  armature->collection_array = reinterpret_cast<BoneCollection **>(
-      MEM_realloc_uninitialized_id(armature->collection_array,
-                                   sizeof(BoneCollection *) * (armature->collection_array_num + 1),
-                                   __func__));
+  BoneCollection **collection_array = MEM_new_array_uninitialized<BoneCollection *>(
+      armature->collection_array_num + 1, __func__);
+  std::copy_n(armature->collection_array, armature->collection_array_num, collection_array);
+  MEM_delete(armature->collection_array);
+  armature->collection_array = collection_array;
 
   /* To keep the memory consistent, insert the new element at the end of the
    * now-grown array, then rotate it into place. */
