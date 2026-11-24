@@ -192,19 +192,30 @@ static int cmp_fn(const void *a, const void *b)
                          (*static_cast<float2 *>(const_cast<void *>(b)))[0]);
 }
 
-static void build_sources_timeline(const Scene *scene,
+static void build_sources_timeline(const TransInfo *t,
                                    TransSeqSnapData *snap_data,
                                    const Span<Strip *> strip_sources)
 {
+  const Scene *scene = t->scene;
   for (Strip *strip : strip_sources) {
     const int channel = strip->channel;
     const int left = strip->left_handle();
     const int right = strip->right_handle(scene);
 
-    if (strip->flag & SEQ_LEFTSEL && !(strip->flag & SEQ_RIGHTSEL)) {
+    int handle_flag = strip->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL);
+    if (t->mode == TFM_TIME_EXTEND) {
+      const int extend_flag = transform_convert_sequencer_time_extend_flag(
+          scene, strip, t->frame_side);
+      if (extend_flag == 0) {
+        continue;
+      }
+      handle_flag = extend_flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL);
+    }
+
+    if (handle_flag == SEQ_LEFTSEL) {
       snap_data->sources.append(float2(left, channel));
     }
-    else if (strip->flag & SEQ_RIGHTSEL && !(strip->flag & SEQ_LEFTSEL)) {
+    else if (handle_flag == SEQ_RIGHTSEL) {
       snap_data->sources.append(float2(right, channel));
     }
     else {
@@ -377,7 +388,7 @@ static void build_snap_data_timeline(const TransInfo *t, TransSeqSnapData *snap_
 
   /* Build arrays of snap points. */
   if (t->data_type == &TransConvertType_Sequencer) {
-    build_sources_timeline(scene, snap_data, strip_sources);
+    build_sources_timeline(t, snap_data, strip_sources);
   }
   else { /* &TransConvertType_SequencerRetiming */
     build_sources_timeline_retiming(scene, snap_data);

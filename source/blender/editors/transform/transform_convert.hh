@@ -168,6 +168,9 @@ void transform_convert_mesh_customdatacorrect_init(TransInfo *t);
 /* `transform_convert_sequencer.cc` */
 
 bool transform_convert_sequencer_clamp(const TransInfo *t, float r_val[2]);
+int transform_convert_sequencer_time_extend_flag(const Scene *scene,
+                                                 const Strip *strip,
+                                                 char frame_side);
 
 /********************* intern **********************/
 

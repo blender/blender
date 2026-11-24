@@ -66,6 +66,26 @@ struct TransDataSeq {
 /** \name Sequencer Transform Creation
  * \{ */
 
+int transform_convert_sequencer_time_extend_flag(const Scene *scene,
+                                                 const Strip *strip,
+                                                 const char frame_side)
+{
+  const int cfra = scene->r.cfra;
+  const int left = strip->left_handle();
+  const int right = strip->right_handle(scene);
+
+  if (frame_side == 'R') {
+    if (right <= cfra) {
+      return 0;
+    }
+    return (left > cfra) ? SEQ_SELECT : SEQ_RIGHTSEL;
+  }
+  if (left >= cfra) {
+    return 0;
+  }
+  return (right < cfra) ? SEQ_SELECT : SEQ_LEFTSEL;
+}
+
 /* This function applies the rules for transforming a strip so duplicate
  * checks don't need to be added in multiple places.
  *
@@ -81,37 +101,20 @@ static void SeqTransInfo(TransInfo *t, Strip *strip, int *r_count, int *r_flag)
   if (t->mode == TFM_TIME_EXTEND) {
 
     /* *** Extend Transform *** */
-    int cfra = scene->r.cfra;
-    int left = strip->left_handle();
-    int right = strip->right_handle(scene);
+    const int extend_flag = transform_convert_sequencer_time_extend_flag(
+        scene, strip, t->frame_side);
 
-    if ((strip->flag & SEQ_SELECT) == 0 || seq::transform_is_locked(channels, strip)) {
+    if ((strip->flag & SEQ_SELECT) == 0 || seq::transform_is_locked(channels, strip) ||
+        extend_flag == 0)
+    {
       *r_count = 0;
       *r_flag = 0;
     }
     else {
       *r_count = 1; /* Unless its set to 0, extend will never set 2 handles at once. */
       *r_flag = (strip->flag | SEQ_SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
-
-      if (t->frame_side == 'R') {
-        if (right <= cfra) {
-          *r_count = *r_flag = 0;
-        } /* Ignore. */
-        else if (left > cfra) {
-        } /* Keep the selection. */
-        else {
-          *r_flag |= SEQ_RIGHTSEL;
-        }
-      }
-      else {
-        if (left >= cfra) {
-          *r_count = *r_flag = 0;
-        } /* Ignore. */
-        else if (right < cfra) {
-        } /* Keep the selection. */
-        else {
-          *r_flag |= SEQ_LEFTSEL;
-        }
+      if (extend_flag != SEQ_SELECT) {
+        *r_flag |= extend_flag;
       }
     }
   }

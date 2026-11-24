@@ -719,14 +719,6 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       }
       break;
     }
-    case TFM_MODAL_SNAP_INV_ON:
-    case TFM_MODAL_SNAP_INV_OFF:
-    case TFM_MODAL_SNAP_TOGGLE: {
-      if (t->spacetype == SPACE_SEQ && t->mode_info == &TransMode_timetranslate) {
-        return false;
-      }
-      break;
-    }
     case TFM_MODAL_INSERTOFS_TOGGLE_DIR:
     case TFM_MODAL_NODE_ATTACH_ON:
     case TFM_MODAL_NODE_ATTACH_OFF:

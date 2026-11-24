@@ -113,7 +113,9 @@ static void applyTimeTranslate(TransInfo *t)
 
   /* Handle numeric-input stuff. */
   t->vec[0] = t->values[0];
-  applyNumInput(&t->num, &t->vec[0]);
+  if (!applyNumInput(&t->num, &t->vec[0]) && t->spacetype == SPACE_SEQ) {
+    transform_snap_mixed_apply(t, &t->vec[0]);
+  }
   t->values_final[0] = t->vec[0];
   headerTimeTranslate(t, str);
 
@@ -157,7 +159,7 @@ TransModeInfo TransMode_timetranslate = {
     /*transform_matrix_fn*/ nullptr,
     /*handle_event_fn*/ nullptr,
     /*snap_distance_fn*/ nullptr,
-    /*snap_apply_fn*/ nullptr,
+    /*snap_apply_fn*/ snap_sequencer_apply_seqslide,
     /*draw_fn*/ nullptr,
     /*status_fn*/ nullptr,
 };
