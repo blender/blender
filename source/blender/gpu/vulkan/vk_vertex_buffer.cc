@@ -167,16 +167,6 @@ void VKVertexBuffer::acquire_data()
   data_ = MEM_new_array_uninitialized<uchar>(this->size_alloc_get(), __func__);
 }
 
-void VKVertexBuffer::resize_data()
-{
-  if (usage_ == GPU_USAGE_DEVICE_ONLY) {
-    return;
-  }
-
-  data_ = static_cast<uchar *>(
-      MEM_realloc_uninitialized(data_, sizeof(uchar) * this->size_alloc_get()));
-}
-
 void VKVertexBuffer::release_data()
 {
   MEM_SAFE_DELETE(data_);

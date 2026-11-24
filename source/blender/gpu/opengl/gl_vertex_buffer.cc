@@ -25,16 +25,6 @@ void GLVertBuf::acquire_data()
   data_ = MEM_new_array_uninitialized<uchar>(this->size_alloc_get(), __func__);
 }
 
-void GLVertBuf::resize_data()
-{
-  if (usage_ == GPU_USAGE_DEVICE_ONLY) {
-    return;
-  }
-
-  data_ = static_cast<uchar *>(
-      MEM_realloc_uninitialized(data_, sizeof(uchar) * this->size_alloc_get()));
-}
-
 void GLVertBuf::release_data()
 {
   if (is_wrapper_) {

@@ -36,7 +36,6 @@ class DummyVertexBuffer : public VertBuf {
     MEM_SAFE_DELETE(data_);
     data_ = MEM_new_array_uninitialized<uchar>(this->size_alloc_get(), __func__);
   }
-  void resize_data() override {}
   void release_data() override
   {
     MEM_SAFE_DELETE(data_);

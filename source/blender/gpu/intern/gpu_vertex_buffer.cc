@@ -17,6 +17,7 @@
 
 #include "gpu_context_private.hh" /* TODO: remove. */
 
+#include <algorithm>
 #include <cstring>
 
 namespace blender {
@@ -85,9 +86,18 @@ void VertBuf::resize(uint vert_len)
 {
   /* Catch any unnecessary usage. */
   BLI_assert(vertex_alloc != vert_len);
+  const size_t old_size = this->size_alloc_get();
   vertex_len = vertex_alloc = vert_len;
 
-  this->resize_data();
+  if (usage_ != GPU_USAGE_DEVICE_ONLY) {
+    const size_t new_size = this->size_alloc_get();
+    uchar *new_data = MEM_new_array_uninitialized<uchar>(new_size, __func__);
+    if (data_) {
+      std::copy_n(data_, std::min(old_size, new_size), new_data);
+      MEM_delete(data_);
+    }
+    data_ = new_data;
+  }
 
   flag |= GPU_VERTBUF_DATA_DIRTY;
 }

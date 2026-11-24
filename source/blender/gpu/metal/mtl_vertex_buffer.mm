@@ -33,16 +33,6 @@ void MTLVertBuf::acquire_data()
   }
 }
 
-void MTLVertBuf::resize_data()
-{
-  if (usage_ == GPU_USAGE_DEVICE_ONLY) {
-    data_ = nullptr;
-  }
-  else {
-    data_ = (uchar *)MEM_realloc_uninitialized(data_, sizeof(uchar) * this->size_alloc_get());
-  }
-}
-
 void MTLVertBuf::release_data()
 {
   if (vbo_ != nullptr) {
