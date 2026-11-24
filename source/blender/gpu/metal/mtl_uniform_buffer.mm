@@ -30,18 +30,7 @@ MTLUniformBuf::~MTLUniformBuf()
     metal_buffer_ = nullptr;
   }
 
-  /* Ensure UBO is not bound to active CTX.
-   * UBO bindings are reset upon Context-switch so we do not need
-   * to check deactivated context's. */
-  MTLContext *ctx = MTLContext::get();
-  if (ctx) {
-    for (MTLUniformBufferBinding &slot : ctx->pipeline_state.ubo_bindings) {
-      if (slot.bound && slot.ubo == this) {
-        slot.bound = false;
-        slot.ubo = nullptr;
-      }
-    }
-  }
+  this->unbind();
 
   if (ssbo_wrapper_) {
     delete ssbo_wrapper_;
@@ -118,9 +107,6 @@ void MTLUniformBuf::bind(int slot)
   ctx_ubo_bind_slot.ubo = this;
   ctx_ubo_bind_slot.bound = true;
 
-  bind_slot_ = slot;
-  bound_ctx_ = ctx;
-
   /* Check if we have any deferred data to upload. */
   if (data_ != nullptr) {
     this->update(data_);
@@ -163,21 +149,22 @@ void MTLUniformBuf::bind_as_ssbo(int slot)
 
 void MTLUniformBuf::unbind()
 {
-  /* Always remove the binding from the context it was bound to. The destructor only clears the
-   * bindings of the context active on the destroying thread, so a binding left in a context that
-   * stays active on another thread would point to a freed buffer. */
-  if (bound_ctx_ != nullptr && bind_slot_ > -1) {
-    MTLUniformBufferBinding &ctx_ubo_bind_slot =
-        bound_ctx_->pipeline_state.ubo_bindings[bind_slot_];
-    if (ctx_ubo_bind_slot.bound && ctx_ubo_bind_slot.ubo == this) {
-      ctx_ubo_bind_slot.bound = false;
-      ctx_ubo_bind_slot.ubo = nullptr;
+  /* Only remove the bindings from the context active on this thread. Other contexts must not be
+   * accessed, as they may be in use on another thread or already be destroyed. Their bindings are
+   * reset when they are activated or destroyed. */
+  MTLContext *ctx = MTLContext::get();
+  if (ctx) {
+    for (MTLUniformBufferBinding &slot : ctx->pipeline_state.ubo_bindings) {
+      if (slot.bound && slot.ubo == this) {
+        slot.bound = false;
+        slot.ubo = nullptr;
+      }
     }
   }
 
-  /* Reset bind index. */
-  bind_slot_ = -1;
-  bound_ctx_ = nullptr;
+  if (ssbo_wrapper_) {
+    ssbo_wrapper_->unbind();
+  }
 }
 
 id<MTLBuffer> MTLUniformBuf::get_metal_buffer()

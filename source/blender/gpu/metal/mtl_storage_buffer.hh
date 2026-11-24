@@ -53,9 +53,6 @@ class MTLStorageBuf : public StorageBuf {
   /* Whether buffer has contents, if false, no GPU buffer will
    * have yet been allocated. */
   bool has_data_ = false;
-  /** Bind-state tracking. */
-  int bind_slot_ = -1;
-  MTLContext *bound_ctx_ = nullptr;
 
   /** Usage type. */
   GPUUsageType usage_;

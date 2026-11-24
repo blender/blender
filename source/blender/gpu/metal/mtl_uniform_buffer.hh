@@ -28,10 +28,6 @@ class MTLUniformBuf : public UniformBuf {
   /* Allocation Handle. */
   gpu::MTLBuffer *metal_buffer_ = nullptr;
 
-  /* Bind-state tracking. */
-  int bind_slot_ = -1;
-  MTLContext *bound_ctx_ = nullptr;
-
   /* SSBO wrapper for bind_as_ssbo support. */
   MTLStorageBuf *ssbo_wrapper_ = nullptr;
 

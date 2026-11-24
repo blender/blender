@@ -98,18 +98,7 @@ MTLStorageBuf::~MTLStorageBuf()
     gpu_write_fence_ = nil;
   }
 
-  /* Ensure SSBO is not bound to active CTX.
-   * SSBO bindings are reset upon Context-switch so we do not need
-   * to check deactivated context's. */
-  MTLContext *ctx = MTLContext::get();
-  if (ctx) {
-    for (MTLStorageBufferBinding &slot : ctx->pipeline_state.ssbo_bindings) {
-      if (slot.bound && slot.ssbo == this) {
-        slot.bound = false;
-        slot.ssbo = nullptr;
-      }
-    }
-  }
+  this->unbind();
 }
 
 /** \} */
@@ -250,35 +239,22 @@ void MTLStorageBuf::bind(int slot)
   MTLStorageBufferBinding &ctx_ssbo_bind_slot = ctx->pipeline_state.ssbo_bindings[slot];
   ctx_ssbo_bind_slot.ssbo = this;
   ctx_ssbo_bind_slot.bound = true;
-
-  bind_slot_ = slot;
-  bound_ctx_ = ctx;
 }
 
 void MTLStorageBuf::unbind()
 {
-  /* Unbind in debug mode to validate missing binds.
-   * Otherwise, only perform a full unbind upon destruction
-   * to ensure no lingering references. */
-#ifndef NDEBUG
-  if (true)
-#else
-  if (G.debug & G_DEBUG_GPU)
-#endif
-  {
-    if (bound_ctx_ != nullptr && bind_slot_ > -1) {
-      MTLStorageBufferBinding &ctx_ssbo_bind_slot =
-          bound_ctx_->pipeline_state.ssbo_bindings[bind_slot_];
-      if (ctx_ssbo_bind_slot.bound && ctx_ssbo_bind_slot.ssbo == this) {
-        ctx_ssbo_bind_slot.bound = false;
-        ctx_ssbo_bind_slot.ssbo = nullptr;
+  /* Only remove the bindings from the context active on this thread. Other contexts must not be
+   * accessed, as they may be in use on another thread or already be destroyed. Their bindings are
+   * reset when they are activated or destroyed. */
+  MTLContext *ctx = MTLContext::get();
+  if (ctx) {
+    for (MTLStorageBufferBinding &slot : ctx->pipeline_state.ssbo_bindings) {
+      if (slot.bound && slot.ssbo == this) {
+        slot.bound = false;
+        slot.ssbo = nullptr;
       }
     }
   }
-
-  /* Reset bind index. */
-  bind_slot_ = -1;
-  bound_ctx_ = nullptr;
 }
 
 void MTLStorageBuf::clear(uint32_t clear_value)
