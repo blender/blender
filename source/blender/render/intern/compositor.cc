@@ -781,7 +781,7 @@ class Context : public compositor::Context {
       {
         Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
         BLI_thread_lock(LOCK_DRAW_IMAGE);
-        BKE_image_free_buffers(image);
+        BKE_image_free_buffers_ex(image, true);
         BLI_thread_unlock(LOCK_DRAW_IMAGE);
       }
     });
