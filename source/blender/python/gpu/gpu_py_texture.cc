@@ -1084,6 +1084,11 @@ static PyObject *pygpu_texture_from_image(PyObject * /*self*/, PyObject *arg)
 
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
+
+  /* Use the last loaded frame for API backwards compatibility, ideally it would
+   * also possible to specify all the image user parameters explicitly. */
+  iuser.framenr = ima->lastframe;
+
   gpu::Texture *tex = BKE_image_acquire_gpu_texture(ima, &iuser);
 
   PyObject *result = BPyGPUTexture_CreatePyObject(tex, true);
