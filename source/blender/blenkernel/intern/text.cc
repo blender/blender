@@ -1383,7 +1383,9 @@ void txt_from_buf_for_undo(Text *text, const char *buf, size_t buf_len)
     TextLine *l = l_src;
     l_src = l_src->next;
     if (l->len != len) {
-      l->line = static_cast<char *>(MEM_realloc_uninitialized(l->line, len + 1));
+      /* The contents are overwritten below, so no need to copy the old line. */
+      MEM_delete(l->line);
+      l->line = MEM_new_array_uninitialized<char>(len + 1, __func__);
       l->len = len;
     }
     MEM_SAFE_DELETE(l->format);
