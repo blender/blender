@@ -75,6 +75,10 @@ void template_add_button_search_menu(const bContext *C,
   const StructRNA *type = active_ptr.type ? active_ptr.type : RNA_property_pointer_type(ptr, prop);
   Button *but;
 
+  const bool use_new_datablock_id_selector = USER_EXPERIMENTAL_TEST(&U,
+                                                                    use_new_datablock_id_selector);
+  const float id_search_button_width = use_new_datablock_id_selector ? 1.7f : 1.6f;
+
   if (use_previews) {
     ARegion *region = CTX_wm_region(C);
     /* Ugly tool header exception. */
@@ -82,7 +86,7 @@ void template_add_button_search_menu(const bContext *C,
     /* Ugly exception for screens here,
      * drawing their preview in icon size looks ugly/useless */
     const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));
-    const short width = UI_UNIT_X * (use_big_size ? 6 : 1.6f);
+    const short width = UI_UNIT_X * (use_big_size ? 6.0f : id_search_button_width);
     const short height = UI_UNIT_Y * (use_big_size ? 6 : 1);
     Layout *col = nullptr;
 
@@ -103,6 +107,10 @@ void template_add_button_search_menu(const bContext *C,
                          tip,
                          func_argN_free_fn,
                          func_argN_copy_fn);
+    const int users = id ? ID_REAL_USERS(id) : 0;
+    if (use_new_datablock_id_selector && users > 1) {
+      button_icon_indicator_number_set(but, users);
+    }
     if (use_preview_icon) {
       const int icon = id ? id_icon_get(C, id, use_big_size) : RNA_struct_ui_icon(type);
       def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
@@ -126,12 +134,15 @@ void template_add_button_search_menu(const bContext *C,
                          "",
                          0,
                          0,
-                         UI_UNIT_X * 1.6,
+                         UI_UNIT_X * id_search_button_width,
                          UI_UNIT_Y,
                          tip,
                          func_argN_free_fn,
                          func_argN_copy_fn);
-
+    const int users = id ? ID_REAL_USERS(id) : 0;
+    if (use_new_datablock_id_selector && users > 1) {
+      button_icon_indicator_number_set(but, users);
+    }
     if (live_icon) {
       const int icon = id ? id_icon_get(C, id, false) : RNA_struct_ui_icon(type);
       def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);

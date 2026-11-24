@@ -2977,6 +2977,7 @@ struct DragColorHandle {
 };
 
 void operatortypes_ui();
+void menutypes_ui();
 /**
  * \brief User Interface Keymap
  */

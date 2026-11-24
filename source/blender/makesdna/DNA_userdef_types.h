@@ -916,7 +916,9 @@ struct UserDef_Experimental {
    * actually remove this flag is tracked in #158903.
    */
   char use_remote_asset_libraries = 1;
-  char _pad[4] = {};
+
+  char use_new_datablock_id_selector = 0;
+  char _pad[3] = {};
 };
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)

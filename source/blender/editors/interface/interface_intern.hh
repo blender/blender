@@ -1932,5 +1932,7 @@ int paste_property_drivers(Span<FCurve *> src_drivers,
 void panel_region_width_set(ARegion *region, const float aspect, int unscaled_size);
 void region_panels_sort_for_search_filter_visibility_change(bContext *C, const ARegion *region);
 
+void template_id_menu();
+
 }  // namespace ui
 }  // namespace blender

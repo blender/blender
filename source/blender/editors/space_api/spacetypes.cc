@@ -123,6 +123,7 @@ void ED_spacetypes_init()
 
   ui::ED_operatortypes_view2d();
   ui::operatortypes_ui();
+  ui::menutypes_ui();
 
   ED_screen_user_menu_register();
 

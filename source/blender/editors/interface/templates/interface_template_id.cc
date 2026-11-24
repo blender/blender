@@ -17,8 +17,10 @@
 #include "BKE_main.hh"
 #include "BKE_main_invariants.hh"
 #include "BKE_packedFile.hh"
+#include "BKE_screen.hh"
 
 #include "BLI_listbase.hh"
+#include "BLI_string.hh"
 #include "BLI_string_search.hh"
 #include "BLI_string_utf8.hh"
 
@@ -720,7 +722,7 @@ static void template_id_liboverride_hierarchy_make(bContext *C,
   }
 }
 
-static void template_ui_delete(bContext &C, PropertyPointerRNA &pprop)
+static void template_ui_delete(bContext &C, PropertyPointerRNA &pprop, bool delete_all_users)
 {
   PointerRNA idptr = RNA_property_pointer_get(&pprop.ptr, pprop.prop);
   ID *id = static_cast<ID *>(idptr.data);
@@ -731,7 +733,7 @@ static void template_ui_delete(bContext &C, PropertyPointerRNA &pprop)
   RNA_property_pointer_set(&pprop.ptr, pprop.prop, idptr, nullptr);
   RNA_property_update(&C, &pprop.ptr, pprop.prop);
 
-  if (id && CTX_wm_window(&C)->runtime->eventstate->modifier & KM_SHIFT) {
+  if (id && delete_all_users) {
     /* only way to force-remove data (on save) */
     id_us_clear_real(id);
     id_fake_user_clear(id);
@@ -1046,6 +1048,131 @@ static Button *template_id_def_new_but(Block *block,
   return but;
 }
 
+static void template_id_menu_draw(const bContext *C, Menu *menu)
+{
+  Layout &layout = *menu->layout;
+  Block *block = layout.block();
+
+  PointerRNA ptr;
+  PropertyRNA *prop;
+  context_active_but_prop_get_templateID(C, &ptr, &prop);
+
+  StructRNA *type = RNA_property_pointer_type(&ptr, prop);
+  if (!ptr.has_data() || !RNA_struct_is_ID(type)) {
+    return;
+  }
+  PropertyPointerRNA pprop = {ptr, prop};
+  Button *but = nullptr;
+  const bool editable_prop = RNA_property_editable(&ptr, prop);
+
+  PointerRNA idptr = CTX_data_pointer_get_type(C, "id", RNA_ID);
+  if (idptr.has_data()) {
+    ID *idfrom = ptr.owner_id;
+    ID *id = static_cast<ID *>(idptr.data);
+    const bool prop_flag = RNA_property_flag(pprop.prop);
+    const int real_users = ID_REAL_USERS(id);
+    const bool is_object_mode = (idfrom && GS(idfrom->name) == ID_OB &&
+                                 ((id_cast<Object *>(idfrom))->mode & OB_MODE_EDIT));
+    const bool not_copy_editable_allowed = !BKE_id_copy_is_allowed(id) ||
+                                           (idfrom && !ID_IS_EDITABLE(idfrom)) ||
+                                           (!editable_prop) ||
+                                           /* object in editmode - don't change data */
+                                           (is_object_mode);
+
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+
+    layout.red_alert_set(id->us <= 0);
+
+    layout.prop(&idptr, "use_fake_user", UI_ITEM_NONE, IFACE_("Fake User"), ICON_NONE);
+
+    but = uiDefIconTextBut(block,
+                           ButtonType::But,
+                           ICON_BLANK1,
+                           IFACE_("Make Single User"),
+                           0,
+                           0,
+                           UI_UNIT_X,
+                           UI_UNIT_Y,
+                           nullptr,
+                           TIP_("Make a copy of the Data-block"));
+    but->flag |= BUT_UNDO;
+    button_func_set(but, [pprop = pprop](bContext &C) mutable { template_ui_alone(C, pprop); });
+
+    if (not_copy_editable_allowed || real_users <= 1) {
+      StringRefNull disable_str =
+          not_copy_editable_allowed ? N_("This property is not editable") :
+          real_users == 1 ? N_("Data-block already has a single user") :
+                            N_("Data-block has zero users. Purge unused data or save and "
+                               "reload the file to remove it completely");
+      button_disable(but, disable_str.c_str());
+    }
+
+    layout.separator();
+    const std::optional<StringRefNull> unlink_opname = CTX_store_string_lookup(
+        CTX_store_get(C), "template_id_unlinkop");
+    if (unlink_opname.has_value()) {
+      layout.op(unlink_opname.value(), {}, ICON_X);
+    }
+    else {
+      but = uiDefIconTextBut(block,
+                             ButtonType::But,
+                             ICON_X,
+                             IFACE_("Unlink"),
+                             0,
+                             0,
+                             UI_UNIT_X,
+                             UI_UNIT_Y,
+                             nullptr,
+                             TIP_("Unlink data-block"));
+      button_func_set(
+          but, [pprop = pprop](bContext &C) mutable { template_ui_delete(C, pprop, false); });
+
+      if (not_copy_editable_allowed) {
+        button_disable(but, N_("This property is not editable"));
+      }
+      else if (prop_flag & (PROP_NEVER_NULL | PROP_NEVER_UNLINK)) {
+        button_disable(but, N_("This property can't be unset"));
+      }
+      else if (real_users < 1) {
+        button_disable(but, N_("Data-block has zero users"));
+      }
+      else if (id_type->flags & IDTYPE_FLAGS_NEVER_UNUSED) {
+        button_disable(but, N_("This ID can't be unlinked"));
+      }
+    }
+
+    but = uiDefIconTextBut(block,
+                           ButtonType::But,
+                           ICON_BLANK1,
+                           IFACE_("Unlink All Users"),
+                           0,
+                           0,
+                           UI_UNIT_X,
+                           UI_UNIT_Y,
+                           nullptr,
+                           TIP_("Unlink All Users"));
+    button_func_set(but,
+                    [pprop = pprop](bContext &C) mutable { template_ui_delete(C, pprop, true); });
+    if (not_copy_editable_allowed || id->us < 1) {
+      StringRefNull disable_str = not_copy_editable_allowed ? N_("This property is not editable") :
+                                                              N_("Data-block has zero users");
+      button_disable(but, disable_str.c_str());
+    }
+    else if (id_type->flags & IDTYPE_FLAGS_NEVER_UNUSED) {
+      button_disable(but, N_("This ID can't be unlinked"));
+    }
+  }
+}
+
+void template_id_menu()
+{
+  MenuType *mt = MEM_new_zeroed<MenuType>("UI_MT_template_id");
+  STRNCPY_UTF8(mt->idname, "UI_MT_template_id");
+  STRNCPY_UTF8(mt->label, N_("ID menu"));
+  mt->draw = template_id_menu_draw;
+  WM_menutype_add(mt);
+}
+
 static void template_ID(const bContext *C,
                         Layout &layout,
                         TemplateID &template_ui,
@@ -1059,6 +1186,8 @@ static void template_ID(const bContext *C,
                         const bool hide_buttons)
 {
   Button *but;
+  const bool use_new_datablock_id_selector = USER_EXPERIMENTAL_TEST(&U,
+                                                                    use_new_datablock_id_selector);
   const bool editable = RNA_property_editable(&template_ui.ptr, template_ui.prop);
   const bool use_previews = template_ui.preview = (flag & UI_ID_PREVIEWS) != 0;
 
@@ -1077,6 +1206,9 @@ static void template_ID(const bContext *C,
     prop_identifier = RNA_path_name_to_infix(prop_identifier);
   }
   layout.context_string_set("template_id_prop", prop_identifier);
+  if (unlinkop) {
+    layout.context_string_set("template_id_unlinkop", unlinkop);
+  }
 
   Block *block = layout.block();
   block_align_begin(block);
@@ -1239,7 +1371,7 @@ static void template_ID(const bContext *C,
       }
     }
 
-    if ((ID_REAL_USERS(id) > 1) && (hide_buttons == false)) {
+    if ((!use_new_datablock_id_selector) && (ID_REAL_USERS(id) > 1) && (hide_buttons == false)) {
       char numstr[32];
       short numstr_len;
 
@@ -1377,7 +1509,7 @@ static void template_ID(const bContext *C,
 
   /* delete button */
   /* don't use RNA_property_is_unlink here */
-  if (id && (flag & UI_ID_DELETE) && (hide_buttons == false)) {
+  if ((!use_new_datablock_id_selector) && id && (flag & UI_ID_DELETE) && (hide_buttons == false)) {
     /* allow unlink if 'unlinkop' is passed, even when 'PROP_NEVER_UNLINK' is set */
     but = nullptr;
 
@@ -1409,8 +1541,10 @@ static void template_ID(const bContext *C,
             0,
             TIP_("Unlink data-block "
                  "(Shift + Click to set users to zero, data will then not be saved)"));
-        button_func_set(but,
-                        [pprop = pprop](bContext &C) mutable { template_ui_delete(C, pprop); });
+        button_func_set(but, [pprop = pprop](bContext &C) mutable {
+          template_ui_delete(
+              C, pprop, CTX_wm_window(&C)->runtime->eventstate->modifier & KM_SHIFT);
+        });
 
         if (RNA_property_flag(template_ui.prop) & PROP_NEVER_NULL) {
           button_flag_enable(but, BUT_DISABLED);
@@ -1427,6 +1561,14 @@ static void template_ID(const bContext *C,
 
   if (template_ui.idcode == ID_TE) {
     uiTemplateTextureShow(&layout, C, &template_ui.ptr, template_ui.prop);
+  }
+  if (!hide_buttons && id && use_new_datablock_id_selector) {
+    layout.menu("UI_MT_template_id", "", ICON_DOWNARROW_HLT);
+    Button *button = block->buttons_ptrs.last().get();
+    if (button->type == ButtonType::Pulldown) {
+      button_type_set_menu_from_pulldown(button);
+    }
+    button->emboss = EmbossType::Emboss;
   }
   block_align_end(block);
 }
