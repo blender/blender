@@ -2723,9 +2723,13 @@ void CustomData_set_layer_flag(CustomData *data,
 
 static void customData_resize(CustomData *data, const int grow_amount)
 {
-  data->layers = static_cast<CustomDataLayer *>(MEM_realloc_uninitialized(
-      data->layers, (data->maxlayer + grow_amount) * sizeof(CustomDataLayer)));
-  data->maxlayer += grow_amount;
+  const int new_maxlayer = data->maxlayer + grow_amount;
+  BLI_assert(data->totlayer <= new_maxlayer);
+  CustomDataLayer *new_layers = MEM_new_array<CustomDataLayer>(new_maxlayer, __func__);
+  std::copy_n(data->layers, data->totlayer, new_layers);
+  MEM_delete(data->layers);
+  data->layers = new_layers;
+  data->maxlayer = new_maxlayer;
 }
 
 static CustomDataLayer *customData_add_layer__internal(
