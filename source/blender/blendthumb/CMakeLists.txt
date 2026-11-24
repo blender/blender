@@ -79,10 +79,10 @@ elseif(APPLE)
     # Prevent Xcode from overwriting the signature.
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
   )
-  # CMake needs the target defined in the same file as add_custom_command.
-  # It needs to be code-signed (ad-hoc in this case)
-  # even on developer machine to generate thumbnails.
-  # Command taken from XCode build process.
+  # The app extension needs to be ad-hoc signed with custom entitlements to be able to generate
+  # thumbnails. Skip the linker's ad-hoc signature so codesign can apply the entitlements without
+  # printing a "replacing existing signature" message.
+  target_link_options(blender-thumbnailer PRIVATE "LINKER:-no_adhoc_codesign")
   add_custom_command(
     TARGET blender-thumbnailer POST_BUILD
     COMMAND codesign --deep --force --sign -
