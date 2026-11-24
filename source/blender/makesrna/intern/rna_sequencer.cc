@@ -322,6 +322,9 @@ static PointerRNA rna_SceneStrip_view_layer_get(PointerRNA *ptr)
     return {};
   }
   ViewLayer *view_layer = BKE_view_layer_find(scene, strip->scene_view_layer_name);
+  if (view_layer == nullptr) {
+    view_layer = BKE_view_layer_default_render(scene);
+  }
   return RNA_pointer_create_id_subdata(scene->id, RNA_ViewLayer, view_layer);
 }
 
