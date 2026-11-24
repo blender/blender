@@ -6567,6 +6567,7 @@ static void update_idprop_float(PointerRNA &rna_ptr, PropertyRNA &rna_prop, IDPr
 static void update_idprop_id(Main &bmain,
                              PointerRNA &rna_ptr,
                              PropertyRNA &rna_prop,
+                             const StructRNA *prop_srna,
                              IDProperty &idprop)
 {
   const auto fill_new = [&]() {
@@ -6576,7 +6577,10 @@ static void update_idprop_id(Main &bmain,
     IDP_AssignID(&idprop, default_ptr.data_as<ID>(), 0);
   };
   if (idprop.type == IDP_ID) {
-    return;
+    ID *id = IDP_ID_get(&idprop);
+    if (!id || RNA_struct_is_a(RNA_id_pointer_create(id).type, prop_srna)) {
+      return;
+    }
   }
   fill_new();
 }
@@ -6650,7 +6654,7 @@ static void sync_system_properties(
       case PROP_POINTER: {
         StructRNA *prop_srna = RNA_property_pointer_type(&ptr, &rna_prop);
         if (RNA_struct_is_ID(prop_srna)) {
-          update_idprop_id(bmain, ptr, rna_prop, *idprop);
+          update_idprop_id(bmain, ptr, rna_prop, prop_srna, *idprop);
         }
         else if (const IDPropertyStructTypeInfo *info = rna_struct_idprop_struct_type(prop_srna)) {
           if (idprop->type != info->idp_type || idprop->data.pointer == nullptr) {
