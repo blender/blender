@@ -233,6 +233,7 @@ static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter,
                                            const float pressure)
 {
   Brush *brush = painter->brush;
+  const MTex *mtex = BKE_brush_mask_texture_get(brush, PaintMode::Texture2D);
   rctf mask_mapping = painter->mask_mapping;
   ImagePool *pool = painter->pool;
 
@@ -247,7 +248,7 @@ static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter,
     for (x = 0; x < size; x++, m++) {
       float res;
       brush_imbuf_tex_co(&mask_mapping, x, y, texco);
-      res = BKE_brush_sample_masktex(painter->paint, brush, texco, pressure, thread, pool);
+      res = BKE_brush_sample_masktex(painter->paint, brush, mtex, texco, pressure, thread, pool);
       *m = ushort(65535.0f * res);
     }
   }
@@ -269,6 +270,7 @@ static void brush_painter_mask_imbuf_update(BrushPainter *painter,
                                             const float pressure)
 {
   Brush *brush = painter->brush;
+  const MTex *mtex = BKE_brush_mask_texture_get(brush, PaintMode::Texture2D);
   BrushPainterCache *cache = &tile->cache;
   rctf tex_mapping = painter->mask_mapping;
   ImagePool *pool = painter->pool;
@@ -294,7 +296,7 @@ static void brush_painter_mask_imbuf_update(BrushPainter *painter,
       if (!use_texture_old) {
         brush_imbuf_tex_co(&tex_mapping, x, y, texco);
         res = ushort(65535.0f * BKE_brush_sample_masktex(
-                                    painter->paint, brush, texco, pressure, thread, pool));
+                                    painter->paint, brush, mtex, texco, pressure, thread, pool));
       }
 
       /* read from old texture buffer */
@@ -446,7 +448,7 @@ static ImBuf *brush_painter_imbuf_new(
       if (is_texbrush) {
         brush_imbuf_tex_co(&tex_mapping, x, y, texco);
         const MTex *mtex = &brush->mtex;
-        BKE_brush_sample_tex_3d(painter->paint, brush, mtex, texco, rgba, thread, pool);
+        BKE_brush_sample_tex_3d(painter->paint, brush, mtex, texco, thread, pool, rgba);
         if (cache->is_srgb) {
           IMB_colormanagement_scene_linear_to_srgb_v3(rgba, rgba);
         }
@@ -543,7 +545,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
       if (!use_texture_old) {
         if (is_texbrush) {
           brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-          BKE_brush_sample_tex_3d(painter->paint, brush, mtex, texco, rgba, thread, pool);
+          BKE_brush_sample_tex_3d(painter->paint, brush, mtex, texco, thread, pool, rgba);
           if (cache->is_srgb) {
             IMB_colormanagement_scene_linear_to_srgb_v3(rgba, rgba);
           }

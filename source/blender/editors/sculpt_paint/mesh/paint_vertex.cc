@@ -539,7 +539,7 @@ static void paint_and_tex_color_alpha_intern(
   const MTex *mtex = BKE_brush_color_texture_get(brush, PaintMode::Vertex);
   BLI_assert(mtex->tex != nullptr);
   if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
-    BKE_brush_sample_tex_3d(&vp.paint, brush, mtex, co, r_rgba, thread_id, nullptr);
+    BKE_brush_sample_tex_3d(&vp.paint, brush, mtex, co, thread_id, nullptr, r_rgba);
   }
   else {
     float co_ss[2]; /* screenspace */
@@ -548,7 +548,7 @@ static void paint_and_tex_color_alpha_intern(
         V3D_PROJ_RET_OK)
     {
       const float co_ss_3d[3] = {co_ss[0], co_ss[1], 0.0f}; /* we need a 3rd empty value */
-      BKE_brush_sample_tex_3d(&vp.paint, brush, mtex, co_ss_3d, r_rgba, thread_id, nullptr);
+      BKE_brush_sample_tex_3d(&vp.paint, brush, mtex, co_ss_3d, thread_id, nullptr, r_rgba);
     }
     else {
       zero_v4(r_rgba);

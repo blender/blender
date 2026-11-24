@@ -989,28 +989,24 @@ const MTex *BKE_brush_color_texture_get(const Brush *brush, const PaintMode pain
   return &brush->mtex;
 }
 
-float BKE_brush_sample_tex_3d(const Paint *paint,
+static float brush_sample_tex(const Paint *paint,
                               const Brush *br,
-                              const MTex *mtex,
+                              const MTex &mtex,
                               const float3 &point,
-                              float4 &rgba,
                               const int thread,
-                              ImagePool *pool)
+                              ImagePool *pool,
+                              bool &r_hasrgb,
+                              float4 &r_rgba)
 {
-  const bke::PaintRuntime *paint_runtime = paint->runtime;
-  float intensity = 1.0;
-  bool hasrgb = false;
-
-  if (mtex == nullptr || mtex->tex == nullptr) {
-    intensity = 1;
-  }
-  else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D) {
+  float intensity = 1.0f;
+  const bke::PaintRuntime &paint_runtime = *paint->runtime;
+  if (mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
     /* Get strength by feeding the vertex
      * location directly into a texture */
-    hasrgb = RE_texture_evaluate(mtex, point, thread, pool, false, false, &intensity, rgba);
+    r_hasrgb = RE_texture_evaluate(&mtex, point, thread, pool, false, false, &intensity, r_rgba);
   }
-  else if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
-    float rotation = -mtex->rot;
+  else if (mtex.brush_map_mode == MTEX_MAP_MODE_STENCIL) {
+    float rotation = -mtex.rot;
     const float2 point_2d = point.xy();
     float x, y;
 
@@ -1026,48 +1022,48 @@ float BKE_brush_sample_tex_3d(const Paint *paint,
     }
 
     if (fabsf(x) > br->stencil_dimension[0] || fabsf(y) > br->stencil_dimension[1]) {
-      zero_v4(rgba);
+      zero_v4(r_rgba);
       return 0.0f;
     }
     x /= (br->stencil_dimension[0]);
     y /= (br->stencil_dimension[1]);
 
     float3 co(x, y, 0.0f);
-    hasrgb = RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba);
+    r_hasrgb = RE_texture_evaluate(&mtex, co, thread, pool, false, false, &intensity, r_rgba);
   }
   else {
-    float rotation = -mtex->rot;
+    float rotation = -mtex.rot;
     const float2 point_2d = point.xy();
     float x = 0.0f, y = 0.0f; /* Quite warnings */
     float invradius = 1.0f;   /* Quite warnings */
 
-    if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+    if (mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
       /* keep coordinates relative to mouse */
 
-      rotation -= paint_runtime->brush_rotation;
+      rotation -= paint_runtime.brush_rotation;
 
-      x = point_2d[0] - paint_runtime->tex_mouse[0];
-      y = point_2d[1] - paint_runtime->tex_mouse[1];
+      x = point_2d[0] - paint_runtime.tex_mouse[0];
+      y = point_2d[1] - paint_runtime.tex_mouse[1];
 
       /* use pressure adjusted size for fixed mode */
-      invradius = 1.0f / paint_runtime->pixel_radius;
+      invradius = 1.0f / paint_runtime.pixel_radius;
     }
-    else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
+    else if (mtex.brush_map_mode == MTEX_MAP_MODE_TILED) {
       /* leave the coordinates relative to the screen */
 
       /* use unadjusted size for tiled mode */
-      invradius = 1.0f / paint_runtime->start_pixel_radius;
+      invradius = 1.0f / paint_runtime.start_pixel_radius;
 
       x = point_2d[0];
       y = point_2d[1];
     }
-    else if (mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM) {
-      rotation -= paint_runtime->brush_rotation;
+    else if (mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM) {
+      rotation -= paint_runtime.brush_rotation;
       /* these contain a random coordinate */
-      x = point_2d[0] - paint_runtime->tex_mouse[0];
-      y = point_2d[1] - paint_runtime->tex_mouse[1];
+      x = point_2d[0] - paint_runtime.tex_mouse[0];
+      y = point_2d[1] - paint_runtime.tex_mouse[1];
 
-      invradius = 1.0f / paint_runtime->pixel_radius;
+      invradius = 1.0f / paint_runtime.pixel_radius;
     }
 
     x *= invradius;
@@ -1086,20 +1082,41 @@ float BKE_brush_sample_tex_3d(const Paint *paint,
 
     float3 co(x, y, 0.0f);
 
-    hasrgb = RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba);
+    r_hasrgb = RE_texture_evaluate(&mtex, co, thread, pool, false, false, &intensity, r_rgba);
+  }
+  return intensity;
+}
+
+float BKE_brush_sample_tex_3d(const Paint *paint,
+                              const Brush *br,
+                              const MTex *mtex,
+                              const float3 &point,
+                              const int thread,
+                              ImagePool *pool,
+                              float4 &r_rgba)
+{
+  const bke::PaintRuntime *paint_runtime = paint->runtime;
+  float intensity = 1.0f;
+  bool hasrgb = false;
+
+  if (mtex == nullptr || mtex->tex == nullptr) {
+    intensity = 1.0f;
+  }
+  else {
+    intensity = brush_sample_tex(paint, br, *mtex, point, thread, pool, hasrgb, r_rgba);
   }
 
   intensity += br->texture_sample_bias;
 
   if (!hasrgb) {
-    rgba[0] = intensity;
-    rgba[1] = intensity;
-    rgba[2] = intensity;
-    rgba[3] = 1.0f;
+    r_rgba[0] = intensity;
+    r_rgba[1] = intensity;
+    r_rgba[2] = intensity;
+    r_rgba[3] = 1.0f;
   }
   /* For consistency, sampling always returns color in linear space */
   else if (paint_runtime->do_linear_conversion) {
-    IMB_colormanagement_colorspace_to_scene_linear_v3(rgba, paint_runtime->colorspace);
+    IMB_colormanagement_colorspace_to_scene_linear_v3(r_rgba, paint_runtime->colorspace);
   }
 
   return intensity;
@@ -1107,105 +1124,22 @@ float BKE_brush_sample_tex_3d(const Paint *paint,
 
 float BKE_brush_sample_masktex(const Paint *paint,
                                Brush *br,
+                               const MTex *mtex,
                                const float2 &point,
                                const float pressure,
                                const int thread,
                                ImagePool *pool)
 {
-  const bke::PaintRuntime *paint_runtime = paint->runtime;
-  MTex *mtex = &br->mask_mtex;
-  float intensity;
-  float4 dummy_rgba;
-
-  if (!mtex->tex) {
+  if (!mtex || !mtex->tex) {
     return 1.0f;
   }
-  if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
-    float rotation = -mtex->rot;
-    const float2 point_2d = point;
-    float x, y;
-    float co[3];
 
-    x = point_2d[0] - br->mask_stencil_pos[0];
-    y = point_2d[1] - br->mask_stencil_pos[1];
-
-    if (rotation > 0.001f || rotation < -0.001f) {
-      const float angle = atan2f(y, x) + rotation;
-      const float flen = sqrtf(x * x + y * y);
-
-      x = flen * cosf(angle);
-      y = flen * sinf(angle);
-    }
-
-    if (fabsf(x) > br->mask_stencil_dimension[0] || fabsf(y) > br->mask_stencil_dimension[1]) {
-      zero_v4(dummy_rgba);
-      return 0.0f;
-    }
-    x /= (br->mask_stencil_dimension[0]);
-    y /= (br->mask_stencil_dimension[1]);
-
-    co[0] = x;
-    co[1] = y;
-    co[2] = 0.0f;
-
-    RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, dummy_rgba);
-  }
-  else {
-    float rotation = -mtex->rot;
-    const float2 point_2d = point;
-    float x = 0.0f, y = 0.0f; /* Quite warnings */
-    float invradius = 1.0f;   /* Quite warnings */
-    float co[3];
-
-    if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
-      /* keep coordinates relative to mouse */
-
-      rotation -= paint_runtime->brush_rotation_sec;
-
-      x = point_2d[0] - paint_runtime->mask_tex_mouse[0];
-      y = point_2d[1] - paint_runtime->mask_tex_mouse[1];
-
-      /* use pressure adjusted size for fixed mode */
-      invradius = 1.0f / paint_runtime->pixel_radius;
-    }
-    else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
-      /* leave the coordinates relative to the screen */
-
-      /* use unadjusted size for tiled mode */
-      invradius = 1.0f / paint_runtime->start_pixel_radius;
-
-      x = point_2d[0];
-      y = point_2d[1];
-    }
-    else if (mtex->brush_map_mode == MTEX_MAP_MODE_RANDOM) {
-      rotation -= paint_runtime->brush_rotation_sec;
-      /* these contain a random coordinate */
-      x = point_2d[0] - paint_runtime->mask_tex_mouse[0];
-      y = point_2d[1] - paint_runtime->mask_tex_mouse[1];
-
-      invradius = 1.0f / paint_runtime->pixel_radius;
-    }
-
-    x *= invradius;
-    y *= invradius;
-
-    /* it is probably worth optimizing for those cases where
-     * the texture is not rotated by skipping the calls to
-     * atan2, sqrtf, sin, and cos. */
-    if (rotation > 0.001f || rotation < -0.001f) {
-      const float angle = atan2f(y, x) + rotation;
-      const float flen = sqrtf(x * x + y * y);
-
-      x = flen * cosf(angle);
-      y = flen * sinf(angle);
-    }
-
-    co[0] = x;
-    co[1] = y;
-    co[2] = 0.0f;
-
-    RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, dummy_rgba);
-  }
+  /* TODO: This method needs to take in a `float3` rather than a `float2` to support 3D mapping */
+  BLI_assert(mtex->brush_map_mode != MTEX_MAP_MODE_3D);
+  bool dummy_hasrgb;
+  float4 dummy_rgba;
+  float intensity = brush_sample_tex(
+      paint, br, *mtex, float3(point.x, point.y, 0.0f), thread, pool, dummy_hasrgb, dummy_rgba);
 
   CLAMP(intensity, 0.0f, 1.0f);
 
