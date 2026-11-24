@@ -524,10 +524,10 @@ void *BLI_file_read_data_as_mem_from_handle(FILE *fp,
   }
   else {
     if (filelen_read < filelen) {
-      mem = MEM_realloc_uninitialized(mem, filelen_read + pad_bytes);
-      if (mem == nullptr) {
-        return nullptr;
-      }
+      void *mem_shrunk = MEM_new_uninitialized(filelen_read + pad_bytes, __func__);
+      memcpy(mem_shrunk, mem, filelen_read);
+      MEM_delete_void(mem);
+      mem = mem_shrunk;
     }
   }
 

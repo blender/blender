@@ -669,9 +669,10 @@ static void bchunk_list_append_data(const BArrayInfo *info,
       const size_t data_merge_len = chunk_prev->data_len + data_len;
       /* Re-allocate for single user. */
       if (cref->link->users == 1) {
-        uchar *data_merge = static_cast<uchar *>(
-            MEM_realloc_uninitialized((void *)cref->link->data, data_merge_len));
+        uchar *data_merge = MEM_new_array_uninitialized<uchar>(data_merge_len, __func__);
+        memcpy(data_merge, chunk_prev->data, chunk_prev->data_len);
         memcpy(&data_merge[chunk_prev->data_len], data, data_len);
+        MEM_delete(cref->link->data);
         cref->link->data = data_merge;
         cref->link->data_len = data_merge_len;
       }

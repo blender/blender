@@ -629,10 +629,13 @@ static void testbuffer_list_state_random_data(ListBaseT<TestBuffer> *lb,
         case MUTATE_ADD: {
           const uint offset = rand_range_i(rng, 0, data_len, stride);
           if (data_len < data_max_len) {
+            char *new_data = MEM_new_array_uninitialized<char>(data_len + stride, __func__);
+            memcpy(new_data, data, offset);
+            BLI_rng_get_char_n(rng, &new_data[offset], stride);
+            memcpy(&new_data[offset + stride], &data[offset], data_len - offset);
+            MEM_delete(data);
+            data = new_data;
             data_len += stride;
-            data = static_cast<char *>(MEM_realloc_uninitialized((void *)data, data_len));
-            memmove(&data[offset + stride], &data[offset], data_len - (offset + stride));
-            BLI_rng_get_char_n(rng, &data[offset], stride);
           }
           break;
         }

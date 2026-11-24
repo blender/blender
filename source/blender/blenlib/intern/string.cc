@@ -513,10 +513,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
   }
   const size_t escaped_len = size_t(end_match_ofs - start_match_ofs);
   char *result = MEM_new_array_uninitialized<char>(escaped_len + 1, __func__);
-  const size_t unescaped_len = BLI_str_unescape(result, str + start_match_ofs, escaped_len);
-  if (unescaped_len != escaped_len) {
-    result = MEM_realloc_uninitialized(result, sizeof(char) * (unescaped_len + 1));
-  }
+  BLI_str_unescape(result, str + start_match_ofs, escaped_len);
   return result;
 }
 #endif

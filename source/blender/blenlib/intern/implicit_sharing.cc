@@ -99,9 +99,10 @@ void *resize_trivial_array_impl(void *old_data,
     if (auto *info = const_cast<MEMFreeImplicitSharing *>(
             dynamic_cast<const MEMFreeImplicitSharing *>(*sharing_info)))
     {
-      /* If the array was allocated with the MEM allocator, we can use realloc directly, which
-       * could theoretically give better performance if the data can be reused in place. */
-      void *new_data = static_cast<int *>(MEM_realloc_uninitialized(old_data, new_size));
+      /* If the array was allocated with the MEM allocator, the sharing info can be reused. */
+      void *new_data = MEM_new_uninitialized_aligned(new_size, alignment, __func__);
+      memcpy(new_data, old_data, std::min(old_size, new_size));
+      MEM_delete_void(old_data);
       info->data = new_data;
       (*sharing_info)->tag_ensured_mutable();
       return new_data;
