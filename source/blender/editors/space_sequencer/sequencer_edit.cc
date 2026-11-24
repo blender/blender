@@ -3273,9 +3273,10 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
         /* New stripdata, only one element now. */
         /* Note this assume all elements (images) have the same dimension,
          * since we only copy the name here. */
-        se_new = static_cast<StripElem *>(
-            MEM_realloc_uninitialized(data_new->stripdata, sizeof(*se_new)));
+        se_new = MEM_new_array<StripElem>(1, __func__);
+        *se_new = data_new->stripdata[0];
         STRNCPY(se_new->filename, se->filename);
+        MEM_delete(data_new->stripdata);
         data_new->stripdata = se_new;
         data_new->stripdata_num = 1;
 

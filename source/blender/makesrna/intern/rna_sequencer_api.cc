@@ -6,6 +6,7 @@
  * \ingroup RNA
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -615,9 +616,11 @@ static StripElem *rna_StripElements_append(ID *id, Strip *strip, const char *fil
   StripElem *se;
 
   const int old_len = strip->data->stripdata_num;
-  strip->data->stripdata = se = static_cast<StripElem *>(
-      MEM_realloc_uninitialized(strip->data->stripdata, sizeof(StripElem) * (old_len + 1)));
-  se += old_len;
+  StripElem *new_stripdata = MEM_new_array<StripElem>(old_len + 1, __func__);
+  std::copy_n(strip->data->stripdata, old_len, new_stripdata);
+  MEM_delete(strip->data->stripdata);
+  strip->data->stripdata = new_stripdata;
+  se = new_stripdata + old_len;
   STRNCPY(se->filename, filename);
   strip->data->stripdata_num = old_len + 1;
   strip->source_duration_set(strip->source_duration() + 1);
