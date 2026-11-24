@@ -25,7 +25,6 @@ set(SRC
   graph_view.cc
   space_graph.cc
 
-  ED_space_graph.hh
   graph_intern.hh
 )
 

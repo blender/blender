@@ -24,6 +24,7 @@
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
+#include "ED_space_graph.hh"
 
 #include "UI_view2d.hh"
 
@@ -165,8 +166,8 @@ static void enable_autolock(TransInfo *t, SpaceGraph *space_graph)
   }
 
   /* These flags are set when using tweak mode on handles. */
-  if ((space_graph->runtime.flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT) ||
-      (space_graph->runtime.flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT))
+  if ((space_graph->runtime->flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT) ||
+      (space_graph->runtime->flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT))
   {
     return;
   }
@@ -191,10 +192,10 @@ static void graph_bezt_get_transform_selection(const TransInfo *t,
   bool right = use_handle ? ((bezt->f3 & SELECT) != 0) : key;
 
   if (use_handle && t->is_launch_event_drag) {
-    if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT) {
+    if (sipo->runtime->flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT) {
       key = right = false;
     }
-    else if (sipo->runtime.flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT) {
+    else if (sipo->runtime->flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT) {
       left = key = false;
     }
   }

@@ -28,6 +28,7 @@
 #include "GPU_state.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_space_graph.hh"
 
 #include "graph_intern.hh"
 
@@ -1491,7 +1492,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, const SpaceGraph *sipo, const Vie
    * See issue #109920 for details. */
   const bool draw_extrapolation = false;
   /* the ghost curves are simply sampled F-Curves stored in sipo->runtime.ghost_curves */
-  for (FCurve &fcu : sipo->runtime.ghost_curves) {
+  for (FCurve &fcu : sipo->runtime->ghost_curves) {
     /* set whatever color the curve has set
      * - this is set by the function which creates these
      * - draw with a fixed opacity of 2
