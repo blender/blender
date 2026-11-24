@@ -8,6 +8,8 @@
  * GPU shader interface (C --> GLSL)
  */
 
+#include <algorithm>
+
 #include "BLI_bitmap.hh"
 
 #include "gl_batch.hh"
@@ -376,8 +378,10 @@ GLShaderInterface::GLShaderInterface(GLuint program)
 
   /* Resize name buffer to save some memory. */
   if (name_buffer_offset < name_buffer_len) {
-    name_buffer_ = static_cast<char *>(
-        MEM_realloc_uninitialized(name_buffer_, name_buffer_offset));
+    char *new_name_buffer = MEM_new_array_uninitialized<char>(name_buffer_offset, __func__);
+    std::copy_n(name_buffer_, name_buffer_offset, new_name_buffer);
+    MEM_delete(name_buffer_);
+    name_buffer_ = new_name_buffer;
   }
 
   // this->debug_print();
