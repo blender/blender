@@ -48,6 +48,14 @@ bool MOV_codec_supports_crf(IMB_Ffmpeg_Codec_ID codec_id);
 eImageFormatDepth MOV_codec_valid_bit_depths(IMB_Ffmpeg_Codec_ID codec_id);
 
 /**
+ * Whether hardware video encoding is likely to be available with the given render settings
+ * (codec, bit depth, quality and resolution). Note that this is a guess suitable
+ * for e.g. disabling UI elements; actual hardware encoding can still fail, in which case
+ * the writer falls back to software encoding.
+ */
+bool MOV_hardware_encoder_available(const RenderData &rd);
+
+/**
  * Given desired output image format type, sets up required FFMPEG
  * related settings in render data.
  */

@@ -7,10 +7,13 @@
  */
 
 #include "BLI_map.hh"
+#include "BLI_memory_utils.hh"
 #include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_threads.hh"
 #include "BLI_utildefines.hh"
+
+#include "BKE_scene.hh"
 
 #include "CLG_log.h"
 #include "DNA_scene_types.h"
@@ -32,6 +35,7 @@ extern "C" {
 #  include <libavformat/avformat.h>
 #  include <libavutil/hwcontext.h>
 #  include <libavutil/log.h>
+#  include <libavutil/pixdesc.h>
 }
 #endif
 
@@ -61,8 +65,14 @@ static size_t ffmpeg_log_to_buffer(MutableCStr buffer, const char *format, va_li
   return n;
 }
 
+static thread_local bool ffmpeg_log_quiet = false;
+
 static void ffmpeg_log_callback(void * /*ptr*/, int level, const char *format, va_list arg)
 {
+  if (ffmpeg_log_quiet && level <= AV_LOG_INFO) {
+    level = AV_LOG_DEBUG;
+  }
+
   CLG_Level clg_level;
 
   switch (level) {
@@ -591,7 +601,7 @@ AVBufferRef *ffmpeg_hw_device_get(const AVHWDeviceType device_type)
       char error_str[AV_ERROR_MAX_STRING_SIZE];
       av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
       CLOG_INFO(&LOG,
-                "ffmpeg: couldn't create %s decoding device: %s",
+                "ffmpeg: couldn't create %s encoding/decoding device: %s",
                 av_hwdevice_get_type_name(device_type),
                 error_str);
     }
@@ -599,7 +609,207 @@ AVBufferRef *ffmpeg_hw_device_get(const AVHWDeviceType device_type)
   });
 }
 
+/* Definitions of which video codecs can use which hardware encoders (listed in order of
+ * preference). Encoders not relevant for the platform or not available are ignored. */
+struct HardwareEncoderDesc {
+  AVCodecID codec_id;
+  const char *name;
+  AVHWDeviceType device_type;
+};
+
+static constexpr HardwareEncoderDesc hardware_encoders[] = {
+    {AV_CODEC_ID_H264, "h264_videotoolbox", AV_HWDEVICE_TYPE_VIDEOTOOLBOX},
+    {AV_CODEC_ID_H265, "hevc_videotoolbox", AV_HWDEVICE_TYPE_VIDEOTOOLBOX},
+    {AV_CODEC_ID_H264, "h264_nvenc", AV_HWDEVICE_TYPE_CUDA},
+    {AV_CODEC_ID_H265, "hevc_nvenc", AV_HWDEVICE_TYPE_CUDA},
+    {AV_CODEC_ID_AV1, "av1_nvenc", AV_HWDEVICE_TYPE_CUDA},
+    {AV_CODEC_ID_H264, "h264_amf", AV_HWDEVICE_TYPE_AMF},
+    {AV_CODEC_ID_H265, "hevc_amf", AV_HWDEVICE_TYPE_AMF},
+    {AV_CODEC_ID_AV1, "av1_amf", AV_HWDEVICE_TYPE_AMF},
+};
+
+static const AVCodecHWConfig *hardware_encoder_config_get(const AVCodec *codec,
+                                                          const AVHWDeviceType device_type)
+{
+  for (int i = 0; const AVCodecHWConfig *config = avcodec_get_hw_config(codec, i); i++) {
+    if ((config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX) &&
+        config->device_type == device_type)
+    {
+      return config;
+    }
+  }
+  return nullptr;
+}
+
+static bool hardware_encoder_supports_format(const AVCodec *codec, const AVPixelFormat format)
+{
+  const AVPixelFormat *formats = ffmpeg_get_pix_fmts(nullptr, codec);
+  if (formats) {
+    for (; *formats != AV_PIX_FMT_NONE; formats++) {
+      if (*formats == format) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+int ffmpeg_hw_setup_frames(AVCodecContext *codec_ctx,
+                           AVBufferRef *hw_device_ctx,
+                           const AVCodecHWConfig *config,
+                           const AVPixelFormat sw_format)
+{
+  AVBufferRef *hw_frames_ref = av_hwframe_ctx_alloc(hw_device_ctx);
+  if (!hw_frames_ref) {
+    return AVERROR(ENOMEM);
+  }
+  AVHWFramesContext *frames_ctx = reinterpret_cast<AVHWFramesContext *>(hw_frames_ref->data);
+  frames_ctx->format = config->pix_fmt;
+  frames_ctx->sw_format = sw_format;
+  frames_ctx->width = codec_ctx->width;
+  frames_ctx->height = codec_ctx->height;
+  /* Note: for VAAPI setting initial_pool_size to fixed value might be needed. For
+   * backends we have now the pool is dynamically sized on demand. */
+  if (const int err = av_hwframe_ctx_init(hw_frames_ref); err < 0) {
+    av_buffer_unref(&hw_frames_ref);
+    return err;
+  }
+  /* Transfer ownership of the initialized frames context to the codec context. */
+  codec_ctx->hw_frames_ctx = hw_frames_ref;
+  codec_ctx->pix_fmt = config->pix_fmt;
+  return 0;
+}
+
+/* Try to open hardware encoder on the device, to find out whether it actually can encode the given
+ * codec and pixel format. */
+static bool hardware_encoder_probe(const AVCodec *codec,
+                                   const AVCodecHWConfig *config,
+                                   AVBufferRef *hw_device_ctx,
+                                   const AVPixelFormat sw_format)
+{
+  /* Failing here is an expected outcome, so silence ffmpeg error messages. */
+  ffmpeg_log_quiet = true;
+  BLI_SCOPED_DEFER([]() { ffmpeg_log_quiet = false; });
+
+  AVCodecContext *c = avcodec_alloc_context3(codec);
+  if (!c) {
+    return false;
+  }
+  /* Resolution that all encoders should be able to handle. */
+  c->width = 640;
+  c->height = 360;
+  c->time_base = {1, 25};
+  c->framerate = {25, 1};
+  c->sample_aspect_ratio = {1, 1};
+  const bool ok = ffmpeg_hw_setup_frames(c, hw_device_ctx, config, sw_format) >= 0 &&
+                  avcodec_open2(c, codec, nullptr) >= 0;
+  avcodec_free_context(&c);
+  return ok;
+}
+
+static Mutex hw_encoder_lock;
+static Map<std::pair<AVCodecID, AVPixelFormat>, FFmpegHardwareEncoder> hw_encoders;
+
+FFmpegHardwareEncoder ffmpeg_hw_encoder_find(const AVCodecID codec_id,
+                                             const AVPixelFormat sw_format)
+{
+  std::lock_guard lock(hw_encoder_lock);
+  return hw_encoders.lookup_or_add_cb({codec_id, sw_format}, [&]() {
+    for (const HardwareEncoderDesc &desc : hardware_encoders) {
+      if (desc.codec_id != codec_id) {
+        continue;
+      }
+      const AVCodec *codec = avcodec_find_encoder_by_name(desc.name);
+      if (!codec || !hardware_encoder_supports_format(codec, sw_format)) {
+        continue;
+      }
+      const AVCodecHWConfig *config = hardware_encoder_config_get(codec, desc.device_type);
+      if (!config) {
+        continue;
+      }
+      AVBufferRef *hw_device_ctx = ffmpeg_hw_device_get(config->device_type);
+      if (!hw_device_ctx) {
+        continue;
+      }
+      if (!hardware_encoder_probe(codec, config, hw_device_ctx, sw_format)) {
+        continue;
+      }
+      CLOG_INFO(&LOG,
+                "ffmpeg: hardware encoder %s is available for %s",
+                codec->name,
+                av_get_pix_fmt_name(sw_format));
+      return FFmpegHardwareEncoder{codec, config};
+    }
+    CLOG_INFO(&LOG,
+              "ffmpeg: no hardware encoder available for %s with %s",
+              avcodec_get_name(codec_id),
+              av_get_pix_fmt_name(sw_format));
+    return FFmpegHardwareEncoder{};
+  });
+}
+
+AVPixelFormat ffmpeg_hw_encode_sw_format(const int depth)
+{
+  return depth == R_IMF_CHAN_DEPTH_10 ? AV_PIX_FMT_P010 : AV_PIX_FMT_NV12;
+}
+
+const char *ffmpeg_hw_encode_settings_unsupported_reason(const AVCodecID codec_id,
+                                                         const int crf,
+                                                         const int min_rate,
+                                                         const int bitrate,
+                                                         const int depth,
+                                                         const int width,
+                                                         const int height)
+{
+  if (!ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_AV1)) {
+    return "the codec is not supported";
+  }
+  if (crf == FFM_CRF_LOSSLESS) {
+    /* NV12/P010 always subsample chroma, so we can't do real lossless. */
+    return "lossless output is not supported";
+  }
+  if (crf < 0 && min_rate > 0 && min_rate != bitrate) {
+    /* Hardware encoders only do either CBR (min == max == target rate), or VBR with
+     * no minimum. */
+    return "a minimum bitrate is not supported";
+  }
+  if (!ELEM(depth, R_IMF_CHAN_DEPTH_8, R_IMF_CHAN_DEPTH_10) || width % 2 != 0 || height % 2 != 0) {
+    return "8-bit or 10-bit output with even dimensions is required";
+  }
+  return nullptr;
+}
+
 #endif /* WITH_FFMPEG */
+
+bool MOV_hardware_encoder_available(const RenderData &rd)
+{
+#ifdef WITH_FFMPEG
+  const AVCodecID codec_id = mov_av_codec_id_get(rd.ffcodecdata.codec_id_get());
+
+  /* Match the movie writer: custom CRF is clamped to 0..51 for the hardware encodable codecs. */
+  const int crf = rd.ffcodecdata.constant_rate_factor == FFM_CRF_CUSTOM ?
+                      std::max(rd.ffcodecdata.custom_constant_rate_factor, 0) :
+                      int(rd.ffcodecdata.constant_rate_factor);
+
+  const int depth = rd.im_format.depth;
+  int width, height;
+  BKE_render_resolution(&rd, false, &width, &height);
+  if (ffmpeg_hw_encode_settings_unsupported_reason(codec_id,
+                                                   crf,
+                                                   rd.ffcodecdata.rc_min_rate,
+                                                   rd.ffcodecdata.video_bitrate,
+                                                   depth,
+                                                   width,
+                                                   height))
+  {
+    return false;
+  }
+  return ffmpeg_hw_encoder_find(codec_id, ffmpeg_hw_encode_sw_format(depth)).codec != nullptr;
+#else
+  UNUSED_VARS(rd);
+  return false;
+#endif
+}
 
 bool MOV_is_movie_file(const char *filepath)
 {
@@ -642,6 +852,11 @@ void MOV_exit()
 {
 #ifdef WITH_FFMPEG
   ffmpeg_sws_exit();
+  {
+    /* Note: encoder lock is taken before device lock, same as in #ffmpeg_hw_encoder_find. */
+    std::lock_guard encoder_lock(hw_encoder_lock);
+    hw_encoders.clear();
+  }
   std::lock_guard lock(hw_device_lock);
   for (AVBufferRef *&hw_device_ctx : hw_devices.values()) {
     av_buffer_unref(&hw_device_ctx);

@@ -37,6 +37,34 @@ const char *ffmpeg_last_error();
 AVCodecID mov_av_codec_id_get(IMB_Ffmpeg_Codec_ID id);
 AVBufferRef *ffmpeg_hw_device_get(AVHWDeviceType device_type);
 
+struct FFmpegHardwareEncoder {
+  const AVCodec *codec = nullptr;
+  const AVCodecHWConfig *config = nullptr;
+};
+
+/**
+ * Find the preferred hardware encoder for the codec and software pixel format (NV12 or
+ * P010) that can actually be used on this system.
+ * Returns a struct with null codec if none are available.
+ */
+FFmpegHardwareEncoder ffmpeg_hw_encoder_find(AVCodecID codec_id, AVPixelFormat sw_format);
+
+/**
+ * Create a hardware frames context for the encoder's width and height, and assign it (and the
+ * hardware pixel format) to the codec context. Returns negative ffmpeg error code on failure.
+ */
+int ffmpeg_hw_setup_frames(AVCodecContext *codec_ctx,
+                           AVBufferRef *hw_device_ctx,
+                           const AVCodecHWConfig *config,
+                           AVPixelFormat sw_format);
+
+/** Software pixel format used for uploading frames to hardware encoders. */
+AVPixelFormat ffmpeg_hw_encode_sw_format(int depth);
+
+/** `crf` is negative for bitrate based rate control; `min_rate` and `bitrate` are in kbit/s. */
+const char *ffmpeg_hw_encode_settings_unsupported_reason(
+    AVCodecID codec_id, int crf, int min_rate, int bitrate, int depth, int width, int height);
+
 /** Checks whether given FFMPEG codec and profile combination supports alpha channel (RGBA). */
 bool MOV_codec_supports_alpha(AVCodecID codec_id, int ffmpeg_profile);
 

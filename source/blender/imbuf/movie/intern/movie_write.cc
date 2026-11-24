@@ -75,7 +75,7 @@ static bool ffmpeg_filepath_get(MovieWriter *context,
                                 const char *suffix,
                                 ReportList *reports);
 
-static AVFrame *alloc_frame(AVPixelFormat pix_fmt, int width, int height)
+static AVFrame *alloc_sw_frame(AVPixelFormat pix_fmt, const int width, const int height)
 {
   AVFrame *f = av_frame_alloc();
   if (f == nullptr) {
@@ -90,6 +90,19 @@ static AVFrame *alloc_frame(AVPixelFormat pix_fmt, int width, int height)
     return nullptr;
   }
   return f;
+}
+
+static AVFrame *alloc_hw_frame(AVBufferRef *hw_frames_ctx)
+{
+  AVFrame *frame = av_frame_alloc();
+  if (frame == nullptr) {
+    return nullptr;
+  }
+  if (av_hwframe_get_buffer(hw_frames_ctx, frame, 0) < 0) {
+    av_frame_free(&frame);
+    return nullptr;
+  }
+  return frame;
 }
 
 /* Get the correct file extensions for the requested format,
@@ -510,33 +523,33 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *input_ib
   }
 
   AVCodecParameters *codec = context->video_stream->codecpar;
-  int height = codec->height;
-  AVFrame *rgb_frame;
+  const int height = codec->height;
 
+  AVFrame *rgb_sw_frame;
   if (context->img_convert_frame != nullptr) {
     /* Pixel format conversion is needed. */
-    rgb_frame = context->img_convert_frame;
+    rgb_sw_frame = context->img_convert_frame;
   }
   else {
     /* The output pixel format is Blender's internal pixel format. */
-    rgb_frame = context->current_frame;
+    rgb_sw_frame = context->current_sw_frame;
   }
 
   /* Ensure frame is writable when filling it. Byte input for swscale is borrowed directly
    * from the ImBuf below. */
   if (use_float || context->img_convert_frame == nullptr) {
-    av_frame_make_writable(rgb_frame);
+    av_frame_make_writable(rgb_sw_frame);
   }
 
   if (use_float) {
-    float_interleaved_to_planar(image, rgb_frame);
+    float_interleaved_to_planar(image, rgb_sw_frame);
   }
   else if (context->img_convert_frame == nullptr) {
     /* Byte image: flip the image vertically. */
-    const size_t linesize_dst = rgb_frame->linesize[0];
-    const size_t linesize_src = rgb_frame->width * 4;
+    const size_t linesize_dst = rgb_sw_frame->linesize[0];
+    const size_t linesize_src = rgb_sw_frame->width * 4;
     for (int y = 0; y < height; y++) {
-      uint8_t *target = rgb_frame->data[0] + linesize_dst * (height - y - 1);
+      uint8_t *target = rgb_sw_frame->data[0] + linesize_dst * (height - y - 1);
       const uint8_t *src = pixels + linesize_src * y;
 
       /* NOTE: this is endianness-sensitive. */
@@ -549,27 +562,52 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *input_ib
   if (context->img_convert_frame != nullptr) {
     BLI_assert(context->sws_ctx != nullptr);
     /* Ensure the frame we are scaling to is writable as well. */
-    av_frame_make_writable(context->current_frame);
+    av_frame_make_writable(context->current_sw_frame);
 
-    uint8_t *rgb_data = rgb_frame->data[0];
-    const int rgb_linesize = rgb_frame->linesize[0];
+    uint8_t *rgb_data = rgb_sw_frame->data[0];
+    const int rgb_linesize = rgb_sw_frame->linesize[0];
     if (!use_float) {
       /* Convert directly from the ImBuf, flipping vertically via negative source stride.
        * The borrowed pixels are only used during this conversion. */
       const int linesize_src = image->x * 4;
-      rgb_frame->data[0] = const_cast<uint8_t *>(pixels) + size_t(height - 1) * linesize_src;
-      rgb_frame->linesize[0] = -linesize_src;
+      rgb_sw_frame->data[0] = const_cast<uint8_t *>(pixels) + size_t(height - 1) * linesize_src;
+      rgb_sw_frame->linesize[0] = -linesize_src;
     }
-    sws_scale_frame(context->sws_ctx, context->current_frame, rgb_frame);
-    rgb_frame->data[0] = rgb_data;
-    rgb_frame->linesize[0] = rgb_linesize;
+    sws_scale_frame(context->sws_ctx, context->current_sw_frame, rgb_sw_frame);
+    rgb_sw_frame->data[0] = rgb_data;
+    rgb_sw_frame->linesize[0] = rgb_linesize;
+  }
+
+  /* Transfer data to the encoding device if needed. */
+  if (context->current_hw_frame) {
+    /* Note: get a new frame; the encoder might still reference the previous frame (e.g. for
+     * B-frame reasons). */
+    av_frame_unref(context->current_hw_frame);
+    int err = av_hwframe_get_buffer(
+        context->video_codec->hw_frames_ctx, context->current_hw_frame, 0);
+    if (err >= 0) {
+      err = av_hwframe_transfer_data(context->current_hw_frame, context->current_sw_frame, 0);
+    }
+    if (err < 0) {
+      char error_str[AV_ERROR_MAX_STRING_SIZE];
+      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, err);
+      CLOG_ERROR(&LOG, "ffmpeg: couldn't prepare frame on the encoding device: %s", error_str);
+      if (image != input_ibuf) {
+        IMB_freeImBuf(const_cast<ImBuf *>(image));
+      }
+      return nullptr;
+    }
+    if (image != input_ibuf) {
+      IMB_freeImBuf(const_cast<ImBuf *>(image));
+    }
+    return context->current_hw_frame;
   }
 
   if (image != input_ibuf) {
     IMB_freeImBuf(const_cast<ImBuf *>(image));
   }
 
-  return context->current_frame;
+  return context->current_sw_frame;
 }
 
 static AVRational calc_time_base(uint den, double num, AVCodecID codec_id)
@@ -809,6 +847,233 @@ static void set_quality_rate_options(const MovieWriter *context,
   ffmpeg_dict_set_int(opts, "crf", crf);
 }
 
+/* If we leave max bitrate at default, NVENC chooses some sort of internal cap,
+ * which can limit practically achievable quality (e.g. making hardware encode
+ * be much worse quality than software).
+ *
+ * We could just set a "very high" max bitrate, but that raises the decoding device
+ * "supported level" requirement, and thus might make the video non decodable somewhere.
+ * https://docs.nvidia.com/video-technologies/video-codec-sdk/13.1/nvenc-video-encoder-api-prog-guide/index.html#rate-control
+ *
+ * So, we pick the max bitrate that still fits within the regular level of the resolution /
+ * framerate that we are rendering at. */
+static int64_t nvenc_quality_max_rate(const AVCodecContext *c,
+                                      const AVCodecID codec_id,
+                                      const AVPixelFormat sw_format,
+                                      AVDictionary **opts)
+{
+  struct LevelLimit {
+    int64_t picture_size;
+    int64_t sample_rate;
+    int64_t bit_rate;
+  };
+  const double fps = av_q2d(av_inv_q(c->time_base));
+  if (codec_id == AV_CODEC_ID_H264) {
+    /* H.264 uses 16x16 macroblocks. The table stores High profile's VCL bitrate limits (1250).
+     * Match the profiles selected by ffmpeg, where NV12 defaults to Main (factor 1000),
+     * while P010 forces High 10 (factor 3000). Level limits:
+     * https://github.com/FFmpeg/FFmpeg/blob/n9.0.2/libavcodec/h264_levels.c */
+    static constexpr LevelLimit limits[] = {
+        /* 1.0 */ {99, 1485, 80'000},
+        /* 1.1 */ {396, 3000, 240'000},
+        /* 1.2 */ {396, 6000, 480'000},
+        /* 1.3 */ {396, 11880, 960'000},
+        /* 2.0 */ {396, 11880, 2'500'000},
+        /* 2.1 */ {792, 19800, 5'000'000},
+        /* 2.2 */ {1620, 20250, 5'000'000},
+        /* 3.0 */ {1620, 40500, 12'500'000},
+        /* 3.1 */ {3600, 108000, 17'500'000},
+        /* 3.2 */ {5120, 216000, 25'000'000},
+        /* 4.0 */ {8192, 245760, 25'000'000},
+        /* 4.1 */ {8192, 245760, 62'500'000},
+        /* 4.2 */ {8704, 522240, 62'500'000},
+        /* 5.0 */ {22080, 589824, 168'750'000},
+        /* 5.1 */ {36864, 983040, 300'000'000},
+        /* 5.2 */ {36864, 2073600, 300'000'000},
+        /* 6.0 */ {139264, 4177920, 300'000'000},
+        /* 6.1 */ {139264, 8355840, 600'000'000},
+        /* 6.2 */ {139264, 16711680, 1'000'000'000},
+    };
+    const int bit_rate_factor = sw_format == AV_PIX_FMT_P010 ? 3000 : 1000;
+    const int64_t width = (int64_t(c->width) + 15) / 16;
+    const int64_t height = (int64_t(c->height) + 15) / 16;
+    const int64_t picture_size = width * height;
+    for (const LevelLimit &limit : limits) {
+      if (picture_size <= limit.picture_size && picture_size * fps <= limit.sample_rate &&
+          width * width <= 8 * limit.picture_size && height * height <= 8 * limit.picture_size)
+      {
+        return limit.bit_rate * bit_rate_factor / 1250;
+      }
+    }
+    return limits[ARRAY_SIZE(limits) - 1].bit_rate * bit_rate_factor / 1250;
+  }
+
+  if (codec_id == AV_CODEC_ID_H265) {
+    /* H.265 uses luma samples and High tier where available (level 4 and above).
+     * Level limits:
+     * https://github.com/FFmpeg/FFmpeg/blob/n9.0.2/libavcodec/h265_profile_level.c */
+    static constexpr LevelLimit limits[] = {
+        /* 1.0 */ {36864, 552960, 128'000},
+        /* 2.0 */ {122880, 3686400, 1'500'000},
+        /* 2.1 */ {245760, 7372800, 3'000'000},
+        /* 3.0 */ {552960, 16588800, 6'000'000},
+        /* 3.1 */ {983040, 33177600, 10'000'000},
+        /* 4.0 */ {2228224, 66846720, 30'000'000},
+        /* 4.1 */ {2228224, 133693440, 50'000'000},
+        /* 5.0 */ {8912896, 267386880, 100'000'000},
+        /* 5.1 */ {8912896, 534773760, 160'000'000},
+        /* 5.2 */ {8912896, 1069547520, 240'000'000},
+        /* 6.0 */ {35651584, 1069547520, 240'000'000},
+        /* 6.1 */ {35651584, 2139095040, 480'000'000},
+        /* 6.2 */ {35651584, 4278190080LL, 800'000'000},
+    };
+    const int64_t width = c->width;
+    const int64_t height = c->height;
+    const int64_t picture_size = width * height;
+    int64_t max_rate = limits[ARRAY_SIZE(limits) - 1].bit_rate;
+    for (const LevelLimit &limit : limits) {
+      if (picture_size <= limit.picture_size && picture_size * fps <= limit.sample_rate &&
+          width * width <= 8 * limit.picture_size && height * height <= 8 * limit.picture_size)
+      {
+        max_rate = limit.bit_rate;
+        break;
+      }
+    }
+    av_dict_set(opts, "tier", max_rate >= 30'000'000 ? "high" : "main", 0);
+    return max_rate;
+  }
+
+  if (codec_id == AV_CODEC_ID_AV1) {
+    /* AV1 uses luma samples, separate width/height limits, and High tier from level 4.
+     * Level limits:
+     * https://github.com/FFmpeg/FFmpeg/blob/n9.0.2/libavcodec/av1_levels.c
+     * NVENC's AV1 tier option uses 0/1 rather than main/high:
+     * https://github.com/FFmpeg/FFmpeg/blob/n9.0.2/libavcodec/nvenc_av1.c */
+    struct AV1LevelLimit {
+      int64_t picture_size;
+      int max_width;
+      int max_height;
+      int64_t sample_rate;
+      int64_t bit_rate;
+    };
+    static constexpr AV1LevelLimit limits[] = {
+        /* 2.0 */ {147456, 2048, 1152, 4423680, 1'500'000},
+        /* 2.1 */ {278784, 2816, 1584, 8363520, 3'000'000},
+        /* 3.0 */ {665856, 4352, 2448, 19975680, 6'000'000},
+        /* 3.1 */ {1065024, 5504, 3096, 31950720, 10'000'000},
+        /* 4.0 */ {2359296, 6144, 3456, 70778880, 30'000'000},
+        /* 4.1 */ {2359296, 6144, 3456, 141557760, 50'000'000},
+        /* 5.0 */ {8912896, 8192, 4352, 267386880, 100'000'000},
+        /* 5.1 */ {8912896, 8192, 4352, 534773760, 160'000'000},
+        /* 5.2 */ {8912896, 8192, 4352, 1069547520, 240'000'000},
+        /* 6.0 */ {35651584, 16384, 8704, 1069547520, 240'000'000},
+        /* 6.1 */ {35651584, 16384, 8704, 2139095040, 480'000'000},
+        /* 6.2 */ {35651584, 16384, 8704, 4278190080LL, 800'000'000},
+    };
+    const int64_t picture_size = int64_t(c->width) * c->height;
+    int64_t max_rate = limits[ARRAY_SIZE(limits) - 1].bit_rate;
+    for (const AV1LevelLimit &limit : limits) {
+      if (picture_size <= limit.picture_size && c->width <= limit.max_width &&
+          c->height <= limit.max_height && picture_size * fps <= limit.sample_rate)
+      {
+        max_rate = limit.bit_rate;
+        break;
+      }
+    }
+    ffmpeg_dict_set_int(opts, "tier", max_rate >= 30'000'000 ? 1 : 0);
+    return max_rate;
+  }
+
+  return 500'000'000;
+}
+
+/* Map the quality enum / custom CRF to encoder-specific quality controls. */
+static void set_hardware_quality_rate_options(const MovieWriter *context,
+                                              const AVCodecID codec_id,
+                                              const FFMpegCodecData *ffcodecdata,
+                                              const AVPixelFormat sw_format,
+                                              AVDictionary **opts)
+{
+  AVCodecContext *c = context->video_codec;
+  const bool is_nvenc = BLI_str_endswith(c->codec->name, "_nvenc");
+  const bool is_amf = BLI_str_endswith(c->codec->name, "_amf");
+  const bool is_videotoolbox = BLI_str_endswith(c->codec->name, "_videotoolbox");
+
+  if (context->ffmpeg_crf < 0) {
+    /* Bit-rate based path. Unsupported minimum bitrate was already checked by
+     * #ffmpeg_hw_encode_settings_unsupported_reason. */
+    const bool use_cbr = ffcodecdata->rc_min_rate == context->ffmpeg_video_bitrate;
+    c->bit_rate = int64_t(context->ffmpeg_video_bitrate) * 1000;
+    c->rc_min_rate = int64_t(ffcodecdata->rc_min_rate) * 1000;
+    c->rc_max_rate = int64_t(ffcodecdata->rc_max_rate) * 1000;
+    c->rc_buffer_size = ffcodecdata->rc_buffer_size * 1024;
+    if (is_nvenc) {
+      av_dict_set(opts, "rc", use_cbr ? "cbr" : "vbr", 0);
+    }
+    else if (is_amf) {
+      av_dict_set(opts, "rc", use_cbr ? "cbr" : "vbr_peak", 0);
+    }
+    else if (is_videotoolbox) {
+      /* FFmpeg reports unsupported OS/device configurations during encoder initialization. */
+      ffmpeg_dict_set_int(opts, "constant_bit_rate", use_cbr);
+    }
+    return;
+  }
+
+  /* Quality & custom CRF use 0..51 input scale (0 implies "lossless"). */
+  constexpr int reference_max = 51;
+  const int quality = math::clamp(context->ffmpeg_crf, 1, reference_max);
+  c->bit_rate = 0;
+  c->rc_min_rate = 0;
+  c->rc_max_rate = 0;
+  c->rc_buffer_size = 0;
+
+  if (is_nvenc) {
+    /* NVENC references:
+     * https://github.com/FFmpeg/FFmpeg/blob/n8.1/libavcodec/nvenc_h264.c
+     * https://github.com/FFmpeg/FFmpeg/blob/n8.1/libavcodec/nvenc_hevc.c
+     * https://github.com/FFmpeg/FFmpeg/blob/n8.1/libavcodec/nvenc_av1.c
+     * nvenc_setup_rate_control implements CQ with VBR and discards the average bitrate/VBV:
+     * https://github.com/FFmpeg/FFmpeg/blob/n8.1/libavcodec/nvenc.c */
+    /* Empirical mappings to approximately match software quality. */
+    int cq = codec_id == AV_CODEC_ID_AV1 ? int(1.4f * quality - 0.5f) : quality + 2;
+    /* Avoid zero CQ (zero means automatic, not highest quality). */
+    cq = math::clamp(cq, 1, codec_id == AV_CODEC_ID_AV1 ? 63 : 51);
+    av_dict_set(opts, "rc", "vbr", 0);
+    ffmpeg_dict_set_int(opts, "cq", cq);
+    c->rc_max_rate = nvenc_quality_max_rate(c, codec_id, sw_format, opts);
+  }
+  else if (is_amf) {
+    /* AMF references:
+     * https://github.com/FFmpeg/FFmpeg/blob/n9.0.2/libavcodec/amfenc_h264.c
+     * https://github.com/FFmpeg/FFmpeg/blob/n9.0.2/libavcodec/amfenc_hevc.c
+     * https://github.com/FFmpeg/FFmpeg/blob/n9.0.2/libavcodec/amfenc_av1.c
+     *
+     * Empirical mappings to approximately match software quality. Use CQP since QVBR
+     * seems to not be able to reach high enough quality. */
+    int qp = codec_id == AV_CODEC_ID_AV1 ? 6 * quality - 28 : quality + 5;
+    const int qp_max = codec_id == AV_CODEC_ID_AV1 ? 255 : 51;
+    qp = math::clamp(qp, 1, qp_max);
+    av_dict_set(opts, "rc", "cqp", 0);
+    ffmpeg_dict_set_int(opts, "qp_i", qp);
+    ffmpeg_dict_set_int(opts, "qp_p", qp);
+    if (codec_id == AV_CODEC_ID_H264 || codec_id == AV_CODEC_ID_AV1) {
+      ffmpeg_dict_set_int(opts, "qp_b", qp);
+    }
+  }
+  else if (is_videotoolbox) {
+    /* VideoToolbox uses increasing quality in 0..100 range. The formula for remapping
+     * was determined empirically.
+     * QSCALE expresses the native quality scale through global_quality / FF_QP2LAMBDA.
+     * https://github.com/FFmpeg/FFmpeg/blob/n9.0.2/libavcodec/videotoolboxenc.c */
+    const float mapped_quality = codec_id == AV_CODEC_ID_H264 ? 100.0f - 2.0f * quality :
+                                                                114.0f - 2.35f * quality;
+    const int qscale = math::clamp(int(mapped_quality + 0.5f), 1, 100);
+    c->flags |= AV_CODEC_FLAG_QSCALE;
+    c->global_quality = qscale * FF_QP2LAMBDA;
+  }
+}
+
 static void set_colorspace_options(AVCodecContext *c, const ColorSpace *colorspace)
 {
   const AVPixFmtDescriptor *pix_fmt_desc = av_pix_fmt_desc_get(c->pix_fmt);
@@ -840,45 +1105,103 @@ static void set_colorspace_options(AVCodecContext *c, const ColorSpace *colorspa
   }
 }
 
-static AVStream *alloc_video_stream(MovieWriter *context,
-                                    const Scene &scene,
-                                    const ImageFormatData *imf,
-                                    AVCodecID codec_id,
-                                    AVFormatContext *of,
-                                    int rectx,
-                                    int recty,
-                                    MutableCStr error)
+static const AVCodec *find_hardware_encoder(MovieWriter *context,
+                                            const AVCodecID codec_id,
+                                            const AVPixelFormat sw_format,
+                                            const AVCodecHWConfig *&r_config,
+                                            const char *&r_fallback_reason)
 {
-  AVStream *st;
-  const AVCodec *codec;
-  AVDictionary *opts = nullptr;
-  const RenderData *rd = &scene.r;
-
-  error[0] = '\0';
-
-  st = avformat_new_stream(of, nullptr);
-  if (!st) {
+  r_config = nullptr;
+  const FFmpegHardwareEncoder encoder = ffmpeg_hw_encoder_find(codec_id, sw_format);
+  if (!encoder.codec) {
+    CLOG_INFO(&LOG, "ffmpeg: no hardware encoder available, falling back to software");
+    r_fallback_reason = "no supported hardware encoder was found";
     return nullptr;
   }
-  st->id = 0;
-
-  /* Set up the codec context */
-
-  if (codec_id == AV_CODEC_ID_AV1) {
-    /* Use get_av1_encoder() to get the ideal (hopefully) encoder for AV1 based
-     * on given parameters, and also set up opts. */
-    codec = get_av1_encoder(context, imf, &opts);
+  AVBufferRef *hw_device_ctx = ffmpeg_hw_device_get(encoder.config->device_type);
+  context->hw_device_ctx = hw_device_ctx ? av_buffer_ref(hw_device_ctx) : nullptr;
+  if (!context->hw_device_ctx) {
+    CLOG_ERROR(&LOG, "ffmpeg: couldn't reference encoding device for %s", encoder.codec->name);
+    r_fallback_reason = "the encoding device could not be used";
+    return nullptr;
   }
-  else if (codec_id == AV_CODEC_ID_PRORES) {
-    codec = get_prores_encoder(imf, rectx, recty);
+  r_config = encoder.config;
+  return encoder.codec;
+}
+
+enum class VideoEncoderInitResult {
+  Success,
+  Failed,
+  RetrySoftware,
+};
+
+static VideoEncoderInitResult init_video_encoder(MovieWriter *context,
+                                                 const Scene &scene,
+                                                 const ImageFormatData *imf,
+                                                 AVCodecID codec_id,
+                                                 AVFormatContext *of,
+                                                 AVStream *st,
+                                                 int rectx,
+                                                 int recty,
+                                                 const bool use_hw_encoding,
+                                                 const char *&r_hw_fallback_reason,
+                                                 MutableCStr error)
+{
+  const AVCodec *codec = nullptr;
+  const AVCodecHWConfig *hw_config = nullptr;
+  AVDictionary *opts = nullptr;
+  const RenderData *rd = &scene.r;
+  const AVPixelFormat hw_sw_format = ffmpeg_hw_encode_sw_format(imf->depth);
+
+  /* Release hardware encoder state, so that the caller can retry with software encoding. */
+  auto retry_software = [&](const char *reason) {
+    r_hw_fallback_reason = reason;
+    av_dict_free(&opts);
+    avcodec_free_context(&context->video_codec);
+    av_buffer_unref(&context->hw_device_ctx);
+    return VideoEncoderInitResult::RetrySoftware;
+  };
+
+  if (use_hw_encoding && ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_AV1)) {
+    if (const char *reason = ffmpeg_hw_encode_settings_unsupported_reason(
+            codec_id,
+            context->ffmpeg_crf,
+            rd->ffcodecdata.rc_min_rate,
+            context->ffmpeg_video_bitrate,
+            imf->depth,
+            rectx,
+            recty))
+    {
+      CLOG_INFO(&LOG,
+                "ffmpeg: hardware encoding not possible (%s); "
+                "falling back to software for %dx%d at depth %d",
+                reason,
+                rectx,
+                recty,
+                imf->depth);
+      r_hw_fallback_reason = reason;
+    }
+    else {
+      codec = find_hardware_encoder(
+          context, codec_id, hw_sw_format, hw_config, r_hw_fallback_reason);
+    }
   }
-  else {
-    codec = avcodec_find_encoder(codec_id);
+  if (!codec) {
+    if (codec_id == AV_CODEC_ID_AV1) {
+      /* Select and configure the software AV1 encoder for the output format. */
+      codec = get_av1_encoder(context, imf, &opts);
+    }
+    else if (codec_id == AV_CODEC_ID_PRORES) {
+      codec = get_prores_encoder(imf, rectx, recty);
+    }
+    else {
+      codec = avcodec_find_encoder(codec_id);
+    }
   }
   if (!codec) {
     CLOG_ERROR(&LOG, "Couldn't find valid video codec");
     context->video_codec = nullptr;
-    return nullptr;
+    return VideoEncoderInitResult::Failed;
   }
 
   context->video_codec = avcodec_alloc_context3(codec);
@@ -921,11 +1244,28 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   st->time_base = c->time_base;
 
   c->gop_size = context->ffmpeg_gop_size;
-  if ((rd->ffcodecdata.flags & FFMPEG_USE_MAX_B_FRAMES) != 0) {
+  const bool use_max_b_frames = (rd->ffcodecdata.flags & FFMPEG_USE_MAX_B_FRAMES) != 0;
+  /* Preserve encoder defaults unless the user explicitly limits B-frames. */
+  if (use_max_b_frames) {
     c->max_b_frames = context->ffmpeg_max_b_frames;
   }
+  if (hw_config && use_max_b_frames && BLI_str_endswith(codec->name, "_amf") &&
+      ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_AV1))
+  {
+    /* AMF uses a "bf" option, rather than max_b_frames.
+     * Adaptive mini-GOP takes precedence over this option, so disable it for explicit limits.
+     * https://github.com/FFmpeg/FFmpeg/blob/n8.1/libavcodec/amfenc_h264.c
+     * https://github.com/FFmpeg/FFmpeg/blob/n8.1/libavcodec/amfenc_av1.c */
+    ffmpeg_dict_set_int(&opts, "bf", math::min(context->ffmpeg_max_b_frames, 3));
+    ffmpeg_dict_set_int(&opts, "pa_adaptive_mini_gop", 0);
+  }
 
-  set_quality_rate_options(context, codec_id, &rd->ffcodecdata, imf, &opts);
+  if (hw_config) {
+    set_hardware_quality_rate_options(context, codec_id, &rd->ffcodecdata, hw_sw_format, &opts);
+  }
+  else {
+    set_quality_rate_options(context, codec_id, &rd->ffcodecdata, imf, &opts);
+  }
 
   if (context->ffmpeg_preset) {
     /* 'preset' is used by h.264, 'deadline' is used by WEBM/VP9. I'm not
@@ -949,9 +1289,39 @@ static AVStream *alloc_video_stream(MovieWriter *context,
       default:
         CLOG_WARN(&LOG, "Unknown preset number %i, ignoring.", context->ffmpeg_preset);
     }
-    /* "codec_id != AV_CODEC_ID_AV1" is required due to "preset" already being set by an AV1 codec.
-     */
-    if (preset_name != nullptr && codec_id != AV_CODEC_ID_AV1) {
+    /* NVENC uses p1/p4/p7 for fast/default/best. */
+    if (preset_name != nullptr && BLI_str_endswith(codec->name, "_nvenc")) {
+      preset_name = "p4";
+      deadline_name = nullptr;
+      if (context->ffmpeg_preset == FFM_PRESET_BEST) {
+        preset_name = "p7";
+      }
+      else if (context->ffmpeg_preset == FFM_PRESET_REALTIME) {
+        preset_name = "p1";
+      }
+    }
+    /* AMF uses speed/balanced/quality. */
+    if (preset_name != nullptr && BLI_str_endswith(codec->name, "_amf")) {
+      switch (context->ffmpeg_preset) {
+        case FFM_PRESET_BEST:
+          preset_name = "quality";
+          break;
+        case FFM_PRESET_REALTIME:
+          preset_name = "speed";
+          break;
+        default:
+          preset_name = "balanced";
+          break;
+      }
+      deadline_name = nullptr;
+    }
+    if (BLI_str_endswith(codec->name, "_videotoolbox")) {
+      ffmpeg_dict_set_int(&opts, "prio_speed", context->ffmpeg_preset == FFM_PRESET_REALTIME);
+      preset_name = nullptr;
+      deadline_name = nullptr;
+    }
+    /* Software AV1 encoders already set their own preset in #get_av1_encoder. */
+    if (preset_name != nullptr && (codec_id != AV_CODEC_ID_AV1 || hw_config)) {
       av_dict_set(&opts, "preset", preset_name, 0);
     }
     if (deadline_name != nullptr) {
@@ -1111,6 +1481,20 @@ static AVStream *alloc_video_stream(MovieWriter *context,
       CLOG_ERROR(&LOG, "ffmpeg: invalid profile %d", context->ffmpeg_profile);
     }
   }
+  if (hw_config) {
+    /* Override software pixel formats after the bit-depth and lossless handling above. */
+    if (const int err = ffmpeg_hw_setup_frames(c, context->hw_device_ctx, hw_config, hw_sw_format);
+        err < 0)
+    {
+      char error_str[AV_ERROR_MAX_STRING_SIZE];
+      av_make_error_string(error_str, sizeof(error_str), err);
+      CLOG_INFO(&LOG,
+                "ffmpeg: couldn't set up hardware frames for %s: %s; falling back to software",
+                codec->name,
+                error_str);
+      return retry_software("the hardware encoder could not be initialized");
+    }
+  }
 
   if (of->oformat->flags & AVFMT_GLOBALHEADER) {
     CLOG_STR_INFO(&LOG, "ffmpeg: using global video header");
@@ -1147,20 +1531,122 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   if (ret < 0) {
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
+    if (hw_config) {
+      CLOG_INFO(&LOG,
+                "ffmpeg: couldn't initialize hardware encoder %s: %s; "
+                "falling back to software",
+                codec->name,
+                error_str);
+      return retry_software("the hardware encoder could not be initialized");
+    }
     CLOG_ERROR(&LOG, "Couldn't initialize video codec: %s\n", error_str);
     STRNCPY(error, ffmpeg_last_error());
     av_dict_free(&opts);
     avcodec_free_context(&c);
     context->video_codec = nullptr;
-    return nullptr;
+    return VideoEncoderInitResult::Failed;
   }
+  /* avcodec_open2 leaves unrecognized options in the dictionary; a successful open does not
+   * guarantee that the requested options were applied. See its options parameter documentation:
+   * https://github.com/FFmpeg/FFmpeg/blob/n8.1/libavcodec/avcodec.h */
+  if (hw_config && av_dict_count(opts) != 0) {
+    const AVDictionaryEntry *entry = nullptr;
+    while ((entry = av_dict_get(opts, "", entry, AV_DICT_IGNORE_SUFFIX))) {
+      CLOG_WARN(&LOG,
+                "ffmpeg: hardware encoder %s did not consume option %s=%s; "
+                "falling back to software",
+                codec->name,
+                entry->key,
+                entry->value);
+    }
+    return retry_software("the hardware encoder does not support the requested settings");
+  }
+  if (hw_config) {
+    context->current_hw_frame = alloc_hw_frame(c->hw_frames_ctx);
+    if (!context->current_hw_frame) {
+      CLOG_INFO(&LOG,
+                "ffmpeg: couldn't allocate a hardware surface for %s; falling back to software",
+                codec->name);
+      return retry_software("the hardware encoder could not be initialized");
+    }
+  }
+  CLOG_INFO(&LOG, "ffmpeg: using video encoder %s", codec->name);
   av_dict_free(&opts);
 
-  /* FFMPEG expects its data in the output pixel format. */
-  context->current_frame = alloc_frame(c->pix_fmt, c->width, c->height);
+  return VideoEncoderInitResult::Success;
+}
 
-  if (c->pix_fmt == AV_PIX_FMT_RGBA && ELEM(c->colorspace, AVCOL_SPC_RGB, AVCOL_SPC_UNSPECIFIED)) {
-    /* Output pixel format and colorspace is the same we use internally, no conversion needed. */
+static AVStream *alloc_video_stream(MovieWriter *context,
+                                    const Scene &scene,
+                                    const ImageFormatData *imf,
+                                    AVCodecID codec_id,
+                                    AVFormatContext *of,
+                                    int rectx,
+                                    int recty,
+                                    MutableCStr error,
+                                    ReportList *reports)
+{
+  error[0] = '\0';
+  AVStream *st = avformat_new_stream(of, nullptr);
+  if (!st) {
+    return nullptr;
+  }
+  st->id = 0;
+
+  const RenderData *rd = &scene.r;
+  const bool use_hw_encoding = rd->ffcodecdata.encoder == FFM_ENCODER_HARDWARE;
+  const char *hw_fallback_reason = nullptr;
+  VideoEncoderInitResult result = init_video_encoder(context,
+                                                     scene,
+                                                     imf,
+                                                     codec_id,
+                                                     of,
+                                                     st,
+                                                     rectx,
+                                                     recty,
+                                                     use_hw_encoding,
+                                                     hw_fallback_reason,
+                                                     error);
+  if (result == VideoEncoderInitResult::RetrySoftware) {
+    const char *unused_reason = nullptr;
+    result = init_video_encoder(
+        context, scene, imf, codec_id, of, st, rectx, recty, false, unused_reason, error);
+  }
+  if (result != VideoEncoderInitResult::Success) {
+    return nullptr;
+  }
+
+  if (hw_fallback_reason != nullptr && context->ffmpeg_autosplit_count == 0) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "Hardware video encoding is not available (%s), using software encoding",
+                hw_fallback_reason);
+  }
+
+  AVCodecContext *c = context->video_codec;
+  const bool is_10_bpp = imf->depth == R_IMF_CHAN_DEPTH_10;
+  const bool is_12_bpp = imf->depth == R_IMF_CHAN_DEPTH_12;
+  const bool is_16_bpp = imf->depth == R_IMF_CHAN_DEPTH_16;
+
+  /* Allocate the CPU frame in the format used for encoding or hardware upload. */
+  if (c->hw_frames_ctx) {
+    const AVHWFramesContext *frames_ctx = reinterpret_cast<const AVHWFramesContext *>(
+        c->hw_frames_ctx->data);
+    context->current_sw_frame = alloc_sw_frame(frames_ctx->sw_format, c->width, c->height);
+  }
+  else {
+    /* FFMPEG expects its data in the output pixel format. */
+    context->current_sw_frame = alloc_sw_frame(c->pix_fmt, c->width, c->height);
+  }
+  if (!context->current_sw_frame) {
+    CLOG_ERROR(&LOG, "ffmpeg: couldn't allocate video frame");
+    return nullptr;
+  }
+
+  if (context->current_sw_frame->format == AV_PIX_FMT_RGBA &&
+      ELEM(c->colorspace, AVCOL_SPC_RGB, AVCOL_SPC_UNSPECIFIED))
+  {
+    /* Output pixel format is the same we use internally, no conversion necessary. */
     context->img_convert_frame = nullptr;
     context->sws_ctx = nullptr;
   }
@@ -1173,7 +1659,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
                        AV_PIX_FMT_GBRAPF32LE :
                        AV_PIX_FMT_GBRPF32LE;
     }
-    context->img_convert_frame = alloc_frame(src_format, c->width, c->height);
+    context->img_convert_frame = alloc_sw_frame(src_format, c->width, c->height);
     context->sws_ctx = ffmpeg_sws_get_context(c->width,
                                               c->height,
                                               src_format,
@@ -1181,10 +1667,18 @@ static AVStream *alloc_video_stream(MovieWriter *context,
                                               -1,
                                               c->width,
                                               c->height,
-                                              c->pix_fmt,
+                                              context->current_sw_frame->format,
                                               c->color_range == AVCOL_RANGE_JPEG,
                                               c->colorspace != AVCOL_SPC_RGB ? c->colorspace : -1,
                                               SWS_BICUBIC);
+
+    if (!context->sws_ctx) {
+      CLOG_ERROR(&LOG,
+                 "ffmpeg: swscale can't transform from pixel format %s to %s",
+                 av_get_pix_fmt_name(src_format),
+                 av_get_pix_fmt_name(AVPixelFormat(context->current_sw_frame->format)));
+      return nullptr;
+    }
   }
 
   avcodec_parameters_from_context(st->codecpar, c);
@@ -1368,7 +1862,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
 
   if (video_codec != AV_CODEC_ID_NONE) {
     context->video_stream = alloc_video_stream(
-        context, *scene, imf, video_codec, of, rectx, recty, error);
+        context, *scene, imf, video_codec, of, rectx, recty, error, reports);
     CLOG_INFO(&LOG, "ffmpeg: alloc video stream %p", context->video_stream);
     if (!context->video_stream) {
       if (error[0]) {
@@ -1676,7 +2170,9 @@ static void ffmpeg_autosplit_keep_open(MovieWriter *context)
   context->audio_codec = nullptr;
   context->video_stream = nullptr;
   context->audio_stream = nullptr;
-  context->current_frame = nullptr;
+  context->current_sw_frame = nullptr;
+  context->current_hw_frame = nullptr;
+  context->hw_device_ctx = nullptr;
   context->img_convert_frame = nullptr;
   context->sws_ctx = nullptr;
   context->audio_input_buffer = nullptr;
@@ -1762,8 +2258,11 @@ static void end_ffmpeg_impl(MovieWriter *context, bool is_autosplit)
   context->video_stream = nullptr;
   context->audio_stream = nullptr;
 
-  av_frame_free(&context->current_frame);
+  av_frame_free(&context->current_sw_frame);
+  av_frame_free(&context->current_hw_frame);
   av_frame_free(&context->img_convert_frame);
+
+  av_buffer_unref(&context->hw_device_ctx);
 
   if (context->outfile != nullptr && context->outfile->oformat) {
     if (!(context->outfile->oformat->flags & AVFMT_NOFILE)) {

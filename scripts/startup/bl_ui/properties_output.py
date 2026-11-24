@@ -540,6 +540,11 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         if needs_codec and ffmpeg.codec == 'NONE':
             return
 
+        if needs_codec and ffmpeg.codec in {'H264', 'H265', 'AV1'}:
+            row = layout.row()
+            row.active = ffmpeg.encoder != 'HARDWARE' or ffmpeg.hardware_encoder_available
+            row.prop(ffmpeg, "encoder")
+
         image_settings = context.scene.render.image_settings
 
         if image_settings.color_management == 'OVERRIDE':

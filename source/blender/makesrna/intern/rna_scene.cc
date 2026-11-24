@@ -3156,6 +3156,16 @@ static std::optional<std::string> rna_FFmpegSettings_path(const PointerRNA * /*p
 }
 
 #  ifdef WITH_FFMPEG
+static bool rna_FFmpegSettings_hardware_encoder_available_get(PointerRNA *ptr)
+{
+  const ID *id = ptr->owner_id;
+  if (id == nullptr || GS(id->name) != ID_SCE) {
+    return false;
+  }
+  const Scene *scene = id_cast<const Scene *>(id);
+  return MOV_hardware_encoder_available(scene->r);
+}
+
 /* FFMpeg Codec setting update hook. */
 static void rna_FFmpegSettings_codec_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
@@ -6952,6 +6962,22 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem ffmpeg_encoder_items[] = {
+      {FFM_ENCODER_SOFTWARE,
+       "SOFTWARE",
+       0,
+       "Software",
+       "Encode video on the CPU. This is usually slowest, but can be better quality or smaller "
+       "file size"},
+      {FFM_ENCODER_HARDWARE,
+       "HARDWARE",
+       0,
+       "Hardware",
+       "Encode video using hardware acceleration when available. This is usually faster, but can "
+       "result in lower quality or larger file size"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem ffmpeg_prores_profiles_items[] = {
       {FFM_PRORES_PROFILE_422_PROXY, "422_PROXY", 0, "ProRes 422 Proxy", ""},
       {FFM_PRORES_PROFILE_422_LT, "422_LT", 0, "ProRes 422 LT", ""},
@@ -7122,6 +7148,23 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       "A smaller Constant Rate Factor (CRF) results in better video quality but larger file size. "
       "The range of allowed CRF values is dependent on the codec.");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "encoder", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "encoder");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_enum_items(prop, ffmpeg_encoder_items);
+  RNA_def_property_enum_default(prop, FFM_ENCODER_SOFTWARE);
+  RNA_def_property_ui_text(prop, "Encoder", "Video encoding device");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "hardware_encoder_available", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_FFmpegSettings_hardware_encoder_available_get", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Hardware Encoder Available",
+                           "Whether hardware video encoding is likely to be available for the "
+                           "current codec, bit depth, quality and resolution settings");
 
   prop = RNA_def_property(srna, "ffmpeg_preset", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "ffmpeg_preset");

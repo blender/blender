@@ -68,6 +68,11 @@ using SceneDepsgraphsMap = Map<struct DepsgraphKey, Depsgraph *, 4>;
 /** \name FFMPEG
  * \{ */
 
+enum eFFMpegEncoder : int {
+  FFM_ENCODER_SOFTWARE = 0,
+  FFM_ENCODER_HARDWARE = 1,
+};
+
 enum eFFMpegPreset : int {
   FFM_PRESET_NONE = 0,
 
@@ -189,6 +194,7 @@ struct FFMpegCodecData {
   /** Only used if constant_rate_factor flag is set to FFM_CRF_CUSTOM. */
   int custom_constant_rate_factor = 23;
   eFFMpegPreset ffmpeg_preset = FFM_PRESET_NONE;
+  eFFMpegEncoder encoder = FFM_ENCODER_SOFTWARE;
   eFFMpegProresProfile ffmpeg_prores_profile = FFM_PRORES_PROFILE_422_PROXY;
 
   int rc_min_rate = 0;
@@ -196,6 +202,7 @@ struct FFMpegCodecData {
   int rc_buffer_size = 0;
   int mux_packet_size = 0;
   int mux_rate = 0;
+  char _pad[4] = {};
 
 #ifdef __cplusplus
   IMB_Ffmpeg_Codec_ID codec_id_get() const
