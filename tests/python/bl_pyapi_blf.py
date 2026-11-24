@@ -485,6 +485,7 @@ class CaseVFont(NamedTuple):
     space_character: float = 1.0
     geometry_offset: float = 0.0
     geometry_extrude: float = 0.0
+    shear: float = 0.0
     materials: list[tuple[float, float, float]] | None = None
     # Optional context-manager factory invoked after the text Object has been created
     # and before the depsgraph evaluates it. Receives the Object as its only argument
@@ -805,6 +806,7 @@ def vfont_create_text_object_from_case(
     curve.space_character = case.space_character
     curve.offset = case.geometry_offset
     curve.extrude = case.geometry_extrude
+    curve.shear = case.shear
 
     materials_rgb = case.materials if case.materials is not None else (
         [default_material] if default_material is not None else []
@@ -3250,6 +3252,40 @@ class TestGeometry(TestImageComparison_MixIn, unittest.TestCase):
             expected_dimensions=(7.793791, 0.646813),
             position_offset=(8.0, 15.5),
             geometry_offset=-0.02,
+        ),
+    ]
+
+
+class TestShear(TestImageComparison_MixIn, unittest.TestCase):
+    """Test shear (the italic angle applied to all characters)."""
+
+    name_prefix = "shear."
+    cases_vfont = [
+        CaseVFont(
+            name="positive",
+            text="Juliet Kilo",
+            shear=0.5,
+            size=(249, 67),
+            expected_dimensions=(3.172921, 0.652473),
+            position_offset=(18.2, 19.4),
+        ),
+        CaseVFont(
+            name="negative",
+            text="Juliet Kilo",
+            shear=-0.5,
+            size=(241, 67),
+            expected_dimensions=(3.056523, 0.652473),
+            position_offset=(23.1, 19.4),
+        ),
+        # Combining marks above & below sheared base characters.
+        # NOTE: shear currently doesn't account for the vertical offset of marks.
+        CaseVFont(
+            name="combining",
+            text="X\u0301q\u0323 E\u0301c\u0327",
+            shear=0.5,
+            size=(155, 90),
+            expected_dimensions=(1.867102, 0.958963),
+            position_offset=(9.8, 31.6),
         ),
     ]
 
