@@ -10,6 +10,8 @@
 
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_customdata_types.h"
@@ -1189,10 +1191,15 @@ static void mesh_tessface_calc(Mesh &mesh)
 
   /* Not essential but without this we store over-allocated memory in the #CustomData layers. */
   if (corner_tris_num != totface) [[likely]] {
-    mface = static_cast<MFace *>(
-        MEM_realloc_uninitialized(mface, sizeof(*mface) * size_t(totface)));
-    mface_to_poly_map = static_cast<int *>(MEM_realloc_uninitialized(
-        mface_to_poly_map, sizeof(*mface_to_poly_map) * size_t(totface)));
+    MFace *new_mface = MEM_new_array_uninitialized<MFace>(size_t(totface), __func__);
+    std::copy_n(mface, totface, new_mface);
+    MEM_delete(mface);
+    mface = new_mface;
+
+    int *new_mface_to_poly_map = MEM_new_array_uninitialized<int>(size_t(totface), __func__);
+    std::copy_n(mface_to_poly_map, totface, new_mface_to_poly_map);
+    MEM_delete(mface_to_poly_map);
+    mface_to_poly_map = new_mface_to_poly_map;
   }
 
   CustomData_add_layer_with_data(fdata_legacy, CD_MFACE, mface, totface, nullptr);
