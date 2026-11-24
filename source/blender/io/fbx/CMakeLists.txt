@@ -45,6 +45,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_io_common
   PRIVATE bf::extern::ufbx
+  PRIVATE bf::extern::xxhash
 )
 
 blender_add_lib(bf_io_fbx "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

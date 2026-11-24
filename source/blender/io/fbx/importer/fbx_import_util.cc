@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include <xxhash.h>
+
 #include "BKE_idprop.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -190,12 +192,36 @@ void node_matrix_to_obj(const ufbx_node *node, Object *obj, const FbxElementMapp
   ufbx_matrix_to_obj(mtx, obj);
 }
 
+/* For custom property names that are too long, take the prefix and
+ * append 7 digit hash of the original full name. */
+static StringRef custom_property_name(const StringRef name, char (&buffer)[MAX_IDPROP_NAME])
+{
+  if (name.size() < MAX_IDPROP_NAME) {
+    return name;
+  }
+
+  constexpr int suffix_size = 8;
+  name.copy_utf8_truncated(MutableCStr(buffer, sizeof(buffer) - suffix_size));
+  const size_t prefix_size = strlen(buffer);
+  const unsigned int hash = XXH3_64bits(name.data(), name.size()) & 0x0fffffff;
+  BLI_snprintf(buffer + prefix_size, sizeof(buffer) - prefix_size, "_%07x", hash);
+  return StringRef(buffer);
+}
+
+static void add_custom_property(IDProperty *group, IDProperty *property)
+{
+  if (property != nullptr && !IDP_AddToGroup(group, property)) {
+    IDP_FreeProperty(property);
+  }
+}
+
 static void read_ufbx_property(const ufbx_prop &prop, IDProperty *idgroup, bool enums_as_strings)
 {
   IDProperty *idprop = nullptr;
   IDPropertyTemplate val = {0};
-  //@TODO: validate_blend_names on the property name
-  const char *name = prop.name.data;
+  char name_buffer[MAX_IDPROP_NAME];
+  const StringRef name = custom_property_name(StringRef(prop.name.data, prop.name.length),
+                                              name_buffer);
 
   switch (prop.type) {
     case UFBX_PROP_BOOLEAN:
@@ -246,7 +272,7 @@ static void read_ufbx_property(const ufbx_prop &prop, IDProperty *idgroup, bool 
       idprop = IDP_New(IDP_DOUBLE, &val, name);
       break;
     case UFBX_PROP_STRING:
-      if (STREQ(name, "UDP3DSMAX")) {
+      if (name == "UDP3DSMAX") {
         /* 3dsmax user properties are coming as `UDP3DSMAX` property. Parse them
          * as multi-line text, splitting across `=` within each line. */
         const char *line = prop.value_str.data;
@@ -263,14 +289,13 @@ static void read_ufbx_property(const ufbx_prop &prop, IDProperty *idgroup, bool 
             eq_pos++;
           }
           if (eq_pos[0] == '=') {
-            std::string str_name = StringRef(line_start, eq_pos).trim();
+            const StringRef str_name = custom_property_name(StringRef(line_start, eq_pos).trim(),
+                                                            name_buffer);
             std::string str_val = StringRef(eq_pos + 1, line).trim();
-            //@TODO validate_blend_names on str_name
             val.string.str = str_val.c_str();
             val.string.len = str_val.size() + 1; /* .len needs to include null terminator. */
             val.string.subtype = IDP_STRING_SUB_UTF8;
-            IDProperty *str_prop = IDP_New(IDP_STRING, &val, str_name.c_str());
-            IDP_AddToGroup(idgroup, str_prop);
+            add_custom_property(idgroup, IDP_New(IDP_STRING, &val, str_name));
           }
 
           if (line[0] == 0) {
@@ -314,9 +339,7 @@ static void read_ufbx_property(const ufbx_prop &prop, IDProperty *idgroup, bool 
       break;
   }
 
-  if (idprop != nullptr) {
-    IDP_AddToGroup(idgroup, idprop);
-  }
+  add_custom_property(idgroup, idprop);
 }
 
 void read_custom_properties(const ufbx_props &props, ID &id, bool enums_as_strings)

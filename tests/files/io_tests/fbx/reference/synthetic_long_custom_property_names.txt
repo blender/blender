@@ -1,0 +1,7 @@
+==== Objects: 1
+- Obj 'LongProperties' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - props: str:duplicate='first' int:long_property_name_with_a_shared_prefix_01234567890123456789012=33 int:long_property_name_with_a_shared_prefix_012345678901234_801fb6b=11 int:long_property_name_with_a_shared_prefix_012345678901234_9cbdf66=22 str:max_property_name_with_the_same_prefix_012345678901234_604848f='one' str:max_property_name_with_the_same_prefix_012345678901234_befd617='two'
+
