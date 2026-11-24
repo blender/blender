@@ -6,6 +6,7 @@
  * \ingroup edgpencil
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -633,8 +634,10 @@ static short annotation_stroke_addpoint(tGPsdata *p,
 
       /* first time point is adding to temporary buffer -- need to allocate new point in stroke */
       if (gpd->runtime.sbuffer_used == 0) {
-        gps->points = static_cast<bGPDspoint *>(
-            MEM_realloc_uninitialized(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1)));
+        bGPDspoint *new_points = MEM_new_array<bGPDspoint>(gps->totpoints + 1, __func__);
+        std::copy_n(gps->points, gps->totpoints, new_points);
+        MEM_delete(gps->points);
+        gps->points = new_points;
         gps->totpoints++;
       }
 
