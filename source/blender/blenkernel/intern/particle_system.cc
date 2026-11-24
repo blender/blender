@@ -1561,6 +1561,16 @@ static void integrate_particle(
  * \{ */
 
 #define PSYS_FLUID_SPRINGS_INITIAL_SIZE 256
+static void sph_springs_realloc(ParticleSystem *psys, const int alloc_num)
+{
+  BLI_assert(psys->tot_fluidsprings <= alloc_num);
+  ParticleSpring *new_springs = MEM_new_array_uninitialized<ParticleSpring>(alloc_num, __func__);
+  std::copy_n(psys->fluid_springs, psys->tot_fluidsprings, new_springs);
+  MEM_delete(psys->fluid_springs);
+  psys->fluid_springs = new_springs;
+  psys->alloc_fluidsprings = alloc_num;
+}
+
 static ParticleSpring *sph_spring_add(ParticleSystem *psys, ParticleSpring *spring)
 {
   /* Are more refs required? */
@@ -1571,9 +1581,7 @@ static ParticleSpring *sph_spring_add(ParticleSystem *psys, ParticleSpring *spri
   }
   else if (psys->tot_fluidsprings == psys->alloc_fluidsprings) {
     /* Double the number of refs allocated */
-    psys->alloc_fluidsprings *= 2;
-    psys->fluid_springs = static_cast<ParticleSpring *>(MEM_realloc_uninitialized(
-        psys->fluid_springs, psys->alloc_fluidsprings * sizeof(ParticleSpring)));
+    sph_springs_realloc(psys, psys->alloc_fluidsprings * 2);
   }
 
   memcpy(psys->fluid_springs + psys->tot_fluidsprings, spring, sizeof(ParticleSpring));
@@ -1592,9 +1600,7 @@ static void sph_spring_delete(ParticleSystem *psys, int j)
   if (psys->tot_fluidsprings < psys->alloc_fluidsprings / 2 &&
       psys->alloc_fluidsprings > PSYS_FLUID_SPRINGS_INITIAL_SIZE)
   {
-    psys->alloc_fluidsprings /= 2;
-    psys->fluid_springs = static_cast<ParticleSpring *>(MEM_realloc_uninitialized(
-        psys->fluid_springs, psys->alloc_fluidsprings * sizeof(ParticleSpring)));
+    sph_springs_realloc(psys, psys->alloc_fluidsprings / 2);
   }
 }
 static void sph_springs_modify(ParticleSystem *psys, float dtime)
