@@ -2851,6 +2851,13 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (!BKE_id_is_editable(bmain, &ma->id)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot paste into a library linked or non-editable override material");
+    return OPERATOR_CANCELLED;
+  }
+
   /* Read copy buffer .blend file. */
   char filepath[FILE_MAX];
   material_copybuffer_filepath_get(filepath);
