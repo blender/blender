@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <type_traits>
 
 #include "graph/node_type.h"
@@ -183,17 +184,17 @@ struct Node {
 
   int reference_count() const
   {
-    return ref_count;
+    return std::atomic_ref<int>(const_cast<int &>(ref_count)).load();
   }
 
   void reference()
   {
-    ref_count += 1;
+    std::atomic_ref<int>(ref_count).fetch_add(1);
   }
 
   void dereference()
   {
-    ref_count -= 1;
+    std::atomic_ref<int>(ref_count).fetch_sub(1);
   }
 
   /* Set the reference count to zero. This should only be called when we know for sure that the
@@ -201,7 +202,7 @@ struct Node {
    * they are never actually deleted. */
   void clear_reference_count()
   {
-    ref_count = 0;
+    std::atomic_ref<int>(ref_count).store(0);
   }
 
  protected:
