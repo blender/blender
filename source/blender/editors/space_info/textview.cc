@@ -31,8 +31,11 @@ namespace blender {
 
 static void textview_font_begin(const int font_id, const int line_height)
 {
-  /* Font size in relation to line height. */
-  BLF_size(font_id, 0.8f * line_height);
+  /* Font size in relation to line height.
+   * Use whole numbers to avoid loading fractional sizes into memory,
+   * when the input font size isn't fractional. */
+  const int line_height_px = 0.8f * line_height;
+  BLF_size(font_id, line_height_px);
 }
 
 struct TextViewDrawState {
