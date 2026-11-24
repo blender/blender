@@ -159,16 +159,13 @@ static void clg_str_reserve(CLogStringBuf *cstr, const uint len)
     cstr->len_alloc *= 2;
     cstr->len_alloc = std::max(len, cstr->len_alloc);
 
+    char *data = MEM_new_array_uninitialized<char>(cstr->len_alloc, __func__);
+    memcpy(data, cstr->data, cstr->len);
     if (cstr->is_alloc) {
-      cstr->data = static_cast<char *>(MEM_realloc_uninitialized(cstr->data, cstr->len_alloc));
+      MEM_delete(cstr->data);
     }
-    else {
-      /* Copy the static buffer. */
-      char *data = MEM_new_array_uninitialized<char>(cstr->len_alloc, __func__);
-      memcpy(data, cstr->data, cstr->len);
-      cstr->data = data;
-      cstr->is_alloc = true;
-    }
+    cstr->data = data;
+    cstr->is_alloc = true;
   }
 }
 
