@@ -241,6 +241,21 @@ bool edit_move_strip_to_meta(Scene *scene,
   strips.add(src_strip);
   expand_strips(ed, strips, StripRelation::EffectChain);
 
+  for (const Strip *strip : strips) {
+    if (strip == dst_stripm ||
+        (strip->type == STRIP_TYPE_META && exists_in_seqbase(dst_stripm, &strip->seqbase)))
+    {
+      *r_error_str = N_("Effect chain of moved strip includes provided meta strip or its parent");
+      return false;
+    }
+    /* Effect chains in different layers of the metastack is impossible via UI, but might be
+     * reachable from Python. Eventually we should make it impossible to do so from Python too. */
+    if (BLI_findindex(seqbase, strip) == -1) {
+      *r_error_str = N_("Effect chain of moved strip is not in the same meta strip");
+      return false;
+    }
+  }
+
   for (Strip *strip : strips) {
     /* Move to meta. */
     edit_move_strip_to_seqbase(scene, seqbase, strip, &dst_stripm->seqbase);
