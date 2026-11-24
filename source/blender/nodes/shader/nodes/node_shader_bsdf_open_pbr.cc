@@ -8,6 +8,8 @@
 
 #include "BKE_node_runtime.hh"
 
+#include <map>
+
 namespace blender {
 
 namespace nodes::node_shader_bsdf_open_pbr_cc {
@@ -487,22 +489,164 @@ static int node_shader_gpu_bsdf_open_pbr(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  if (to_type_ != NodeItem::Type::BSDF) {
-    return empty();
+  using InputsType = std::map<std::string, NodeItem>;
+
+  auto bsdf_inputs = [&]() -> InputsType {
+    return {
+        /* Base Component */
+        {"base_weight", get_input_value("Base Weight", NodeItem::Type::Float)},
+        {"base_color", get_input_value("Base Color", NodeItem::Type::Color3)},
+        {"base_metalness", get_input_value("Base Metalness", NodeItem::Type::Float)},
+        {"base_diffuse_roughness",
+         get_input_value("Base Diffuse Roughness", NodeItem::Type::Float)},
+        /* Specular Component */
+        {"specular_weight", get_input_value("Specular Weight", NodeItem::Type::Float)},
+        {"specular_color", get_input_value("Specular Color", NodeItem::Type::Color3)},
+        {"specular_roughness", get_input_value("Specular Roughness", NodeItem::Type::Float)},
+        {"specular_roughness_anisotropy",
+         get_input_value("Specular Roughness Anisotropy", NodeItem::Type::Float)},
+        {"specular_ior", get_input_value("Specular IOR", NodeItem::Type::Float)},
+        /* Transmission Component */
+        {"transmission_weight", get_input_value("Transmission Weight", NodeItem::Type::Float)},
+        {"transmission_color", get_input_value("Transmission Color", NodeItem::Type::Color3)},
+        {"transmission_depth", get_input_value("Transmission Depth", NodeItem::Type::Float)},
+        {"transmission_scatter", get_input_value("Transmission Scatter", NodeItem::Type::Color3)},
+        {"transmission_scatter_anisotropy",
+         get_input_value("Transmission Scatter Anisotropy", NodeItem::Type::Float)},
+        {"transmission_dispersion_scale",
+         get_input_value("Transmission Dispersion Scale", NodeItem::Type::Float)},
+        {"transmission_dispersion_abbe_number",
+         get_input_value("Transmission Dispersion Abbe Number", NodeItem::Type::Float)},
+        /* Subsurface Component */
+        {"subsurface_weight", get_input_value("Subsurface Weight", NodeItem::Type::Float)},
+        {"subsurface_color", get_input_value("Subsurface Color", NodeItem::Type::Color3)},
+        {"subsurface_radius", get_input_value("Subsurface Radius", NodeItem::Type::Float)},
+#  if MATERIALX_MAJOR_VERSION <= 1 && MATERIALX_MINOR_VERSION <= 38
+        {"subsurface_radius_scale",
+         get_input_value("Subsurface Radius Scale", NodeItem::Type::Vector3)},
+#  else
+        {"subsurface_radius_scale",
+         get_input_value("Subsurface Radius Scale", NodeItem::Type::Color3)},
+#  endif
+        {"subsurface_scatter_anisotropy",
+         get_input_value("Subsurface Scatter Anisotropy", NodeItem::Type::Float)},
+        /* Coat Component */
+        {"coat_weight", get_input_value("Coat Weight", NodeItem::Type::Float)},
+        {"coat_color", get_input_value("Coat Color", NodeItem::Type::Color3)},
+        {"coat_roughness", get_input_value("Coat Roughness", NodeItem::Type::Float)},
+        {"coat_roughness_anisotropy",
+         get_input_value("Coat Roughness Anisotropy", NodeItem::Type::Float)},
+        {"coat_ior", get_input_value("Coat IOR", NodeItem::Type::Float)},
+        {"coat_darkening", get_input_value("Coat Darkening", NodeItem::Type::Float)},
+        /* Fuzz Component */
+        {"fuzz_weight", get_input_value("Fuzz Weight", NodeItem::Type::Float)},
+        {"fuzz_color", get_input_value("Fuzz Color", NodeItem::Type::Color3)},
+        {"fuzz_roughness", get_input_value("Fuzz Roughness", NodeItem::Type::Float)},
+        /* Thin Film Component */
+        {"thin_film_weight", get_input_value("Thin Film Weight", NodeItem::Type::Float)},
+        {"thin_film_thickness", get_input_value("Thin Film Thickness", NodeItem::Type::Float)},
+        {"thin_film_ior", get_input_value("Thin Film IOR", NodeItem::Type::Float)},
+        /* Geometry Component */
+        {"geometry_opacity", get_input_value("Geometry Opacity", NodeItem::Type::Float)},
+        {"geometry_thin_walled", get_input_value("Geometry Thin Walled", NodeItem::Type::Boolean)},
+        {"geometry_normal", get_input_link("Geometry Normal", NodeItem::Type::Vector3)},
+        {"geometry_tangent", get_input_link("Geometry Tangent", NodeItem::Type::Vector3)},
+        {"geometry_coat_normal", get_input_link("Geometry Coat Normal", NodeItem::Type::Vector3)},
+        {"geometry_coat_tangent",
+         get_input_link("Geometry Coat Tangent", NodeItem::Type::Vector3)},
+    };
+  };
+
+  auto edf_inputs = [&]() -> InputsType {
+    return {
+        {"emission_luminance", get_input_value("Emission Luminance", NodeItem::Type::Float)},
+        {"emission_color", get_input_value("Emission Color", NodeItem::Type::Color3)},
+    };
+  };
+
+  NodeItem res = empty();
+
+  switch (to_type_) {
+    case NodeItem::Type::BSDF: {
+      break;
+    }
+    case NodeItem::Type::EDF: {
+      auto in = edf_inputs();
+      res = create_node("uniform_edf",
+                        NodeItem::Type::EDF,
+                        {{"color", in["emission_color"] * in["emission_luminance"]}});
+      break;
+    }
+    case NodeItem::Type::SurfaceShader: {
+      auto in = bsdf_inputs();
+      auto e_in = edf_inputs();
+      in.insert(e_in.begin(), e_in.end());
+
+      res = create_node(
+          "open_pbr_surface",
+          NodeItem::Type::SurfaceShader,
+          {{"base_weight", in["base_weight"]},
+           {"base_color", in["base_color"]},
+           {"base_metalness", in["base_metalness"]},
+           {"base_diffuse_roughness", in["base_diffuse_roughness"]},
+
+           {"specular_weight", in["specular_weight"]},
+           {"specular_color", in["specular_color"]},
+           {"specular_roughness", in["specular_roughness"]},
+           {"specular_roughness_anisotropy", in["specular_roughness_anisotropy"]},
+           {"specular_ior", in["specular_ior"]},
+
+           {"transmission_weight", in["transmission_weight"]},
+           {"transmission_color", in["transmission_color"]},
+           {"transmission_depth", in["transmission_depth"]},
+           {"transmission_scatter", in["transmission_scatter"]},
+           {"transmission_scatter_anisotropy", in["transmission_scatter_anisotropy"]},
+           {"transmission_dispersion_scale", in["transmission_dispersion_scale"]},
+           {"transmission_dispersion_abbe_number", in["transmission_dispersion_abbe_number"]},
+
+           {"subsurface_weight", in["subsurface_weight"]},
+           {"subsurface_color", in["subsurface_color"]},
+           {"subsurface_radius", in["subsurface_radius"]},
+           {"subsurface_radius_scale", in["subsurface_radius_scale"]},
+           {"subsurface_scatter_anisotropy", in["subsurface_scatter_anisotropy"]},
+
+           {"coat_weight", in["coat_weight"]},
+           {"coat_color", in["coat_color"]},
+           {"coat_roughness", in["coat_roughness"]},
+           {"coat_roughness_anisotropy", in["coat_roughness_anisotropy"]},
+           {"coat_ior", in["coat_ior"]},
+           {"coat_darkening", in["coat_darkening"]},
+
+           {"fuzz_weight", in["fuzz_weight"]},
+           {"fuzz_color", in["fuzz_color"]},
+           {"fuzz_roughness", in["fuzz_roughness"]},
+
+           {"emission_luminance", in["emission_luminance"]},
+           {"emission_color", in["emission_color"]},
+
+           {"thin_film_weight", in["thin_film_weight"]},
+           {"thin_film_thickness", in["thin_film_thickness"]},
+           {"thin_film_ior", in["thin_film_ior"]},
+
+           {"geometry_opacity", in["geometry_opacity"]},
+           {"geometry_thin_walled", in["geometry_thin_walled"]},
+           {"geometry_normal", in["geometry_normal"]},
+           {"geometry_tangent", in["geometry_tangent"]},
+           {"geometry_coat_normal", in["geometry_coat_normal"]},
+           {"geometry_coat_tangent", in["geometry_coat_tangent"]}
+
+          });
+      break;
+    }
+    case NodeItem::Type::SurfaceOpacity: {
+      res = get_input_value("Geometry Opacity", NodeItem::Type::Float);
+      break;
+    }
+
+    default:
+      BLI_assert_unreachable();
   }
-
-  NodeItem base_weight = get_input_value("Base Weight", NodeItem::Type::Float);
-  NodeItem base_color = get_input_value("Base Color", NodeItem::Type::Color3);
-  NodeItem base_metalness = get_input_value("Base Metalness", NodeItem::Type::Float);
-  NodeItem base_roughness = get_input_value("Base Diffuse Roughness", NodeItem::Type::Float);
-
-  NodeItem geometry_normal = get_input_link("Geometry Normal", NodeItem::Type::Vector3);
-  /* set up the open pbr MaterialX shader node: "open_pbr_surface"*/
-  return create_node("oren_nayar_diffuse_bsdf",
-                     NodeItem::Type::BSDF,
-                     {{"base_color", base_color},
-                      {"base_roughness", base_roughness},
-                      {"geometry_normal", geometry_normal}});
+  return res;
 }
 #endif
 NODE_SHADER_MATERIALX_END
