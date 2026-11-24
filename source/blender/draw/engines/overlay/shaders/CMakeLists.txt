@@ -45,9 +45,6 @@ set(SRC_GLSL_VERT
   overlay_edit_uv_stretching_vert.glsl
   overlay_edit_uv_tiled_image_borders_vert.glsl
   overlay_edit_uv_verts_vert.glsl
-  overlay_extra_lightprobe_grid_vert.glsl
-  overlay_extra_loose_point_vert.glsl
-  overlay_extra_point_vert.glsl
   overlay_facing_vert.glsl
   overlay_fullscreen_vert.glsl
   overlay_grid_vert.glsl
@@ -75,7 +72,6 @@ set(SRC_GLSL_FRAG
   overlay_edit_uv_image_mask_frag.glsl
   overlay_edit_uv_verts_frag.glsl
   overlay_extra_frag.glsl
-  overlay_extra_loose_point_frag.glsl
   overlay_facing_frag.glsl
   overlay_grid_frag.glsl
   overlay_image_frag.glsl
@@ -84,7 +80,6 @@ set(SRC_GLSL_FRAG
   overlay_paint_texture_frag.glsl
   overlay_paint_weight_frag.glsl
   overlay_point_varying_color_frag.glsl
-  overlay_point_varying_color_varying_outline_aa_frag.glsl
   overlay_sculpt_curves_selection_frag.glsl
   overlay_sculpt_mask_frag.glsl
   overlay_uniform_color_frag.glsl

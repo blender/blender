@@ -68,6 +68,12 @@ struct VertOutSmooth {
   [[no_perspective]] float2 edge_pos;
 };
 
+struct VertOutPointOutline {
+  [[flat]] float4 radii;
+  [[flat]] float4 inner_color;
+  [[flat]] float4 outline_color;
+};
+
 struct FragOut {
   [[frag_color(0)]] float4 color;
   [[frag_color(1)]] float4 line_output;
@@ -323,6 +329,40 @@ void point_frag([[resource_table, condition(selectable)]] draw::Select &sel,
   }
 
   frag_out.color = v_out.final_color;
+  frag_out.line_output = float4(0.0f);
+
+  if (sel.consts.selectable) [[static_branch]] {
+    sel.select_id_output(sel_out.select_id, frag_co);
+  }
+}
+
+[[fragment]]
+void point_with_outline_frag([[resource_table, condition(selectable)]] draw::Select &sel,
+                             [[frag_coord]] const float4 frag_co,
+                             [[in]] const VertOutPointOutline &v_out,
+                             [[out]] FragOut &frag_out,
+                             [[in, condition(selectable)]] const draw::SelectOut &sel_out,
+                             [[point_coord]] const float2 point_co)
+{
+  float dist = length(point_co - float2(0.5f));
+
+  /* transparent outside of point
+   * --- 0 ---
+   * smooth transition
+   * --- 1 ---
+   * pure outline color
+   * --- 2 ---
+   * smooth transition
+   * --- 3 ---
+   * pure fill color
+   * ...
+   * dist = 0 at center of point */
+
+  frag_out.color = mix(
+      v_out.inner_color, v_out.outline_color, smoothstep(v_out.radii[3], v_out.radii[2], dist));
+  frag_out.color.a = mix(
+      v_out.outline_color.a, 0.0f, smoothstep(v_out.radii[1], v_out.radii[0], dist));
+
   frag_out.line_output = float4(0.0f);
 
   if (sel.consts.selectable) [[static_branch]] {

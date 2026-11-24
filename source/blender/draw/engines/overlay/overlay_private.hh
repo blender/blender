@@ -534,9 +534,9 @@ class ShaderModule {
   StaticShader depth_pointcloud = shader_selectable("overlay_depth_pointcloud");
   StaticShader depth_gsplat = shader_selectable("overlay_depth_gsplat");
   StaticShader extra_shape = shader_selectable("overlay_extra");
-  StaticShader extra_point = shader_selectable("overlay_extra_point");
+  StaticShader extra_point_with_outline = shader_selectable("overlay_extra_point_outline");
   StaticShader extra_wire = shader_selectable("overlay_extra_wire");
-  StaticShader extra_loose_points = shader_selectable("overlay_extra_loose_point");
+  StaticShader extra_points = shader_selectable("overlay_extra_point");
   StaticShader extra_grid = shader_selectable("overlay_extra_grid");
   StaticShader extra_ground_line = shader_selectable("overlay_extra_groundline");
   StaticShader image_plane = shader_selectable("overlay_image");
@@ -710,8 +710,8 @@ struct Resources : public select::SelectMap {
     shaders->depth_pointcloud.ensure_compile_async();
     shaders->extra_grid.ensure_compile_async();
     shaders->extra_ground_line.ensure_compile_async();
-    shaders->extra_loose_points.ensure_compile_async();
-    shaders->extra_point.ensure_compile_async();
+    shaders->extra_points.ensure_compile_async();
+    shaders->extra_point_with_outline.ensure_compile_async();
     shaders->extra_shape.ensure_compile_async();
     shaders->extra_wire.ensure_compile_async();
     shaders->fluid_grid_lines_flags.ensure_compile_async();

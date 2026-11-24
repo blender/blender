@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/overlay_extra_infos.hh"
+#include "infos/overlay_edit_mode_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(overlay_extra_grid_base)
+FRAGMENT_SHADER_CREATE_INFO(overlay_edit_curve_point)
 
 #include "select_lib.glsl"
 

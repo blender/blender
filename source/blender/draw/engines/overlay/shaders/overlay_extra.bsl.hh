@@ -333,12 +333,12 @@ struct ExtraWire {
 
 /**
  * Extra loose wire batch.
+ * Used for relation line drawing, tracking path etc...
  */
 [[vertex]] void wire_main(
     [[resource_table]] const ExtraWire &srt,
     [[resource_table]] const Clipping &clip,
     [[resource_table]] const draw::Model &models,
-    [[resource_table]] const draw::Infos &infos,
     [[resource_table]] const draw::View &views,
     [[resource_table]] const Uniform &uni,
     [[resource_table, condition(selectable)]] const draw::Select &sel,
@@ -404,12 +404,168 @@ struct ExtraWire {
   }
 }
 
+/**
+ * Extra loose wire batch.
+ * Used for Hook modifier center drawing.
+ */
+[[vertex]] void loose_point_vert(
+    [[resource_table]] const ExtraWire &srt,
+    [[resource_table]] const Clipping &clip,
+    [[resource_table]] const draw::Model &models,
+    [[resource_table]] const draw::View &views,
+    [[resource_table]] const Uniform &uni,
+    [[resource_table, condition(selectable)]] const draw::Select &sel,
+    [[resource_table, condition(!selectable)]] const draw::Resource &resources,
+    [[resource_table, condition(selectable)]] const draw::ResourceCustomID &resources_with_id,
+    [[out, condition(selectable)]] draw::SelectOut &sel_out,
+    [[instance_index]] const int inst_index,
+    [[vertex_id]] const int vert_id,
+    [[point_size]] float &out_pt_size,
+    [[clip_distance, condition(use_clipping)]] float (&clip_distances)[6],
+    [[out]] VertOut &v_out,
+    [[position]] float4 &out_pos)
+{
+  if (sel.consts.selectable) [[static_branch]] {
+    sel_out.select_id = sel.in_select_buf[inst_index];
+  }
+
+  uint resource_id;
+  if (sel.consts.selectable) [[static_branch]] {
+    resource_id = resources_with_id.get(inst_index).resource_id<1>();
+  }
+  else {
+    resource_id = resources.get(inst_index).resource_id<1>();
+  }
+
+  const UniformData &theme = uni.uniform_buf;
+  ObjectMatrices obj = models.get(resource_id);
+  ViewMatrices view = views.get(0);
+
+  VertexData v_in = srt.data_buf[vert_id];
+
+  v_out.final_color = v_in.color_;
+  v_out.edge_start = v_out.edge_pos = float2(0.0f); /* Unused, but needs to be written. */
+
+  float3 world_pos = (obj.model * float4(v_in.pos_.xyz, 1.0f)).xyz;
+  out_pos = view.point_world_to_homogenous(world_pos);
+
+  out_pt_size = theme.sizes.vert * 2.0f;
+
+  if (clip.constants.use_clipping) [[static_branch]] {
+    clip.set_clipping_distances(world_pos,
+                                clip_distances[0],
+                                clip_distances[1],
+                                clip_distances[2],
+                                clip_distances[3],
+                                clip_distances[4],
+                                clip_distances[5]);
+  }
+}
+
+[[fragment]] void loose_point_frag([[resource_table, condition(selectable)]] draw::Select &sel,
+                                   [[resource_table]] const Uniform &uni,
+                                   [[frag_coord]] const float4 frag_co,
+                                   [[in]] const VertOut &v_out,
+                                   [[out]] FragOut &frag_out,
+                                   [[in, condition(selectable)]] const draw::SelectOut &sel_out,
+                                   [[point_coord]] const float2 point_co)
+{
+  const UniformData &theme = uni.uniform_buf;
+
+  float2 centered = abs(point_co - float2(0.5f));
+  float dist = max(centered.x, centered.y);
+
+  float fac = square(dist) * 4.0f;
+  /* Non linear blend. */
+  float4 col1 = sqrt(theme.colors.edit_mesh_middle);
+  float4 col2 = sqrt(v_out.final_color);
+  frag_out.color = mix(col1, col2, 0.45f + fac * 0.65f);
+  frag_out.color *= frag_out.color;
+
+  frag_out.line_output = float4(0.0f);
+
+  /* Make the effect more like a fresnel by offsetting
+   * the depth and creating mini-spheres.
+   * Disabled as it has performance impact. */
+  // out_depth = frag_co.z + 1e-6f * fac;
+
+  if (sel.consts.selectable) [[static_branch]] {
+    sel.select_id_output(sel_out.select_id, frag_co);
+  }
+}
+
+/* Extra points. Usually used for object center.  */
+[[vertex]] void point_outline_main(
+    [[resource_table]] const ExtraWire &srt,
+    [[resource_table]] const Clipping &clip,
+    [[resource_table]] const draw::Model &models,
+    [[resource_table]] const draw::View &views,
+    [[resource_table]] const Uniform &uni,
+    [[resource_table, condition(selectable)]] const draw::Select &sel,
+    [[resource_table, condition(!selectable)]] const draw::Resource &resources,
+    [[resource_table, condition(selectable)]] const draw::ResourceCustomID &resources_with_id,
+    [[out, condition(selectable)]] draw::SelectOut &sel_out,
+    [[instance_index]] const int inst_index,
+    [[vertex_id]] const int vert_id,
+    [[point_size]] float &out_pt_size,
+    [[clip_distance, condition(use_clipping)]] float (&clip_distances)[6],
+    [[out]] VertOutPointOutline &v_out,
+    [[position]] float4 &out_pos)
+{
+  if (sel.consts.selectable) [[static_branch]] {
+    sel_out.select_id = sel.in_select_buf[vert_id];
+  }
+
+  uint resource_id;
+  if (sel.consts.selectable) [[static_branch]] {
+    resource_id = resources_with_id.get(inst_index).resource_id<1>();
+  }
+  else {
+    resource_id = resources.get(inst_index).resource_id<1>();
+  }
+
+  const UniformData &theme = uni.uniform_buf;
+  ObjectMatrices obj = models.get(resource_id);
+  ViewMatrices view = views.get(0);
+
+  VertexData v_in = srt.data_buf[vert_id];
+
+  float3 world_pos = obj.point_object_to_world(v_in.pos_.xyz);
+  out_pos = view.point_world_to_homogenous(world_pos);
+
+  out_pt_size = theme.sizes.object_center;
+  float radius = 0.5f * theme.sizes.object_center;
+  float outline_width = theme.sizes.pixel;
+  v_out.radii[0] = radius;
+  v_out.radii[1] = radius - 1.0f;
+  v_out.radii[2] = radius - outline_width;
+  v_out.radii[3] = radius - outline_width - 1.0f;
+  v_out.radii /= theme.sizes.object_center;
+
+  v_out.inner_color = v_in.color_;
+  v_out.outline_color = theme.colors.outline;
+
+  if (sel.consts.selectable) [[static_branch]] {
+    /* Selection frame-buffer can be very small.
+     * Make sure to only rasterize one pixel to avoid making the selection radius very big. */
+    out_pt_size = 1.0f;
+  }
+
+  if (clip.constants.use_clipping) [[static_branch]] {
+    clip.set_clipping_distances(world_pos,
+                                clip_distances[0],
+                                clip_distances[1],
+                                clip_distances[2],
+                                clip_distances[3],
+                                clip_distances[4],
+                                clip_distances[5]);
+  }
+}
+
 [[vertex]] void lattice_main(
-    [[resource_table]] const Resources &srt,
     [[resource_table]] const Uniform &uni,
     [[resource_table]] const Clipping &clip,
     [[resource_table]] const draw::Model &models,
-    [[resource_table]] const draw::Infos &infos,
     [[resource_table]] const draw::View &views,
     [[resource_table, condition(selectable)]] const draw::Select &sel,
     [[resource_table, condition(!selectable)]] const draw::Resource &resources,
@@ -482,6 +638,16 @@ PipelineGraphic overlay_extra_wire(                   overlay::extra::wire_main,
 PipelineGraphic overlay_extra_wire_clipped(           overlay::extra::wire_main, overlay::wire_frag_stipple, overlay::ClippingConstant{.use_clipping = true},  draw::SelectConstant{.selectable = false});
 PipelineGraphic overlay_extra_wire_selectable(        overlay::extra::wire_main, overlay::wire_frag_stipple, overlay::ClippingConstant{.use_clipping = false}, draw::SelectConstant{.selectable = true});
 PipelineGraphic overlay_extra_wire_selectable_clipped(overlay::extra::wire_main, overlay::wire_frag_stipple, overlay::ClippingConstant{.use_clipping = true},  draw::SelectConstant{.selectable = true});
+
+PipelineGraphic overlay_extra_point(                   overlay::extra::loose_point_vert, overlay::extra::loose_point_frag, overlay::ClippingConstant{.use_clipping = false}, draw::SelectConstant{.selectable = false});
+PipelineGraphic overlay_extra_point_clipped(           overlay::extra::loose_point_vert, overlay::extra::loose_point_frag, overlay::ClippingConstant{.use_clipping = true},  draw::SelectConstant{.selectable = false});
+PipelineGraphic overlay_extra_point_selectable(        overlay::extra::loose_point_vert, overlay::extra::loose_point_frag, overlay::ClippingConstant{.use_clipping = false}, draw::SelectConstant{.selectable = true});
+PipelineGraphic overlay_extra_point_selectable_clipped(overlay::extra::loose_point_vert, overlay::extra::loose_point_frag, overlay::ClippingConstant{.use_clipping = true},  draw::SelectConstant{.selectable = true});
+
+PipelineGraphic overlay_extra_point_outline(                   overlay::extra::point_outline_main, overlay::point_with_outline_frag, overlay::ClippingConstant{.use_clipping = false}, draw::SelectConstant{.selectable = false});
+PipelineGraphic overlay_extra_point_outline_clipped(           overlay::extra::point_outline_main, overlay::point_with_outline_frag, overlay::ClippingConstant{.use_clipping = true},  draw::SelectConstant{.selectable = false});
+PipelineGraphic overlay_extra_point_outline_selectable(        overlay::extra::point_outline_main, overlay::point_with_outline_frag, overlay::ClippingConstant{.use_clipping = false}, draw::SelectConstant{.selectable = true});
+PipelineGraphic overlay_extra_point_outline_selectable_clipped(overlay::extra::point_outline_main, overlay::point_with_outline_frag, overlay::ClippingConstant{.use_clipping = true},  draw::SelectConstant{.selectable = true});
 
 PipelineGraphic overlay_lattice(                    overlay::extra::lattice_main, overlay::wire_frag, overlay::ClippingConstant{.use_clipping = false}, draw::SelectConstant{.selectable = false});
 PipelineGraphic overlay_lattice_clipped(            overlay::extra::lattice_main, overlay::wire_frag, overlay::ClippingConstant{.use_clipping = true},  draw::SelectConstant{.selectable = false});
