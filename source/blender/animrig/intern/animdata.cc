@@ -71,15 +71,15 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
 
     if (related_id->flag & ID_FLAG_EMBEDDED_DATA) {
       /* No matter the type of embedded ID, their owner can always be added to the related IDs. */
-
-      /* User counting is irrelevant for the logic here, because embedded IDs cannot be shared.
-       * Embedded IDs do exist (sometimes) with a non-zero user count, hence the assertion that the
-       * user count is not greater than 1. */
-      BLI_assert(ID_REAL_USERS(related_id) <= 1);
       ID *owner_id = BKE_id_owner_get(related_id);
-      /* Embedded IDs should always have an owner. */
-      BLI_assert(owner_id != nullptr);
+      BLI_assert_msg(owner_id, "Embedded IDs should always have an owner");
       related_ids.append_non_duplicates(owner_id);
+    }
+
+    /* Check embedded IDs (the animatable ones currently are only node trees). */
+    bNodeTree *node_tree = bke::node_tree_from_id(related_id);
+    if (node_tree) {
+      related_ids.append_non_duplicates(&node_tree->id);
     }
 
     /* No action found on current ID, add related IDs to the ID Vector. */
@@ -116,19 +116,6 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
 
       case ID_MA: {
         /* Explicitly not relating materials and material users. */
-        Material *mat = reinterpret_cast<Material *>(related_id);
-        if (mat->nodetree && ID_REAL_USERS(&mat->nodetree->id) == 1) {
-          related_ids.append_non_duplicates(&mat->nodetree->id);
-        }
-        break;
-      }
-
-      case ID_WO: {
-        /* Explicitly not relating worlds and scenes. */
-        World *world = reinterpret_cast<World *>(related_id);
-        if (world->nodetree) {
-          related_ids.append_non_duplicates(&world->nodetree->id);
-        }
         break;
       }
 
@@ -165,15 +152,10 @@ Vector<ID *> find_related_ids(Main &bmain, ID &id)
       default: {
         /* Just check if the ID is used as object data somewhere. */
         add_object_data_users(bmain, *related_id, related_ids);
-        bNodeTree *node_tree = bke::node_tree_from_id(related_id);
-        if (node_tree && ID_REAL_USERS(&node_tree->id) == 1) {
-          related_ids.append_non_duplicates(&node_tree->id);
-        }
 
         Key *key = BKE_key_from_id(related_id);
         if (key) {
           /* No check for multi user because the shape-key cannot be shared. */
-          BLI_assert(ID_REAL_USERS(&key->id) == 1);
           related_ids.append_non_duplicates(&key->id);
         }
         break;

@@ -83,6 +83,7 @@ if(WITH_GTESTS)
     intern/action_legacy_test.cc
     intern/action_test.cc
     intern/anim_rna_test.cc
+    intern/animdata_test.cc
     intern/bone_collections_test.cc
     intern/evaluation_test.cc
     intern/keyframing_test.cc
