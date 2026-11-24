@@ -370,14 +370,19 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
   const uint ignored = ID_RECALC_SELECT | ID_RECALC_FRAME_CHANGE | ID_RECALC_AUDIO_FPS |
                        ID_RECALC_AUDIO_VOLUME | ID_RECALC_AUDIO_MUTE | ID_RECALC_AUDIO_LISTENER |
                        ID_RECALC_AUDIO;
-  /* Only the evaluated ID has recalc flags of changes flushed from dependencies, so use it here.
-   * The checks below use the original ID, for direct changes and lookups of original data. */
+  /* For most datablocks, we want to apply the update "ignore-list" to the original ID, as the
+   * depsgraph's evaluated version may have extra recalc flags (e.g. shading for edit mode
+   * selection), which would trigger cache clears we don't need. */
+  const bool changed = (id->recalc & ~ignored) != 0;
+  /* Node trees are the exception, as when a datablock they use is changed (e.g. movie clip), only
+   * the evaluated copy is flagged, so if we used the original, we'd miss updating. See #165314. */
   const ID *id_eval = DEG_get_evaluated_id(update_ctx->depsgraph, id);
-  if ((id_eval->recalc & ~ignored) == 0) {
+  const bool ntree_output_changed = (id_eval->recalc & ID_RECALC_NTREE_OUTPUT) != 0;
+  if (!changed && !ntree_output_changed) {
     return;
   }
-  Scene *changed_scene = update_ctx->scene;
 
+  Scene *changed_scene = update_ctx->scene;
   /* Changed datablocks invalidate camera-input scene strips. */
   if (id->id_type() != ID_SCE) {
     seq::relations_invalidate_scene_strips(bmain, changed_scene);
