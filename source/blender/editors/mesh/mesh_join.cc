@@ -200,7 +200,11 @@ static void join_shape_keys(Main *bmain,
   VectorSet<std::string> key_names;
   if (Key *key = active_mesh.key) {
     for (KeyBlock &kb : key->block) {
-      kb.data = MEM_realloc_uninitialized(kb.data, sizeof(float3) * dst_verts_num);
+      float3 *new_data = MEM_new_array_uninitialized<float3>(dst_verts_num, __func__);
+      std::copy_n(
+          static_cast<const float3 *>(kb.data), std::min(kb.totelem, dst_verts_num), new_data);
+      MEM_delete(static_cast<float3 *>(kb.data));
+      kb.data = new_data;
       kb.totelem = dst_verts_num;
       key_names.add_new(kb.name);
       key_blocks.append(&kb);

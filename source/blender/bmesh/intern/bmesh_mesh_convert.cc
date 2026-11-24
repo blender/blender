@@ -1001,7 +1001,10 @@ static void bm_to_mesh_shape(BMesh *bm,
         /* Use memory in-place. */
       }
       else {
-        currkey.data = MEM_realloc_uninitialized(currkey.data, key->elemsize * bm->totvert);
+        /* All values are written below, so the old data doesn't have to be copied. */
+        BLI_assert(key->elemsize == sizeof(float3));
+        MEM_delete(static_cast<float3 *>(currkey.data));
+        currkey.data = MEM_new_array_uninitialized<float3>(bm->totvert, __func__);
         currkey.totelem = bm->totvert;
       }
       currkey_data = static_cast<float (*)[3]>(currkey.data);
