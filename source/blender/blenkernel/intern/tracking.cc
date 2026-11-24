@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <climits>
 #include <cmath>
 #include <cstddef>
@@ -728,9 +729,11 @@ static void path_clear_remained(MovieTrackingTrack *track, const int ref_frame)
 {
   for (int a = 1; a < track->markersnr; a++) {
     if (track->markers[a].framenr > ref_frame) {
+      MovieTrackingMarker *new_markers = MEM_new_array<MovieTrackingMarker>(a, __func__);
+      std::copy_n(track->markers, a, new_markers);
+      MEM_delete(track->markers);
+      track->markers = new_markers;
       track->markersnr = a;
-      track->markers = static_cast<MovieTrackingMarker *>(MEM_realloc_uninitialized(
-          track->markers, sizeof(MovieTrackingMarker) * track->markersnr));
 
       break;
     }
@@ -745,13 +748,13 @@ static void path_clear_up_to(MovieTrackingTrack *track, const int ref_frame)
 {
   for (int a = track->markersnr - 1; a >= 0; a--) {
     if (track->markers[a].framenr <= ref_frame) {
-      memmove(track->markers,
-              track->markers + a,
-              (track->markersnr - a) * sizeof(MovieTrackingMarker));
-
-      track->markersnr = track->markersnr - a;
-      track->markers = static_cast<MovieTrackingMarker *>(MEM_realloc_uninitialized(
-          track->markers, sizeof(MovieTrackingMarker) * track->markersnr));
+      const int new_markers_num = track->markersnr - a;
+      MovieTrackingMarker *new_markers = MEM_new_array<MovieTrackingMarker>(new_markers_num,
+                                                                            __func__);
+      std::copy_n(track->markers + a, new_markers_num, new_markers);
+      MEM_delete(track->markers);
+      track->markers = new_markers;
+      track->markersnr = new_markers_num;
 
       break;
     }
@@ -1262,23 +1265,15 @@ MovieTrackingMarker *BKE_tracking_marker_insert(MovieTrackingTrack *track,
     }
   }
 
+  /* Copy existing markers around the new one. */
+  MovieTrackingMarker *new_markers = MEM_new_array<MovieTrackingMarker>(track->markersnr + 1,
+                                                                        __func__);
+  std::copy_n(track->markers, a + 1, new_markers);
+  new_markers[a + 1] = *marker;
+  std::copy(track->markers + a + 1, track->markers + track->markersnr, new_markers + a + 2);
+  MEM_delete(track->markers);
+  track->markers = new_markers;
   track->markersnr++;
-
-  if (track->markers) {
-    track->markers = static_cast<MovieTrackingMarker *>(
-        MEM_realloc_uninitialized(track->markers, sizeof(MovieTrackingMarker) * track->markersnr));
-  }
-  else {
-    track->markers = MEM_new<MovieTrackingMarker>("MovieTracking markers");
-  }
-
-  /* shift array to "free" space for new marker */
-  memmove(track->markers + a + 2,
-          track->markers + a + 1,
-          (track->markersnr - a - 2) * sizeof(MovieTrackingMarker));
-
-  /* put new marker */
-  track->markers[a + 1] = *marker;
 
   return &track->markers[a + 1];
 }
@@ -1290,12 +1285,13 @@ void BKE_tracking_marker_delete(MovieTrackingTrack *track, int framenr)
   while (a < track->markersnr) {
     if (track->markers[a].framenr == framenr) {
       if (track->markersnr > 1) {
-        memmove(track->markers + a,
-                track->markers + a + 1,
-                (track->markersnr - a - 1) * sizeof(MovieTrackingMarker));
+        MovieTrackingMarker *new_markers = MEM_new_array<MovieTrackingMarker>(track->markersnr - 1,
+                                                                              __func__);
+        std::copy_n(track->markers, a, new_markers);
+        std::copy(track->markers + a + 1, track->markers + track->markersnr, new_markers + a);
+        MEM_delete(track->markers);
+        track->markers = new_markers;
         track->markersnr--;
-        track->markers = static_cast<MovieTrackingMarker *>(MEM_realloc_uninitialized(
-            track->markers, sizeof(MovieTrackingMarker) * track->markersnr));
       }
       else {
         MEM_delete(track->markers);
@@ -1747,17 +1743,17 @@ MovieTrackingPlaneMarker *BKE_tracking_plane_marker_insert(MovieTrackingPlaneTra
     }
   }
 
+  /* Copy existing markers around the new one. */
+  MovieTrackingPlaneMarker *new_markers = MEM_new_array<MovieTrackingPlaneMarker>(
+      plane_track->markersnr + 1, __func__);
+  std::copy_n(plane_track->markers, a + 1, new_markers);
+  new_markers[a + 1] = *plane_marker;
+  std::copy(plane_track->markers + a + 1,
+            plane_track->markers + plane_track->markersnr,
+            new_markers + a + 2);
+  MEM_delete(plane_track->markers);
+  plane_track->markers = new_markers;
   plane_track->markersnr++;
-  plane_track->markers = static_cast<MovieTrackingPlaneMarker *>(MEM_realloc_uninitialized(
-      plane_track->markers, sizeof(MovieTrackingPlaneMarker) * plane_track->markersnr));
-
-  /* Shift array to "free" space for new marker. */
-  memmove(plane_track->markers + a + 2,
-          plane_track->markers + a + 1,
-          (plane_track->markersnr - a - 2) * sizeof(MovieTrackingPlaneMarker));
-
-  /* Put new marker to an array. */
-  plane_track->markers[a + 1] = *plane_marker;
 
   return &plane_track->markers[a + 1];
 }
@@ -1769,12 +1765,15 @@ void BKE_tracking_plane_marker_delete(MovieTrackingPlaneTrack *plane_track, int 
   while (a < plane_track->markersnr) {
     if (plane_track->markers[a].framenr == framenr) {
       if (plane_track->markersnr > 1) {
-        memmove(plane_track->markers + a,
-                plane_track->markers + a + 1,
-                (plane_track->markersnr - a - 1) * sizeof(MovieTrackingPlaneMarker));
+        MovieTrackingPlaneMarker *new_markers = MEM_new_array<MovieTrackingPlaneMarker>(
+            plane_track->markersnr - 1, __func__);
+        std::copy_n(plane_track->markers, a, new_markers);
+        std::copy(plane_track->markers + a + 1,
+                  plane_track->markers + plane_track->markersnr,
+                  new_markers + a);
+        MEM_delete(plane_track->markers);
+        plane_track->markers = new_markers;
         plane_track->markersnr--;
-        plane_track->markers = static_cast<MovieTrackingPlaneMarker *>(MEM_realloc_uninitialized(
-            plane_track->markers, sizeof(MovieTrackingMarker) * plane_track->markersnr));
       }
       else {
         MEM_delete(plane_track->markers);
