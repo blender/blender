@@ -25,7 +25,10 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "IO_fbx.hh"
+
 #include "fbx_import_material.hh"
+#include "fbx_import_util.hh"
 
 #include "ufbx.h"
 
@@ -316,6 +319,7 @@ static void add_image_texture(Main *bmain,
                               const ufbx_texture *ftex,
                               const char *socket_name,
                               float node_locy,
+                              const StringRef default_uv,
                               Set<StringRefNull> &done_bsdf_inputs)
 {
   Image *image = load_texture_image(bmain, file_dir, *ftex);
@@ -342,10 +346,21 @@ static void add_image_texture(Main *bmain,
     tex_image->extension = SHD_IMAGE_EXTENSION_EXTEND;
   }
 
-  /* UV transform. */
+  /* UV transform and UV set. Only explicitly bind the UV set when it is not the
+   * default UV of all material users. */
+  const StringRef uv_set(ftex->uv_set.data, ftex->uv_set.length);
+  const bool use_named_uv = !uv_set.is_empty() && uv_set != default_uv;
+  bNode *uv_node = nullptr;
+  if (use_named_uv || ftex->has_uv_transform) {
+    uv_node = add_node(
+        ntree, use_named_uv ? SH_NODE_UVMAP : SH_NODE_TEX_COORD, node_locx_texcoord, node_locy);
+    if (use_named_uv) {
+      auto &storage = *static_cast<NodeShaderUVMap *>(uv_node->storage);
+      uv_set.copy_utf8_truncated(storage.uv_map);
+    }
+  }
+
   if (ftex->has_uv_transform) {
-    /* TODO: which UV set to use. */
-    bNode *uvmap = add_node(ntree, SH_NODE_UVMAP, node_locx_texcoord, node_locy);
     bNode *mapping = add_node(ntree, SH_NODE_MAPPING, node_locx_mapping, node_locy);
     mapping->custom1 = TEXMAP_TYPE_TEXTURE;
     set_socket_vector("Location",
@@ -361,13 +376,20 @@ static void add_image_texture(Main *bmain,
                       1.0f / ftex->uv_transform.scale.z,
                       mapping);
 
-    link_sockets(ntree, uvmap, "UV", mapping, "Vector");
+    link_sockets(ntree, uv_node, "UV", mapping, "Vector");
     link_sockets(ntree, mapping, "Vector", image_node, "Vector");
+  }
+  else if (uv_node != nullptr) {
+    link_sockets(ntree, uv_node, "UV", image_node, "Vector");
   }
 
   done_bsdf_inputs.add(socket_name);
   if (STREQ(socket_name, "Normal")) {
     bNode *normal_node = add_node(ntree, SH_NODE_NORMAL_MAP, node_locx_normalmap, node_locy);
+    if (use_named_uv) {
+      auto &storage = *static_cast<NodeShaderNormalMap *>(normal_node->storage);
+      uv_set.copy_utf8_truncated(storage.uv_map);
+    }
     link_sockets(ntree, image_node, "Color", normal_node, "Color");
     link_sockets(ntree, normal_node, "Normal", bsdf, "Normal");
 
@@ -400,7 +422,8 @@ static void add_image_textures(Main *bmain,
                                const std::string &file_dir,
                                bNodeTree *ntree,
                                bNode *bsdf,
-                               const ufbx_material &fmat)
+                               const ufbx_material &fmat,
+                               const StringRef default_uv)
 {
   float node_locy = node_locy_top;
   Set<StringRefNull> done_bsdf_inputs;
@@ -435,6 +458,7 @@ static void add_image_textures(Main *bmain,
                       map->texture,
                       entry.socket,
                       node_locy,
+                      default_uv,
                       done_bsdf_inputs);
     node_locy -= node_locy_step;
   }
@@ -453,13 +477,24 @@ static void add_image_textures(Main *bmain,
       continue;
     }
 
-    add_image_texture(
-        bmain, file_dir, ntree, bsdf, fmat, ftex, entry.socket, node_locy, done_bsdf_inputs);
+    add_image_texture(bmain,
+                      file_dir,
+                      ntree,
+                      bsdf,
+                      fmat,
+                      ftex,
+                      entry.socket,
+                      node_locy,
+                      default_uv,
+                      done_bsdf_inputs);
     node_locy -= node_locy_step;
   }
 }
 
-Material *import_material(Main *bmain, const std::string &base_dir, const ufbx_material &fmat)
+static Material *import_material(Main *bmain,
+                                 const std::string &base_dir,
+                                 const ufbx_material &fmat,
+                                 const StringRef default_uv)
 {
   Material *mat = BKE_material_add(bmain, fmat.name.data);
   id_us_min(&mat->id);
@@ -468,7 +503,7 @@ Material *import_material(Main *bmain, const std::string &base_dir, const ufbx_m
   bNode *bsdf = add_node(ntree, SH_NODE_BSDF_PRINCIPLED, node_locx_bsdf, node_locy_top);
   bNode *output = add_node(ntree, SH_NODE_OUTPUT_MATERIAL, node_locx_output, node_locy_top);
   set_bsdf_socket_values(bsdf, mat, fmat);
-  add_image_textures(bmain, base_dir, ntree, bsdf, fmat);
+  add_image_textures(bmain, base_dir, ntree, bsdf, fmat, default_uv);
   link_sockets(ntree, bsdf, "BSDF", output, "Surface");
   bke::node_set_active(*ntree, *output);
 
@@ -477,6 +512,67 @@ Material *import_material(Main *bmain, const std::string &base_dir, const ufbx_m
   BKE_ntree_update_after_single_tree_change(*bmain, *mat->nodetree);
 
   return mat;
+}
+
+/* Find common UV set names to use when every mesh using the material has exactly one UV set.
+ * A name entry is empty if any mesh has a different number of UVs or the names disagree. */
+static Map<const ufbx_material *, StringRef> find_material_default_uvs(const ufbx_scene &fbx)
+{
+  Map<const ufbx_material *, StringRef> res;
+  for (const ufbx_mesh *mesh : fbx.meshes) {
+    StringRef uv;
+    if (mesh->uv_sets.count == 1) {
+      uv = StringRef(mesh->uv_sets[0].name.data, mesh->uv_sets[0].name.length);
+    }
+
+    const auto add = [&](const ufbx_material *mat) {
+      if (mat == nullptr) {
+        return;
+      }
+      res.add_or_modify(
+          mat,
+          [&](StringRef *value) { *value = uv; },
+          [&](StringRef *value) {
+            if (*value != uv) {
+              *value = {};
+            }
+          });
+    };
+    for (const ufbx_node *node : mesh->instances) {
+      /* Check both mesh material slots and per-instance material overrides. */
+      for (const ufbx_material *mat : mesh->materials) {
+        add(mat);
+      }
+      for (const ufbx_material *mat : node->materials) {
+        add(mat);
+      }
+    }
+  }
+  return res;
+}
+
+void import_materials(Main &bmain,
+                      const ufbx_scene &fbx,
+                      FbxElementMapping &mapping,
+                      const FBXImportParams &params,
+                      const std::string &base_dir)
+{
+  const Map<const ufbx_material *, StringRef> default_uvs = find_material_default_uvs(fbx);
+
+  for (const ufbx_material *fmat : fbx.materials) {
+    Material *mat = nullptr;
+    /* Check if a material with this name already exists in the main database */
+    if (params.mtl_name_collision_mode == eFBXMtlNameCollisionMode::ReferenceExisting) {
+      mat = id_cast<Material *>(BKE_libblock_find_name(&bmain, ID_MA, fmat->name.data));
+    }
+    if (mat == nullptr) {
+      mat = import_material(&bmain, base_dir, *fmat, default_uvs.lookup_default(fmat, {}));
+      if (params.use_custom_props) {
+        read_custom_properties(fmat->props, mat->id, params.props_enum_as_string);
+      }
+    }
+    mapping.mat_to_material.add(fmat, mat);
+  }
 }
 
 }  // namespace blender::io::fbx

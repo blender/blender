@@ -9,14 +9,23 @@
 #pragma once
 
 #include <string>
-struct ufbx_material;
+
+struct ufbx_scene;
+
 namespace blender {
 
+struct FBXImportParams;
 struct Main;
-struct Material;
+
 namespace io::fbx {
 
-Material *import_material(Main *bmain, const std::string &base_dir, const ufbx_material &fmat);
+struct FbxElementMapping;
+
+void import_materials(Main &bmain,
+                      const ufbx_scene &fbx,
+                      FbxElementMapping &mapping,
+                      const FBXImportParams &params,
+                      const std::string &base_dir);
 
 }  // namespace io::fbx
 }  // namespace blender

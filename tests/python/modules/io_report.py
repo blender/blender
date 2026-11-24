@@ -421,6 +421,11 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
             desc += f" {tex.colorspace_name}"
         if tex.texcoords != 'UV':
             desc += f" uv:{tex.texcoords}"
+        vector = (tex.node_mapping or tex.node_image).inputs["Vector"]
+        if vector.is_linked:
+            uv_node = vector.links[0].from_node
+            if uv_node.type == 'UVMAP':
+                desc += f" uv_map:{uv_node.uv_map!r}"
         if tex.extension != 'REPEAT':
             desc += f" ext:{tex.extension}"
         if tuple(tex.translation) != (0.0, 0.0, 0.0):
@@ -765,9 +770,12 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
                         f"{self._node_shader_image_desc(wrap.emission_strength_texture)}\n"
                     )
                 if (wrap.normalmap_texture and wrap.normalmap_texture.image):
+                    tangent_uv = ""
+                    if wrap.node_normalmap.uv_map:
+                        tangent_uv = f" tangent_uv:{wrap.node_normalmap.uv_map!r}"
                     desc.write(
                         f"  - normalmap {wrap.normalmap_strength:.3f}"
-                        f"{self._node_shader_image_desc(wrap.normalmap_texture)}\n"
+                        f"{self._node_shader_image_desc(wrap.normalmap_texture)}{tangent_uv}\n"
                     )
                 if mat.alpha_threshold != 0.5:
                     desc.write(f"  - alpha_threshold {fmtf(mat.alpha_threshold)}\n")

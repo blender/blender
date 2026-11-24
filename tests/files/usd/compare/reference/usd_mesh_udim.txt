@@ -109,7 +109,7 @@
 
 ==== Materials: 1
 - Mat 'Material_001'
-  - base color (0.800, 0.800, 0.800) tex:'test_grid_<UDIM>.png' (../textures/test_grid_<UDIM>.png) a:False
+  - base color (0.800, 0.800, 0.800) tex:'test_grid_<UDIM>.png' (../textures/test_grid_<UDIM>.png) a:False uv_map:'_'
   - specular ior 0.500
   - specular tint (1.000, 1.000, 1.000)
   - roughness 0.500
