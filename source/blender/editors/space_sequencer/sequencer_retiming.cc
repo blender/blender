@@ -1043,12 +1043,6 @@ wmOperatorStatus sequencer_retiming_select_all_exec(bContext *C, wmOperator *op)
 
   VectorSet<Strip *> strips = all_strips_from_context(C);
 
-  ARegion *region = CTX_wm_region(C);
-  if (region && (region->regiontype == RGN_TYPE_WINDOW)) {
-    strips.remove_if(
-        [&](Strip *strip) { return strip_is_too_small_for_retiming(scene, &region->v2d, strip); });
-  }
-
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
     for (Strip *strip : strips) {
@@ -1066,6 +1060,19 @@ wmOperatorStatus sequencer_retiming_select_all_exec(bContext *C, wmOperator *op)
 
   if (action == SEL_DESELECT) {
     seq::retiming_selection_clear(seq::editing_get(scene));
+  }
+
+  ARegion *region = CTX_wm_region(C);
+  if (region && (region->regiontype == RGN_TYPE_WINDOW)) {
+    strips.remove_if([&](Strip *strip) {
+      if (!strip_is_too_small_for_retiming(scene, &region->v2d, strip)) {
+        return false;
+      }
+      for (SeqRetimingKey &key : seq::retiming_keys_get(strip)) {
+        key.flag &= ~SEQ_KEY_SELECTED;
+      }
+      return true;
+    });
   }
 
   for (Strip *strip : strips) {
