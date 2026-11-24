@@ -904,8 +904,10 @@ void BKE_defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
       dvert->dw[i] = dvert->dw[dvert->totweight];
     }
 
-    dvert->dw = static_cast<MDeformWeight *>(
-        MEM_realloc_uninitialized(dvert->dw, sizeof(MDeformWeight) * dvert->totweight));
+    MDeformWeight *new_dw = MEM_new_array_uninitialized<MDeformWeight>(dvert->totweight, __func__);
+    std::copy_n(dvert->dw, dvert->totweight, new_dw);
+    MEM_delete(dvert->dw);
+    dvert->dw = new_dw;
   }
   else {
     /* If there are no other deform weights left then just remove this one. */

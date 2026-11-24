@@ -1982,8 +1982,9 @@ static int vgroup_limit_total_subset(Object *ob,
           dv->totweight -= num_to_drop;
           /* Do we want to clean/normalize here? */
           MEM_delete(dv->dw);
-          dv->dw = static_cast<MDeformWeight *>(
-              MEM_realloc_uninitialized(dw_temp, sizeof(MDeformWeight) * dv->totweight));
+          dv->dw = MEM_new_array_uninitialized<MDeformWeight>(dv->totweight, __func__);
+          std::copy_n(dw_temp, dv->totweight, dv->dw);
+          MEM_delete(dw_temp);
           remove_tot += num_to_drop;
         }
         else {

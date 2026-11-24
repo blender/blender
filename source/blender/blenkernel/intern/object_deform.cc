@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -495,8 +496,10 @@ void BKE_object_defgroup_index_map_apply(MDeformVert *dvert,
     }
     if (totweight != dv->totweight) {
       if (totweight) {
-        dv->dw = static_cast<MDeformWeight *>(
-            MEM_realloc_uninitialized(dv->dw, sizeof(*dv->dw) * totweight));
+        MDeformWeight *new_dw = MEM_new_array_uninitialized<MDeformWeight>(totweight, __func__);
+        std::copy_n(dv->dw, totweight, new_dw);
+        MEM_delete(dv->dw);
+        dv->dw = new_dw;
       }
       else {
         MEM_SAFE_DELETE(dv->dw);
