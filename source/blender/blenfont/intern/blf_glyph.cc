@@ -1538,8 +1538,10 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
       int h = bitmap_len / w + 1;
 
       gc->bitmap_len_alloc = w * h;
-      gc->bitmap_result = static_cast<char *>(
-          MEM_realloc_uninitialized(gc->bitmap_result, size_t(gc->bitmap_len_alloc)));
+      char *new_bitmap = MEM_new_array_uninitialized<char>(size_t(gc->bitmap_len_alloc), __func__);
+      std::copy_n(gc->bitmap_result, gc->bitmap_len, new_bitmap);
+      MEM_delete(gc->bitmap_result);
+      gc->bitmap_result = new_bitmap;
 
       /* Keep in sync with the texture. */
       if (gc->texture) {
