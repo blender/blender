@@ -483,6 +483,7 @@ class CaseVFont(NamedTuple):
     space_word: float = 1.0
     space_line: float = 1.0
     space_character: float = 1.0
+    small_caps_scale: float = 0.75
     geometry_offset: float = 0.0
     geometry_extrude: float = 0.0
     shear: float = 0.0
@@ -804,6 +805,7 @@ def vfont_create_text_object_from_case(
     curve.space_word = case.space_word
     curve.space_line = case.space_line
     curve.space_character = case.space_character
+    curve.small_caps_scale = case.small_caps_scale
     curve.offset = case.geometry_offset
     curve.extrude = case.geometry_extrude
     curve.shear = case.shear
@@ -3136,6 +3138,55 @@ class TestStyles(TestImageComparison_MixIn, unittest.TestCase):
             size=(84, 59),
             expected_dimensions=(0.882554, 0.535219),
             position_offset=(11.8, 10.0),
+        ),
+    ]
+
+
+class TestSmallCaps(TestImageComparison_MixIn, unittest.TestCase):
+    """Test small caps: scale and styles which split shaping runs."""
+
+    name_prefix = "small_caps."
+
+    cases_vfont = [
+        # Half scale: small caps must be shorter than lowercase letters.
+        CaseVFont(
+            name="scale_half",
+            text=(
+                TextFormatCompose()
+                .text("Juliet ")
+                .style(smallcaps=True).text("Kilo")
+                .style(smallcaps=False).text(" Lima")
+            ),
+            small_caps_scale=0.5,
+            size=(345, 67),
+            expected_dimensions=(4.510989, 0.652473),
+            position_offset=(13.9, 19.4),
+        ),
+        # Full scale: small caps must match regular capitals.
+        CaseVFont(
+            name="scale_one",
+            text=(
+                TextFormatCompose()
+                .text("KILO ")
+                .style(smallcaps=True).text("Kilo")
+            ),
+            small_caps_scale=1.0,
+            size=(249, 57),
+            expected_dimensions=(3.178571, 0.504808),
+            position_offset=(5.2, 10.5),
+        ),
+        # Toggle small caps within a word.
+        CaseVFont(
+            name="split_word",
+            text=(
+                TextFormatCompose()
+                .text("No")
+                .style(smallcaps=True).text("vem")
+                .style(smallcaps=False).text("ber")
+            ),
+            size=(238, 59),
+            expected_dimensions=(3.016655, 0.528846),
+            position_offset=(5.2, 10.5),
         ),
     ]
 
