@@ -1006,14 +1006,23 @@ static void set_scene_compositor_effect_property_common_properties(PropertyRNA *
 static nodes::GeometryNodesInputType get_geometry_nodes_input_type(
     const bNodeTree &tree, const bNodeTreeInterfaceSocket &io_socket, PointerRNA &props)
 {
-  if (PropertyRNA *prop = RNA_struct_find_property(&props, "type")) {
-    const int input_index = tree.interface_input_index(io_socket);
-    if (nodes::input_has_attribute_toggle(tree, input_index)) {
-      return nodes::GeometryNodesInputType(RNA_property_enum_get(&props, prop));
-    }
+  PropertyRNA *prop = RNA_struct_find_property(&props, "type");
+  if (!prop) {
+    return nodes::GeometryNodesInputType::Fallback;
+  }
+  if (is_layer_selection_field(io_socket)) {
+    return nodes::GeometryNodesInputType::Layer;
+  }
+  const int input_index = tree.interface_input_index(io_socket);
+  if (!nodes::input_has_attribute_toggle(tree, input_index)) {
     return nodes::GeometryNodesInputType::Value;
   }
-  return nodes::GeometryNodesInputType::Fallback;
+  if (nodes::GeometryNodesInputType(RNA_property_enum_get(&props, prop)) ==
+      nodes::GeometryNodesInputType::Attribute)
+  {
+    return nodes::GeometryNodesInputType::Attribute;
+  }
+  return nodes::GeometryNodesInputType::Value;
 }
 
 static nodes::GeometryNodesInputType get_geometry_nodes_input_type(

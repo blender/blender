@@ -1319,6 +1319,7 @@ static StructRNA *get_input_socket_struct_rna(IDProperty &input_idprop,
                             nodes::geometry_nodes_input_type_items_value_or_attribute_or_layer,
                             nodes::GeometryNodesInputType::Value);
       make_common_attribute_name_prop(*srna, name, description, input_idprop);
+      RNA_def_string(srna, "layer_name", nullptr, 0, name.c_str(), description.c_str());
       break;
     }
     case SOCK_INT: {
