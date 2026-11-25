@@ -105,12 +105,6 @@ using eSign = int8_t;
 
 using axis_t = uint8_t;
 
-/* use for sorting */
-struct KDTreeNode2D_head {
-  uint32_t neg, pos;
-  uint32_t index;
-};
-
 struct KDTreeNode2D {
   uint32_t neg, pos;
   uint32_t index;
@@ -312,7 +306,6 @@ static uint32_t kdtree2d_balance_recursive(KDTreeNode2D *nodes,
                                            const uint32_t ofs)
 {
   KDTreeNode2D *node;
-  uint32_t neg, pos, median, i, j;
 
   if (node_num <= 0) {
     return KDNODE_UNSET;
@@ -321,36 +314,13 @@ static uint32_t kdtree2d_balance_recursive(KDTreeNode2D *nodes,
     return 0 + ofs;
   }
 
-  /* Quick-sort style sorting around median. */
-  neg = 0;
-  pos = node_num - 1;
-  median = node_num / 2;
-
-  while (pos > neg) {
-    const float co = coords[nodes[pos].index][axis];
-    i = neg - 1;
-    j = pos;
-
-    while (true) {
-      while (coords[nodes[++i].index][axis] < co) { /* pass */
-      }
-      while (coords[nodes[--j].index][axis] > co && j > neg) { /* pass */
-      }
-
-      if (i >= j) {
-        break;
-      }
-      SWAP(KDTreeNode2D_head, *(KDTreeNode2D_head *)&nodes[i], *(KDTreeNode2D_head *)&nodes[j]);
-    }
-
-    SWAP(KDTreeNode2D_head, *(KDTreeNode2D_head *)&nodes[i], *(KDTreeNode2D_head *)&nodes[pos]);
-    if (i >= median) {
-      pos = i - 1;
-    }
-    if (i <= median) {
-      neg = i + 1;
-    }
-  }
+  const uint32_t median = node_num / 2;
+  std::nth_element(nodes,
+                   nodes + median,
+                   nodes + node_num,
+                   [coords, axis](const KDTreeNode2D &a, const KDTreeNode2D &b) {
+                     return coords[a.index][axis] < coords[b.index][axis];
+                   });
 
   /* Set node and sort sub-nodes. */
   node = &nodes[median];
