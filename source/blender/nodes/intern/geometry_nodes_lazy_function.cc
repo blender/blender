@@ -2893,10 +2893,10 @@ struct GeometryNodesLazyFunctionBuilder {
   void build_fallback_group_outputs(lf::Graph &lf_graph)
   {
     for (const bNodeTreeInterfaceSocket *interface_output : btree_.interface_outputs()) {
-      const bke::bNodeSocketType *typeinfo = interface_output->socket_typeinfo();
+      const bke::bNodeSocketType &typeinfo = interface_output->socket_typeinfo();
       lf::GraphOutputSocket &lf_socket = lf_graph.add_output(CPPType::get<SocketValueVariant>(),
                                                              interface_output->name());
-      lf_socket.set_default_value(typeinfo->geometry_nodes_default_value);
+      lf_socket.set_default_value(typeinfo.geometry_nodes_default_value);
       standard_group_output_sockets_.append(&lf_socket);
     }
   }
@@ -4307,14 +4307,12 @@ ensure_geometry_nodes_lazy_function_graph_impl(const bNodeTree &btree)
     }
   }
   for (const bNodeTreeInterfaceSocket *interface_bsocket : btree.interface_inputs()) {
-    const bke::bNodeSocketType *typeinfo = interface_bsocket->socket_typeinfo();
-    if (!typeinfo || !typeinfo->geometry_nodes_default_value) {
+    if (!interface_bsocket->socket_typeinfo().geometry_nodes_default_value) {
       return nullptr;
     }
   }
   for (const bNodeTreeInterfaceSocket *interface_bsocket : btree.interface_outputs()) {
-    const bke::bNodeSocketType *typeinfo = interface_bsocket->socket_typeinfo();
-    if (!typeinfo || !typeinfo->geometry_nodes_default_value) {
+    if (!interface_bsocket->socket_typeinfo().geometry_nodes_default_value) {
       return nullptr;
     }
   }

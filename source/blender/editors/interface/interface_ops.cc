@@ -1085,11 +1085,11 @@ static bool tree_interface_item_can_set_prop(const bNodeTreeInterfaceItem &item,
         return sock.flag & NODE_INTERFACE_SOCKET_INPUT;
       }
       if (STREQ(prop_id, "attribute_domain") && sock.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
-        return nodes::socket_type_supports_attributes(sock.socket_typeinfo()->type);
+        return nodes::socket_type_supports_attributes(sock.socket_typeinfo().type);
       }
       /* Other properties only support batch setting for selected items of the same type. */
       const auto &active_sock = reinterpret_cast<const bNodeTreeInterfaceSocket &>(active_item);
-      return sock.socket_typeinfo()->type == active_sock.socket_typeinfo()->type;
+      return sock.socket_typeinfo().type == active_sock.socket_typeinfo().type;
     }
     case NodeTreeInterfaceItemType::Panel: {
       const auto &panel = reinterpret_cast<const bNodeTreeInterfacePanel &>(item);

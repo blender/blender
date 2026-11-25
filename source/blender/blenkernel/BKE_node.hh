@@ -599,7 +599,8 @@ struct bNodeTreeType {
   bool (*validate_link)(eNodeSocketDatatype from, eNodeSocketDatatype to) = nullptr;
 
   /* Check if the socket type is valid for this tree type. */
-  bool (*valid_socket_type)(bNodeTreeType *ntreetype, bNodeSocketType *socket_type) = nullptr;
+  bool (*valid_socket_type)(bNodeTreeType *ntreetype,
+                            const bNodeSocketType *socket_type) = nullptr;
 
   /**
    * If true, then some UI elements related to building node groups will be hidden.

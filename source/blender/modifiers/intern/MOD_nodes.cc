@@ -413,14 +413,14 @@ static void update_system_properties(Main &bmain, Object &object, NodesModifierD
 
   nmd.node_group->ensure_interface_cache();
   for (const bNodeTreeInterfaceSocket *io_socket : nmd.node_group->interface_inputs()) {
-    const bke::bNodeSocketType *stype = io_socket->socket_typeinfo();
-    if (stype && stype->update_props_on_interface_change__geometry_nodes) {
+    const bke::bNodeSocketType &stype = io_socket->socket_typeinfo();
+    if (stype.update_props_on_interface_change__geometry_nodes) {
       PointerRNA input_ptr = RNA_pointer_get(&inputs_ptr, io_socket->identifier);
       if (!input_ptr.data) {
         continue;
       }
       const bke::UpdatePropsOnInterfaceChangeParams params{*nmd.node_group, *io_socket, input_ptr};
-      stype->update_props_on_interface_change__geometry_nodes(params);
+      stype.update_props_on_interface_change__geometry_nodes(params);
     }
   }
 }
@@ -1920,7 +1920,7 @@ void NodesModifierUsageInferenceCache::ensure(const Object &object, const NodesM
     if (value.is_primitive_value()) {
       const void *value_ptr = value.get_primitive_ptr();
       const bNodeTreeInterfaceSocket &io_socket = *nmd.node_group->interface_inputs()[input_i];
-      const CPPType &base_type = *io_socket.socket_typeinfo()->base_cpp_type;
+      const CPPType &base_type = *io_socket.socket_typeinfo().base_cpp_type;
       uint64_t value_hash = base_type.hash_or_fallback(value_ptr, 0);
       XXH3_64bits_update(state, &value_hash, sizeof(value_hash));
     }

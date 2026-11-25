@@ -766,7 +766,7 @@ static void rna_NodeTree_get_from_context(
 }
 
 static bool rna_NodeTree_valid_socket_type(bke::bNodeTreeType *ntreetype,
-                                           bke::bNodeSocketType *socket_type)
+                                           const bke::bNodeSocketType *socket_type)
 {
   ParameterList list;
   FunctionRNA *func;

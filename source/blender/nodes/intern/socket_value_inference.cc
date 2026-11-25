@@ -1060,21 +1060,18 @@ Vector<InferenceValue> get_input_inference_values(ValueInferenceContext inferenc
 
   for (const int input_i : tree.interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket &io_input = *tree.interface_inputs()[input_i];
-    const bke::bNodeSocketType *stype = io_input.socket_typeinfo();
-    if (!stype) {
-      continue;
-    }
+    const bke::bNodeSocketType &stype = io_input.socket_typeinfo();
     bke::SocketSrnaToInferenceValueFunction get_inference_value_fn = nullptr;
     switch (inference_context) {
       case ValueInferenceContext::GeometryNodesModifier:
       case ValueInferenceContext::GeometryNodesOperator: {
-        get_inference_value_fn = stype->get_inference_value_from_rna_props__geometry_nodes;
+        get_inference_value_fn = stype.get_inference_value_from_rna_props__geometry_nodes;
         break;
       }
       case ValueInferenceContext::CompositorStripModifier:
       case ValueInferenceContext::CompositorStripEffect:
       case ValueInferenceContext::CompositorSceneEffect: {
-        get_inference_value_fn = stype->get_inference_value_from_rna_props__compositor_nodes;
+        get_inference_value_fn = stype.get_inference_value_from_rna_props__compositor_nodes;
         break;
       }
     }

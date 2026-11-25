@@ -1544,9 +1544,7 @@ static void std_node_socket_interface_draw(ID *id,
 {
   PointerRNA ptr = RNA_pointer_create_discrete(id, RNA_NodeTreeInterfaceSocket, interface_socket);
 
-  const bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
-  BLI_assert(typeinfo != nullptr);
-  eNodeSocketDatatype type = typeinfo->type;
+  eNodeSocketDatatype type = interface_socket->socket_typeinfo().type;
 
   ui::Layout *col = &layout->column(false);
 

@@ -88,8 +88,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
   /* Use #ui::Layout::prop_search to draw pointer properties because #ui::Layout::prop would not
    * have enough information about what type of ID to select for editing the values. This is
    * because pointer IDProperties contain no information about their type. */
-  const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
-  const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+  const eNodeSocketDatatype type = socket.socket_typeinfo().type;
 
   /* Check #composite_node_tree_socket_type_valid for which socket types are valid and should be
    * drawn. */
@@ -224,8 +223,7 @@ static Array<bool> find_automatic_inputs(const bNodeTree &tree,
   int floats_left = num_float_inputs;
   int colors_left = num_color_inputs;
   for (const int i : inputs.index_range()) {
-    const bke::bNodeSocketType *typeinfo = inputs[i]->socket_typeinfo();
-    const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+    const eNodeSocketDatatype socket_type = inputs[i]->socket_typeinfo().type;
     if (floats_left > 0 && socket_type == SOCK_FLOAT) {
       supplied_inputs[i] = true;
       floats_left--;
@@ -270,8 +268,7 @@ static void draw_error_message(const bNodeTree &tree, ui::Layout &layout, const 
   const Span<const bNodeTreeInterfaceSocket *> interface_ouputs = tree.interface_outputs();
 
   if (interface_inputs.size() > 0) {
-    const bke::bNodeSocketType *typeinfo = interface_inputs[0]->socket_typeinfo();
-    const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+    const eNodeSocketDatatype socket_type = interface_inputs[0]->socket_typeinfo().type;
     if (socket_type != SOCK_RGBA) {
       ui::Layout &row = layout.row(false);
       row.label(RPT_("The first node group input must have the Color type"), ICON_STATUS_ERROR);
@@ -285,8 +282,7 @@ static void draw_error_message(const bNodeTree &tree, ui::Layout &layout, const 
                 ICON_STATUS_ERROR);
     }
     else {
-      const bke::bNodeSocketType *typeinfo = interface_inputs[1]->socket_typeinfo();
-      const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+      const eNodeSocketDatatype socket_type = interface_inputs[1]->socket_typeinfo().type;
       if (socket_type != SOCK_RGBA) {
         ui::Layout &row = layout.row(false);
         row.label(RPT_("The second node group input must have the Color type"), ICON_STATUS_ERROR);
@@ -299,8 +295,7 @@ static void draw_error_message(const bNodeTree &tree, ui::Layout &layout, const 
     row.label(RPT_("Node group must have an output"), ICON_STATUS_ERROR);
   }
   else {
-    const bke::bNodeSocketType *typeinfo = interface_ouputs[0]->socket_typeinfo();
-    const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+    const eNodeSocketDatatype socket_type = interface_ouputs[0]->socket_typeinfo().type;
     if (socket_type != SOCK_RGBA) {
       ui::Layout &row = layout.row(false);
       row.label(RPT_("The first node group output must have the Color type"), ICON_STATUS_ERROR);

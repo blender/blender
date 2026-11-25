@@ -188,7 +188,7 @@ LocalInverseEvalTargets find_local_inverse_eval_targets(const bNodeTree &tree,
 
   for (const int group_input_index : tree.interface_inputs().index_range()) {
     const eNodeSocketDatatype type = eNodeSocketDatatype(
-        tree.interface_inputs()[group_input_index]->socket_typeinfo()->type);
+        tree.interface_inputs()[group_input_index]->socket_typeinfo().type);
     std::optional<ElemVariant> elem = get_elem_variant_for_socket_type(type);
     if (!elem) {
       continue;
@@ -561,7 +561,7 @@ static bool set_modifier_value(bContext &C,
       BLI_str_escape(nmd.modifier.name),
       interface_socket.identifier);
 
-  switch (interface_socket.socket_typeinfo()->type) {
+  switch (interface_socket.socket_typeinfo().type) {
     case SOCK_FLOAT: {
       const float value = value_variant.copy_as<float>();
       return set_rna_property(C, object.id, main_prop_rna_path, value);

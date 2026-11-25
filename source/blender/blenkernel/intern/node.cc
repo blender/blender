@@ -554,15 +554,13 @@ static void node_foreach_working_space_color(ID *id, const IDTypeForeachColorFun
   }
 
   for (bNodeTreeInterfaceSocket *socket : ntree->interface_inputs()) {
-    const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
-    if (typeinfo && typeinfo->type == SOCK_RGBA && socket->socket_data) {
+    if (socket->socket_typeinfo().type == SOCK_RGBA && socket->socket_data) {
       bNodeSocketValueRGBA *rgba = static_cast<bNodeSocketValueRGBA *>(socket->socket_data);
       fn.single(rgba->value);
     }
   }
   for (bNodeTreeInterfaceSocket *socket : ntree->interface_outputs()) {
-    const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
-    if (typeinfo && typeinfo->type == SOCK_RGBA && socket->socket_data) {
+    if (socket->socket_typeinfo().type == SOCK_RGBA && socket->socket_data) {
       bNodeSocketValueRGBA *rgba = static_cast<bNodeSocketValueRGBA *>(socket->socket_data);
       fn.single(rgba->value);
     }

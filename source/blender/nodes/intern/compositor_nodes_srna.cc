@@ -135,18 +135,15 @@ static StructRNA *get_input_socket_struct_rna(const bNodeTree &tree,
                                               const CompositorNodesSrnaContext &context,
                                               GeneratedTreeSrnaData &r_generated)
 {
-  const bke::bNodeSocketType *stype = socket.socket_typeinfo();
-  if (!stype) {
-    return nullptr;
-  }
+  const bke::bNodeSocketType &stype = socket.socket_typeinfo();
   const StringRefNull srna_identifier = r_generated.scope.allocator().copy_string(
       socket.identifier);
 
   StructRNA *srna = RNA_def_struct_ptr(
       r_generated.generated_rna, srna_identifier.c_str(), RNA_PropertyGroup);
   RNA_def_struct_path_func_runtime(srna, context.path_func);
-  if (stype->make_compositor_nodes_input_srna) {
-    stype->make_compositor_nodes_input_srna(tree, *srna, socket, r_generated);
+  if (stype.make_compositor_nodes_input_srna) {
+    stype.make_compositor_nodes_input_srna(tree, *srna, socket, r_generated);
   }
 
   return srna;

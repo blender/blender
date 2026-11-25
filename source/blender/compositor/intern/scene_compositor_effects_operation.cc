@@ -48,7 +48,7 @@ static Result *get_effect_input(Context &context,
   compositor::Result *result = new compositor::Result(
       context.create_result(get_node_interface_socket_result_type(input_socket)));
   result->allocate_single_value();
-  switch (input_socket.socket_typeinfo()->type) {
+  switch (input_socket.socket_typeinfo().type) {
     case SOCK_FLOAT: {
       const float value = RNA_float_get(&input_ptr, "value");
       result->set_single_value(value);

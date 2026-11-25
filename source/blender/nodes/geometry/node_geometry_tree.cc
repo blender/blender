@@ -125,7 +125,7 @@ static bool geometry_node_tree_validate_link(eNodeSocketDatatype type_a,
 }
 
 static bool geometry_node_tree_socket_type_valid(bke::bNodeTreeType * /*treetype*/,
-                                                 bke::bNodeSocketType *socket_type)
+                                                 const bke::bNodeSocketType *socket_type)
 {
   return bke::node_is_static_socket_type(*socket_type) &&
          (ELEM(socket_type->type,
@@ -168,10 +168,7 @@ void register_node_tree_type_geo()
 
 bool is_layer_selection_field(const bNodeTreeInterfaceSocket &socket)
 {
-  const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
-  BLI_assert(typeinfo != nullptr);
-
-  if (typeinfo->type != SOCK_BOOLEAN) {
+  if (socket.socket_typeinfo().type != SOCK_BOOLEAN) {
     return false;
   }
   return (socket.flag & NODE_INTERFACE_SOCKET_LAYER_SELECTION) != 0;

@@ -355,8 +355,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
         /* NOTE: int stemp->type is not fully reliable, not used for node group
          * interface sockets. use the typeinfo->type instead.
          */
-        const bke::bNodeSocketType *typeinfo = iosock->socket_typeinfo();
-        item.socket_type = typeinfo->type;
+        item.socket_type = iosock->socket_typeinfo().type;
         item.socket_name = iosock->name().c_str();
         item.node_name = ngroup.id.name + 2;
         item.ngroup = &ngroup;

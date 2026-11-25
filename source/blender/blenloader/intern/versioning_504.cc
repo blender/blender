@@ -76,8 +76,7 @@ static void version_float_socket_precision(Main &bmain)
         if (bNodeTreeInterfaceSocket *socket =
                 bke::node_interface::get_item_as<bNodeTreeInterfaceSocket>(&item))
         {
-          const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
-          if (typeinfo && typeinfo->type == SOCK_FLOAT && socket->socket_data) {
+          if (socket->socket_typeinfo().type == SOCK_FLOAT && socket->socket_data) {
             version_float_socket_value_precision(
                 *static_cast<bNodeSocketValueFloat *>(socket->socket_data));
           }

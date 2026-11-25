@@ -92,9 +92,7 @@ static void socket_data_free(bNodeTreeInterfaceSocket &socket, const bool do_id_
   if (socket.socket_data == nullptr) {
     return;
   }
-  if (const bNodeSocketType *stype = socket.socket_typeinfo()) {
-    socket_value_free(stype->type, socket.socket_data, do_id_user);
-  }
+  socket_value_free(socket.socket_typeinfo().type, socket.socket_data, do_id_user);
   socket.socket_data = nullptr;
 }
 
@@ -109,9 +107,7 @@ static void socket_data_copy(bNodeTreeInterfaceSocket &dst,
                              int flag)
 {
   const bool do_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
-  if (const bNodeSocketType *stype = src.socket_typeinfo()) {
-    dst.socket_data = socket_value_copy(stype->type, src.socket_data, do_id_user);
-  }
+  dst.socket_data = socket_value_copy(src.socket_typeinfo().type, src.socket_data, do_id_user);
 }
 
 /* Copy socket data from a raw pointer, e.g. from a #bNodeSocket. */
@@ -124,9 +120,7 @@ static void socket_data_copy_ptr(bNodeTreeInterfaceSocket &dst,
   }
 
   const bool do_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
-  if (const bNodeSocketType *stype = dst.socket_typeinfo()) {
-    dst.socket_data = socket_value_copy(stype->type, src_socket_data, do_id_user);
-  }
+  dst.socket_data = socket_value_copy(dst.socket_typeinfo().type, src_socket_data, do_id_user);
 }
 
 /** \} */
@@ -686,9 +680,8 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
       IDP_BlendDataRead(reader, &socket.properties);
 
       /* Improve forward compatibility for unknown default input types. */
-      const bNodeSocketType *stype = socket.socket_typeinfo();
-      if (!stype || !nodes::socket_type_supports_default_input_type(
-                        *stype, NodeDefaultInputType(socket.default_input)))
+      if (!nodes::socket_type_supports_default_input_type(
+              socket.socket_typeinfo(), NodeDefaultInputType(socket.default_input)))
       {
         socket.default_input = NODE_DEFAULT_INPUT_VALUE;
       }
@@ -779,21 +772,21 @@ StringRefNull bNodeTreeInterfaceSocket::description() const
   return this->description_ ? this->description_ : "";
 }
 
-bke::bNodeSocketType *bNodeTreeInterfaceSocket::socket_typeinfo() const
+const bke::bNodeSocketType &bNodeTreeInterfaceSocket::socket_typeinfo() const
 {
-  bke::bNodeSocketType *value = bke::node_socket_type_find(socket_type);
+  const bke::bNodeSocketType *value = bke::node_socket_type_find(socket_type);
   if (!value) {
-    return &bke::NodeSocketTypeUndefined;
+    return bke::NodeSocketTypeUndefined;
   }
-  return value;
+  return *value;
 }
 
 ColorGeometry4f bNodeTreeInterfaceSocket::socket_color() const
 {
-  bke::bNodeSocketType *typeinfo = this->socket_typeinfo();
-  if (typeinfo && typeinfo->draw_color_simple) {
+  const bke::bNodeSocketType &typeinfo = this->socket_typeinfo();
+  if (typeinfo.draw_color_simple) {
     float color[4];
-    typeinfo->draw_color_simple(typeinfo, color);
+    typeinfo.draw_color_simple(&typeinfo, color);
     return ColorGeometry4f(color);
   }
   return ColorGeometry4f(1.0f, 0.0f, 1.0f, 1.0f);
@@ -813,16 +806,16 @@ bool bNodeTreeInterfaceSocket::set_socket_type(const StringRef new_socket_type)
   this->socket_type = BLI_strdupn(new_socket_type.data(), new_socket_type.size());
   this->socket_data = socket_types::make_socket_data(new_socket_type);
 
-  bke::bNodeSocketType *stype = this->socket_typeinfo();
-  if (!nodes::socket_type_supports_default_input_type(*stype,
+  const bke::bNodeSocketType &stype = this->socket_typeinfo();
+  if (!nodes::socket_type_supports_default_input_type(stype,
                                                       NodeDefaultInputType(this->default_input)))
   {
     this->default_input = NODE_DEFAULT_INPUT_VALUE;
   }
 
   /* Reset unsupported structure_type to auto. */
-  const bool supports_fields = nodes::socket_type_supports_fields(stype->type);
-  const bool supports_grids = nodes::socket_type_supports_grids(stype->type);
+  const bool supports_fields = nodes::socket_type_supports_fields(stype.type);
+  const bool supports_grids = nodes::socket_type_supports_grids(stype.type);
   const bool supports_dynamic = supports_fields || supports_grids;
   const bool supports_lists = true;
   switch (this->structure_type) {
@@ -881,8 +874,7 @@ void bNodeTreeInterfaceSocket::update_socket_type()
     MEM_SAFE_DELETE(this->socket_type);
     this->socket_type = BLI_strdup(new_socket_type.c_str());
 
-    bke::bNodeSocketType *stype = this->socket_typeinfo();
-    if (!nodes::socket_type_supports_default_input_type(*stype,
+    if (!nodes::socket_type_supports_default_input_type(this->socket_typeinfo(),
                                                         NodeDefaultInputType(this->default_input)))
     {
       this->default_input = NODE_DEFAULT_INPUT_VALUE;
@@ -1255,8 +1247,7 @@ const bNodeTreeInterfaceSocket *bNodeTreeInterfacePanel::header_toggle_socket() 
   {
     return nullptr;
   }
-  const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
-  if (!typeinfo || typeinfo->type != SOCK_BOOLEAN) {
+  if (socket.socket_typeinfo().type != SOCK_BOOLEAN) {
     return nullptr;
   }
   return &socket;
@@ -1359,9 +1350,9 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(
   if (iosock == nullptr) {
     return nullptr;
   }
-  const bke::bNodeSocketType *typeinfo = iosock->socket_typeinfo();
-  if (typeinfo->interface_from_socket) {
-    typeinfo->interface_from_socket(&ntree.id, iosock, &from_node, &from_sock);
+  const bke::bNodeSocketType &typeinfo = iosock->socket_typeinfo();
+  if (typeinfo.interface_from_socket) {
+    typeinfo.interface_from_socket(&ntree.id, iosock, &from_node, &from_sock);
   }
   return iosock;
 }

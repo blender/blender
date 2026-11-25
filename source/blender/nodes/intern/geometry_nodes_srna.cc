@@ -97,10 +97,7 @@ static StructRNA *get_input_socket_struct_rna(const bNodeTree &tree,
                                               const bNodeTreeInterfaceSocket &socket,
                                               GeneratedTreeSrnaData &r_generated)
 {
-  const bke::bNodeSocketType *stype = socket.socket_typeinfo();
-  if (!stype) {
-    return nullptr;
-  }
+  const bke::bNodeSocketType &stype = socket.socket_typeinfo();
   // TODO: Does this actually need to copy the string?
   const StringRefNull srna_identifier = r_generated.scope.allocator().copy_string(
       socket.identifier);
@@ -108,8 +105,8 @@ static StructRNA *get_input_socket_struct_rna(const bNodeTree &tree,
   StructRNA *srna = RNA_def_struct_ptr(
       r_generated.generated_rna, srna_identifier.c_str(), RNA_PropertyGroup);
   RNA_def_struct_path_func_runtime(srna, rna_NodesModifierPropertyInput_path);
-  if (stype->make_geometry_nodes_input_srna) {
-    stype->make_geometry_nodes_input_srna(tree, *srna, socket, r_generated);
+  if (stype.make_geometry_nodes_input_srna) {
+    stype.make_geometry_nodes_input_srna(tree, *srna, socket, r_generated);
   }
 
   return srna;

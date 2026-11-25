@@ -55,9 +55,9 @@ bool socket_type_has_attribute_toggle(const eNodeSocketDatatype type)
 bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_index)
 {
   node_tree.ensure_interface_cache();
-  const bke::bNodeSocketType *typeinfo =
+  const bke::bNodeSocketType &typeinfo =
       node_tree.interface_inputs()[socket_index]->socket_typeinfo();
-  if (!typeinfo || !socket_type_has_attribute_toggle(typeinfo->type)) {
+  if (!socket_type_has_attribute_toggle(typeinfo.type)) {
     return false;
   }
   BLI_assert(node_tree.runtime->structure_type_interface);
@@ -71,16 +71,16 @@ static bke::SocketValueVariant init_socket_cpp_value(const GeoNodesCallData *cal
                                                      const bNodeTree &ntree,
                                                      const bNodeTreeInterfaceSocket &io_socket)
 {
-  const bke::bNodeSocketType *stype = io_socket.socket_typeinfo();
-  if (stype->get_eval_value_from_rna_props__geometry_nodes) {
+  const bke::bNodeSocketType &stype = io_socket.socket_typeinfo();
+  if (stype.get_eval_value_from_rna_props__geometry_nodes) {
     bke::GetSocketEvalValueParams params = {ntree, io_socket, call_data, *input_props_ptr};
     if (std::optional<bke::SocketValueVariant> value =
-            stype->get_eval_value_from_rna_props__geometry_nodes(params))
+            stype.get_eval_value_from_rna_props__geometry_nodes(params))
     {
       return std::move(*value);
     }
   }
-  return *stype->geometry_nodes_default_value;
+  return *stype.geometry_nodes_default_value;
 }
 
 struct OutputAttributeInfo {
@@ -323,8 +323,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
   /* Prepare main inputs. */
   for (const int i : btree.interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket &interface_socket = *btree.interface_inputs()[i];
-    const bke::bNodeSocketType *typeinfo = interface_socket.socket_typeinfo();
-    const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+    const eNodeSocketDatatype socket_type = interface_socket.socket_typeinfo().type;
     if (socket_type == SOCK_GEOMETRY && i == 0) {
       bke::SocketValueVariant &value = scope.construct<bke::SocketValueVariant>(
           bke::SocketValueVariant::from(std::move(input_geometry)));

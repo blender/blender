@@ -53,11 +53,8 @@ static StructureType ensure_supported_structure_type(const bNodeSocket &socket,
 static StructureType ensure_supported_structure_type(const bNodeTreeInterfaceSocket &io_socket,
                                                      const StructureType structure_type)
 {
-  const bke::bNodeSocketType *socket_type = io_socket.socket_typeinfo();
-  if (!socket_type) {
-    return structure_type;
-  }
-  return ensure_supported_structure_type(eNodeSocketDatatype(socket_type->type), structure_type);
+  return ensure_supported_structure_type(eNodeSocketDatatype(io_socket.socket_typeinfo().type),
+                                         structure_type);
 }
 
 static nodes::StructureTypeInterface calc_node_interface(const bNode &node)

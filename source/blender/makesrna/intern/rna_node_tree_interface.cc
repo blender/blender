@@ -243,9 +243,9 @@ static void rna_NodeTreeInterfaceSocket_draw_builtin(ID *id,
                                                      bContext *C,
                                                      ui::Layout *layout)
 {
-  bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
-  if (typeinfo && typeinfo->interface_draw) {
-    typeinfo->interface_draw(id, interface_socket, C, layout);
+  const bke::bNodeSocketType &typeinfo = interface_socket->socket_typeinfo();
+  if (typeinfo.interface_draw) {
+    typeinfo.interface_draw(id, interface_socket, C, layout);
   }
 }
 
@@ -279,9 +279,9 @@ static void rna_NodeTreeInterfaceSocket_init_socket_builtin(
     bNodeSocket *socket,
     const char *data_path)
 {
-  bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
-  if (typeinfo && typeinfo->interface_draw) {
-    typeinfo->interface_init_socket(id, interface_socket, node, socket, data_path);
+  const bke::bNodeSocketType &typeinfo = interface_socket->socket_typeinfo();
+  if (typeinfo.interface_draw) {
+    typeinfo.interface_init_socket(id, interface_socket, node, socket, data_path);
   }
 }
 
@@ -315,9 +315,9 @@ static void rna_NodeTreeInterfaceSocket_init_socket_custom(
 static void rna_NodeTreeInterfaceSocket_from_socket_builtin(
     ID *id, bNodeTreeInterfaceSocket *interface_socket, bNode *node, bNodeSocket *socket)
 {
-  bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
-  if (typeinfo && typeinfo->interface_draw) {
-    typeinfo->interface_from_socket(id, interface_socket, node, socket);
+  const bke::bNodeSocketType &typeinfo = interface_socket->socket_typeinfo();
+  if (typeinfo.interface_draw) {
+    typeinfo.interface_from_socket(id, interface_socket, node, socket);
   }
 }
 
@@ -550,7 +550,7 @@ static void rna_NodeTreeInterfaceSocket_force_non_field_set(PointerRNA *ptr, con
 static void rna_NodeTreeInterfaceSocket_structure_type_set(PointerRNA *ptr, int value)
 {
   bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
-  const eNodeSocketDatatype socket_type = socket->socket_typeinfo()->type;
+  const eNodeSocketDatatype socket_type = socket->socket_typeinfo().type;
   const bool supports_fields = nodes::socket_type_supports_fields(socket_type);
   const bool supports_grids = nodes::socket_type_supports_grids(socket_type);
 
@@ -639,7 +639,7 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_structure_type_itemf(
   const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
   const bNodeTreeInterfaceSocket *socket = static_cast<const bNodeTreeInterfaceSocket *>(
       ptr->data);
-  const eNodeSocketDatatype socket_type = socket->socket_typeinfo()->type;
+  const eNodeSocketDatatype socket_type = socket->socket_typeinfo().type;
   return rna_NodeSocket_structure_type_item_filter(ntree, socket_type, r_free);
 }
 
@@ -652,18 +652,14 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
   if (!ntree) {
     return rna_enum_dummy_NULL_items;
   }
-  const bke::bNodeSocketType *stype = socket->socket_typeinfo();
-  if (!stype) {
-    return rna_enum_dummy_NULL_items;
-  }
-
+  const bke::bNodeSocketType &stype = socket->socket_typeinfo();
   *r_free = true;
   EnumPropertyItem *items = nullptr;
   int items_count = 0;
 
   for (const EnumPropertyItem *item = node_default_input_items; item->identifier; item++) {
     const NodeDefaultInputType type = NodeDefaultInputType(item->value);
-    if (!nodes::socket_type_supports_default_input_type(*stype, type)) {
+    if (!nodes::socket_type_supports_default_input_type(stype, type)) {
       continue;
     }
 
@@ -820,7 +816,7 @@ static bNodeTreeInterfaceItem *rna_NodeTreeInterfaceItems_copy_to_parent(
     blender::bke::bNodeTreeType *ntreetype = interface_node_tree.typeinfo;
     /* Check if the node tree supports the socket type. */
     if (ntreetype->valid_socket_type &&
-        !ntreetype->valid_socket_type(ntreetype, socket->socket_typeinfo()))
+        !ntreetype->valid_socket_type(ntreetype, &socket->socket_typeinfo()))
     {
       BKE_report(reports,
                  RPT_ERROR_INVALID_INPUT,

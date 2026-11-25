@@ -111,7 +111,7 @@ static void update(bNodeTree *ntree)
 }
 
 static bool composite_node_tree_socket_type_valid(bke::bNodeTreeType * /*ntreetype*/,
-                                                  bke::bNodeSocketType *socket_type)
+                                                  const bke::bNodeSocketType *socket_type)
 {
   return bke::node_is_static_socket_type(*socket_type) && ELEM(socket_type->type,
                                                                SOCK_FLOAT,

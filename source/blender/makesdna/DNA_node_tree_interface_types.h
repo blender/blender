@@ -158,7 +158,7 @@ struct bNodeTreeInterfaceSocket {
   StringRefNull name() const;
   StringRefNull description() const;
 
-  bke::bNodeSocketType *socket_typeinfo() const;
+  const bke::bNodeSocketType &socket_typeinfo() const;
   ColorGeometry4f socket_color() const;
 
   /**

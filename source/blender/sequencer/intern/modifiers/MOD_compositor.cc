@@ -159,10 +159,10 @@ class CompositorModifierContext : public CompositorContext {
     Vector<std::unique_ptr<Result>> inputs;
     const Span<const bNodeTreeInterfaceSocket *> interface_inputs = node_group.interface_inputs();
     for (const bNodeTreeInterfaceSocket *input_socket : interface_inputs) {
-      bke::bNodeSocketType *typeinfo = input_socket->socket_typeinfo();
-      const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
-      const bool valid_socket_type = typeinfo && node_group.typeinfo->valid_socket_type(
-                                                     node_group.typeinfo, typeinfo);
+      const bke::bNodeSocketType &typeinfo = input_socket->socket_typeinfo();
+      const eNodeSocketDatatype socket_type = typeinfo.type;
+      const bool valid_socket_type = node_group.typeinfo->valid_socket_type(node_group.typeinfo,
+                                                                            &typeinfo);
       /* Fallback to ResultType::Float for invalid inputs. */
       const ResultType result_type = valid_socket_type ?
                                          compositor::get_node_interface_socket_result_type(

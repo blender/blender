@@ -108,10 +108,10 @@ class CompositorEffectContext : public CompositorContext {
     int float_counter = 0;
     int color_counter = 0;
     for (const bNodeTreeInterfaceSocket *input_socket : node_group.interface_inputs()) {
-      bke::bNodeSocketType *typeinfo = input_socket->socket_typeinfo();
-      const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
-      const bool valid_socket_type = typeinfo && node_group.typeinfo->valid_socket_type(
-                                                     node_group.typeinfo, typeinfo);
+      const bke::bNodeSocketType &typeinfo = input_socket->socket_typeinfo();
+      const eNodeSocketDatatype socket_type = typeinfo.type;
+      const bool valid_socket_type = node_group.typeinfo->valid_socket_type(node_group.typeinfo,
+                                                                            &typeinfo);
       /* Fallback to ResultType::Float for invalid inputs. */
       const ResultType result_type = valid_socket_type ?
                                          compositor::get_node_interface_socket_result_type(
@@ -310,8 +310,7 @@ void compositor_effect_nodes_input_usages(const Scene &sequencer_scene,
   int color_counter = 0;
   for (const int i : IndexRange(inputs_num)) {
     const bNodeTreeInterfaceSocket &socket = *tree.interface_inputs()[i];
-    const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
-    const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
+    const eNodeSocketDatatype socket_type = socket.socket_typeinfo().type;
     if (socket_type == SOCK_FLOAT && float_counter == 0) {
       input_values[i] = nodes::InferenceValue::Unknown();
       float_counter++;

@@ -854,7 +854,7 @@ static Map<std::string, ID *> gather_input_ids(const Main &bmain,
 
   Map<std::string, ID *> ids;
   for (const bNodeTreeInterfaceSocket *input : node_group.interface_inputs()) {
-    const std::optional<ID_Type> id_type = socket_type_to_id_type(input->socket_typeinfo()->type);
+    const std::optional<ID_Type> id_type = socket_type_to_id_type(input->socket_typeinfo().type);
     if (!id_type) {
       continue;
     }
