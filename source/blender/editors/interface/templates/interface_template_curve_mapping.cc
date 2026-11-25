@@ -337,6 +337,22 @@ static void add_preset_button(Block *block,
   });
 }
 
+static int curvemap_curves_num(const CurveMappingLabels labels)
+{
+  switch (labels) {
+    case CurveMappingLabels::None:
+      return 1;
+    case CurveMappingLabels::XYZ:
+      return 3;
+    case CurveMappingLabels::CRGB:
+      return 4;
+    case CurveMappingLabels::HSV:
+      return 3;
+  }
+  BLI_assert_unreachable();
+  return 1;
+}
+
 /**
  * \note Still unsure how this call evolves.
  *
@@ -353,6 +369,13 @@ static void curvemap_buttons_layout(Layout *layout,
                                     const RNAUpdateCb &cb)
 {
   CurveMapping *cumap = static_cast<CurveMapping *>(ptr->data);
+
+  /* Validate active curve. This can be important when the same CurveMapping e.g. starts out as a
+   * color mapping and later becomes a float mapping. In this case the active curve index points to
+   * a curve that is not used anymore. */
+  const int curves_num = curvemap_curves_num(labels);
+  cumap->cur = std::clamp(cumap->cur, 0, curves_num - 1);
+
   CurveMap *cm = &cumap->cm[cumap->cur];
   Button *bt;
   const float dx = UI_UNIT_X;
