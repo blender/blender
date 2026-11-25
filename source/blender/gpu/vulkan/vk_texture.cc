@@ -27,7 +27,11 @@
 
 #include "BKE_global.hh"
 
+#include "CLG_log.h"
+
 namespace blender::gpu {
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
 
 static VkImageAspectFlags to_vk_image_aspect_single_bit(const VkImageAspectFlags format,
                                                         bool stencil)
@@ -284,16 +288,22 @@ void VKTexture::read_sub(
     VKBuffer &staging_buffer = staging_buffers[index];
     size_t sample_len = transfer_region.sample_count();
     size_t device_memory_size = sample_len * to_bytesize(device_format_);
-    staging_buffer.create(device_memory_size,
-                          VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                          VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-                          /* Although we are only reading, we need to set the host access random
-                           * bit to improve the performance on AMD GPUs. */
-                          VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
-                              VMA_ALLOCATION_CREATE_MAPPED_BIT,
-                          0.2f,
-                          false,
-                          "VKTexture::read_sub");
+    if (!staging_buffer.create(device_memory_size,
+                               VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                               VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+                               /* Although we are only reading, we need to set the host access
+                                * random bit to improve the performance on AMD GPUs. */
+                               VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
+                                   VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                               0.2f,
+                               false,
+                               "VKTexture::read_sub"))
+    {
+      CLOG_ERROR(&LOG,
+                 "Unable to read texture as the staging buffer could not be allocated. The "
+                 "result is filled with zeros.");
+      continue;
+    }
 
     render_graph::VKCopyImageToBufferNode::CreateInfo copy_image_to_buffer = {};
     render_graph::VKCopyImageToBufferNode::Data &node_data = copy_image_to_buffer.node_data;
@@ -333,6 +343,10 @@ void VKTexture::read_sub(
     size_t data_offset = full_transfer_region.result_offset(transfer_region.offset,
                                                             transfer_region.layers.start()) *
                          host_sample_bytesize;
+    if (!staging_buffer.is_mapped()) {
+      memset(static_cast<uint8_t *>(r_data) + data_offset, 0, sample_len * host_sample_bytesize);
+      continue;
+    }
     staging_buffer.invalidate_mapped_memory();
     convert_device_to_host(static_cast<void *>(static_cast<uint8_t *>(r_data) + data_offset),
                            staging_buffer.mapped_memory_get(),
@@ -479,14 +493,20 @@ void VKTexture::update_sub(int mip,
   VKBuffer staging_buffer;
   VKResourceWithHandle<VkBuffer> buffer = {};
   if (data) {
-    staging_buffer.create(device_memory_size,
-                          VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-                          VMA_ALLOCATION_CREATE_MAPPED_BIT |
-                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-                          0.4f,
-                          false,
-                          "VKTexture::update_sub");
+    if (!staging_buffer.create(device_memory_size,
+                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                               VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+                               VMA_ALLOCATION_CREATE_MAPPED_BIT |
+                                   VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+                               0.4f,
+                               false,
+                               "VKTexture::update_sub"))
+    {
+      CLOG_ERROR(&LOG,
+                 "Unable to update texture as the staging buffer could not be allocated. The "
+                 "previous contents are kept.");
+      return;
+    }
     buffer = staging_buffer.resource();
     /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
      * other cases we unpack the rows to reduce the size of the staging buffer and data transfer.

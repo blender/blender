@@ -10,7 +10,12 @@
 #include "vk_buffer.hh"
 #include "vk_context.hh"
 
+#include "CLG_log.h"
+
 namespace blender::gpu {
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
+
 VKStreamingBuffer::VKStreamingBuffer(VKBuffer &buffer, VkDeviceSize min_offset_alignment)
     : min_offset_alignment_(min_offset_alignment),
       vk_buffer_dst_(buffer.resource()),
@@ -32,14 +37,21 @@ VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, siz
   if (allocate_new_buffer) {
     host_buffer_.emplace(std::make_unique<VKBuffer>());
     VKBuffer &host_buffer = *host_buffer_.value();
-    host_buffer.create(vk_buffer_size_,
-                       VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                       VMA_MEMORY_USAGE_AUTO,
-                       VMA_ALLOCATION_CREATE_MAPPED_BIT |
-                           VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-                       0.4f,
-                       false,
-                       "StreamingBuffer");
+    if (!host_buffer.create(vk_buffer_size_,
+                            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                            VMA_MEMORY_USAGE_AUTO,
+                            VMA_ALLOCATION_CREATE_MAPPED_BIT |
+                                VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+                            0.4f,
+                            false,
+                            "StreamingBuffer"))
+    {
+      CLOG_ERROR(&LOG,
+                 "Unable to update buffer as the streaming buffer could not be allocated. The "
+                 "previous contents are kept.");
+      host_buffer_.reset();
+      return 0;
+    }
     offset_ = 0;
 
     render_graph::VKCopyBufferNode::CreateInfo copy_buffer = {
