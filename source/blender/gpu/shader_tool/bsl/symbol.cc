@@ -573,7 +573,7 @@ struct SymbolParser : NodeErrorHandler {
       scope.classes.emplace(identifier, &type, name.front());
       return;
     }
-    error(aliased, Diag::UnknownTypeName);
+    error(aliased_id, Diag::UnknownTypeName);
   }
 
   void parse_enum_value(SymbolScope &scope,
