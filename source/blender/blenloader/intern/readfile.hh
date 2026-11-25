@@ -151,7 +151,21 @@ struct FileData {
    */
   eID_Tag id_tag_extra = {};
 
+  /**
+   * Store mapping from old sub-data pointers (the values they have in the .blend file) to new
+   * ones, typically from value in `bhead->old` to address in memory where the sub-data was read.
+   *
+   * Lifetime of its entries has a limited scope (typically during a single ID reading, and a few
+   * other cases like user preferences reading), and the map is cleared and reused afterwards.
+   */
   OldNewMap *datamap = nullptr;
+  /**
+   * Store mapping from old global data pointers (the values they have in the .blend file) to new
+   * ones, typically from value in `bhead->old` to address in memory where the global data was
+   * read.
+   *
+   * Lifetime of its entries is similar to its FileData owner.
+   */
   OldNewMap *globmap = nullptr;
   /** Used to keep track of already loaded packed IDs to avoid loading them multiple times. */
   std::shared_ptr<Map<IDHash, ID *>> id_by_deep_hash;
@@ -160,6 +174,8 @@ struct FileData {
    * Store mapping from old ID pointers (the values they have in the .blend file) to new ones,
    * typically from value in `bhead->old` to address in memory where the ID was read.
    * Used during library-linking process (see #lib_link_all).
+   *
+   * Lifetime of its entries is similar to its FileData owner.
    */
   OldNewMap *libmap = nullptr;
 
