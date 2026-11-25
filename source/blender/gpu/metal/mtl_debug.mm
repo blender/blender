@@ -139,7 +139,7 @@ bool MTLContext::debug_capture_begin(const char * /*title*/)
   }
   MTLCaptureDescriptor *capture_descriptor = [[MTLCaptureDescriptor alloc] init];
   capture_descriptor.captureObject = this->device;
-  NSError *error;
+  NSError *error = nullptr;
   if (![capture_manager startCaptureWithDescriptor:capture_descriptor error:&error]) {
     CLOG_ERROR(&LOG,
                "Failed to start Metal frame capture, error %s",
