@@ -99,26 +99,6 @@ extern short (*MEM_testN)(void *vmemh);
 void *MEM_dupalloc_void(const void *vmemh) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT;
 
 /**
- * Reallocates a block of memory, and returns pointer to the newly
- * allocated block, the old one is freed. this is not as optimized
- * as a system realloc but just makes a new allocation and copies
- * over from existing memory. */
-extern void *(*MEM_realloc_uninitialized_id)(
-    void *vmemh, size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
-    ATTR_ALLOC_SIZE(2);
-
-/**
- * A variant of realloc which zeros new bytes
- */
-extern void *(*MEM_realloc_zeroed_id)(void *vmemh,
-                                      size_t len,
-                                      const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
-    ATTR_ALLOC_SIZE(2);
-
-#define MEM_realloc_uninitialized(vmemh, len) MEM_realloc_uninitialized_id(vmemh, len, __func__)
-#define MEM_realloc_zeroed(vmemh, len) MEM_realloc_zeroed_id(vmemh, len, __func__)
-
-/**
  * Allocate a block of memory of size len, with tag name str. The
  * memory is cleared. The name must be static, because only a
  * pointer to it is stored!

@@ -24,12 +24,6 @@ void DoBasicAlignmentChecks(const int alignment)
   CHECK_ALIGNMENT(bar, alignment);
   MEM_delete(bar);
 
-  foo = (int *)MEM_realloc_uninitialized(foo, sizeof(int) * 5);
-  CHECK_ALIGNMENT(foo, alignment);
-
-  foo = (int *)MEM_realloc_zeroed(foo, sizeof(int) * 5);
-  CHECK_ALIGNMENT(foo, alignment);
-
   MEM_delete(foo);
 }
 

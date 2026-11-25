@@ -28,12 +28,6 @@ size_t (*MEM_allocN_len)(const void *vmemh) = MEM_lockfree_allocN_len;
 void (*mem_guarded::internal::mem_freeN_ex)(void *vmemh,
                                             DestructorType destructor_type) = MEM_lockfree_freeN;
 void *(*mem_guarded::internal::mem_dupallocN)(const void *vmemh) = MEM_lockfree_dupallocN;
-void *(*MEM_realloc_uninitialized_id)(void *vmemh,
-                                      size_t len,
-                                      const char *str) = MEM_lockfree_reallocN_id;
-void *(*MEM_realloc_zeroed_id)(void *vmemh,
-                               size_t len,
-                               const char *str) = MEM_lockfree_recallocN_id;
 void *(*mem_guarded::internal::mem_callocN)(size_t len, const char *str) = MEM_lockfree_callocN;
 void *(*mem_guarded::internal::mem_calloc_arrayN)(size_t len,
                                                   size_t size,
@@ -168,8 +162,6 @@ void MEM_use_lockfree_allocator()
   MEM_allocN_len = MEM_lockfree_allocN_len;
   mem_freeN_ex = MEM_lockfree_freeN;
   mem_dupallocN = MEM_lockfree_dupallocN;
-  MEM_realloc_uninitialized_id = MEM_lockfree_reallocN_id;
-  MEM_realloc_zeroed_id = MEM_lockfree_recallocN_id;
   mem_callocN = MEM_lockfree_callocN;
   mem_calloc_arrayN = MEM_lockfree_calloc_arrayN;
   mem_mallocN = MEM_lockfree_mallocN;
@@ -204,8 +196,6 @@ void MEM_use_guarded_allocator()
   MEM_allocN_len = MEM_guarded_allocN_len;
   mem_freeN_ex = MEM_guarded_freeN;
   mem_dupallocN = MEM_guarded_dupallocN;
-  MEM_realloc_uninitialized_id = MEM_guarded_reallocN_id;
-  MEM_realloc_zeroed_id = MEM_guarded_recallocN_id;
   mem_callocN = MEM_guarded_callocN;
   mem_calloc_arrayN = MEM_guarded_calloc_arrayN;
   mem_mallocN = MEM_guarded_mallocN;
