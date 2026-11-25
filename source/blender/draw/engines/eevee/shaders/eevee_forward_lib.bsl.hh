@@ -131,9 +131,9 @@ void forward_lighting_eval(KernelGlobals &kg,
         float2 texel = view.ndc_to_screen(ndc_P_reflected);
 
         planar_probe_radiance =
-            textureLod(lightprobe_planes.planar_radiance_tx, float3(texel, planar_id), 0.0).rgb;
+            textureLod(lightprobe_planes.planar_radiance_tx, float3(texel, planar_id), 0.0f).rgb;
         /* Discard background hits. */
-        if (textureLod(lightprobe_planes.planar_depth_tx, float3(texel, planar_id), 0.0).r ==
+        if (textureLod(lightprobe_planes.planar_depth_tx, float3(texel, planar_id), 0.0f).r ==
             reverse_z::read(1.0f))
         {
           average_N = float3(0.0f);

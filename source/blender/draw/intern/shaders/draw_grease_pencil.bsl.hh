@@ -213,8 +213,8 @@ struct GreasePencil {
       out_P = (use_curr) ? wpos1 : wpos2;
       out_strength = abs((use_curr) ? strength1 : strength2);
 
-      float radius1 = stroke_thickness_modulate(object, view, thickness1, viewport_res) / 2.0;
-      float radius2 = stroke_thickness_modulate(object, view, thickness2, viewport_res) / 2.0;
+      float radius1 = stroke_thickness_modulate(object, view, thickness1, viewport_res) / 2.0f;
+      float radius2 = stroke_thickness_modulate(object, view, thickness2, viewport_res) / 2.0f;
 
       float2 ss0 = project_to_screenspace(ndc0, viewport_res);
       float4 ss1 = ndc_and_radius_to_screen_space(ndc1, radius1, viewport_res.xy);
@@ -451,8 +451,8 @@ struct GreasePencil {
     bool both_round = miter_limit.x == MITER_LIMIT_TYPE_ROUND &&
                       miter_limit.y == MITER_LIMIT_TYPE_ROUND;
 
-    bool is_start = distance_squared(p0, p1) < 1e-6;
-    bool is_end = distance_squared(p2, p3) < 1e-6;
+    bool is_start = distance_squared(p0, p1) < 1e-6f;
+    bool is_end = distance_squared(p2, p3) < 1e-6f;
     bool both_ends = is_start && is_end;
 
     float radius = thickness * 0.5f;
@@ -563,7 +563,7 @@ struct GreasePencil {
   {
     if (flag_test(mat_flag, GP_STROKE_ALIGNMENT)) {
       /* Dot or Squares. */
-      uv = uv * 2.0 - 1.0;
+      uv = uv * 2.0f - 1.0f;
       if (flag_test(mat_flag, GP_STROKE_DOTS)) {
         return stroke_hardess_mask(length(uv), hard_fac);
       }

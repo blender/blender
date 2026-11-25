@@ -185,8 +185,8 @@ void curves_combined_only_compositor(float4 color,
 
 /* Contrary to standard tone curve implementations, the film-like implementation tries to preserve
  * the hue of the colors as much as possible. To understand why this might be a problem, consider
- * the violet color (0.5, 0.0, 1.0). If this color was to be evaluated at a power curve x^4, the
- * color will be blue (0.0625, 0.0, 1.0). So the color changes and not just its luminosity,
+ * the violet color (0.5f, 0.0f, 1.0f). If this color was to be evaluated at a power curve x^4, the
+ * color will be blue (0.0625f, 0.0f, 1.0f). So the color changes and not just its luminosity,
  * which is what film-like tone curves tries to avoid.
  *
  * First, the channels with the lowest and highest values are identified and evaluated at the

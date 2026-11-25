@@ -439,8 +439,8 @@ float shadow_terminator_offset(float3 N,
 {
   const float offset_cutoff = shadow_terminator_geometry_offset;
 
-  if (shadow_terminator_geometry_offset == 0.0) {
-    return 0.0;
+  if (shadow_terminator_geometry_offset == 0.0f) {
+    return 0.0f;
   }
 
   float cos_theta = dot(N, L);

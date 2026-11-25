@@ -70,7 +70,7 @@ static inline float3 burley_eval(float3 d, float r)
    * - This is normalized diffuse model, so the equation is multiplied
    *   by 2*pi, which also matches `cdf()`.
    */
-  return (exp_r_d + exp_r_3_d) / (4.0 * d);
+  return (exp_r_d + exp_r_3_d) / (4.0f * d);
 }
 
 #ifndef GPU_SHADER

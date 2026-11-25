@@ -179,7 +179,7 @@ void neighbor_kernel(TexelData &target,
   float4 over = target_over_neighbor ? target.color : neighbor.color;
   float4 under = target_over_neighbor ? neighbor.color : target.color;
 
-  if (background.color.a == 0.0) {
+  if (background.color.a == 0.0f) {
     /* Without background, we do additive alpha on the current frame-buffer. */
     target.color = over + under * (1.0f - over.a);
   }

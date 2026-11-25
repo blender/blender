@@ -276,8 +276,8 @@ void spatial_main([[resource_table]] DenoiseSpatial &srt,
   float3 vs_N = view.normal_world_to_view(closure.N);
   float2 pixel_uv_size = uni.raytrace_buf.full_resolution_inv *
                          float(srt.raytrace_resolution_scale);
-  float3 vs_Pdx = view.point_screen_to_view(float3(uv + float2(pixel_uv_size.x, 0.0), depth));
-  float3 vs_Pdy = view.point_screen_to_view(float3(uv + float2(0.0, pixel_uv_size.y), depth));
+  float3 vs_Pdx = view.point_screen_to_view(float3(uv + float2(pixel_uv_size.x, 0.0f), depth));
+  float3 vs_Pdy = view.point_screen_to_view(float3(uv + float2(0.0f, pixel_uv_size.y), depth));
   float2x3 dPdxy;
   dPdxy[0] = line_plane_intersect(vs_Pdx, view.view_incident_vector(vs_Pdx), vs_P, vs_N) - vs_P;
   dPdxy[1] = line_plane_intersect(vs_Pdy, view.view_incident_vector(vs_Pdy), vs_P, vs_N) - vs_P;
@@ -701,9 +701,9 @@ void bilateral_main([[resource_table]] DenoiseBilateral &srt,
   bool is_low_variance = (variance < 0.1f);
 
   /* Width of the box filter in pixels. */
-  float filter_size_factor = saturate(roughness * 8.0f) * saturate(variance * 2.0);
+  float filter_size_factor = saturate(roughness * 8.0f) * saturate(variance * 2.0f);
   float filter_size = mix(0.0f, 9.0f, filter_size_factor);
-  uint sample_count = uint(mix(1.0f, 15.0f, saturate(variance * 2.0)));
+  uint sample_count = uint(mix(1.0f, 15.0f, saturate(variance * 2.0f)));
 
   if (is_smooth || is_background || is_low_variance) {
     /* Early out cases. */

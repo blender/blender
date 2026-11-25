@@ -39,7 +39,7 @@ float4 closure_to_rgba_hybrid(KernelGlobals &kg, ShadingData &sd, Closure /*cl*/
       float3 V = -kg.view.get(0).world_incident_vector(sd.P);
       eevee::LightProbeSample samp = kg.lightprobes.load(frag_co, sd.P, sd.N, V);
       float3 radiance_behind = kg.lightprobes.spheres.spherical_sample_normalized_with_parallax(
-          samp, sd.P, V, 0.0);
+          samp, sd.P, V, 0.0f);
 
       int2 texel = int2(frag_co);
       if (texelFetchExtend(kg.previous_layer_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
@@ -175,7 +175,7 @@ void surf_hybrid([[resource_table]] KernelGlobals &kg,
   int2 out_texel = int2(frag_co.xy);
 
   bool use_light_linking = receiver_light_set_get(object_infos) != 0;
-  bool use_terminator_offset = object_infos.shadow_terminator_normal_offset > 0.0;
+  bool use_terminator_offset = object_infos.shadow_terminator_normal_offset > 0.0f;
 
   /* ----- Render Passes output ----- */
 

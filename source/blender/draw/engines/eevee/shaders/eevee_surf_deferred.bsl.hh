@@ -151,7 +151,7 @@ void surf_deferred([[resource_table]] KernelGlobals &kg,
 
   ObjectInfos object_infos = infos.get(resource_id);
   bool use_light_linking = receiver_light_set_get(object_infos) != 0;
-  bool use_terminator_offset = object_infos.shadow_terminator_normal_offset > 0.0;
+  bool use_terminator_offset = object_infos.shadow_terminator_normal_offset > 0.0f;
 
   /* ----- Render Passes output ----- */
 

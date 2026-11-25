@@ -43,7 +43,7 @@ void eval_light([[resource_table]] EvalLight & /*srt*/,
   ctx.P = P;
   ctx.Ng = Ng;
   /* Note: This shader disables light culling and shadow jitter. */
-  ctx.texel = float2(0.0);
+  ctx.texel = float2(0.0f);
   ctx.thickness = Thickness::zero();
   ctx.receiver_light_set = surfel.receiver_light_set;
   ctx.terminator_normal_offset = 0.0f;

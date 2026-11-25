@@ -282,7 +282,7 @@ ResultT eval(const Uniform &uni,
         /* Bias depth a bit to avoid self shadowing issues. */
         constexpr float bias = 2.0f * 2.4e-7f;
         const float sample_depth_front = sample_depth + (reversed ? -bias : bias);
-        const float sample_depth_back = sample_depth + (reversed ? 0.0 : sample_thickness);
+        const float sample_depth_back = sample_depth + (reversed ? 0.0f : sample_thickness);
 
         float3 vP_sample_front = view.point_screen_to_view(float3(sample_uv, sample_depth_front));
         float3 vP_sample_back = view.point_screen_to_view(float3(sample_uv, sample_depth_back));
@@ -635,7 +635,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
                            srt.neigbhor_data[local_id.y][local_id.x + stride] +
                            srt.neigbhor_data[local_id.y + stride][local_id.x + stride]) *
                           0.25f;
-      imageStoreFast(srt.out_normal_mip1, texel >> lod, float4(normal_avg, 0.0));
+      imageStoreFast(srt.out_normal_mip1, texel >> lod, float4(normal_avg, 0.0f));
       srt.neigbhor_data[local_id.y][local_id.x] = normal_avg;
     }
   }
@@ -649,7 +649,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
                            srt.neigbhor_data[local_id.y][local_id.x + stride] +
                            srt.neigbhor_data[local_id.y + stride][local_id.x + stride]) *
                           0.25f;
-      imageStoreFast(srt.out_normal_mip2, texel >> lod, float4(normal_avg, 0.0));
+      imageStoreFast(srt.out_normal_mip2, texel >> lod, float4(normal_avg, 0.0f));
       srt.neigbhor_data[local_id.y][local_id.x] = normal_avg;
     }
   }
@@ -663,7 +663,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
                            srt.neigbhor_data[local_id.y][local_id.x + stride] +
                            srt.neigbhor_data[local_id.y + stride][local_id.x + stride]) *
                           0.25f;
-      imageStoreFast(srt.out_normal_mip3, texel >> lod, float4(normal_avg, 0.0));
+      imageStoreFast(srt.out_normal_mip3, texel >> lod, float4(normal_avg, 0.0f));
     }
   }
   barrier();
@@ -692,7 +692,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
                              srt.neigbhor_data[local_id.y][local_id.x + stride] +
                              srt.neigbhor_data[local_id.y + stride][local_id.x + stride]) *
                             0.25f;
-      imageStoreFast(srt.out_radiance_mip1, texel >> lod, float4(radiance_avg, 0.0));
+      imageStoreFast(srt.out_radiance_mip1, texel >> lod, float4(radiance_avg, 0.0f));
       srt.neigbhor_data[local_id.y][local_id.x] = radiance_avg;
     }
   }
@@ -706,7 +706,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
                              srt.neigbhor_data[local_id.y][local_id.x + stride] +
                              srt.neigbhor_data[local_id.y + stride][local_id.x + stride]) *
                             0.25f;
-      imageStoreFast(srt.out_radiance_mip2, texel >> lod, float4(radiance_avg, 0.0));
+      imageStoreFast(srt.out_radiance_mip2, texel >> lod, float4(radiance_avg, 0.0f));
       srt.neigbhor_data[local_id.y][local_id.x] = radiance_avg;
     }
   }
@@ -720,7 +720,7 @@ void setup([[global_invocation_id]] const uint3 global_id,
                              srt.neigbhor_data[local_id.y][local_id.x + stride] +
                              srt.neigbhor_data[local_id.y + stride][local_id.x + stride]) *
                             0.25f;
-      imageStoreFast(srt.out_radiance_mip3, texel >> lod, float4(radiance_avg, 0.0));
+      imageStoreFast(srt.out_radiance_mip3, texel >> lod, float4(radiance_avg, 0.0f));
     }
   }
 }
@@ -1012,7 +1012,7 @@ void resolve([[work_group_id]] const uint3 group_id,
           /* We only recorded visibility and radiance for the upper hemisphere.
            * Discard result for transmission closures. */
           distant_radiance_visibility = 1.0f;
-          radiance = float3(0.0);
+          radiance = float3(0.0f);
         }
 
         /* Apply missing distant lighting. */

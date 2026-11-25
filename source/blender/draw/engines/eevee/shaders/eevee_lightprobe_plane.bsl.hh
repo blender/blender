@@ -33,7 +33,7 @@ struct LightprobePlaneRenderData {
    */
   int select_probe(float3 P, float3 N) const
   {
-    float best_score = 0.0;
+    float best_score = 0.0f;
     int best_index = -1;
 
     for (int index = 0; index < PLANAR_PROBE_MAX; index++) {

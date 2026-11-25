@@ -37,16 +37,16 @@ void node_radial_tiling(float2 coord,
     float4 out_variables = calculate_out_variables(bool(calculate_r_gon_parameter_field),
                                                    bool(calculate_max_unit_parameter),
                                                    bool(normalize_r_gon_parameter),
-                                                   max(r_gon_sides, 2.0),
-                                                   clamp(r_gon_roundness, 0.0, 1.0),
+                                                   max(r_gon_sides, 2.0f),
+                                                   clamp(r_gon_roundness, 0.0f, 1.0f),
                                                    float2(coord.x, coord.y));
 
-    out_segment_coordinates = float3(out_variables.y, out_variables.x, 0.0);
+    out_segment_coordinates = float3(out_variables.y, out_variables.x, 0.0f);
     out_max_unit_parameter = out_variables.z;
     out_x_axis_A_angle_bisector = out_variables.w;
   }
 
   if (bool(calculate_segment_id)) {
-    out_segment_id = calculate_out_segment_id(max(r_gon_sides, 2.0), float2(coord.x, coord.y));
+    out_segment_id = calculate_out_segment_id(max(r_gon_sides, 2.0f), float2(coord.x, coord.y));
   }
 }

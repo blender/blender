@@ -47,7 +47,7 @@ struct FragOut {
     color_alpha_unpremultiply(color, color);
   }
 
-  frag_out.color = float4(0.0);
+  frag_out.color = float4(0.0f);
   int phase = int(mod((frag_co.x + frag_co.y), 6.0f));
   if (any(greaterThan(color.rgb, float3(srt.zebra_limit)))) {
     if (phase == 4) {

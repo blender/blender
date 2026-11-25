@@ -240,19 +240,19 @@ float4 hash_vec4_to_vec4(float4 k)
 float2 hash_int2_to_vec2(int2 k)
 {
   int2 h = hash_pcg2d_i(k);
-  return float2(h & 0x7fffffff) * (1.0 / float(0x7fffffff));
+  return float2(h & 0x7fffffff) * (1.0f / float(0x7fffffff));
 }
 
 float3 hash_int3_to_vec3(int3 k)
 {
   int3 h = hash_pcg3d_i(k);
-  return float3(h & 0x7fffffff) * (1.0 / float(0x7fffffff));
+  return float3(h & 0x7fffffff) * (1.0f / float(0x7fffffff));
 }
 
 float4 hash_int4_to_vec4(int4 k)
 {
   int4 h = hash_pcg4d_i(k);
-  return float4(h & 0x7fffffff) * (1.0 / float(0x7fffffff));
+  return float4(h & 0x7fffffff) * (1.0f / float(0x7fffffff));
 }
 
 float3 hash_int2_to_vec3(int2 k)

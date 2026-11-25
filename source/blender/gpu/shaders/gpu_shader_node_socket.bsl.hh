@@ -218,13 +218,13 @@ float2 calculate_thresholds(float aa_size, float threshold)
       break;
     }
     case SOCK_DISPLAY_SHAPE_LINE: {
-      distance_squared = square_sdf(co, float2(square_radius * 0.75, square_radius * 1.4));
+      distance_squared = square_sdf(co, float2(square_radius * 0.75f, square_radius * 1.4f));
       alpha_threshold = corner_rounding;
       break;
     }
     case SOCK_DISPLAY_SHAPE_VOLUME_GRID: {
       constexpr float rect_side_length = 0.25f;
-      const float2 oversize = float2(0.0f, square_radius * 1.4) / 2.5f;
+      const float2 oversize = float2(0.0f, square_radius * 1.4f) / 2.5f;
       const float2 rect_corner = max(float2(rect_side_length), v_out.extrusion / 2.0f + oversize) +
                                  v_out.final_outline_thickness / 4.0f;
       const float2 mirrored_uv = abs(abs(v_out.uv) - rect_corner);
@@ -235,7 +235,7 @@ float2 calculate_thresholds(float aa_size, float threshold)
     }
     case SOCK_DISPLAY_SHAPE_LIST: {
       constexpr float2 rect_side_length = float2(0.5f, 0.25f);
-      const float2 oversize = float2(0.0f, square_radius * 1.4) / 2.5f;
+      const float2 oversize = float2(0.0f, square_radius * 1.4f) / 2.5f;
       const float2 rect_corner = max(rect_side_length, v_out.extrusion / 2.0f + oversize) +
                                  v_out.final_outline_thickness / 4.0f;
       const float2 mirrored_uv = float2(

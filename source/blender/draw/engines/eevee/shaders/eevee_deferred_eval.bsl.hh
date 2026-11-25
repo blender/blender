@@ -407,17 +407,17 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
 
   BsdfClosure cl_reflect;
   cl_reflect.type = CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID;
-  cl_reflect.color = float3(0.0);
-  cl_reflect.N = float3(0.0);
-  cl_reflect.data = float4(0.0);
-  float reflect_weight = 0.0;
+  cl_reflect.color = float3(0.0f);
+  cl_reflect.N = float3(0.0f);
+  cl_reflect.data = float4(0.0f);
+  float reflect_weight = 0.0f;
 
   BsdfClosure cl_refract;
   cl_refract.type = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
-  cl_refract.color = float3(0.0);
-  cl_refract.N = float3(0.0);
-  cl_refract.data = float4(0.0);
-  float refract_weight = 0.0;
+  cl_refract.color = float3(0.0f);
+  cl_refract.N = float3(0.0f);
+  cl_refract.data = float4(0.0f);
+  float refract_weight = 0.0f;
 
   /* Unroll needed for gbuf.layer access. */
   for (int i = 0; i < 3; i++) [[unroll]] {
@@ -468,7 +468,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
   }
 
   {
-    if (reflect_weight > 1e-6) {
+    if (reflect_weight > 1e-6f) {
       float inv_weight = 1.0f / reflect_weight;
       cl_reflect.N *= inv_weight;
       cl_reflect.data *= inv_weight;
@@ -480,7 +480,7 @@ void planar_eval_frag([[resource_table]] PlanarProbeEval & /*srt*/,
     }
   }
   {
-    if (refract_weight > 1e-6) {
+    if (refract_weight > 1e-6f) {
       float inv_weight = 1.0f / refract_weight;
       cl_refract.N *= inv_weight;
       cl_refract.data *= inv_weight;

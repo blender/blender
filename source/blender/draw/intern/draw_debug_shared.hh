@@ -64,10 +64,10 @@ inline uint debug_color_pack(float4 v_color)
 {
   v_color = clamp(v_color, 0.0f, 1.0f);
   uint result = 0;
-  result |= uint(v_color.x * 255.0) << 0u;
-  result |= uint(v_color.y * 255.0) << 8u;
-  result |= uint(v_color.z * 255.0) << 16u;
-  result |= uint(v_color.w * 255.0) << 24u;
+  result |= uint(v_color.x * 255.0f) << 0u;
+  result |= uint(v_color.y * 255.0f) << 8u;
+  result |= uint(v_color.z * 255.0f) << 16u;
+  result |= uint(v_color.w * 255.0f) << 24u;
   return result;
 }
 

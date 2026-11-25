@@ -217,6 +217,10 @@ struct CodegenContext : NodeErrorHandler {
 
     CodegenResult number_literal(const ast::Node &t)
     {
+      const SymbolClass &cls = ctx.table.get_literal_type(t.str());
+      if (cls.is_builtin() && (cls.builtin_class == builtin::float_t) && !t.str().ends_with('f')) {
+        ctx.error(t, Diag::UnsupportedDoubleLiteral);
+      }
       return {t, ctx.table.get_literal_type(t.str())};
     }
 

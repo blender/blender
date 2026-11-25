@@ -20,9 +20,9 @@ void convert(DstType & /*dst_value*/, const SrcType /*src_value*/)
 template<> void convert<float4, float>(float4 &dst_value, const float src_value)
 {
   dst_value.x = src_value;
-  dst_value.y = 0.0;
-  dst_value.z = 0.0;
-  dst_value.w = 0.0;
+  dst_value.y = 0.0f;
+  dst_value.z = 0.0f;
+  dst_value.w = 0.0f;
 }
 template<> void convert<float, float4>(float &dst_value, const float4 src_value)
 {
@@ -260,7 +260,7 @@ struct Resources {
 
   InnerType pyramid_reduce_2(InnerType v0, InnerType v1)
   {
-    return 0.5 * (v0 + v1);
+    return 0.5f * (v0 + v1);
   }
 
   /**

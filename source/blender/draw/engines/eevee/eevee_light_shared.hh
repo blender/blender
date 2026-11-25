@@ -254,7 +254,7 @@ struct LightData {
   int local_tilemap_count() const
   {
     if (is_spot_light(this->type)) {
-      return (this->spot.spot_tan > tanf(EEVEE_PI / 4.0)) ? 5 : 1;
+      return (this->spot.spot_tan > tanf(EEVEE_PI / 4.0f)) ? 5 : 1;
     }
     if (is_area_light(this->type)) {
       return 5;

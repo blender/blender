@@ -99,25 +99,25 @@ struct PointCloud {
     pt.shape_pos = float3(NAN_FLT);
     switch (vert_id % DRW_POINTCLOUD_STRIP_TILE_SIZE) {
       case 0:
-        pt.shape_pos = float3(-1.0, 0.0, 0.0);
+        pt.shape_pos = float3(-1.0f, 0.0f, 0.0f);
         break;
       case 1:
-        pt.shape_pos = float3(0.0, -1.0, 0.0);
+        pt.shape_pos = float3(0.0f, -1.0f, 0.0f);
         break;
       case 2:
-        pt.shape_pos = float3(0.0, 0.0, 1.0);
+        pt.shape_pos = float3(0.0f, 0.0f, 1.0f);
         break;
       case 3:
-        pt.shape_pos = float3(1.0, 0.0, 0.0);
+        pt.shape_pos = float3(1.0f, 0.0f, 0.0f);
         break;
       case 4:
-        pt.shape_pos = float3(0.0, 0.0, 1.0);
+        pt.shape_pos = float3(0.0f, 0.0f, 1.0f);
         break;
       case 5:
-        pt.shape_pos = float3(0.0, 1.0, 0.0);
+        pt.shape_pos = float3(0.0f, 1.0f, 0.0f);
         break;
       case 6:
-        pt.shape_pos = float3(-1.0, 0.0, 0.0);
+        pt.shape_pos = float3(-1.0f, 0.0f, 0.0f);
         break;
       default:
         break;

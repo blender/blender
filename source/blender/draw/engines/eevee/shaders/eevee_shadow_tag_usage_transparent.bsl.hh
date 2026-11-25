@@ -154,10 +154,10 @@ void tag_usage_vert([[resource_table]] TagUsageTransparent &srt,
   const ObjectMatrices obj = models.get(resource_id);
   const ViewMatrices view = views.get(0);
 
-  v_out.P = float3(0.0);
-  v_out.vP = float3(0.0);
-  v_out.ls_aabb_min = float3(0.0);
-  v_out.ls_aabb_max = float3(0.0);
+  v_out.P = float3(0.0f);
+  v_out.vP = float3(0.0f);
+  v_out.ls_aabb_min = float3(0.0f);
+  v_out.ls_aabb_max = float3(0.0f);
   v_out.resource_id = resource_id;
 
   ObjectBounds bounds = srt.bounds_buf[resource_id];

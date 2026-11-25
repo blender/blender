@@ -203,15 +203,15 @@ float form_factor_attenuation(LightShape shape, LTCData ltc_data, float3 L)
   /* First, find an approximate dominant BxDF direction D. Then, find a vector T on the light
    * plane, coplanar with D and L, i.e. T = cross(cross(L, D), shape.N). */
   float3 D = dominant_direction(ltc_data.Minv);
-  float3 T = normalize_fallback(D * dot(L, shape.N) - L * dot(D, shape.N), float3(0.0));
+  float3 T = normalize_fallback(D * dot(L, shape.N) - L * dot(D, shape.N), float3(0.0f));
 
   /* Find t where D intersects the line L + t*T. */
   float TD = dot(T, D);
   float t = safe_divide(dot(D, L) * TD - dot(T, L), 1.0f - square(TD));
 
-  if (t >= 0.0 && t < shape.disk_radius_projected) {
+  if (t >= 0.0f && t < shape.disk_radius_projected) {
     /* If t lies within the disk radius on the positive side, we do not attenuate. */
-    return 1.0;
+    return 1.0f;
   }
   /* Otherwise, restrict t to within on the disk radius. */
   t = min(abs(t), shape.disk_radius_projected);

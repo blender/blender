@@ -179,13 +179,13 @@ float2 get_shape_offset(uint vert_id)
   const float winding_order_mult = get_shape_winding_ccw(vert_id) ? -1.0f : 1.0f;
   switch (vert_id % DRW_GSPLAT_STRIP_TILE_SIZE) {
     case 0:
-      return float2(-1.0, -1.0);
+      return float2(-1.0f, -1.0f);
     case 1:
-      return float2(1.0, -1.0) * winding_order_mult;
+      return float2(1.0f, -1.0f) * winding_order_mult;
     case 2:
-      return float2(-1.0, 1.0) * winding_order_mult;
+      return float2(-1.0f, 1.0f) * winding_order_mult;
     case 3:
-      return float2(1.0, 1.0);
+      return float2(1.0f, 1.0f);
     default:
       return float2(NAN_FLT);
   };
@@ -361,8 +361,8 @@ AxisTuple covmat_to_axes(float3 covmat_2d_v)
   const float lambda_2 = max(mid - radius, 1e-8f);
 
   const float2 diag = normalize(float2(covmat_2d_v.y, lambda_1 - covmat_2d_v.x));
-  const float2 axis_0 = min(std_dev * sqrt(lambda_1), 1.0) * diag;
-  const float2 axis_1 = min(std_dev * sqrt(lambda_2), 1.0) * float2(diag.y, -diag.x);
+  const float2 axis_0 = min(std_dev * sqrt(lambda_1), 1.0f) * diag;
+  const float2 axis_1 = min(std_dev * sqrt(lambda_2), 1.0f) * float2(diag.y, -diag.x);
   return AxisTuple::from(axis_0, axis_1);
 }
 

@@ -150,7 +150,7 @@ void combine_frag([[resource_table]] Combine &srt,
             float roughness_sq = square(closure_roughness);
             float diffuse_weight = smoothstep(0.0f, 0.15f, roughness_sq);
             diffuse_albedo += diffuse_weight * cl.color;
-            specular_albedo += (1.0 - diffuse_weight) * cl.color;
+            specular_albedo += (1.0f - diffuse_weight) * cl.color;
           }
         }
 

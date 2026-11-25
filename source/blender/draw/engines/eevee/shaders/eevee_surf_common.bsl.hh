@@ -96,10 +96,10 @@ void init_globals_curves(const VertOutCommon &interp,
   sd.curve_N = safe_normalize(cross(sd.curve_T, sd.curve_B));
 
   sd.is_strand = true;
-  sd.hair_diameter = curve_interp.radius * 2.0;
+  sd.hair_diameter = curve_interp.radius * 2.0f;
   sd.hair_strand_id = curve_interp.strand_id;
   sd.barycentric_coords.y = fract(curve_interp.point_id);
-  sd.barycentric_coords.x = 1.0 - sd.barycentric_coords.y;
+  sd.barycentric_coords.x = 1.0f - sd.barycentric_coords.y;
 }
 
 void init_globals_pointcloud(const VertOutPointcloud &ptcloud_interp, ShadingData &sd)

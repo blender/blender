@@ -92,7 +92,7 @@ void point_vert([[resource_table]] const Resources &srt,
   out_pos.z -= 3e-4f;
 
   v_out.final_color = srt.vertex_color(EditVertEdgeFlag(v_edit.data));
-  v_out.edge_start = v_out.edge_pos = float2(0.0); /* Not an edge shader. */
+  v_out.edge_start = v_out.edge_pos = float2(0.0f); /* Not an edge shader. */
 
   out_point_size = uni.uniform_buf.sizes.vert * 2.0f;
 

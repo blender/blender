@@ -126,7 +126,7 @@ struct ScopeRaster {
   float4 color = float4(srt.scope_to_extended_srgb(image_color.rgb), 1.0f);
 
   /* Calculate point position based on scope mode; possibly adjust color too. */
-  float2 pos = float2(0.0);
+  float2 pos = float2(0.0f);
   if (srt.scope_mode == SEQ_DRAW_IMG_WAVEFORM) {
     /* Waveform: pixel height based on luminance. */
     pos.x = texel.x - srt.image_width / 2;

@@ -54,7 +54,7 @@ float view_z_to_volume_z(
 {
   if (view.is_perspective()) {
     /* Exponential distribution. */
-    return distribution * log2(max(1e-8, depth * far + near));
+    return distribution * log2(max(1e-8f, depth * far + near));
   }
   else {
     /* Linear distribution. */

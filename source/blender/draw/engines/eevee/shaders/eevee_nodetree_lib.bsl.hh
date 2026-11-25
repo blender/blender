@@ -681,7 +681,7 @@ float f0_from_ior(float eta)
 }
 
 /**
- * Simplified form of F_eta(eta, 1.0).
+ * Simplified form of F_eta(eta, 1.0f).
  * This is the power reflection coefficient also denoted R.
  * https://en.wikipedia.org/wiki/Fresnel_equations#Complex_amplitude_reflection_and_transmission_coefficients
  */

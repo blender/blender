@@ -197,7 +197,7 @@ ScreenTraceHitData raytrace_planar(ViewMatrices view,
   /* Update the validity as ss_hit_P can point to a not loaded sample. */
   result.valid =
       hit &&
-      textureLod(planar_depth_tx, float3(result.ss_hit_P.xy, planar.layer_id), 0.0f).r != 0.0;
+      textureLod(planar_depth_tx, float3(result.ss_hit_P.xy, planar.layer_id), 0.0f).r != 0.0f;
 
   /* NOTE: v_hit_P is in planar reflected view space. */
   result.v_hit_P = project_point(planar.wininv, view.screen_to_ndc(result.ss_hit_P));
@@ -369,7 +369,7 @@ float3 raytrace_sample_screen(ViewMatrices view,
 {
   /* We do not need a plausible cone value here.
    * Just compute some factor to avoid blurring contact points. */
-  float shading_cone_tangent = saturate(roughness * 0.05);
+  float shading_cone_tangent = saturate(roughness * 0.05f);
   float vs_footprint = shading_cone_tangent * hit.time;
   /* Convert from view space cone to screen space. */
   float4 hs_hit_P = view.winmat * float4(hit.v_hit_P, 1.0f);
@@ -411,7 +411,7 @@ float3 raytrace_sample_screen(ViewMatrices view,
 {
   /* We do not need a plausible cone value here.
    * Just compute some factor to avoid blurring contact points. */
-  float shading_cone_tangent = saturate(roughness * 0.05);
+  float shading_cone_tangent = saturate(roughness * 0.05f);
   float vs_footprint = shading_cone_tangent * hit.time;
   /* Convert from view space cone to screen space. */
   float4 hs_hit_P = view.winmat * float4(hit.v_hit_P, 1.0f);

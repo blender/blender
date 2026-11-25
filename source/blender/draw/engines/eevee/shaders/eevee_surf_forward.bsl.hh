@@ -47,7 +47,7 @@ float4 closure_to_rgba_forward(KernelGlobals &kg, ShadingData &sd, Closure /*cl_
       float3 V = -views.get(0).world_incident_vector(sd.P);
       eevee::LightProbeSample samp = lightprobes.load(frag_co, sd.P, sd.N, V);
       float3 radiance_behind = lp_spheres.spherical_sample_normalized_with_parallax(
-          samp, sd.P, V, 0.0);
+          samp, sd.P, V, 0.0f);
 
       int2 texel = int2(frag_co);
       if (texelFetchExtend(prev_hiz.hiz_prev_tx, texel, 0).x != 1.0f) {
