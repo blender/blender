@@ -25,7 +25,7 @@ const Mesh *mesh_coerce_for_export_setup(MeshCoerceForExport &coerce,
    * convert one on demand. */
   bool is_original_mesh_type = true;
   if (const ID *data_orig = obj_eval->runtime->data_orig) {
-    if (GS(data_orig->name) != ID_ME) {
+    if (data_orig->id_type() != ID_ME) {
       is_original_mesh_type = false;
       if (!apply_modifiers) {
         coerce.owned = BKE_mesh_new_from_object(

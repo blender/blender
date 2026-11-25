@@ -331,7 +331,7 @@ static const EmittedGeometry &get_or_build_emitted_mesh(PopulateContext &ctx,
     mesh = BKE_object_to_mesh(nullptr, info.real_object, false);
     needs_clear = (mesh != nullptr);
   }
-  else if (info.object_data && GS(info.object_data->name) == ID_ME) {
+  else if (info.object_data && info.object_data->id_type() == ID_ME) {
     mesh = id_cast<Mesh *>(info.object_data);
   }
   if (!mesh) {

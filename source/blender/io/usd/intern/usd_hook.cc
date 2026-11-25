@@ -223,7 +223,7 @@ class USDMaterialExportContext {
       return "";
     }
 
-    if (GS(id->name) != ID_IM) {
+    if (id->id_type() != ID_IM) {
       return "";
     }
 

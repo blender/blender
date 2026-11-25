@@ -302,7 +302,7 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
    * offset to the animated transform. */
   bool has_bone_parent_offset = false;
   ufbx_matrix bone_parent_offset = ufbx_identity_matrix;
-  if (!is_bone && GS(anim.target_id->name) == ID_OB) {
+  if (!is_bone && anim.target_id->id_type() == ID_OB) {
     const Object *obj = reinterpret_cast<const Object *>(anim.target_id);
     if (obj->parent != nullptr && obj->partype == PARBONE && fnode->parent != nullptr &&
         mapping.node_is_blender_bone.contains(fnode->parent))
@@ -456,7 +456,7 @@ static void create_camera_curves(const ufbx_metadata &metadata,
                                  const double fps,
                                  const float anim_offset)
 {
-  if (anim.target_id == nullptr || GS(anim.target_id->name) != ID_CA) {
+  if (anim.target_id == nullptr || anim.target_id->id_type() != ID_CA) {
     return;
   }
 
@@ -493,7 +493,7 @@ static void create_material_curves(const ElementAnimations &anim,
                                    const double fps,
                                    const float anim_offset)
 {
-  if (anim.target_id == nullptr || GS(anim.target_id->name) != ID_MA) {
+  if (anim.target_id == nullptr || anim.target_id->id_type() != ID_MA) {
     return;
   }
 
@@ -594,7 +594,7 @@ void import_animations(Main &bmain,
         /* Create a slot for this ID. */
         BLI_assert(id != nullptr);
         const std::string slot_name = id->name;
-        animrig::Slot &slot = action.slot_add_for_id_type(GS(id->name));
+        animrig::Slot &slot = action.slot_add_for_id_type(id->id_type());
         action.slot_identifier_define(slot, slot_name);
 
         /* Assign this action & slot to ID. */
