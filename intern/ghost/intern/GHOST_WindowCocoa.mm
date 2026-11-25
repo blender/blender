@@ -7,13 +7,10 @@
 #include "GHOST_ContextNone.hh"
 #include "GHOST_Debug.hh"
 
+#include "GHOST_ContextMTL.hh"
 #include "GHOST_GestureHandlerCocoa.hh"
 #include "GHOST_SystemCocoa.hh"
 #include "GHOST_WindowViewCocoa.hh"
-
-#ifdef WITH_METAL_BACKEND
-#  include "GHOST_ContextMTL.hh"
-#endif
 
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
@@ -883,7 +880,6 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
     }
 #endif
 
-#ifdef WITH_METAL_BACKEND
     case GHOST_kDrawingContextTypeMetal: {
       GHOST_Context *context = new GHOST_ContextMTL(
           want_context_params_, window_view_, metal_layer_);
@@ -893,7 +889,6 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
       delete context;
       return nullptr;
     }
-#endif
 
     default:
       /* Unsupported backend. */

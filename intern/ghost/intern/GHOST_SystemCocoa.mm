@@ -13,12 +13,10 @@
 #include "GHOST_EventWheel.hh"
 #include "GHOST_TimerManager.hh"
 #include "GHOST_TimerTask.hh"
-#include "GHOST_WindowCocoa.hh"
 #include "GHOST_WindowManager.hh"
 
-#ifdef WITH_METAL_BACKEND
-#  include "GHOST_ContextMTL.hh"
-#endif
+#include "GHOST_ContextMTL.hh"
+#include "GHOST_WindowCocoa.hh"
 
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
@@ -786,7 +784,6 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GPUSettings gpu_
     }
 #endif
 
-#ifdef WITH_METAL_BACKEND
     case GHOST_kDrawingContextTypeMetal: {
       GHOST_Context *context = new GHOST_ContextMTL(context_params_offscreen, nullptr, nullptr);
       if (context->initializeDrawingContext()) {
@@ -795,7 +792,6 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GPUSettings gpu_
       delete context;
       return nullptr;
     }
-#endif
 
     default:
       /* Unsupported backend. */

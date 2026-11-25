@@ -521,13 +521,11 @@ if(UNIX AND NOT APPLE)
 endif()
 
 if(APPLE)
-  if(WITH_METAL_BACKEND)
-    list(APPEND SRC
-      intern/GHOST_ContextMTL.mm
+  list(APPEND SRC
+    intern/GHOST_ContextMTL.mm
 
-      intern/GHOST_ContextMTL.hh
-    )
-  endif()
+    intern/GHOST_ContextMTL.hh
+  )
 endif()
 
 if(APPLE)

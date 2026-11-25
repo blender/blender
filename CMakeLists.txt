@@ -986,11 +986,8 @@ endif()
 
 # Metal
 if(APPLE)
-  option(WITH_METAL_BACKEND "\
-Use Metal for graphics instead of (or as well as) OpenGL on macOS."
-    ON
-  )
-  mark_as_advanced(WITH_METAL_BACKEND)
+  # The Metal backend is unconditionally enabled for Apple devices (Mac, iPad, etc...).
+  set(WITH_METAL_BACKEND ON)
 else()
   set(WITH_METAL_BACKEND OFF)
 endif()
