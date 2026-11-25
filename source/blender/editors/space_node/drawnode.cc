@@ -112,7 +112,8 @@ static void node_buts_mix_rgb(ui::Layout &layout, bContext * /*C*/, PointerRNA *
 
 static void node_buts_time(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  template_curve_mapping(&layout, ptr, "curve", 's', false, false, false, false, false);
+  template_curve_mapping(
+      &layout, ptr, "curve", ui::CurveMappingLabels::None, false, false, false, false, false);
 }
 
 static void node_buts_colorramp(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -122,12 +123,14 @@ static void node_buts_colorramp(ui::Layout &layout, bContext * /*C*/, PointerRNA
 
 static void node_buts_curvevec(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  template_curve_mapping(&layout, ptr, "mapping", 'v', false, false, false, false, false);
+  template_curve_mapping(
+      &layout, ptr, "mapping", ui::CurveMappingLabels::XYZ, false, false, false, false, false);
 }
 
 static void node_buts_curvefloat(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  template_curve_mapping(&layout, ptr, "mapping", 0, false, false, false, false, false);
+  template_curve_mapping(
+      &layout, ptr, "mapping", ui::CurveMappingLabels::None, false, false, false, false, false);
 }
 
 }  // namespace ed::space_node
@@ -162,8 +165,15 @@ static void node_buts_curvecol(ui::Layout &layout, bContext * /*C*/, PointerRNA 
 
   /* "Tone" (Standard/Film-like) only used in the Compositor. */
   bNodeTree *ntree = id_cast<bNodeTree *>(ptr->owner_id);
-  template_curve_mapping(
-      &layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT), false);
+  template_curve_mapping(&layout,
+                         ptr,
+                         "mapping",
+                         ui::CurveMappingLabels::CRGB,
+                         false,
+                         false,
+                         false,
+                         (ntree->type == NTREE_COMPOSIT),
+                         false);
 }
 
 static void node_buts_normal(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -569,7 +579,8 @@ static void node_composit_buts_huecorrect(ui::Layout &layout, bContext * /*C*/, 
     cumap->flag &= ~CUMA_DRAW_SAMPLE;
   }
 
-  template_curve_mapping(&layout, ptr, "mapping", 'h', false, false, false, false, false);
+  template_curve_mapping(
+      &layout, ptr, "mapping", ui::CurveMappingLabels::HSV, false, false, false, false, false);
 }
 
 static void node_composit_buts_combsep_color(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)

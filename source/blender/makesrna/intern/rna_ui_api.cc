@@ -1021,6 +1021,27 @@ static void rna_template_uilist_flags(Layout *layout,
   ui::template_uilist_flags(layout, C, &fileptr);
 }
 
+static void rna_uiTemplateCurveMapping(Layout *layout,
+                                       PointerRNA *ptr,
+                                       const char *propname,
+                                       const int type,
+                                       const bool levels,
+                                       const bool brush,
+                                       const bool neg_slope,
+                                       const bool tone,
+                                       const bool presets)
+{
+  template_curve_mapping(layout,
+                         ptr,
+                         propname,
+                         ui::CurveMappingLabels(type),
+                         levels,
+                         brush,
+                         neg_slope,
+                         tone,
+                         presets);
+}
+
 static void rna_uiTemplatePathBuilder(Layout *layout,
                                       PointerRNA *ptr,
                                       const char *propname,
@@ -1437,10 +1458,10 @@ void RNA_api_ui_layout(StructRNA *srna)
   PropertyRNA *parm;
 
   static const EnumPropertyItem curve_type_items[] = {
-      {0, "NONE", 0, "None", ""},
-      {'v', "VECTOR", 0, "Vector", ""},
-      {'c', "COLOR", 0, "Color", ""},
-      {'h', "HUE", 0, "Hue", ""},
+      {int(ui::CurveMappingLabels::None), "NONE", 0, "None", ""},
+      {int(ui::CurveMappingLabels::XYZ), "VECTOR", 0, "Vector", ""},
+      {int(ui::CurveMappingLabels::CRGB), "COLOR", 0, "Color", ""},
+      {int(ui::CurveMappingLabels::HSV), "HUE", 0, "Hue", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -2310,7 +2331,7 @@ void RNA_api_ui_layout(StructRNA *srna)
       "Identifier of this preview widget, if not set the ID type will be used "
       "(i.e. all previews of materials without explicit ID will have the same size...).");
 
-  func = RNA_def_function(srna, "template_curve_mapping", "template_curve_mapping");
+  func = RNA_def_function(srna, "template_curve_mapping", "rna_uiTemplateCurveMapping");
   RNA_def_function_ui_description(
       func, "Item. A curve mapping widget used for e.g falloff curves for lights.");
   api_ui_item_rna_common(func);

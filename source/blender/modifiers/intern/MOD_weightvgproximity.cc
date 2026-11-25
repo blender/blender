@@ -631,7 +631,15 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
   sub.use_property_split_set(false);
   row.prop(ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
-    template_curve_mapping(&layout, ptr, "map_curve", 0, false, false, false, false, false);
+    template_curve_mapping(&layout,
+                           ptr,
+                           "map_curve",
+                           ui::CurveMappingLabels::None,
+                           false,
+                           false,
+                           false,
+                           false,
+                           false);
   }
   modifier_error_message_draw(layout, ptr);
 }

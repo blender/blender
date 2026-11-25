@@ -1164,7 +1164,7 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
         template_curve_mapping(&layout,
                                &sculpt_ptr,
                                "automasking_cavity_curve_op",
-                               'v',
+                               ui::CurveMappingLabels::XYZ,
                                false,
                                false,
                                false,

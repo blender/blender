@@ -2726,10 +2726,23 @@ void template_icon_view(Layout *layout,
 void template_histogram(Layout *layout, PointerRNA *ptr, StringRefNull propname);
 void template_waveform(Layout *layout, PointerRNA *ptr, StringRefNull propname);
 void template_vectorscope(Layout *layout, PointerRNA *ptr, StringRefNull propname);
+
+/**
+ * Determines how the curve mapping is drawn:
+ * - Whether or not a RGB/XYZ selection is drawn.
+ * - What the exact labels of the curve selector are.
+ * - How many curve mappings are editable from this UI.
+ */
+enum class CurveMappingLabels : int8_t {
+  None,
+  XYZ,
+  CRGB,
+  HSV,
+};
 void template_curve_mapping(Layout *layout,
                             PointerRNA *ptr,
                             StringRefNull propname,
-                            int type,
+                            CurveMappingLabels labels,
                             bool levels,
                             bool brush,
                             bool neg_slope,

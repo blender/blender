@@ -340,11 +340,11 @@ static void add_preset_button(Block *block,
 /**
  * \note Still unsure how this call evolves.
  *
- * \param labeltype: Used for defining which curve-channels to show.
+ * \param labels: Used for defining which curve-channels to show.
  */
 static void curvemap_buttons_layout(Layout *layout,
                                     PointerRNA *ptr,
-                                    char labeltype,
+                                    const CurveMappingLabels labels,
                                     bool levels,
                                     bool brush,
                                     bool neg_slope,
@@ -370,7 +370,7 @@ static void curvemap_buttons_layout(Layout *layout,
   /* curve chooser */
   Layout *row = &layout->row(false);
 
-  if (labeltype == 'v') {
+  if (labels == CurveMappingLabels::XYZ) {
     /* vector */
     Layout &sub = row->row(true);
     sub.alignment_set(LayoutAlign::Left);
@@ -388,7 +388,7 @@ static void curvemap_buttons_layout(Layout *layout,
       button_func_set(bt, curvemap_buttons_redraw);
     }
   }
-  else if (labeltype == 'c' && cumap->tone != CURVE_TONE_FILMLIKE) {
+  else if (labels == CurveMappingLabels::CRGB && cumap->tone != CURVE_TONE_FILMLIKE) {
     /* color */
     Layout &sub = row->row(true);
     sub.alignment_set(LayoutAlign::Left);
@@ -450,7 +450,7 @@ static void curvemap_buttons_layout(Layout *layout,
       button_func_set(bt, curvemap_buttons_redraw);
     }
   }
-  else if (labeltype == 'h') {
+  else if (labels == CurveMappingLabels::HSV) {
     /* HSV */
     Layout &sub = row->row(true);
     sub.alignment_set(LayoutAlign::Left);
@@ -502,7 +502,7 @@ static void curvemap_buttons_layout(Layout *layout,
     row->alignment_set(LayoutAlign::Right);
   }
 
-  if (labeltype == 'h') {
+  if (labels == CurveMappingLabels::HSV) {
     bg = GRAD_H;
   }
 
@@ -852,7 +852,7 @@ static void curvemap_buttons_layout(Layout *layout,
 void template_curve_mapping(Layout *layout,
                             PointerRNA *ptr,
                             const StringRefNull propname,
-                            int type,
+                            const CurveMappingLabels labels,
                             bool levels,
                             bool brush,
                             bool neg_slope,
@@ -883,7 +883,7 @@ void template_curve_mapping(Layout *layout,
   block_lock_set(block, (id && !ID_IS_EDITABLE(id)), ERROR_LIBDATA_MESSAGE);
 
   curvemap_buttons_layout(
-      layout, &cptr, type, levels, brush, neg_slope, tone, presets, RNAUpdateCb{*ptr, prop});
+      layout, &cptr, labels, levels, brush, neg_slope, tone, presets, RNAUpdateCb{*ptr, prop});
 
   block_lock_clear(block);
 }

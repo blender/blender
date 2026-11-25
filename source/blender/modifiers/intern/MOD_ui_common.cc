@@ -155,7 +155,8 @@ void modifier_grease_pencil_curve_panel_draw(const bContext * /*C*/, Panel *pane
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  template_curve_mapping(&layout, ptr, "curve", 0, false, false, false, false, false);
+  template_curve_mapping(
+      &layout, ptr, "curve", ui::CurveMappingLabels::None, false, false, false, false, false);
 }
 
 /**
