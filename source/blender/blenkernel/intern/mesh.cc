@@ -997,7 +997,7 @@ void mesh_apply_spatial_organization(Mesh &mesh)
 
   MutableAttributeAccessor attributes_for_write = mesh.attributes_for_write();
   attributes_for_write.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.storage_type == bke::AttrStorageType::Single) {
+    if (iter.storage_type == bke::GList::StorageType::Single) {
       return;
     }
     if (iter.domain == bke::AttrDomain::Face) {

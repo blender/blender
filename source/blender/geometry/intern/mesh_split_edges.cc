@@ -48,7 +48,7 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.storage_type == bke::AttrStorageType::Single) {
+    if (iter.storage_type == bke::GList::StorageType::Single) {
       return;
     }
     if (iter.domain != bke::AttrDomain::Point) {
@@ -94,7 +94,7 @@ static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edg
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.storage_type == bke::AttrStorageType::Single) {
+    if (iter.storage_type == bke::GList::StorageType::Single) {
       return;
     }
     if (iter.domain != bke::AttrDomain::Edge) {

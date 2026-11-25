@@ -39,7 +39,6 @@ namespace bke {
 
 enum class AttrDomain : int8_t;
 enum class AttrType : int16_t;
-enum class AttrStorageType : int8_t;
 
 /** Data and metadata for a single geometry attribute. */
 class Attribute {
@@ -83,7 +82,7 @@ class Attribute {
    * The method used to store the data. This gives flexibility to optimize the internal storage
    * even though conceptually the attribute is an array of values.
    */
-  AttrStorageType storage_type() const;
+  GList::StorageType storage_type() const;
 
   /** Low level access to the data stored for the attribute. */
   const GList &data() const;
@@ -272,21 +271,9 @@ inline GList &Attribute::data()
   return data_;
 }
 
-inline AttrStorageType Attribute::storage_type() const
+inline GList::StorageType Attribute::storage_type() const
 {
-  return std::visit(
-      []<typename T>(const T & /*data*/) {
-        if constexpr (std::is_same_v<T, GList::ArrayData>) {
-          return AttrStorageType::Array;
-        }
-        else if constexpr (std::is_same_v<T, GList::SingleData>) {
-          return AttrStorageType::Single;
-        }
-        else {
-          BLI_assert_unreachable_static_t(T);
-        }
-      },
-      data_.data());
+  return data_.storage_type();
 }
 
 inline void Attribute::assign_data(GList &&data)

@@ -324,7 +324,7 @@ LegacyMeshInterpolator::LegacyMeshInterpolator(const Mesh &src, Mesh &dst, const
     if (dst_attr->data_type() != src_attr.data_type()) {
       continue;
     }
-    if (dst_attr->storage_type() != AttrStorageType::Array) {
+    if (dst_attr->storage_type() != GList::StorageType::Array) {
       continue;
     }
     BLI_assert(src_attr.data().size() == src_domain_size);

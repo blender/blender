@@ -97,14 +97,14 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
     }
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
-      case bke::AttrStorageType::Array: {
+      case bke::GList::StorageType::Array: {
         GArray<> new_data(type, new_by_old_map.size());
         array_utils::gather(
             std::get<GSpan>(attr.data().values()), new_by_old_map, new_data.as_mutable_span());
         attr.assign_data(bke::GList(std::move(new_data)));
         break;
       }
-      case bke::AttrStorageType::Single: {
+      case bke::GList::StorageType::Single: {
         break;
       }
     }
@@ -198,7 +198,7 @@ static void reorder_attribute_groups(bke::AttributeStorage &storage,
     }
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
-      case bke::AttrStorageType::Array: {
+      case bke::GList::StorageType::Array: {
         const GSpan data = std::get<GSpan>(attr.data().values());
 
         GArray<> new_data(type, new_offsets.total_size(), NoInitialization());
@@ -217,7 +217,7 @@ static void reorder_attribute_groups(bke::AttributeStorage &storage,
         attr.assign_data(bke::GList(std::move(new_data)));
         break;
       }
-      case bke::AttrStorageType::Single: {
+      case bke::GList::StorageType::Single: {
         break;
       }
     }

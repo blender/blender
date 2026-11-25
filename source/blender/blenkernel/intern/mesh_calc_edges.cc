@@ -506,11 +506,11 @@ void mesh_calc_edges(Mesh &mesh,
       continue;
     }
     switch (attr.storage_type()) {
-      case AttrStorageType::Single: {
+      case GList::StorageType::Single: {
         attr.data().resize(result_edges_num);
         break;
       }
-      case AttrStorageType::Array: {
+      case GList::StorageType::Array: {
         const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
         const GSpan src = std::get<GSpan>(attr.data().values());
         GArray<> dst_data(type, result_edges_num, NoInitialization());

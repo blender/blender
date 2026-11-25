@@ -57,6 +57,12 @@ class GList {
 
   using DataVariant = std::variant<ArrayData, SingleData>;
 
+  /** The kind of data currently stored in #DataVariant. */
+  enum class StorageType : int8_t {
+    Array,
+    Single,
+  };
+
  private:
   const CPPType *cpp_type_;
   DataVariant data_;
@@ -84,6 +90,7 @@ class GList {
   const DataVariant &data() const;
   const CPPType &cpp_type() const;
   int64_t size() const;
+  StorageType storage_type() const;
 
   /**
    * Access values stored in the list. This is a variant because lists support different storage
@@ -232,6 +239,23 @@ inline const CPPType &GList::cpp_type() const
 inline int64_t GList::size() const
 {
   return size_;
+}
+
+inline GList::StorageType GList::storage_type() const
+{
+  return std::visit(
+      []<typename T>(const T & /*data*/) {
+        if constexpr (std::is_same_v<T, ArrayData>) {
+          return StorageType::Array;
+        }
+        else if constexpr (std::is_same_v<T, SingleData>) {
+          return StorageType::Single;
+        }
+        else {
+          BLI_assert_unreachable_static_t(T);
+        }
+      },
+      data_);
 }
 
 template<typename T> inline const List<T> &GList::typed() const

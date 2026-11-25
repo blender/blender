@@ -507,7 +507,14 @@ static int rna_Attribute_storage_type_get(PointerRNA *ptr)
     }
   }
   const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
-  return int(attr->storage_type());
+  switch (attr->storage_type()) {
+    case bke::GList::StorageType::Array:
+      return int(bke::AttrStorageType::Array);
+    case bke::GList::StorageType::Single:
+      return int(bke::AttrStorageType::Single);
+  }
+  BLI_assert_unreachable();
+  return int(bke::AttrStorageType::Array);
 }
 
 const EnumPropertyItem *rna_enum_attribute_domain_itemf(const AttributeOwner &owner,

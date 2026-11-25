@@ -521,7 +521,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
     if (ELEM(iter.name, "position", ".edge_verts", ".corner_vert", ".corner_edge")) {
       return;
     }
-    if (iter.storage_type == bke::AttrStorageType::Single) {
+    if (iter.storage_type == bke::GList::StorageType::Single) {
       const GVArray src_attr = *iter.get();
       const CommonVArrayInfo info = src_attr.common_info();
       if (info.type == CommonVArrayInfo::Type::Single) {

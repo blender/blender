@@ -187,7 +187,7 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
 
   /* Transfer curve and point attributes. */
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.storage_type == bke::AttrStorageType::Single) {
+    if (iter.storage_type == bke::GList::StorageType::Single) {
       return;
     }
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
@@ -278,7 +278,7 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
   curves.resize(points_by_curve.total_size(), curves.curves_num());
 
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.storage_type == bke::AttrStorageType::Single) {
+    if (iter.storage_type == bke::GList::StorageType::Single) {
       return;
     }
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);

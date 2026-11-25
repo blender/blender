@@ -334,7 +334,7 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
   for (bke::Attribute *attribute : attributes) {
     const eCustomDataType type = *bke::attr_type_to_custom_data_type(attribute->data_type());
     switch (attribute->storage_type()) {
-      case bke::AttrStorageType::Array: {
+      case bke::GList::StorageType::Array: {
         const auto &data = std::get<bke::GList::ArrayData>(attribute->data().data());
         store_layer(type,
                     data.data,
@@ -347,7 +347,7 @@ static BArrayCustomData *um_arraystore_cd_create(CustomData *cdata,
         attribute->assign_data(bke::GList(attribute->data().cpp_type()));
         break;
       }
-      case bke::AttrStorageType::Single: {
+      case bke::GList::StorageType::Single: {
         int &i = index_in_type.lookup_or_add(type, 0);
         BLI_SCOPED_DEFER([&]() { i++; });
         if (CustomData_layertype_is_dynamic(type)) {
@@ -469,7 +469,7 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
     int &i = index_in_type.lookup_or_add(type, 0);
     BLI_SCOPED_DEFER([&]() { i++; });
 
-    if (attribute->storage_type() == bke::AttrStorageType::Single) {
+    if (attribute->storage_type() == bke::GList::StorageType::Single) {
       continue;
     }
 
@@ -657,7 +657,7 @@ static void um_arraystore_expand_clear(UndoMesh *um)
   um_arraystore_cd_clear(&mesh->corner_data);
   um_arraystore_cd_clear(&mesh->face_data);
   for (bke::Attribute &attr : mesh->attribute_storage.wrap()) {
-    if (attr.storage_type() == bke::AttrStorageType::Single) {
+    if (attr.storage_type() == bke::GList::StorageType::Single) {
       continue;
     }
     attr.assign_data(bke::GList(attr.data().cpp_type()));

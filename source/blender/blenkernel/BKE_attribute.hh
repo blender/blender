@@ -22,6 +22,7 @@
 
 #include "BKE_attribute_enums.hh"
 #include "BKE_attribute_filters.hh"
+#include "BKE_list.hh"
 
 namespace blender {
 
@@ -394,7 +395,7 @@ class AttributeIter {
    * If the attribute is stored with a specific storage type, this is set (it's not set, for
    * example, when an attribute is stored as a vertex group).
    */
-  std::optional<AttrStorageType> storage_type;
+  std::optional<GList::StorageType> storage_type;
   bool is_builtin = false;
   mutable const AttributeAccessor *accessor = nullptr;
 

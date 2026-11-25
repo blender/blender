@@ -440,14 +440,14 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
     switch (attr.domain()) {
       case AttrDomain::Face: {
         switch (attr.storage_type()) {
-          case AttrStorageType::Array: {
+          case GList::StorageType::Array: {
             GArray<> dst_data(type, valid_faces_num, NoInitialization());
             array_utils::gather(
                 std::get<GSpan>(attr.data().values()), valid_faces, dst_data.as_mutable_span());
             attr.assign_data(GList(std::move(dst_data)));
             break;
           }
-          case AttrStorageType::Single:
+          case GList::StorageType::Single:
             attr.data().resize(valid_faces_num);
             break;
         }
@@ -455,7 +455,7 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
       }
       case AttrDomain::Corner: {
         switch (attr.storage_type()) {
-          case AttrStorageType::Array: {
+          case GList::StorageType::Array: {
             GArray<> dst_data(type, new_faces.total_size(), NoInitialization());
             array_utils::gather_group_to_group(old_faces,
                                                new_faces,
@@ -465,7 +465,7 @@ static void remove_invalid_faces(Mesh &mesh, const IndexMask &valid_faces)
             attr.assign_data(GList(std::move(dst_data)));
             break;
           }
-          case AttrStorageType::Single:
+          case GList::StorageType::Single:
             attr.data().resize(new_faces.total_size());
             break;
         }
@@ -541,14 +541,14 @@ static void remove_invalid_edges(Mesh &mesh, const IndexMask &valid_edges)
     }
     const CPPType &type = attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
-      case AttrStorageType::Array: {
+      case GList::StorageType::Array: {
         GArray<> dst_data(type, valid_edges_num, NoInitialization());
         array_utils::gather(
             std::get<GSpan>(attr.data().values()), valid_edges, dst_data.as_mutable_span());
         attr.assign_data(GList(std::move(dst_data)));
         break;
       }
-      case AttrStorageType::Single:
+      case GList::StorageType::Single:
         attr.data().resize(valid_edges_num);
         break;
     }

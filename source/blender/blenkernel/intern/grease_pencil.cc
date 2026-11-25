@@ -4429,7 +4429,7 @@ bke::greasepencil::Layer &GreasePencil::duplicate_layer(
   this->attribute_storage.wrap().resize(bke::AttrDomain::Layer, numLayers + 1);
   bke::MutableAttributeAccessor attributes = this->attributes_for_write();
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.storage_type == bke::AttrStorageType::Single) {
+    if (iter.storage_type == bke::GList::StorageType::Single) {
       return;
     }
     bke::GSpanAttributeWriter attr = attributes.lookup_for_write_span(iter.name);
@@ -4504,14 +4504,14 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
     }
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
-      case bke::AttrStorageType::Array: {
+      case bke::GList::StorageType::Array: {
         GArray<> new_data(type, new_by_old_map.size());
         array_utils::gather(
             std::get<GSpan>(attr.data().values()), new_by_old_map, new_data.as_mutable_span());
         attr.assign_data(bke::GList(std::move(new_data)));
         break;
       }
-      case bke::AttrStorageType::Single: {
+      case bke::GList::StorageType::Single: {
         break;
       }
     }
@@ -4833,7 +4833,7 @@ static void shrink_attribute_storage(bke::AttributeStorage &storage,
   for (bke::Attribute &attr : storage) {
     const CPPType &type = bke::attribute_type_to_cpp_type(attr.data_type());
     switch (attr.storage_type()) {
-      case bke::AttrStorageType::Array: {
+      case bke::GList::StorageType::Array: {
         const GSpan data = std::get<GSpan>(attr.data().values());
 
         GArray<> new_data(type, size - 1, NoInitialization());
@@ -4845,7 +4845,7 @@ static void shrink_attribute_storage(bke::AttributeStorage &storage,
         attr.assign_data(bke::GList(std::move(new_data)));
         break;
       }
-      case bke::AttrStorageType::Single: {
+      case bke::GList::StorageType::Single: {
         attr.data().resize(size - 1);
         break;
       }

@@ -12,9 +12,12 @@
 
 namespace blender::bke {
 
-/** Some storage types are only relevant for certain attribute types. */
+/**
+ * Storage type written to DNA and bake files. At runtime, #GList::StorageType is used instead.
+ * Some storage types are only relevant for certain attribute types.
+ */
 enum class AttrStorageType : int8_t {
-  /** #AttributeDataArray. */
+  /** #AttributeArray. */
   Array = 0,
   /** A single value for the whole attribute. */
   Single = 1,

@@ -153,7 +153,7 @@ void reverse_points_of(bke::CurvesGeometry &dst_curves, const IndexRange points_
     if (iter.data_type == bke::AttrType::String) {
       return;
     }
-    if (iter.storage_type == bke::AttrStorageType::Single) {
+    if (iter.storage_type == bke::GList::StorageType::Single) {
       return;
     }
 

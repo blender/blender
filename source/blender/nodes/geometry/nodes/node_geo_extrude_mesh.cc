@@ -271,7 +271,7 @@ static IDsByDomain get_transfer_attribute_names(const AttributeAccessor attribut
 {
   IDsByDomain names_by_domain;
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.storage_type == bke::AttrStorageType::Single) {
+    if (iter.storage_type == bke::GList::StorageType::Single) {
       return;
     }
     if (iter.data_type == bke::AttrType::String) {

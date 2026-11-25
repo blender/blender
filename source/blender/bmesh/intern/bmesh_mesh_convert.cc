@@ -230,12 +230,12 @@ static Vector<MeshToBMeshLayerInfo> mesh_to_bm_copy_info_calc(const Mesh &mesh,
     const bke::Attribute *attr = storage.lookup(layer_name);
     if (attr && attr->domain() == domain) {
       switch (attr->storage_type()) {
-        case bke::AttrStorageType::Array: {
+        case bke::GList::StorageType::Array: {
           info.mesh_data = std::get<GSpan>(attr->data().values()).data();
           info.mesh_stride = bke::attribute_type_to_cpp_type(attr->data_type()).size;
           break;
         }
-        case bke::AttrStorageType::Single: {
+        case bke::GList::StorageType::Single: {
           info.mesh_data = std::get<GPointer>(attr->data().values()).get();
           info.mesh_stride = 0;
           break;
@@ -1335,7 +1335,7 @@ class AttrSingleValueChecker {
     spans_.reinitialize(attrs_.size());
     can_be_single_.reinitialize(attrs_.size());
     for (const int attr_i : attrs_.index_range()) {
-      BLI_assert(attrs_[attr_i]->storage_type() == bke::AttrStorageType::Array);
+      BLI_assert(attrs_[attr_i]->storage_type() == bke::GList::StorageType::Array);
       spans_[attr_i] = std::get<GSpan>(attrs_[attr_i]->data().values());
       can_be_single_[attr_i] = attrs_[attr_i]->data_type() != bke::AttrType::String;
     }
