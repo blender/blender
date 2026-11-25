@@ -33,6 +33,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "GPU_context.hh"
+#include "GPU_init_exit.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.hh"
@@ -993,6 +994,12 @@ bool RE_engine_render(Render *re, bool do_all)
       BKE_report(re->reports, RPT_ERROR, "Cannot initialize the GPU");
       G.is_break = true;
       return true;
+    }
+    if (G.background && !GPU_is_init()) {
+      /* Ensure the GPU is initialized by the time the depsgraph is evaluated, so GPU Subdivision
+       * can be enabled. Otherwise the first render always runs with CPU Subdivision, which yields
+       * slightly different results. */
+      WM_init_gpu_offscreen();
     }
   }
 
