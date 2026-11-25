@@ -431,8 +431,16 @@ fresnel_dielectric_thinfilm(KernelGlobals kg,
 {
   Spectrum F = zero_spectrum();
   FOREACH_SPECTRUM_CHANNEL (i) {
-    GET_SPECTRUM_CHANNEL(F, i) = fresnel_iridescence_channel<false>(
-        kg, i, 1.0f, *thin_film, ior, 0.0f, -1.0f, cos_theta_i, r_cos_theta_t);
+    GET_SPECTRUM_CHANNEL(F, i) = fresnel_iridescence_channel<false>(kg,
+                                                                    i,
+                                                                    1.0f,
+                                                                    thin_film->thickness,
+                                                                    thin_film->ior,
+                                                                    ior,
+                                                                    0.0f,
+                                                                    -1.0f,
+                                                                    cos_theta_i,
+                                                                    r_cos_theta_t);
   }
   return F;
 }
@@ -448,7 +456,7 @@ fresnel_conductor_thinfilm(KernelGlobals kg,
     const float n = GET_SPECTRUM_CHANNEL(ior.re, i);
     const float k = GET_SPECTRUM_CHANNEL(ior.im, i);
     GET_SPECTRUM_CHANNEL(F, i) = fresnel_iridescence_channel<true>(
-        kg, i, 1.0f, *thin_film, n, k, -1.0f, cos_theta_i, nullptr);
+        kg, i, 1.0f, thin_film->thickness, thin_film->ior, n, k, -1.0f, cos_theta_i, nullptr);
   }
   return F;
 }
@@ -469,8 +477,16 @@ ccl_device_forceinline Spectrum fresnel_f82_thinfilm(KernelGlobals kg,
     const float n = mix((1.0f + sqrt_r) / (1.0f - sqrt_r), (1.0f - r) / (1.0f + r), g);
     const float k = safe_sqrtf((r * sqr(n + 1.0f) - sqr(n - 1.0f)) / (1.0f - r));
 
-    GET_SPECTRUM_CHANNEL(F, i) = fresnel_iridescence_channel<true>(
-        kg, i, 1.0f, fresnel->thin_film, n, k, g, cos_theta_i, nullptr);
+    GET_SPECTRUM_CHANNEL(F, i) = fresnel_iridescence_channel<true>(kg,
+                                                                   i,
+                                                                   1.0f,
+                                                                   fresnel->thin_film.thickness,
+                                                                   fresnel->thin_film.ior,
+                                                                   n,
+                                                                   k,
+                                                                   g,
+                                                                   cos_theta_i,
+                                                                   nullptr);
   }
   return F;
 }

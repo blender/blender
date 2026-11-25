@@ -511,7 +511,8 @@ ccl_device float fresnel_iridescence_channel(KernelGlobals kg,
 #endif
                                                                 const int channel,
                                                                 const float ambient_ior,
-                                                                const FresnelThinFilm thin_film,
+                                                                const float thin_film_thickness,
+                                                                float film_ior,
                                                                 const float substrate_n,
                                                                 const float substrate_k,
                                                                 const float F82,
@@ -520,9 +521,8 @@ ccl_device float fresnel_iridescence_channel(KernelGlobals kg,
 {
   /* For films below 1nm, the wave-optic-based Airy summation approach no longer applies,
    * so blend towards the case without coating. */
-  float film_ior = thin_film.ior;
-  if (thin_film.thickness < 1.0f) {
-    film_ior = mix(ambient_ior, film_ior, smoothstep(0.0f, 1.0f, thin_film.thickness));
+  if (thin_film_thickness < 1.0f) {
+    film_ior = mix(ambient_ior, film_ior, smoothstep(0.0f, 1.0f, thin_film_thickness));
   }
 
   float cos_theta_2;
@@ -569,7 +569,7 @@ ccl_device float fresnel_iridescence_channel(KernelGlobals kg,
   }
 
   /* Compute optical path difference inside the thin film. */
-  const float OPD = -2.0f * film_ior * thin_film.thickness * cos_theta_2;
+  const float OPD = -2.0f * film_ior * thin_film_thickness * cos_theta_2;
 
   /* Compute full phase shifts due to reflection, as a complex number exp(i * (phi23 + phi21)).
    * This complex form avoids the atan2 and cos calls needed to directly get the phase shift. */
