@@ -1478,6 +1478,18 @@ struct SymbolParser : NodeErrorHandler {
         cls->is_default_initialized = true;
       }
 
+      if (cls && !sym.is_static) {
+        /* Non-empty initializer lists are not supported by the default constructor. Empty ones
+         * are equivalent to the default zero initialization. */
+        InitializerList list = decl.initial_value().initializer_list();
+        if (list.is_valid() && !list.is_empty()) {
+          error(decl.initial_value(), Diag::UnsupportedDefaultMemberInitializerNotExpression);
+        }
+        else if (list.is_valid()) {
+          cls->is_default_initialized = true;
+        }
+      }
+
       if (sym.is_ptr) {
         /* We only support single indirection pointers. */
         if (decl.pointer().str().size() != 1) {

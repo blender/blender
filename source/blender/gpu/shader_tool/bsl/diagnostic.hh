@@ -319,6 +319,7 @@ enum class Diag {
   UnsupportedSymbolInExpr,
   UnsupportedDecltypeInExpr,
   UnsupportedDefaultedBody,
+  UnsupportedDefaultMemberInitializerNotExpression,
   UnsupportedDeletedBody,
   UnsupportedPureVirtualFunctionBody,
 
@@ -700,6 +701,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Unsupported symbol '{}' inside {}";
     case Diag::UnsupportedDefaultedBody:
       return "Defaulted body are not supported";
+    case Diag::UnsupportedDefaultMemberInitializerNotExpression:
+      return "Default member initializer must be an expression, not an initializer list";
     case Diag::UnsupportedDeletedBody:
       return "Deleted functions are not supported";
     case Diag::UnsupportedPureVirtualFunctionBody:
