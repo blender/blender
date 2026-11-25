@@ -2318,37 +2318,6 @@ static bke::bNodeSocketType *make_socket_type_texture()
     *static_cast<Tex **>(r_value) =
         (static_cast<bNodeSocketValueTexture *>(const_cast<void *>(socket_value)))->value;
   };
-  socktype->get_geometry_nodes_cpp_value = [](const void *socket_value) {
-    Tex *texture = static_cast<const bNodeSocketValueTexture *>(socket_value)->value;
-    return SocketValueVariant::from(texture);
-  };
-  static SocketValueVariant default_value = SocketValueVariant::from(static_cast<Tex *>(nullptr));
-  socktype->geometry_nodes_default_value = &default_value;
-  socktype->get_eval_value_from_rna_props__geometry_nodes =
-      get_data_block_eval_value_from_rna_props<Tex>;
-  socktype->get_inference_value_from_rna_props__geometry_nodes =
-      get_data_block_inference_value_from_rna_props__geometry_nodes<Tex>;
-  socktype->make_geometry_nodes_input_srna = [](const bNodeTree & /*tree*/,
-                                                StructRNA &srna,
-                                                const bNodeTreeInterfaceSocket &socket,
-                                                nodes::GeneratedTreeSrnaData &r_generated) {
-    PropertyRNA *prop = RNA_def_pointer_runtime(
-        &srna, "value", RNA_Texture, socket.name().c_str(), socket.description().c_str());
-    RNA_def_property_flag(prop, PROP_FORCE_GEOMETRY_EVAL);
-    RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-    RNA_def_property_update_runtime(prop, data_block_pointer_update);
-    make_common_value_props(srna, socket, r_generated);
-  };
-  socktype->make_compositor_nodes_input_srna = [](const bNodeTree & /*tree*/,
-                                                  StructRNA &srna,
-                                                  const bNodeTreeInterfaceSocket &socket,
-                                                  nodes::GeneratedTreeSrnaData &r_generated) {
-    make_common_type_prop(srna,
-                          socket,
-                          nodes::compositor_nodes_input_type_items_fallback,
-                          nodes::CompositorNodesInputType::Fallback,
-                          r_generated);
-  };
   return socktype;
 }
 

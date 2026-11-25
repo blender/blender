@@ -817,6 +817,7 @@ static std::optional<ID_Type> socket_type_to_id_type(const eNodeSocketDatatype s
     case SOCK_BUNDLE:
     case SOCK_CLOSURE:
     case SOCK_DYNAMIC:
+    case SOCK_TEXTURE:
       return std::nullopt;
     case SOCK_OBJECT:
       return ID_OB;
@@ -824,8 +825,6 @@ static std::optional<ID_Type> socket_type_to_id_type(const eNodeSocketDatatype s
       return ID_IM;
     case SOCK_COLLECTION:
       return ID_GR;
-    case SOCK_TEXTURE:
-      return ID_TE;
     case SOCK_MATERIAL:
       return ID_MA;
     case SOCK_FONT:

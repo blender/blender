@@ -495,10 +495,6 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
       row.prop_search(socket_props_ptr, "value", ctx.bmain_ptr, "materials", name, ICON_MATERIAL);
       break;
     }
-    case SOCK_TEXTURE: {
-      row.prop_search(socket_props_ptr, "value", ctx.bmain_ptr, "textures", name, ICON_TEXTURE);
-      break;
-    }
     case SOCK_FONT: {
       PropertyRNA *prop = RNA_struct_find_property(socket_props_ptr, "value");
       if (prop && RNA_property_type(prop) == PROP_POINTER) {
