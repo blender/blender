@@ -1482,7 +1482,7 @@ struct CodegenContext : NodeErrorHandler {
     /* Emit static variables. */
     for (VarDecl decl : body.children_of_type<VarDecl>()) {
       if (decl.type().is_static()) {
-        var_decl(decl, cls, true, true);
+        var_decl(decl, cls);
       }
     }
 
