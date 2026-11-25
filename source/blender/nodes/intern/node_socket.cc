@@ -1098,6 +1098,27 @@ static void get_data_block_inference_value_from_rna_props__geometry_nodes(
   }
 }
 
+static void ensure_geometry_nodes_input_type(PointerRNA &props,
+                                             const Span<nodes::GeometryNodesInputType> valid_types,
+                                             const nodes::GeometryNodesInputType fallback_type)
+{
+  BLI_assert(valid_types.contains(fallback_type));
+  const auto old_type = nodes::GeometryNodesInputType(RNA_enum_get(&props, "type"));
+  if (!valid_types.contains(old_type)) {
+    RNA_enum_set(&props, "type", int(fallback_type));
+  }
+}
+
+static nodes::GeometryNodesInputType get_default_geometry_nodes_input_type__bool(
+    const bNodeTreeInterfaceSocket &socket)
+{
+  return is_layer_selection_field(socket) ?
+             nodes::GeometryNodesInputType::Layer :
+             (socket.default_attribute_name && socket.default_attribute_name[0] != '\0' ?
+                  nodes::GeometryNodesInputType::Attribute :
+                  nodes::GeometryNodesInputType::Value);
+}
+
 static bke::bNodeSocketType *make_socket_type_bool()
 {
   bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_BOOLEAN, PROP_NONE);
@@ -1123,16 +1144,11 @@ static bke::bNodeSocketType *make_socket_type_bool()
     RNA_def_property_flag(prop, PROP_FORCE_GEOMETRY_EVAL);
     RNA_def_property_update_runtime(prop, nodes::geometry_nodes_property_update);
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-    make_common_type_prop(
-        srna,
-        socket,
-        nodes::geometry_nodes_input_type_items_value_or_attribute_or_layer,
-        is_layer_selection_field(socket) ?
-            nodes::GeometryNodesInputType::Layer :
-            (socket.default_attribute_name && socket.default_attribute_name[0] != '\0' ?
-                 nodes::GeometryNodesInputType::Attribute :
-                 nodes::GeometryNodesInputType::Value),
-        r_generated);
+    make_common_type_prop(srna,
+                          socket,
+                          nodes::geometry_nodes_input_type_items_value_or_attribute_or_layer,
+                          get_default_geometry_nodes_input_type__bool(socket),
+                          r_generated);
     make_common_attribute_name_prop(srna, socket, r_generated);
     prop = RNA_def_string(
         &srna,
@@ -1146,6 +1162,27 @@ static bke::bNodeSocketType *make_socket_type_bool()
     RNA_def_property_update_runtime(prop, nodes::geometry_nodes_property_update);
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   };
+  socktype->update_props_on_interface_change__geometry_nodes =
+      [](const bke::UpdatePropsOnInterfaceChangeParams &p) {
+        if (is_layer_selection_field(p.io_socket)) {
+          ensure_geometry_nodes_input_type(p.props,
+                                           {nodes::GeometryNodesInputType::Layer},
+                                           nodes::GeometryNodesInputType::Layer);
+        }
+        else if (!nodes::input_has_attribute_toggle(p.tree,
+                                                    p.tree.interface_input_index(p.io_socket)))
+        {
+          ensure_geometry_nodes_input_type(p.props,
+                                           {nodes::GeometryNodesInputType::Value},
+                                           nodes::GeometryNodesInputType::Value);
+        }
+        else {
+          ensure_geometry_nodes_input_type(
+              p.props,
+              {nodes::GeometryNodesInputType::Value, nodes::GeometryNodesInputType::Attribute},
+              get_default_geometry_nodes_input_type__bool(p.io_socket));
+        }
+      };
   socktype->make_compositor_nodes_input_srna = [](const bNodeTree & /*tree*/,
                                                   StructRNA &srna,
                                                   const bNodeTreeInterfaceSocket &socket,

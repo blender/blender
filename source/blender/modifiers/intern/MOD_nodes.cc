@@ -405,6 +405,24 @@ static void update_system_properties(Main &bmain, Object &object, NodesModifierD
   PointerRNA properties_ptr = RNA_pointer_create_discrete(
       &object.id, RNA_NodesModifierProperties, &nmd);
   RNA_ensure_and_sync_system_properties(bmain, properties_ptr, *nmd.modifier.system_properties);
+
+  PointerRNA inputs_ptr = RNA_pointer_get(&properties_ptr, "inputs");
+  if (!inputs_ptr.data) {
+    return;
+  }
+
+  nmd.node_group->ensure_interface_cache();
+  for (const bNodeTreeInterfaceSocket *io_socket : nmd.node_group->interface_inputs()) {
+    const bke::bNodeSocketType *stype = io_socket->socket_typeinfo();
+    if (stype && stype->update_props_on_interface_change__geometry_nodes) {
+      PointerRNA input_ptr = RNA_pointer_get(&inputs_ptr, io_socket->identifier);
+      if (!input_ptr.data) {
+        continue;
+      }
+      const bke::UpdatePropsOnInterfaceChangeParams params{*nmd.node_group, *io_socket, input_ptr};
+      stype->update_props_on_interface_change__geometry_nodes(params);
+    }
+  }
 }
 
 void MOD_nodes_update_interface(Main &bmain, Object *object, NodesModifierData *nmd)
