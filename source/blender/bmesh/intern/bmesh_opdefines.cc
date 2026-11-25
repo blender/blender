@@ -557,6 +557,11 @@ static BMOpDefine bmo_circularize_def = {
         {"flatten", BMO_OP_SLOT_FLT},
         /* Distributes vertices at constant distances, otherwise preserves original spacing. */
         {"regular", BMO_OP_SLOT_BOOL},
+        /* Influence factor for inner edge loops: spans from 0.0 to 1.0. */
+        {"inner_strength", BMO_OP_SLOT_FLT},
+        /* Falloff curve for inner edge loops based on distance to the center: spans from 0.0
+         * to 1.0. */
+        {"inner_falloff", BMO_OP_SLOT_FLT},
         /* Lock X-axis editing. */
         {"lock_x", BMO_OP_SLOT_BOOL},
         /* Lock Y-axis editing. */

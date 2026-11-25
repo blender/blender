@@ -52,6 +52,11 @@ struct VertChain {
   bool is_closed;
   /** True if the chain is formed entirely from wire edges. */
   bool is_wire;
+  /**
+   * Measures how far an edge loop is from the outer boundary edge loop. It's 0 for
+   * the outer boundary and +1 for every subsequent interior edge loop.
+   */
+  int interior_depth = 0;
 };
 
 /**
@@ -544,6 +549,8 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
   const int fit_method = BMO_slot_int_get(op->slots_in, "fit_method");
   const float flatten = BMO_slot_float_get(op->slots_in, "flatten");
   const bool regular = BMO_slot_bool_get(op->slots_in, "regular");
+  const float inner_strength = BMO_slot_float_get(op->slots_in, "inner_strength");
+  const float inner_falloff = BMO_slot_float_get(op->slots_in, "inner_falloff");
 
   const bool check_axis[3] = {
       BMO_slot_bool_get(op->slots_in, "mirror_x"),
@@ -560,6 +567,8 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
       bm, op->slots_in, "geom", BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
   Vector<VertChain> chains;
+  /* The maximum count of outer plus inner edge loops across all selected regions. */
+  int interior_depth_count = 0;
 
   /* Uses two passes to detect if edges are wire edges or they have face regions.
    * Wire edges are rejected in the first pass but included in the second pass. */
@@ -567,8 +576,53 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
     if (!extract_wire_edges && bm->totface == 0) {
       continue;
     }
-    bm_vert_chain_extract_from_boundary_edges(
-        bm, chains, BM_ELEM_TAG, check_axis, extract_wire_edges);
+    /* On dense meshes, when the corners of the boundary edge loop are pulled inwards to form a
+     * circle, they intersect with the inner faces of the selection. In that case, this is a second
+     * option to also circularize the internal edge loops. */
+    if (!extract_wire_edges && inner_strength > 0.0f && inner_falloff > 0.0f) {
+      while (true) {
+        const int prev_chains_num = chains.size();
+        bm_vert_chain_extract_from_boundary_edges(
+            bm, chains, BM_ELEM_TAG, check_axis, extract_wire_edges);
+
+        Vector<BMFace *> boundary_faces;
+        for (const int i : chains.index_range().drop_front(prev_chains_num)) {
+          chains[i].interior_depth = interior_depth_count;
+          for (BMVert *v : chains[i].verts) {
+            BMIter fiter;
+            BMFace *f;
+            BM_ITER_ELEM (f, &fiter, v, BM_FACES_OF_VERT) {
+              if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
+                BM_elem_flag_disable(f, BM_ELEM_TAG);
+                boundary_faces.append(f);
+              }
+            }
+          }
+        }
+
+        if (chains.size() > prev_chains_num) {
+          interior_depth_count++;
+        }
+
+        if (boundary_faces.is_empty()) {
+          break;
+        }
+
+        for (BMFace *f : boundary_faces) {
+          BMIter eiter;
+          BMEdge *e;
+          BM_ITER_ELEM (e, &eiter, f, BM_EDGES_OF_FACE) {
+            if (!BM_edge_is_any_face_flag_test(e, BM_ELEM_TAG)) {
+              BM_elem_flag_disable(e, BM_ELEM_TAG);
+            }
+          }
+        }
+      }
+    }
+    else {
+      bm_vert_chain_extract_from_boundary_edges(
+          bm, chains, BM_ELEM_TAG, check_axis, extract_wire_edges);
+    }
   }
 
   /* Builds a BVH tree when flatten is disabled. Without this we would have to iterate
@@ -670,7 +724,20 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
       calculate_circle_best_fit(circle_verts, fixed_center, circle_center_2d, &radius);
     }
 
-    if (custom_radius > 0.0f) {
+    float chain_factor = factor;
+    if (chain_data.interior_depth > 0) {
+      /* A factor between 0 to 1 measuring how far an edge loop is from the outer boundary of the
+       * selection. Edge loops closer to the outer boundary are closer to one and those farther
+       * away are closer to zero. */
+      const float radial_factor = 1.0f -
+                                  (float(chain_data.interior_depth) / float(interior_depth_count));
+      if (custom_radius > 0.0f) {
+        radius = custom_radius * radial_factor;
+      }
+      const float falloff_weight = std::pow(radial_factor, (1.0f - inner_falloff) / inner_falloff);
+      chain_factor = factor * inner_strength * falloff_weight;
+    }
+    else if (custom_radius > 0.0f) {
       radius = custom_radius;
     }
 
@@ -715,7 +782,7 @@ void bmo_circularize_exec(BMesh *bm, BMOperator *op)
         }
       }
 
-      interp_v3_v3v3(cv.v->co, cv.v->co, final_pos, factor);
+      interp_v3_v3v3(cv.v->co, cv.v->co, final_pos, chain_factor);
     }
   }
 

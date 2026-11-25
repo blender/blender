@@ -49,6 +49,8 @@ static wmOperatorStatus edbm_circularize_exec(bContext *C, wmOperator *op)
   const float factor = RNA_float_get(op->ptr, "factor");
   const float flatten = RNA_float_get(op->ptr, "flatten");
   const bool regular = RNA_boolean_get(op->ptr, "regular");
+  const float inner_strength = RNA_float_get(op->ptr, "inner_strength");
+  const float inner_falloff = RNA_float_get(op->ptr, "inner_falloff");
   const int fit_method = RNA_enum_get(op->ptr, "fit_method");
   float custom_radius = RNA_float_get(op->ptr, "custom_radius");
   if (!RNA_boolean_get(op->ptr, "use_custom_radius")) {
@@ -72,24 +74,27 @@ static wmOperatorStatus edbm_circularize_exec(bContext *C, wmOperator *op)
     bool mirror_axis[3];
     BKE_object_get_mirror_axes(obedit, mirror_axis);
 
-    if (!EDBM_op_callf(bm,
-                       op,
-                       "circularize geom=%hvef factor=%f flatten=%f regular=%b fit_method=%i "
-                       "custom_radius=%f angle=%f lock_x=%b lock_y=%b lock_z=%b mirror_x=%b "
-                       "mirror_y=%b mirror_z=%b",
-                       BM_ELEM_SELECT,
-                       factor,
-                       flatten,
-                       regular,
-                       fit_method,
-                       custom_radius,
-                       angle,
-                       lock[0],
-                       lock[1],
-                       lock[2],
-                       mirror_axis[0],
-                       mirror_axis[1],
-                       mirror_axis[2]))
+    if (!EDBM_op_callf(
+            bm,
+            op,
+            "circularize geom=%hvef factor=%f flatten=%f regular=%b inner_strength=%f "
+            "inner_falloff=%f fit_method=%i custom_radius=%f angle=%f lock_x=%b lock_y=%b "
+            "lock_z=%b mirror_x=%b mirror_y=%b mirror_z=%b",
+            BM_ELEM_SELECT,
+            factor,
+            flatten,
+            regular,
+            inner_strength,
+            inner_falloff,
+            fit_method,
+            custom_radius,
+            angle,
+            lock[0],
+            lock[1],
+            lock[2],
+            mirror_axis[0],
+            mirror_axis[1],
+            mirror_axis[2]))
     {
       continue;
     }
@@ -124,6 +129,10 @@ static void edbm_circularize_ui(bContext * /*C*/, wmOperator *op)
   sub.prop(op->ptr, "custom_radius", UI_ITEM_NONE, "", ICON_NONE);
 
   layout.prop(op->ptr, "regular", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "inner_strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  ui::Layout &falloff_row = layout.row(true);
+  falloff_row.active_set(RNA_float_get(op->ptr, "inner_strength") > 0.0f);
+  falloff_row.prop(op->ptr, "inner_falloff", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(op->ptr, "flatten", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   ui::Layout &lock_row = layout.row(true, IFACE_("Lock"));
@@ -184,6 +193,24 @@ void MESH_OT_circularize(wmOperatorType *ot)
                   "Space Evenly",
                   "Distribute vertices at constant distances along the circle, otherwise "
                   "preserves original spacing");
+  RNA_def_float_factor(ot->srna,
+                       "inner_strength",
+                       0.0f,
+                       0.0f,
+                       1.0f,
+                       "Inner Strength",
+                       "Circularization factor for inner edge loops",
+                       0.0f,
+                       1.0f);
+  RNA_def_float_factor(ot->srna,
+                       "inner_falloff",
+                       0.5f,
+                       0.0f,
+                       1.0f,
+                       "Inner Falloff",
+                       "Falloff curve for inner edge loops based on distance to the center",
+                       0.0f,
+                       1.0f);
   RNA_def_float_factor(ot->srna,
                        "flatten",
                        1.0f,
