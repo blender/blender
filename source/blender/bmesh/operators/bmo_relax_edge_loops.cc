@@ -304,8 +304,12 @@ static void calculate_relax_splines(Span<BMVert *> verts,
   calculate_splines_axis(t_params, coords_z, is_closed, r_coeffs[2]);
 }
 
-static void execute_relax_phase(
-    Span<BMVert *> verts, const RelaxPhase &phase, bool is_closed, int interpolation, bool regular)
+static void execute_relax_phase(Span<BMVert *> verts,
+                                const RelaxPhase &phase,
+                                bool is_closed,
+                                int interpolation,
+                                bool regular,
+                                MutableSpan<float3> r_positions)
 {
   if (phase.point_indices.is_empty()) {
     return;
@@ -355,8 +359,7 @@ static void execute_relax_phase(
   for (const int i : IndexRange(points_num)) {
     const int v_index = phase.point_indices[i];
     const float3 current_pos(verts[v_index]->co);
-    const float3 final_pos = (current_pos + sampled_positions[i]) / 2.0f;
-    copy_v3_v3(verts[v_index]->co, final_pos);
+    r_positions[v_index] = (current_pos + sampled_positions[i]) / 2.0f;
   }
 }
 
@@ -376,12 +379,20 @@ void bmo_relax_edge_loops_exec(BMesh *bm, BMOperator *op)
     build_relax_phases(chain.verts.size(), chain.is_closed, chain.phases);
   }
 
-  for (const int it : IndexRange(iterations)) {
-    UNUSED_VARS(it);
+  for (const RelaxChainData &chain : chains) {
+    Array<float3> new_positions(chain.verts.size());
 
-    for (RelaxChainData &chain : chains) {
+    for (const int it : IndexRange(iterations)) {
+      UNUSED_VARS(it);
+
       for (const RelaxPhase &phase : chain.phases) {
-        execute_relax_phase(chain.verts, phase, chain.is_closed, interpolation, even_spacing);
+        execute_relax_phase(
+            chain.verts, phase, chain.is_closed, interpolation, even_spacing, new_positions);
+      }
+      for (const RelaxPhase &phase : chain.phases) {
+        for (const int v_index : phase.point_indices) {
+          copy_v3_v3(chain.verts[v_index]->co, new_positions[v_index]);
+        }
       }
     }
   }
