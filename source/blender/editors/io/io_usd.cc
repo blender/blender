@@ -225,21 +225,6 @@ const EnumPropertyItem rna_enum_usd_convert_scene_units_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/* Stored in the wmOperator's customdata field to indicate it should run as a background job.
- * This is set when the operator is invoked, and not set when it is only executed. */
-struct USDOperatorOptions {
-  bool as_background_job;
-};
-
-static void free_operator_customdata(wmOperator *op)
-{
-  if (op->customdata) {
-    USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
-    MEM_delete(options);
-    op->customdata = nullptr;
-  }
-}
-
 /* Ensure that the prim_path is not set to
  * the absolute root path '/'. */
 static void process_prim_path(std::string &prim_path)
@@ -262,10 +247,6 @@ static wmOperatorStatus wm_usd_export_invoke(bContext *C,
                                              wmOperator *op,
                                              const wmEvent * /*event*/)
 {
-  USDOperatorOptions *options = MEM_new_zeroed<USDOperatorOptions>("USDOperatorOptions");
-  options->as_background_job = true;
-  op->customdata = options;
-
   ED_fileselect_ensure_default_filepath(C, op, ".usdc");
 
   WM_event_add_fileselect(C, op);
@@ -277,13 +258,10 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
-    free_operator_customdata(op);
     return OPERATOR_CANCELLED;
   }
 
-  const USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
-  const bool as_background_job = (options != nullptr && options->as_background_job);
-  free_operator_customdata(op);
+  const bool as_background_job = (op->flag & OP_IS_INVOKE) != 0;
 
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
@@ -521,11 +499,6 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   }
 }
 
-static void wm_usd_export_cancel(bContext * /*C*/, wmOperator *op)
-{
-  free_operator_customdata(op);
-}
-
 static bool wm_usd_export_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -568,7 +541,6 @@ void WM_OT_usd_export(wmOperatorType *ot)
   ot->exec = wm_usd_export_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_export_draw;
-  ot->cancel = wm_usd_export_cancel;
   ot->check = wm_usd_export_check;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_PRESET; /* No UNDO possible. */
@@ -879,10 +851,6 @@ void WM_OT_usd_export(wmOperatorType *ot)
 
 static wmOperatorStatus wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  USDOperatorOptions *options = MEM_new_zeroed<USDOperatorOptions>("USDOperatorOptions");
-  options->as_background_job = true;
-  op->customdata = options;
-
   return ed::io::filesel_drop_import_invoke(C, op, event);
 }
 
@@ -890,13 +858,10 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
-    free_operator_customdata(op);
     return OPERATOR_CANCELLED;
   }
 
-  const USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
-  const bool as_background_job = (options != nullptr && options->as_background_job);
-  free_operator_customdata(op);
+  const bool as_background_job = (op->flag & OP_IS_INVOKE) != 0;
 
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
@@ -983,11 +948,6 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
   const bool ok = USD_import(C, filepath, &params, as_background_job, op->reports);
 
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
-}
-
-static void wm_usd_import_cancel(bContext * /*C*/, wmOperator *op)
-{
-  free_operator_customdata(op);
 }
 
 static void wm_usd_import_draw(bContext *C, wmOperator *op)
@@ -1107,7 +1067,6 @@ void WM_OT_usd_import(wmOperatorType *ot)
 
   ot->invoke = wm_usd_import_invoke;
   ot->exec = wm_usd_import_exec;
-  ot->cancel = wm_usd_import_cancel;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_import_draw;
 
