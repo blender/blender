@@ -245,7 +245,7 @@ struct SymbolParser : NodeErrorHandler {
   void parse_function_return_type(SymbolScope &scope, ast::IdType return_type)
   {
     SymbolFunction &fn = *scope.as_function();
-    fn.return_type = &fn.lookup_class(table, return_type.identifier()).unwrap(this);
+    fn.return_type = &parse_id_type(scope, return_type);
 
     if (fn.is_entry_point() && fn.return_type != table.void_cls) {
       error(return_type, Diag::EntryPointVoidReturn);
@@ -445,7 +445,7 @@ struct SymbolParser : NodeErrorHandler {
   void parse_loop_arguments(SymbolScope &scope, ForLoop loop)
   {
     for (VarDecl var : loop.condition().descendants_of_type<VarDecl>()) {
-      const SymbolClass &type = scope.lookup_class(table, var.type().identifier()).unwrap(this);
+      const SymbolClass &type = parse_id_type(scope, var.type());
       for (Declarator decl : var.children_of_type<Declarator>()) {
         SymbolVariable &sym = table.var_arena.alloc(scope, type, decl, table);
         if (scope.variable_emplace(&sym)) {
