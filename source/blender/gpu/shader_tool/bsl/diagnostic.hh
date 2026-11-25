@@ -106,6 +106,7 @@ enum class Diag {
   ArrayNeedsSizeOrInitializer,
   ArraySizeMustBeGreaterThanZero,
   ArraySizeNotConstantExpression,
+  ArraySizeNotConstantForDefaultInitialization,
   ArrayTypeOperand,
 
   AttributeOnlyEntryPointsCanUseIn,
@@ -339,6 +340,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Array size must be greater than zero";
     case Diag::ArraySizeNotConstantExpression:
       return "Array size is not a constant expression";
+    case Diag::ArraySizeNotConstantForDefaultInitialization:
+      return "Array of type '{}' with default member initializers needs a constant size";
     case Diag::ArrayTypeOperand:
       return "Invalid operand of array type";
     case Diag::AttributeNotAllowedInComp:

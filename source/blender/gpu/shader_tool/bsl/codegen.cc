@@ -3219,8 +3219,44 @@ struct CodegenContext : NodeErrorHandler {
       error(decl, Diag::PointerNeedsInitialization);
     }
     else if (var->type.is_default_initialized) {
-      builder.ss << "=" + var->type.identifier + "_ctor_()";
+      builder.ss << "=" + default_constructor_call(var->type, array, scope);
     }
+  }
+
+  /* Default constructor call for a declaration of a default initialized type. Arrays are filled
+   * using aggregate initializers. Return an empty string on error. */
+  string default_constructor_call(const SymbolClass &type,
+                                  ArrayDecl array,
+                                  const SymbolScope &scope)
+  {
+    string value = type.identifier + "_ctor_()";
+    if (!array.is_valid()) {
+      return value;
+    }
+
+    vector<int> sizes;
+    for (Subscript sub : array.children_of_type<Subscript>()) {
+      if (sub.is_empty()) {
+        error(sub, Diag::ArraySizeNotConstantForDefaultInitialization, type.identifier);
+        return "";
+      }
+      auto [result, err] = table.expr_type_analysis(scope, sub.expr().child_first());
+      if (err || !result.is_constexpr()) {
+        error(sub, Diag::ArraySizeNotConstantForDefaultInitialization, type.identifier);
+        return "";
+      }
+      sizes.push_back(result.value.comp_as<int>(0));
+    }
+
+    /* Innermost dimension first, e.g. `{{T_ctor_(),T_ctor_()},{T_ctor_(),T_ctor_()}}`. */
+    for (auto it = sizes.rbegin(); it != sizes.rend(); ++it) {
+      string list;
+      for (int i = 0; i < *it; i++) {
+        list += (i > 0 ? "," : "") + value;
+      }
+      value = "{" + list + "}";
+    }
+    return value;
   }
 
   void assignment(AssignStmt stmt, const SymbolScope &scope, const SymbolVariable *var)

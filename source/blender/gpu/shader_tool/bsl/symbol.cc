@@ -1456,7 +1456,9 @@ struct SymbolParser : NodeErrorHandler {
       SymbolVariable &sym = table.var_arena.alloc(scope, type, decl, table);
       sym.res_type = attr.res_type;
       sym.is_static |= attr.res_type != ResourceType::NONE;
-      sym.default_value = decl.initial_value().expr();
+      if (!sym.is_static) {
+        sym.default_value = decl.initial_value().expr();
+      }
       if (scope.variable_emplace(&sym)) {
         /* Check if redefinition is simply hiding a base class member. */
         SymbolVariable *other = scope.variables.find(sym.identifier)->second.second;
