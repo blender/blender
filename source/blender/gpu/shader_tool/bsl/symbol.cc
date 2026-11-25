@@ -707,6 +707,11 @@ struct SymbolParser : NodeErrorHandler {
           error(var.loc.tok, Diag::Redefinition, cls.original);
         }
         var.set_offset(parent_class.is_union(), offset);
+
+        SymbolClass *parent_cls = scope.as_class();
+        if (parent_cls && !parent_cls->is_union) {
+          parent_cls->is_default_initialized |= cls.is_default_initialized;
+        }
       }
     }
     return cls;
@@ -776,6 +781,7 @@ struct SymbolParser : NodeErrorHandler {
       else {
         cls.base_classes.emplace_back(parent_id, parent_cls);
         inherit_members(cls, *parent_cls);
+        cls.is_default_initialized |= parent_cls->is_default_initialized;
       }
       parent_id = parent_id.next();
     }
@@ -1475,6 +1481,11 @@ struct SymbolParser : NodeErrorHandler {
       }
 
       if (cls && sym.default_value.is_valid()) {
+        cls->is_default_initialized = true;
+      }
+      else if (cls && !cls->is_union && !sym.is_static && type.is_default_initialized) {
+        /* Member type is default initialized, so the class also becomes default initialized.
+         * Unions only zero initialize their storage. */
         cls->is_default_initialized = true;
       }
 
