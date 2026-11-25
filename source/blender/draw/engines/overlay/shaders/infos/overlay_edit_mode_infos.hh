@@ -43,27 +43,6 @@ GPU_SHADER_INTERFACE_END()
 /** \name Edit Mesh
  * \{ */
 
-GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_analysis_iface)
-SMOOTH(float4, weight_color)
-GPU_SHADER_INTERFACE_END()
-
-GPU_SHADER_CREATE_INFO(overlay_edit_mesh_analysis)
-DO_STATIC_COMPILATION()
-VERTEX_IN(0, float3, pos)
-VERTEX_IN(1, float, weight)
-SAMPLER(0, sampler1D, weight_tx)
-FRAGMENT_OUT(0, float4, frag_color)
-FRAGMENT_OUT(1, float4, line_output)
-VERTEX_OUT(overlay_edit_mesh_analysis_iface)
-VERTEX_SOURCE("overlay_edit_mesh_analysis_vert.glsl")
-FRAGMENT_SOURCE("overlay_edit_mesh_analysis_frag.glsl")
-ADDITIONAL_INFO(draw_view)
-ADDITIONAL_INFO(draw_modelmat)
-ADDITIONAL_INFO(draw_globals)
-GPU_SHADER_CREATE_END()
-
-CREATE_INFO_VARIANT(overlay_edit_mesh_analysis_clipped, overlay_edit_mesh_analysis, drw_clipped)
-
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_skin_root)
 DO_STATIC_COMPILATION()
 VERTEX_OUT(overlay_edit_flat_wire_iface)

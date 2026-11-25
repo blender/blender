@@ -34,7 +34,6 @@ set(SRC_GLSL_VERT
   overlay_edit_curve_wire_vert.glsl
   overlay_edit_curves_handle_vert.glsl
   overlay_edit_pointcloud_vert.glsl
-  overlay_edit_mesh_analysis_vert.glsl
   overlay_edit_mesh_skin_root_vert.glsl
   overlay_edit_particle_point_vert.glsl
   overlay_edit_particle_strand_vert.glsl
@@ -67,7 +66,6 @@ set(SRC_GLSL_VERT
 
 set(SRC_GLSL_FRAG
   overlay_background_frag.glsl
-  overlay_edit_mesh_analysis_frag.glsl
   overlay_edit_uv_edges_frag.glsl
   overlay_edit_uv_image_mask_frag.glsl
   overlay_edit_uv_verts_frag.glsl

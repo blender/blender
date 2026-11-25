@@ -570,8 +570,6 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_edit_gpencil_canvas.bsl.hh
   engines/overlay/shaders/overlay_edit_lattice.bsl.hh
   engines/overlay/shaders/overlay_edit_mesh.bsl.hh
-  engines/overlay/shaders/overlay_edit_mesh_analysis_frag.glsl
-  engines/overlay/shaders/overlay_edit_mesh_analysis_vert.glsl
   engines/overlay/shaders/overlay_edit_mesh_normal.bsl.hh
   engines/overlay/shaders/overlay_edit_mesh_skin_root_vert.glsl
   engines/overlay/shaders/overlay_edit_particle_point_vert.glsl

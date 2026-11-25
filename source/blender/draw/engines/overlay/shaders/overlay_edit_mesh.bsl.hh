@@ -835,4 +835,85 @@ PipelineGraphic depth_clipped(depth_pass::vert_main,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Mesh Analysis
+ * \{ */
+
+namespace mesh_analysis {
+
+struct VertIn {
+  [[attribute(0)]] float3 pos;
+  [[attribute(1)]] float weight;
+};
+
+struct VertOut {
+  [[smooth]] float4 final_color;
+};
+
+struct Resources {
+  [[resource_table]] Uniform uni;
+  [[resource_table]] Clipping clip;
+  [[resource_table]] draw::View views;
+  [[resource_table]] draw::Model models;
+  [[resource_table]] draw::Resource resources;
+
+  [[sampler(0)]] sampler1D weight_tx;
+
+  float3 weight_to_rgb(float weight) const
+  {
+    if (weight < 0.0f) {
+      /* Minimum color, gray */
+      return float3(0.25f, 0.25f, 0.25f);
+    }
+    if (weight > 1.0f) {
+      /* Error color. */
+      return float3(1.0f, 0.0f, 1.0f);
+    }
+    return texture(weight_tx, weight).rgb;
+  }
+};
+
+[[vertex]] void vert_main([[resource_table]] const Resources &srt,
+                          [[instance_index]] const int inst_index,
+                          [[in]] const VertIn &v_in,
+                          [[clip_distance, condition(use_clipping)]] float (&clip_distances)[6],
+                          [[out]] VertOut &v_out,
+                          [[position]] float4 &out_pos)
+{
+  uint id = srt.resources.get(inst_index).resource_id<1>();
+  ObjectMatrices model = srt.models.get(id);
+  ViewMatrices view = srt.views.get(0);
+
+  float3 ws_P = model.point_object_to_world(v_in.pos);
+  out_pos = view.point_world_to_homogenous(ws_P);
+  v_out.final_color = float4(srt.weight_to_rgb(v_in.weight), 1.0f);
+
+  if (srt.clip.constants.use_clipping) [[static_branch]] {
+    srt.clip.set_clipping_distances(ws_P,
+                                    clip_distances[0],
+                                    clip_distances[1],
+                                    clip_distances[2],
+                                    clip_distances[3],
+                                    clip_distances[4],
+                                    clip_distances[5]);
+  }
+}
+
+[[fragment]] void frag_main([[in]] const VertOut &v_out, [[out]] FragOut &frag_out)
+{
+  frag_out.color = v_out.final_color;
+  frag_out.line_output = float4(0.0f);
+}
+
+}  // namespace mesh_analysis
+
+/** \} */
+
+PipelineGraphic analysis(mesh_analysis::vert_main,
+                         mesh_analysis::frag_main,
+                         ClippingConstant{.use_clipping = false});
+PipelineGraphic analysis_clipped(mesh_analysis::vert_main,
+                                 mesh_analysis::frag_main,
+                                 ClippingConstant{.use_clipping = true});
+
 }  // namespace overlay::edit_mesh
