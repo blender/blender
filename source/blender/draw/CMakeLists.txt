@@ -544,7 +544,6 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/infos/overlay_common_infos.hh
   engines/overlay/shaders/infos/overlay_edit_mode_infos.hh
   engines/overlay/shaders/infos/overlay_extra_infos.hh
-  engines/overlay/shaders/infos/overlay_facing_infos.hh
   engines/overlay/shaders/infos/overlay_fullscreen_infos.hh
   engines/overlay/shaders/infos/overlay_grid_infos.hh
   engines/overlay/shaders/infos/overlay_outline_infos.hh
@@ -587,8 +586,7 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_edit_uv_verts_vert.glsl
   engines/overlay/shaders/overlay_extra_frag.glsl
   engines/overlay/shaders/overlay_extra.bsl.hh
-  engines/overlay/shaders/overlay_facing_frag.glsl
-  engines/overlay/shaders/overlay_facing_vert.glsl
+  engines/overlay/shaders/overlay_facing.bsl.hh
   engines/overlay/shaders/overlay_fullscreen_vert.glsl
   engines/overlay/shaders/overlay_grid_frag.glsl
   engines/overlay/shaders/overlay_grid_vert.glsl
