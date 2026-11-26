@@ -597,6 +597,9 @@ struct ButtonExtraOpIcon {
   bool disabled;
 };
 
+/** Width of the color picker popup contents. */
+#define PICKER_TOTAL_W (180.0f * UI_SCALE_FAC)
+
 struct ColorPicker {
   ColorPicker *next, *prev;
 

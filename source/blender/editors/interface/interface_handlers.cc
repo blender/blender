@@ -8143,6 +8143,27 @@ static bool numedit_but_COLORBAND(
   return changed;
 }
 
+/** Return the index of the color stop closest to \a mx, or the active one if none is close. */
+static int colorband_stop_at(const Block *block, const Button *but, const ColorBand *coba, int mx)
+{
+  /* Ignore zoom-level for mindist. */
+  int mindist = (50 * UI_SCALE_FAC) * block->aspect;
+  int cur = coba->cur;
+  for (int a = 0; a < coba->tot; a++) {
+    int xco = but->rect.xmin + (coba->data[a].pos * BLI_rctf_size_x(&but->rect));
+    xco = abs(xco - mx);
+    if (a == coba->cur) {
+      /* Selected one disadvantage. */
+      xco += 5;
+    }
+    if (xco < mindist) {
+      cur = a;
+      mindist = xco;
+    }
+  }
+  return cur;
+}
+
 static int do_but_COLORBAND(
     bContext *C, Block *block, Button *but, HandleButtonData *data, const wmEvent *event)
 {
@@ -8151,6 +8172,45 @@ static int do_but_COLORBAND(
   window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
+    /* Show hints in the status bar. */
+    if (!data->changed_wokspace_status) {
+      WorkspaceStatus status(C);
+      status.item(IFACE_("Edit Color"), ICON_MOUSE_LMB_2X);
+      status.item(IFACE_("Add Stop"), ICON_EVENT_CTRL, ICON_MOUSE_LMB);
+      data->changed_wokspace_status = true;
+    }
+    if (event->type == LEFTMOUSE && event->val == KM_DBL_CLICK) {
+      /* On double click, open the color picker for the color stop under the mouse.
+       * Also select the stop, since the first click may have been used to close another popup. */
+      ColorBand *coba = reinterpret_cast<ColorBand *>(but->poin);
+      coba->cur = colorband_stop_at(block, but, coba, mx);
+      for (Button &but_color : block->buttons() | std::views::drop(block->but_index(but) + 1)) {
+        if (but_color.type != ButtonType::Color ||
+            but_color.rnapoin.type != RNA_ColorRampElement || but_color.rnaindex != -1)
+        {
+          continue;
+        }
+        /* Only use the color button of this color ramp. */
+        const CBData *cbd = static_cast<const CBData *>(but_color.rnapoin.data);
+        if (cbd < coba->data || cbd >= coba->data + coba->tot) {
+          continue;
+        }
+        /* Make the color button edit the selected stop. */
+        but_color.rnapoin.data = coba->data + coba->cur;
+        /* Temporarily move the color button to the active stop so the popup opens here. */
+        const rctf rect_orig = but_color.rect;
+        but_color.rect = but->rect;
+        /* Center on the stop, using the popup width (contents plus padding). */
+        const float stop_x = but->rect.xmin +
+                             coba->data[coba->cur].pos * BLI_rctf_size_x(&but->rect);
+        const float half_width = (PICKER_TOTAL_W + UI_UNIT_X) / 2.0f;
+        but_color.rect.xmin = stop_x - half_width;
+        but_color.rect.xmax = stop_x + half_width;
+        handle_button_activate(C, data->region, &but_color, BUTTON_ACTIVATE_OPEN);
+        but_color.rect = rect_orig;
+        return WM_UI_HANDLER_BREAK;
+      }
+    }
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       ColorBand *coba = reinterpret_cast<ColorBand *>(but->poin);
 
@@ -8161,29 +8221,13 @@ static int do_but_COLORBAND(
         button_activate_state(C, but, BUTTON_STATE_EXIT);
       }
       else {
-        CBData *cbd;
-        /* ignore zoom-level for mindist */
-        int mindist = (50 * UI_SCALE_FAC) * block->aspect;
-        int xco;
         data->dragstartx = mx;
         data->dragstarty = my;
         data->draglastx = mx;
         data->draglasty = my;
 
         /* activate new key when mouse is close */
-        int a;
-        for (a = 0, cbd = coba->data; a < coba->tot; a++, cbd++) {
-          xco = but->rect.xmin + (cbd->pos * BLI_rctf_size_x(&but->rect));
-          xco = abs(xco - mx);
-          if (a == coba->cur) {
-            /* Selected one disadvantage. */
-            xco += 5;
-          }
-          if (xco < mindist) {
-            coba->cur = a;
-            mindist = xco;
-          }
-        }
+        coba->cur = colorband_stop_at(block, but, coba, mx);
 
         data->dragcbd = coba->data + coba->cur;
         data->dragfstart = data->dragcbd->pos;

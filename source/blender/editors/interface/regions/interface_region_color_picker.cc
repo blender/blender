@@ -557,7 +557,6 @@ static void colorpicker_update_type_space_cb(bContext * /*C*/, void *picker_bt1,
   colorpicker_hide_reveal(picker_but->block);
 }
 
-#define PICKER_TOTAL_W (180.0f * UI_SCALE_FAC)
 #define PICKER_BAR ((8.0f * UI_SCALE_FAC) + (6 * U.pixelsize))
 #define PICKER_SPACE (8.0f * UI_SCALE_FAC)
 #define PICKER_W (PICKER_TOTAL_W - PICKER_BAR - PICKER_SPACE)
