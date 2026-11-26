@@ -41,6 +41,9 @@ def extract_attribute_data(attribute, size, type_, data_type, domain, length, ex
     elif data_type == "FLOAT_VECTOR":
         attribute.data.foreach_get('vector', data)
         data = data.reshape(-1, length)
+    elif data_type == "FLOAT4":
+        attribute.data.foreach_get('vector', data)
+        data = data.reshape(-1, length)
     elif data_type == "QUATERNION":
         attribute.data.foreach_get('value', data)
         data = data.reshape(-1, length)

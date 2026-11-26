@@ -113,6 +113,7 @@ def gather_primitives(
                 blender_data,
                 internal_primitive['material'],
                 internal_primitive['uvmap_attributes_index'],
+                internal_primitive.get('extensions'),
                 export_settings),
             extras=None,
             indices=internal_primitive['indices'],
@@ -226,7 +227,8 @@ def __gather_cache_primitives(
                 "mode": internal_primitive.get('mode'),
                 "material": internal_primitive.get('material'),
                 "targets": __gather_targets(internal_primitive, blender_data, modifiers, export_settings),
-                "uvmap_attributes_index": internal_primitive.get('uvmap_attributes_index')
+                "uvmap_attributes_index": internal_primitive.get('uvmap_attributes_index'),
+                "extensions": internal_primitive.get('extensions')
             }
             primitives.append(primitive)
 
@@ -357,12 +359,7 @@ def __gather_targets(blender_primitive, blender_data, modifiers, export_settings
     return None
 
 
-def __gather_extensions(blender_data,
-                        material_idx: int,
-                        attr_indices: dict,
-                        export_settings):
-    extensions = {}
-
+def __gather_variant_extension(blender_data, material_idx: int, attr_indices: dict, export_settings):
     if bpy.context.preferences.addons['io_scene_gltf2'].preferences.KHR_materials_variants_ui is False:
         return None
 
@@ -430,12 +427,29 @@ def __gather_extensions(blender_data,
             mapping.append({'material': mat, 'variants': variants})
 
     if len(mapping) > 0:
-        extensions["KHR_materials_variants"] = gltf2_io_extensions.Extension(
+        return gltf2_io_extensions.Extension(
             name="KHR_materials_variants",
             extension={
                 "mappings": mapping
             },
             required=False
         )
+
+    return None
+
+
+def __gather_extensions(blender_data,
+                        material_idx: int,
+                        attr_indices: dict,
+                        already_declared_extensions,
+                        export_settings):
+    extensions = {}
+
+    variant_extension = __gather_variant_extension(blender_data, material_idx, attr_indices, export_settings)
+    if variant_extension:
+        extensions["KHR_materials_variants"] = variant_extension
+
+    if already_declared_extensions:
+        extensions.update(already_declared_extensions)
 
     return extensions if extensions else None

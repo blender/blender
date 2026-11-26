@@ -5,10 +5,11 @@
 
 import numpy as np
 
+from ...io.com.gltf2_io_extensions import Extension
 from ..com import conversion as gltf2_blender_conversion
-from .attribute_utils import extract_attribute_data
 from .material.materials import get_base_material
-from .primitive_extract import LoopData, PrimitiveCreator
+from .primitive_extract import LoopData, PrimitiveCreator, single_extract_attribute_data
+from .gsplat import detect_sh_order, get_sh_attributes
 
 
 def gather_point_cloud(blender_pointcloud, materials, export_settings):
@@ -57,6 +58,47 @@ def gather_point_cloud(blender_pointcloud, materials, export_settings):
             'component_type': gltf2_blender_conversion.get_component_type('FLOAT')
         }
 
+    # This point cloud can be a Gaussian Splat, or a regular point cloud, depending on the attributes present
+    sh_order = detect_sh_order(blender_pointcloud.attributes)
+
+    extensions = None
+    if sh_order is None:
+        # Regular point cloud, trying to retrieve color attributes
+        custom_attributes.update(__get_color_attribute(blender_pointcloud, materials, export_settings))
+    else:
+        # Gaussian Splat, retrieving all SH attributes
+        custom_attributes.update(get_sh_attributes(blender_pointcloud, sh_order, export_settings))
+
+        # Set extensions for Gaussian Splat
+        extension_data = {
+            "kernel": "ellipse",
+            "color_space": "srgb_rec709_display",
+            "projection": "perspective",
+            "sortingMethod": "cameraDistance"
+        }
+        extensions = {}
+        extensions["KHR_gaussian_splatting"] = Extension(
+            name="KHR_gaussian_splatting", extension=extension_data, required=False)
+
+    # And now, create the primitive infos
+    primitives.append({
+        'attributes': custom_attributes,
+        'mode': 0,  # POINTS
+        'material': 0,  # TODOPC
+        'uvmap_attributes_index': {},
+        'extensions': extensions
+    })
+
+    export_settings['log'].info(
+        'Point Cloud Primitives created: %d' % len(primitives))
+
+    return primitives
+
+
+def __get_color_attribute(blender_pointcloud, materials, export_settings):
+
+    additional_custom_attributes = {}
+
     # Detect Vertex Color usage
     loop_data = LoopData(
         vc_infos_index=0,
@@ -78,24 +120,12 @@ def gather_point_cloud(blender_pointcloud, materials, export_settings):
 
     # Add COLOR_0 attribute if vertex colors are used
     if vc_infos:
-        custom_attributes['COLOR_0'] = {
+        additional_custom_attributes['COLOR_0'] = {
             'data': __get_color_attribute_data(blender_pointcloud.attributes[vc_infos[0]['color']], blender_pointcloud),
             'data_type': gltf2_blender_conversion.get_data_type('FLOAT_COLOR'),
             'component_type': gltf2_blender_conversion.get_component_type('FLOAT_COLOR')
         }
-
-    # And now, create the primitive infos
-    primitives.append({
-        'attributes': custom_attributes,
-        'mode': 0,  # POINTS
-        'material': 0,  # TODOPC
-        'uvmap_attributes_index': {}
-    })
-
-    export_settings['log'].info(
-        'Point Cloud Primitives created: %d' % len(primitives))
-
-    return primitives
+    return additional_custom_attributes
 
 
 def __get_custom_attributes(blender_pointcloud, export_settings):
@@ -113,21 +143,8 @@ def __get_custom_attributes(blender_pointcloud, export_settings):
         if not attribute.name.startswith("_"):
             continue
 
-        len_attr = gltf2_blender_conversion.get_data_length(
-            attribute.data_type)
+        data = single_extract_attribute_data(attribute, export_settings)
 
-        data = extract_attribute_data(
-            attribute,
-            len(attribute.data),
-            np.float32,
-            attribute.data_type,
-            attribute.domain,
-            len_attr,
-            export_settings=export_settings
-        )
-
-        if len_attr > 1:
-            data = data.reshape(-1, len_attr)
         custom_attributes[attribute.name] = {
             'data': data,
             'data_type': gltf2_blender_conversion.get_data_type(attribute.data_type),

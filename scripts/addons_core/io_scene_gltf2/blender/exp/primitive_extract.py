@@ -1761,3 +1761,26 @@ class PrimitiveCreator:
                             ]["component_type"] = gltf2_blender_conversion.get_component_type(attr['blender_data_type'])
             self.attributes[attr['gltf_attribute_name']
                             ]["data_type"] = gltf2_blender_conversion.get_data_type(attr['blender_data_type'])
+
+
+def single_extract_attribute_data(attribute, export_settings):
+
+    if not attribute:
+        return None
+
+    len_attr = gltf2_blender_conversion.get_data_length(attribute.data_type)
+
+    data = extract_attribute_data(
+        attribute,
+        len(attribute.data),
+        np.float32,
+        attribute.data_type,
+        attribute.domain,
+        len_attr,
+        export_settings=export_settings
+    )
+
+    if len_attr > 1:
+        data = data.reshape(-1, len_attr)
+
+    return data

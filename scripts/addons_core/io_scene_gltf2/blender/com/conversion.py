@@ -93,6 +93,7 @@ def get_component_type(attribute_component_type):
         "FLOAT_COLOR": gltf2_io_constants.ComponentType.Float,
         "FLOAT_VECTOR": gltf2_io_constants.ComponentType.Float,
         "FLOAT_VECTOR_4": gltf2_io_constants.ComponentType.Float,
+        "FLOAT4": gltf2_io_constants.ComponentType.Float,
         "QUATERNION": gltf2_io_constants.ComponentType.Float,
         "FLOAT4X4": gltf2_io_constants.ComponentType.Float,
         "INT": gltf2_io_constants.ComponentType.Float,  # No signed Int in glTF accessor
@@ -118,6 +119,7 @@ def get_data_type(attribute_component_type):
         "FLOAT_COLOR": gltf2_io_constants.DataType.Vec4,
         "FLOAT_VECTOR": gltf2_io_constants.DataType.Vec3,
         "FLOAT_VECTOR_4": gltf2_io_constants.DataType.Vec4,
+        "FLOAT4": gltf2_io_constants.DataType.Vec4,
         "QUATERNION": gltf2_io_constants.DataType.Vec4,
         "FLOAT4X4": gltf2_io_constants.DataType.Mat4,
         "INT": gltf2_io_constants.DataType.Scalar,
@@ -134,6 +136,7 @@ def get_data_length(attribute_component_type):
         "FLOAT_COLOR": 4,
         "FLOAT_VECTOR": 3,
         "FLOAT_VECTOR_4": 4,
+        "FLOAT4": 4,
         "QUATERNION": 4,
         "FLOAT4X4": 16,
         "INT": 1,
@@ -150,6 +153,7 @@ def get_numpy_type(attribute_component_type):
         "FLOAT_COLOR": np.float32,
         "FLOAT_VECTOR": np.float32,
         "FLOAT_VECTOR_4": np.float32,
+        "FLOAT4": np.float32,
         "QUATERNION": np.float32,
         "FLOAT4X4": np.float32,
         "INT": np.float32,  # signed integer are not supported by glTF
@@ -224,3 +228,20 @@ def yfov_blender_to_gltf(angle, width, height, sensor_fit):
             return angle
         else:
             return 2.0 * atan(tan(angle * 0.5) / aspect_ratio)
+
+
+def convert_quats_batch(rotations, change_axis=True):
+    # Blender quat is w, x, y, z ; glTF quat is x, y, z, w
+    if change_axis:
+        # w, x, y, z -> x, z, -y, w
+        rotations[:, [0, 1, 2, 3]] = rotations[:, [1, 3, 2, 0]]
+        rotations[:, 2] *= -1
+    else:
+        # w, x, y, z -> x, y, z, w
+        rotations[:, [0, 1, 2, 3]] = rotations[:, [1, 2, 3, 0]]
+
+
+def convert_scales_batch(scales, change_axis=True):
+    if change_axis:
+        # x, y, z -> x, z, y
+        scales[:, [0, 1, 2]] = scales[:, [0, 2, 1]]
