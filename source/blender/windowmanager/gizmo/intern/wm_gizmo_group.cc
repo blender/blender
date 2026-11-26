@@ -525,25 +525,19 @@ static wmOperatorStatus gizmo_tweak_modal(bContext *C, wmOperator *op, const wmE
   /* Handle gizmo. */
   wmGizmoFnModal modal_fn = gz->custom_modal ? gz->custom_modal : gz->type->modal;
   if (modal_fn) {
-    /* Ugly hack to ensure Python won't get 'EVT_MODAL_MAP' which isn't supported, see #73727.
+    /* Pass the un-mapped event as Python doesn't support `EVT_MODAL_MAP`, see #73727.
      * note that we could move away from wrapping modal gizmos in a modal operator,
      * since it's causing the need for code like this. */
-    wmEvent *evil_event = const_cast<wmEvent *>(event);
-    short event_modal_val = 0;
-
+    wmEvent event_tmp;
     if (event->type == EVT_MODAL_MAP) {
-      event_modal_val = evil_event->val;
-      evil_event->type = evil_event->prev_type;
-      evil_event->val = evil_event->prev_val;
+      event_tmp = *event;
+      event_tmp.type = event->prev_type;
+      event_tmp.val = event->prev_val;
+      event = &event_tmp;
     }
 
     const wmOperatorStatus modal_retval = modal_fn(C, gz, event, eWM_GizmoFlagTweak(mtweak->flag));
     OPERATOR_RETVAL_CHECK(modal_retval);
-
-    if (event_modal_val != 0) {
-      evil_event->type = EVT_MODAL_MAP;
-      evil_event->val = event_modal_val;
-    }
 
     if ((modal_retval & OPERATOR_RUNNING_MODAL) == 0) {
       gizmo_tweak_finish(C, op, (modal_retval & OPERATOR_CANCELLED) != 0, true);
