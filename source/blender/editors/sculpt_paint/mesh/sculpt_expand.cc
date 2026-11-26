@@ -2812,7 +2812,7 @@ static void cache_initial_config_set(bContext *C, wmOperator *op, Cache &expand_
   expand_cache.invert = RNA_boolean_get(op->ptr, "invert");
   expand_cache.preserve = RNA_boolean_get(op->ptr, "use_mask_preserve");
   expand_cache.falloff_gradient = RNA_boolean_get(op->ptr, "use_falloff_gradient");
-  expand_cache.target = TargetType(RNA_enum_get(op->ptr, "target"));
+  expand_cache.target = RNA_enum_get<TargetType>(op->ptr, "target");
   expand_cache.modify_active_face_set = RNA_boolean_get(op->ptr, "use_modify_active");
   expand_cache.reposition_pivot = RNA_boolean_get(op->ptr, "use_reposition_pivot");
   expand_cache.max_geodesic_move_preview = RNA_int_get(op->ptr, "max_geodesic_move_preview");
@@ -3003,7 +3003,7 @@ static wmOperatorStatus sculpt_expand_invoke(bContext *C, wmOperator *op, const 
   const int initial_vert = ss.expand_cache->initial_active_vert;
 
   /* Initialize the falloff. */
-  FalloffType falloff_type = FalloffType(RNA_enum_get(op->ptr, "falloff_type"));
+  FalloffType falloff_type = RNA_enum_get<FalloffType>(op->ptr, "falloff_type");
 
   /* When starting from a boundary vertex, set the initial falloff to boundary. */
   switch (pbvh.type()) {

@@ -162,7 +162,7 @@ static bool sequencer_add_draw_check_fn(PointerRNA *ptr, PropertyRNA *prop, void
 
   /* Only show placeholders option if image sequence creation is not forced. */
   if (STREQ(prop_id, "use_placeholders")) {
-    return ImageImport(RNA_enum_get(ptr, "image_import_type")) == ImageImport::Detect;
+    return RNA_enum_get<ImageImport>(ptr, "image_import_type") == ImageImport::Detect;
   }
 
   return !STR_ELEM(prop_id,
@@ -207,7 +207,7 @@ static void sequencer_add_ui(bContext * /*C*/, wmOperator *op)
 
   /* There is no effect strip add UI, so assume an image is being imported if "length" is found. */
   if (RNA_struct_find_property(op->ptr, "length") &&
-      ImageImport(RNA_enum_get(op->ptr, "image_import_type")) != ImageImport::Sequence)
+      RNA_enum_get<ImageImport>(op->ptr, "image_import_type") != ImageImport::Sequence)
   {
     layout.prop(op->ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -537,7 +537,7 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
 
   PropertyRNA *prop;
   if ((prop = RNA_struct_find_property(op->ptr, "fit_method"))) {
-    load_data->fit_method = eSeqImageFitMethod(RNA_enum_get(op->ptr, "fit_method"));
+    load_data->fit_method = RNA_enum_get<eSeqImageFitMethod>(op->ptr, "fit_method");
     seq::tool_settings_fit_method_set(CTX_data_sequencer_scene(C), load_data->fit_method);
   }
 
@@ -693,7 +693,7 @@ static void seq_load_handle_overlap(bContext *C, wmOperator *op, Span<Strip *> s
 
   const bool overlap_mode_is_set = RNA_struct_property_is_set(op->ptr, "overlap_mode");
   const eSeqOverlapMode overlap_mode = overlap_mode_is_set ?
-                                           eSeqOverlapMode(RNA_enum_get(op->ptr, "overlap_mode")) :
+                                           RNA_enum_get<eSeqOverlapMode>(op->ptr, "overlap_mode") :
                                            seq::tool_settings_overlap_mode_get(scene);
 
   /* Do some minimal shuffling now (on add) if there will be a move afterwards; this parks the
@@ -1866,7 +1866,7 @@ static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *
   char vt_old[64];
   STRNCPY_UTF8(vt_old, scene->view_settings.view_transform);
 
-  const ImageImport import_type = ImageImport(RNA_enum_get(op->ptr, "image_import_type"));
+  const ImageImport import_type = RNA_enum_get<ImageImport>(op->ptr, "image_import_type");
 
   if (import_type == ImageImport::Sequence) {
     if (!sequencer_add_image_sequence_force(C, op, load_data)) {
@@ -2152,7 +2152,7 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_ensure(scene);
 
-  StripType effect_type = StripType(RNA_enum_get(op->ptr, "type"));
+  StripType effect_type = RNA_enum_get<StripType>(op->ptr, "type");
   const int min_inputs = seq::effect_type_get_min_num_inputs(effect_type);
 
   VectorSet<Strip *> inputs;
@@ -2247,7 +2247,7 @@ static wmOperatorStatus sequencer_add_effect_strip_invoke(bContext *C,
 
   int prop_flag = SEQPROP_LENGTH;
   /* When invoking an effect strip which uses inputs, skip guessing of the channel. */
-  StripType type = StripType(RNA_enum_get(op->ptr, "type"));
+  StripType type = RNA_enum_get<StripType>(op->ptr, "type");
   if (is_op_for_effect_with_inputs(CTX_data_sequencer_scene(C), type)) {
     prop_flag |= SEQPROP_NOCHAN;
   }
@@ -2263,7 +2263,7 @@ static bool sequencer_add_effect_strip_poll_property(const bContext *C,
                                                      const PropertyRNA *prop)
 {
   const char *prop_id = RNA_property_identifier(prop);
-  StripType type = StripType(RNA_enum_get(op->ptr, "type"));
+  StripType type = RNA_enum_get<StripType>(op->ptr, "type");
 
   /* Hide start frame and length for effect strips that are locked to their parents' location. */
   if (is_op_for_effect_with_inputs(CTX_data_sequencer_scene(C), type)) {

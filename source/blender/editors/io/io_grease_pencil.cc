@@ -331,10 +331,10 @@ static wmOperatorStatus grease_pencil_export_svg_exec(bContext *C, wmOperator *o
   const bool export_stroke_materials = true;
   const bool export_fill_materials = RNA_boolean_get(op->ptr, "use_fill");
   const bool use_uniform_width = RNA_boolean_get(op->ptr, "use_uniform_width");
-  const ExportParams::SelectMode select_mode = ExportParams::SelectMode(
-      RNA_enum_get(op->ptr, "selected_object_type"));
-  const ExportParams::FrameMode frame_mode = ExportParams::FrameMode(
-      RNA_enum_get(op->ptr, "frame_mode"));
+  const ExportParams::SelectMode select_mode = RNA_enum_get<ExportParams::SelectMode>(
+      op->ptr, "selected_object_type");
+  const ExportParams::FrameMode frame_mode = RNA_enum_get<ExportParams::FrameMode>(op->ptr,
+                                                                                   "frame_mode");
   const bool use_clip_camera = RNA_boolean_get(op->ptr, "use_clip_camera");
   const float stroke_sample = RNA_float_get(op->ptr, "stroke_sample");
 
@@ -530,10 +530,10 @@ static wmOperatorStatus grease_pencil_export_pdf_exec(bContext *C, wmOperator *o
   const bool export_stroke_materials = true;
   const bool export_fill_materials = RNA_boolean_get(op->ptr, "use_fill");
   const bool use_uniform_width = RNA_boolean_get(op->ptr, "use_uniform_width");
-  const ExportParams::SelectMode select_mode = ExportParams::SelectMode(
-      RNA_enum_get(op->ptr, "selected_object_type"));
-  const ExportParams::FrameMode frame_mode = ExportParams::FrameMode(
-      RNA_enum_get(op->ptr, "frame_mode"));
+  const ExportParams::SelectMode select_mode = RNA_enum_get<ExportParams::SelectMode>(
+      op->ptr, "selected_object_type");
+  const ExportParams::FrameMode frame_mode = RNA_enum_get<ExportParams::FrameMode>(op->ptr,
+                                                                                   "frame_mode");
   const bool use_clip_camera = false;
   const float stroke_sample = RNA_float_get(op->ptr, "stroke_sample");
 

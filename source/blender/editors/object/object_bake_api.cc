@@ -1859,13 +1859,13 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
   bkr->area = screen ? BKE_screen_find_big_area(screen, SPACE_IMAGE, 10) : nullptr;
   bkr->stop = nullptr;
 
-  bkr->pass_type = eScenePassType(RNA_enum_get(op->ptr, "type"));
+  bkr->pass_type = RNA_enum_get<eScenePassType>(op->ptr, "type");
   bkr->pass_filter = RNA_enum_get(op->ptr, "pass_filter");
   bkr->margin = RNA_int_get(op->ptr, "margin");
-  bkr->margin_type = eBakeMarginType(RNA_enum_get(op->ptr, "margin_type"));
+  bkr->margin_type = RNA_enum_get<eBakeMarginType>(op->ptr, "margin_type");
 
-  bkr->save_mode = eBakeSaveMode(RNA_enum_get(op->ptr, "save_mode"));
-  bkr->target = eBakeTarget(RNA_enum_get(op->ptr, "target"));
+  bkr->save_mode = RNA_enum_get<eBakeSaveMode>(op->ptr, "save_mode");
+  bkr->target = RNA_enum_get<eBakeTarget>(op->ptr, "target");
 
   bkr->is_clear = RNA_boolean_get(op->ptr, "use_clear");
   bkr->is_split_materials = (bkr->target == R_BAKE_TARGET_IMAGE_TEXTURES &&
@@ -1878,9 +1878,9 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
   bkr->max_ray_distance = RNA_float_get(op->ptr, "max_ray_distance");
 
   bkr->normal_space = RNA_enum_get(op->ptr, "normal_space");
-  bkr->normal_swizzle[0] = eBakeNormalSwizzle(RNA_enum_get(op->ptr, "normal_r"));
-  bkr->normal_swizzle[1] = eBakeNormalSwizzle(RNA_enum_get(op->ptr, "normal_g"));
-  bkr->normal_swizzle[2] = eBakeNormalSwizzle(RNA_enum_get(op->ptr, "normal_b"));
+  bkr->normal_swizzle[0] = RNA_enum_get<eBakeNormalSwizzle>(op->ptr, "normal_r");
+  bkr->normal_swizzle[1] = RNA_enum_get<eBakeNormalSwizzle>(op->ptr, "normal_g");
+  bkr->normal_swizzle[2] = RNA_enum_get<eBakeNormalSwizzle>(op->ptr, "normal_b");
 
   bkr->width = RNA_int_get(op->ptr, "width");
   bkr->height = RNA_int_get(op->ptr, "height");

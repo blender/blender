@@ -857,7 +857,7 @@ static wmOperatorStatus graphkeys_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     deselect_graph_keys(&ac, true, SELECT_SUBTRACT, true);
@@ -973,7 +973,7 @@ static wmOperatorStatus graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     deselect_graph_keys(&ac, false, SELECT_SUBTRACT, true);
@@ -1060,7 +1060,7 @@ static wmOperatorStatus graph_circle_select_exec(bContext *C, wmOperator *op)
   }
 
   const eSelectOp sel_op = ED_select_op_modal(
-      eSelectOp(RNA_enum_get(op->ptr, "mode")),
+      RNA_enum_get<eSelectOp>(op->ptr, "mode"),
       WM_gesture_is_modal_first(static_cast<const wmGesture *>(op->customdata)));
   const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -2147,11 +2147,11 @@ static wmOperatorStatus graphkeys_select_key_handles_exec(bContext *C, wmOperato
   }
 
   const eGraphKey_SelectKeyHandles_Action left_handle_action =
-      static_cast<eGraphKey_SelectKeyHandles_Action>(RNA_enum_get(op->ptr, "left_handle_action"));
+      RNA_enum_get<eGraphKey_SelectKeyHandles_Action>(op->ptr, "left_handle_action");
   const eGraphKey_SelectKeyHandles_Action key_action =
-      static_cast<eGraphKey_SelectKeyHandles_Action>(RNA_enum_get(op->ptr, "key_action"));
+      RNA_enum_get<eGraphKey_SelectKeyHandles_Action>(op->ptr, "key_action");
   const eGraphKey_SelectKeyHandles_Action right_handle_action =
-      static_cast<eGraphKey_SelectKeyHandles_Action>(RNA_enum_get(op->ptr, "right_handle_action"));
+      RNA_enum_get<eGraphKey_SelectKeyHandles_Action>(op->ptr, "right_handle_action");
 
   graphkeys_select_key_handles(&ac, left_handle_action, key_action, right_handle_action);
 

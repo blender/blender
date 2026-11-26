@@ -76,9 +76,9 @@ static wmOperatorStatus wm_fbx_import_exec(bContext *C, wmOperator *op)
   params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
   params.use_anim = RNA_boolean_get(op->ptr, "use_anim");
   params.anim_offset = RNA_float_get(op->ptr, "anim_offset");
-  params.vertex_colors = eFBXVertexColorMode(RNA_enum_get(op->ptr, "import_colors"));
-  params.mtl_name_collision_mode = eFBXMtlNameCollisionMode(
-      RNA_enum_get(op->ptr, "mtl_name_collision_mode"));
+  params.vertex_colors = RNA_enum_get<eFBXVertexColorMode>(op->ptr, "import_colors");
+  params.mtl_name_collision_mode = RNA_enum_get<eFBXMtlNameCollisionMode>(
+      op->ptr, "mtl_name_collision_mode");
 
   params.reports = op->reports;
 

@@ -230,8 +230,8 @@ void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
 
 StrokeToggleSettings create_toggle_settings(const wmOperator &op, Main &bmain, Paint &paint)
 {
-  const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
-  const BrushSwitchMode brush_switch_mode = BrushSwitchMode(RNA_enum_get(op.ptr, "brush_toggle"));
+  const BrushStrokeMode stroke_mode = RNA_enum_get<BrushStrokeMode>(op.ptr, "mode");
+  const BrushSwitchMode brush_switch_mode = RNA_enum_get<BrushSwitchMode>(op.ptr, "brush_toggle");
   const bool pen_flip = RNA_boolean_get(op.ptr, "pen_flip");
 
   StrokeToggleSettings toggle_settings;
@@ -733,7 +733,7 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(wmOperator *op,
   vpd->vc = vc;
 
   vpd->paintcol = vpaint_get_current_col(
-      vp, (BrushStrokeMode(RNA_enum_get(op->ptr, "mode")) == BrushStrokeMode::Invert));
+      vp, (RNA_enum_get<BrushStrokeMode>(op->ptr, "mode") == BrushStrokeMode::Invert));
 
   vpd->is_texbrush = !(brush.vertex_brush_type == VPAINT_BRUSH_TYPE_BLUR) && brush.mtex.tex;
 

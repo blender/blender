@@ -1549,7 +1549,7 @@ static wmOperatorStatus view3d_lasso_select_exec(bContext *C, wmOperator *op)
   /* setup view context for argument to callbacks */
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
-  eSelectOp sel_op = static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode"));
+  eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   bool changed_multi = view3d_lasso_select(C, &vc, mcoords, sel_op);
 
   if (changed_multi) {
@@ -4594,7 +4594,7 @@ static wmOperatorStatus view3d_box_select_exec(bContext *C, wmOperator *op)
   /* setup view context for argument to callbacks */
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
-  eSelectOp sel_op = static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode"));
+  eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   WM_operator_properties_border_to_rcti(op, &rect);
 
   if (vc.obedit) {
@@ -5618,8 +5618,8 @@ static wmOperatorStatus view3d_circle_select_exec(bContext *C, wmOperator *op)
   wmGenericUserData wm_userdata_buf = {nullptr, nullptr, false};
   wmGenericUserData *wm_userdata = gesture ? &gesture->user_data : &wm_userdata_buf;
 
-  const eSelectOp sel_op = ED_select_op_modal(
-      static_cast<eSelectOp>(RNA_enum_get(op->ptr, "mode")), WM_gesture_is_modal_first(gesture));
+  const eSelectOp sel_op = ED_select_op_modal(RNA_enum_get<eSelectOp>(op->ptr, "mode"),
+                                              WM_gesture_is_modal_first(gesture));
 
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 

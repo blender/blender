@@ -908,8 +908,8 @@ PaintStroke::PaintStroke(bContext *C,
     event_type_ = 0;
   }
 
-  stroke_mode_ = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
-  brush_switch_mode_ = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
+  stroke_mode_ = RNA_enum_get<BrushStrokeMode>(op->ptr, "mode");
+  brush_switch_mode_ = RNA_enum_get<BrushSwitchMode>(op->ptr, "brush_toggle");
 
   original_ = paint_brush_type_raycast_original(*this->brush,
                                                 BKE_paintmode_get_active_from_context(C));
@@ -938,7 +938,7 @@ PaintStroke::PaintStroke(bContext *C,
 
   if (stroke_mode_ == BrushStrokeMode::Invert) {
     if (this->brush->stroke_method == BRUSH_STROKE_CURVE) {
-      RNA_enum_set(op->ptr, "mode", int(BrushStrokeMode::Normal));
+      RNA_enum_set(op->ptr, "mode", BrushStrokeMode::Normal);
     }
   }
   /* initialize here */

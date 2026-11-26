@@ -589,7 +589,7 @@ static wmOperatorStatus view3d_flip_view_exec(bContext *C, wmOperator *op)
   View3D *v3d;
   ARegion *region;
 
-  const FlipDirection direction = FlipDirection(RNA_enum_get(op->ptr, "direction"));
+  const FlipDirection direction = RNA_enum_get<FlipDirection>(op->ptr, "direction");
 
   ED_view3d_context_user_region(C, &v3d, &region);
   ED_view3d_smooth_view_force_finish(C, v3d, region);
@@ -1252,7 +1252,7 @@ static wmOperatorStatus view3d_cursor3d_invoke(bContext *C, wmOperator *op, cons
       RNA_property_boolean_set(op->ptr, prop, use_depth);
     }
   }
-  const enum eV3DCursorOrient orientation = eV3DCursorOrient(RNA_enum_get(op->ptr, "orientation"));
+  const enum eV3DCursorOrient orientation = RNA_enum_get<eV3DCursorOrient>(op->ptr, "orientation");
   ED_view3d_cursor3d_update(C, event->mval, use_depth, orientation);
 
   /* Use pass-through to allow click-drag to transform the cursor. */
@@ -1320,7 +1320,7 @@ static wmOperatorStatus toggle_shading_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   View3D *v3d = CTX_wm_view3d(C);
   ScrArea *area = CTX_wm_area(C);
-  const eDrawType type = eDrawType(RNA_enum_get(op->ptr, "type"));
+  const eDrawType type = RNA_enum_get<eDrawType>(op->ptr, "type");
 
   if (type == OB_SOLID) {
     if (v3d->shading.type != type) {

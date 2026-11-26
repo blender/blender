@@ -4245,7 +4245,7 @@ static wmOperatorStatus previews_clear_exec(bContext *C, wmOperator *op)
   };
 
   const int id_filters = preview_filter_to_idfilter(
-      PreviewFilterID(RNA_enum_get(op->ptr, "id_type")));
+      RNA_enum_get<PreviewFilterID>(op->ptr, "id_type"));
 
   for (int i = 0; lb[i]; i++) {
     ID *id = lb[i]->first();

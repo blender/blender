@@ -702,7 +702,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
 
 static wmOperatorStatus snap_curves_to_surface_exec(bContext *C, wmOperator *op)
 {
-  const AttachMode attach_mode = static_cast<AttachMode>(RNA_enum_get(op->ptr, "attach_mode"));
+  const AttachMode attach_mode = RNA_enum_get<AttachMode>(op->ptr, "attach_mode");
 
   bool found_invalid_uvs = false;
   bool found_missing_uvs = false;
@@ -781,7 +781,7 @@ namespace set_selection_domain {
 
 static wmOperatorStatus curves_set_selection_domain_exec(bContext *C, wmOperator *op)
 {
-  const bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
+  const bke::AttrDomain domain = RNA_enum_get<bke::AttrDomain>(op->ptr, "domain");
 
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     if (bke::AttrDomain(curves_id->selection_domain) == domain) {
@@ -1415,7 +1415,7 @@ namespace curve_type_set {
 
 static wmOperatorStatus exec(bContext *C, wmOperator *op)
 {
-  const CurveType dst_type = CurveType(RNA_enum_get(op->ptr, "type"));
+  const CurveType dst_type = RNA_enum_get<CurveType>(op->ptr, "type");
   const bool use_handles = RNA_boolean_get(op->ptr, "use_handles");
 
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
@@ -1732,7 +1732,7 @@ namespace set_handle_type {
 
 static wmOperatorStatus exec(bContext *C, wmOperator *op)
 {
-  const SetHandleType dst_type = SetHandleType(RNA_enum_get(op->ptr, "type"));
+  const SetHandleType dst_type = RNA_enum_get<SetHandleType>(op->ptr, "type");
 
   auto new_handle_type = [&](const int8_t handle_type) {
     switch (dst_type) {

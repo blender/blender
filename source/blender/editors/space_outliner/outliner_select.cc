@@ -2061,7 +2061,7 @@ static wmOperatorStatus outliner_box_select_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
   rctf rectf;
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     outliner_flag_set(*space_outliner, TSE_SELECTED, 0);

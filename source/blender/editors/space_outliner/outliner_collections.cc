@@ -1629,7 +1629,7 @@ static wmOperatorStatus outliner_color_tag_set_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  const CollectionColorTag color_tag = CollectionColorTag(RNA_enum_get(op->ptr, "color"));
+  const CollectionColorTag color_tag = RNA_enum_get<CollectionColorTag>(op->ptr, "color");
 
   IDsSelectedData selected{};
 

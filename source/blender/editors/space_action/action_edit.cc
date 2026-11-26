@@ -668,8 +668,8 @@ static wmOperatorStatus actkeys_paste_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  const eKeyPasteOffset offset_mode = eKeyPasteOffset(RNA_enum_get(op->ptr, "offset"));
-  const eKeyMergeMode merge_mode = eKeyMergeMode(RNA_enum_get(op->ptr, "merge"));
+  const eKeyPasteOffset offset_mode = RNA_enum_get<eKeyPasteOffset>(op->ptr, "offset");
+  const eKeyMergeMode merge_mode = RNA_enum_get<eKeyMergeMode>(op->ptr, "merge");
   const bool flipped = RNA_boolean_get(op->ptr, "flipped");
 
   bool gpframes_inbuf = false;

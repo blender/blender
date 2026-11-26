@@ -740,7 +740,7 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  const FilterType filter_type = FilterType(RNA_enum_get(op->ptr, "filter_type"));
+  const FilterType filter_type = RNA_enum_get<FilterType>(op->ptr, "filter_type");
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);

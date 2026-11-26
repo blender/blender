@@ -1245,7 +1245,7 @@ static wmOperatorStatus unpack_single_bake_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const ePF_FileStatus method = ePF_FileStatus(RNA_enum_get(op->ptr, "method"));
+  const ePF_FileStatus method = RNA_enum_get<ePF_FileStatus>(op->ptr, "method");
 
   bake::UnpackGeometryNodesBakeResult result = bake::unpack_geometry_nodes_bake(
       *bmain, op->reports, *object, nmd, *bake, method);

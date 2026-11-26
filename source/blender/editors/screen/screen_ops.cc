@@ -2757,7 +2757,7 @@ static void area_split_draw_cb(const wmWindow * /*win*/, void *userdata)
   const wmOperator *op = static_cast<const wmOperator *>(userdata);
 
   sAreaSplitData *sd = static_cast<sAreaSplitData *>(op->customdata);
-  const eScreenAxis dir_axis = eScreenAxis(RNA_enum_get(op->ptr, "direction"));
+  const eScreenAxis dir_axis = RNA_enum_get<eScreenAxis>(op->ptr, "direction");
 
   if (area_split_allowed(sd->sarea, dir_axis)) {
     float fac = RNA_float_get(op->ptr, "factor");
@@ -2788,7 +2788,7 @@ static bool area_split_init(bContext *C, wmOperator *op)
   }
 
   /* required properties */
-  const eScreenAxis dir_axis = eScreenAxis(RNA_enum_get(op->ptr, "direction"));
+  const eScreenAxis dir_axis = RNA_enum_get<eScreenAxis>(op->ptr, "direction");
 
   /* custom data */
   sAreaSplitData *sd = MEM_new_zeroed<sAreaSplitData>("op_area_split");
@@ -2844,7 +2844,7 @@ static bool area_split_apply(bContext *C, wmOperator *op)
   sAreaSplitData *sd = static_cast<sAreaSplitData *>(op->customdata);
 
   float fac = RNA_float_get(op->ptr, "factor");
-  const eScreenAxis dir_axis = eScreenAxis(RNA_enum_get(op->ptr, "direction"));
+  const eScreenAxis dir_axis = RNA_enum_get<eScreenAxis>(op->ptr, "direction");
 
   if (!area_split_allowed(sd->sarea, dir_axis)) {
     return false;
@@ -2918,7 +2918,7 @@ static void area_split_exit(bContext *C, wmOperator *op)
 static void area_split_preview_update_cursor(bContext *C, wmOperator *op)
 {
   sAreaSplitData *sd = static_cast<sAreaSplitData *>(op->customdata);
-  const eScreenAxis dir_axis = eScreenAxis(RNA_enum_get(op->ptr, "direction"));
+  const eScreenAxis dir_axis = RNA_enum_get<eScreenAxis>(op->ptr, "direction");
   if (area_split_allowed(sd->sarea, dir_axis)) {
     WM_cursor_set(CTX_wm_window(C),
                   (dir_axis == SCREEN_AXIS_H) ? WM_CURSOR_H_SPLIT : WM_CURSOR_V_SPLIT);
@@ -2996,7 +2996,7 @@ static wmOperatorStatus area_split_invoke(bContext *C, wmOperator *op, const wmE
     if (area == nullptr) {
       return OPERATOR_CANCELLED;
     }
-    dir_axis = eScreenAxis(RNA_property_enum_get(op->ptr, prop_dir));
+    dir_axis = RNA_property_enum_get<eScreenAxis>(op->ptr, prop_dir);
     if (dir_axis == SCREEN_AXIS_H) {
       RNA_property_float_set(
           op->ptr, prop_factor, float(event->xy[0] - area->v1->vec.x) / float(area->winx));
@@ -3167,7 +3167,7 @@ static wmOperatorStatus area_split_modal(bContext *C, wmOperator *op, const wmEv
     case EVT_TABKEY:
       if (event->val == KM_PRESS) {
         if (sd->sarea) {
-          const eScreenAxis dir_axis = eScreenAxis(RNA_property_enum_get(op->ptr, prop_dir));
+          const eScreenAxis dir_axis = RNA_property_enum_get<eScreenAxis>(op->ptr, prop_dir);
           RNA_property_enum_set(
               op->ptr, prop_dir, (dir_axis == SCREEN_AXIS_V) ? SCREEN_AXIS_H : SCREEN_AXIS_V);
           area_split_preview_update_cursor(C, op);
@@ -3192,7 +3192,7 @@ static wmOperatorStatus area_split_modal(bContext *C, wmOperator *op, const wmEv
   }
 
   if (update_factor) {
-    const eScreenAxis dir_axis = eScreenAxis(RNA_property_enum_get(op->ptr, prop_dir));
+    const eScreenAxis dir_axis = RNA_property_enum_get<eScreenAxis>(op->ptr, prop_dir);
 
     sd->delta = (dir_axis == SCREEN_AXIS_V) ? event->xy[0] - sd->origval :
                                               event->xy[1] - sd->origval;
@@ -7992,7 +7992,7 @@ static wmOperatorStatus space_context_cycle_invoke(bContext *C,
                                                    wmOperator *op,
                                                    const wmEvent * /*event*/)
 {
-  const eScreenCycle direction = eScreenCycle(RNA_enum_get(op->ptr, "direction"));
+  const eScreenCycle direction = RNA_enum_get<eScreenCycle>(op->ptr, "direction");
 
   PointerRNA ptr;
   PropertyRNA *prop;
@@ -8043,7 +8043,7 @@ static wmOperatorStatus space_workspace_cycle_invoke(bContext *C,
   }
 
   Main *bmain = CTX_data_main(C);
-  const eScreenCycle direction = eScreenCycle(RNA_enum_get(op->ptr, "direction"));
+  const eScreenCycle direction = RNA_enum_get<eScreenCycle>(op->ptr, "direction");
   WorkSpace *workspace_src = WM_window_get_active_workspace(win);
 
   Vector<ID *> ordered = BKE_id_ordered_list(&bmain->workspaces.cast<ID>());

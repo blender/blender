@@ -60,7 +60,7 @@ static void set_single_input_from_rna_value(PointerRNA *input_props_ptr,
   using namespace nodes;
 
   /* Only consider inputs explicitly set to Value type. */
-  if (CompositorNodesInputType(RNA_enum_get(input_props_ptr, "type")) !=
+  if (RNA_enum_get<CompositorNodesInputType>(input_props_ptr, "type") !=
       CompositorNodesInputType::Value)
   {
     return;

@@ -1148,7 +1148,7 @@ static wmOperatorStatus render_shutter_curve_preset_exec(bContext *C, wmOperator
   Scene *scene = CTX_data_scene(C);
   CurveMapping *mblur_shutter_curve = &scene->r.mblur_shutter_curve;
   CurveMap *cm = mblur_shutter_curve->cm;
-  eCurveMappingPreset preset = eCurveMappingPreset(RNA_enum_get(op->ptr, "shape"));
+  eCurveMappingPreset preset = RNA_enum_get<eCurveMappingPreset>(op->ptr, "shape");
 
   mblur_shutter_curve->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
   mblur_shutter_curve->preset = preset;

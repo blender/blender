@@ -2322,7 +2322,7 @@ static wmOperatorStatus sculpt_cloth_filter_modal(bContext *C,
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SculptSession &ss = *object.runtime->sculpt_session;
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  const ClothFilterType filter_type = ClothFilterType(RNA_enum_get(op->ptr, "type"));
+  const ClothFilterType filter_type = RNA_enum_get<ClothFilterType>(op->ptr, "type");
   float filter_strength = RNA_float_get(op->ptr, "strength");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
@@ -2459,7 +2459,7 @@ static wmOperatorStatus sculpt_cloth_filter_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  const ClothFilterType filter_type = ClothFilterType(RNA_enum_get(op->ptr, "type"));
+  const ClothFilterType filter_type = RNA_enum_get<ClothFilterType>(op->ptr, "type");
 
   /* Update the active vertex */
   float2 mval_fl{float(event->mval[0]), float(event->mval[1])};
@@ -2516,7 +2516,7 @@ static wmOperatorStatus sculpt_cloth_filter_invoke(bContext *C,
   ss.filter_cache->enabled_axis[1] = force_axis & CLOTH_FILTER_FORCE_Y;
   ss.filter_cache->enabled_axis[2] = force_axis & CLOTH_FILTER_FORCE_Z;
 
-  ss.filter_cache->orientation = filter::FilterOrientation(RNA_enum_get(op->ptr, "orientation"));
+  ss.filter_cache->orientation = RNA_enum_get<filter::FilterOrientation>(op->ptr, "orientation");
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;

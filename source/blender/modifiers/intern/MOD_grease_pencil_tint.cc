@@ -431,8 +431,8 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  const GreasePencilTintModifierMode tint_mode = GreasePencilTintModifierMode(
-      RNA_enum_get(ptr, "tint_mode"));
+  const GreasePencilTintModifierMode tint_mode = RNA_enum_get<GreasePencilTintModifierMode>(
+      ptr, "tint_mode");
   const bool use_weight_as_factor = RNA_boolean_get(ptr, "use_weight_as_factor");
 
   layout.prop(ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);

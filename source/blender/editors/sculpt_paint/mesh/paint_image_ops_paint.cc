@@ -250,7 +250,7 @@ bool ImagePaintStroke::test_start(wmOperator *op, const float2 mouse)
   BLI_assert(!CTX_wm_region_view3d(evil_C));
 
   Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
-  auto mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
+  auto mode = RNA_enum_get<BrushStrokeMode>(op->ptr, "mode");
 
   copy_v2_v2(this->gradient_data.prev_mouse, mouse);
   copy_v2_v2(this->gradient_data.start_mouse, mouse);
@@ -429,8 +429,8 @@ bool TexturePaintStroke::test_start(wmOperator *op, const float2 mouse)
   }
 
   Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
-  auto mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
-  auto brush_switch_mode = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
+  auto mode = RNA_enum_get<BrushStrokeMode>(op->ptr, "mode");
+  auto brush_switch_mode = RNA_enum_get<BrushSwitchMode>(op->ptr, "brush_toggle");
 
   copy_v2_v2(this->gradient_data.prev_mouse, mouse);
   copy_v2_v2(this->gradient_data.start_mouse, mouse);
@@ -489,7 +489,7 @@ struct ExperimentalTexturePaintStroke final : public PaintStroke {
 
     if (!ss.cache) {
       ss.cache = MEM_new<StrokeCache>(__func__);
-      const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op->ptr, "mode"));
+      const BrushStrokeMode stroke_mode = RNA_enum_get<BrushStrokeMode>(op->ptr, "mode");
       const bool pen_flip = RNA_boolean_get(op->ptr, "pen_flip");
 
       StrokeToggleSettings toggle_settings;
@@ -794,7 +794,7 @@ void ExperimentalTexturePaintStroke::done(bool is_cancel, bool stroke_started)
 static PaintStroke *create_paint_stroke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (CTX_wm_region_view3d(C)) {
-    auto switch_mode = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
+    auto switch_mode = RNA_enum_get<BrushSwitchMode>(op->ptr, "brush_toggle");
 
     const Paint &paint = *BKE_paint_get_active_from_context(C);
     const Brush &brush = *BKE_paint_brush_for_read(&paint);
@@ -811,7 +811,7 @@ static PaintStroke *create_paint_stroke(bContext *C, wmOperator *op, const wmEve
 static PaintStroke *get_paint_stroke(bContext *C, wmOperator *op)
 {
   if (CTX_wm_region_view3d(C)) {
-    auto switch_mode = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
+    auto switch_mode = RNA_enum_get<BrushSwitchMode>(op->ptr, "brush_toggle");
 
     const Paint &paint = *BKE_paint_get_active_from_context(C);
     const Brush &brush = *BKE_paint_brush_for_read(&paint);
@@ -828,7 +828,7 @@ static PaintStroke *get_paint_stroke(bContext *C, wmOperator *op)
 static bool should_check_before_stroke_creation(bContext *C, wmOperator *op)
 {
   if (CTX_wm_region_view3d(C)) {
-    auto switch_mode = BrushSwitchMode(RNA_enum_get(op->ptr, "brush_toggle"));
+    auto switch_mode = RNA_enum_get<BrushSwitchMode>(op->ptr, "brush_toggle");
 
     const Paint &paint = *BKE_paint_get_active_from_context(C);
     const Brush &brush = *BKE_paint_brush_for_read(&paint);

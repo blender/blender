@@ -201,19 +201,19 @@ static bool wm_stereo3d_set_properties(bContext * /*C*/, wmOperator *op)
 
   prop = RNA_struct_find_property(op->ptr, "display_mode");
   if (RNA_property_is_set(op->ptr, prop)) {
-    s3d->display_mode = eStereoDisplayMode(RNA_property_enum_get(op->ptr, prop));
+    s3d->display_mode = RNA_property_enum_get<eStereoDisplayMode>(op->ptr, prop);
     is_set = true;
   }
 
   prop = RNA_struct_find_property(op->ptr, "anaglyph_type");
   if (RNA_property_is_set(op->ptr, prop)) {
-    s3d->anaglyph_type = eStereo3dAnaglyphType(RNA_property_enum_get(op->ptr, prop));
+    s3d->anaglyph_type = RNA_property_enum_get<eStereo3dAnaglyphType>(op->ptr, prop);
     is_set = true;
   }
 
   prop = RNA_struct_find_property(op->ptr, "interlace_type");
   if (RNA_property_is_set(op->ptr, prop)) {
-    s3d->interlace_type = eStereo3dInterlaceType(RNA_property_enum_get(op->ptr, prop));
+    s3d->interlace_type = RNA_property_enum_get<eStereo3dInterlaceType>(op->ptr, prop);
     is_set = true;
   }
 

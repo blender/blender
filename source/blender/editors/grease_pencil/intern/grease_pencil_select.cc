@@ -825,7 +825,7 @@ static void select_similar_by_layer(Scene *scene,
 
 static wmOperatorStatus select_similar_exec(bContext *C, wmOperator *op)
 {
-  const SelectSimilarMode mode = SelectSimilarMode(RNA_enum_get(op->ptr, "mode"));
+  const SelectSimilarMode mode = RNA_enum_get<SelectSimilarMode>(op->ptr, "mode");
   const float threshold = RNA_float_get(op->ptr, "threshold");
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -1306,8 +1306,8 @@ static wmOperatorStatus grease_pencil_select_by_stroke_type_exec(bContext *C, wm
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(ts, object);
 
-  const bke::greasepencil::StrokeType stroke_type = bke::greasepencil::StrokeType(
-      RNA_enum_get(op->ptr, "type"));
+  const bke::greasepencil::StrokeType stroke_type = RNA_enum_get<bke::greasepencil::StrokeType>(
+      op->ptr, "type");
   const bool select = !RNA_boolean_get(op->ptr, "deselect");
   const int action = select ? SEL_SELECT : SEL_DESELECT;
 

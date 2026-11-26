@@ -935,7 +935,7 @@ void transform_snap_reset_from_mode(TransInfo *t, wmOperator *op)
     if ((prop = RNA_struct_find_property(op->ptr, "snap_elements")) &&
         RNA_property_is_set(op->ptr, prop))
     {
-      t->tsnap.mode = eSnapMode(RNA_property_enum_get(op->ptr, prop));
+      t->tsnap.mode = RNA_property_enum_get<eSnapMode>(op->ptr, prop);
     }
 
     /* TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid previous ambiguity of
@@ -944,7 +944,7 @@ void transform_snap_reset_from_mode(TransInfo *t, wmOperator *op)
     if ((prop = RNA_struct_find_property(op->ptr, "snap_target")) &&
         RNA_property_is_set(op->ptr, prop))
     {
-      snap_source = eSnapSourceOP(RNA_property_enum_get(op->ptr, prop));
+      snap_source = RNA_property_enum_get<eSnapSourceOP>(op->ptr, prop);
     }
 
     if ((prop = RNA_struct_find_property(op->ptr, "snap_point")) &&

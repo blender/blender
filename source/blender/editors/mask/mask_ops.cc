@@ -1719,7 +1719,7 @@ void MASK_OT_normals_make_consistent(wmOperatorType *ot)
 static wmOperatorStatus set_handle_type_exec(bContext *C, wmOperator *op)
 {
   Mask *mask = CTX_data_edit_mask(C);
-  eBezTriple_Handle handle_type = eBezTriple_Handle(RNA_enum_get(op->ptr, "type"));
+  eBezTriple_Handle handle_type = RNA_enum_get<eBezTriple_Handle>(op->ptr, "type");
 
   bool changed = false;
 

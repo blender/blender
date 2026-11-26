@@ -1864,11 +1864,11 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
   if (!RNA_property_is_set(op->ptr, RNA_struct_find_property(op->ptr, "align")) &&
       (U.flag & USER_ADD_VIEWALIGNED))
   {
-    RNA_enum_set(op->ptr, "align", int(BoneAlign::VIEW_3D));
+    RNA_enum_set(op->ptr, "align", BoneAlign::VIEW_3D);
   }
 
-  const BoneAlign align = BoneAlign(RNA_enum_get(op->ptr, "align"));
-  const BoneSpace space = BoneSpace(RNA_enum_get(op->ptr, "space"));
+  const BoneAlign align = RNA_enum_get<BoneAlign>(op->ptr, "align");
+  const BoneSpace space = RNA_enum_get<BoneSpace>(op->ptr, "space");
 
   switch (align) {
     case BoneAlign::VIEW_3D: {

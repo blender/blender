@@ -1845,7 +1845,7 @@ static wmOperatorStatus sequencer_select_side_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
 
-  const auto sel_side = seq::Side(RNA_enum_get(op->ptr, "side"));
+  const auto sel_side = RNA_enum_get<seq::Side>(op->ptr, "side");
   const int frame_init = sel_side == seq::Side::Left ? INT_MIN : INT_MAX;
   int frame_ranges[seq::MAX_CHANNELS];
   bool selected = false;
@@ -1975,7 +1975,7 @@ static wmOperatorStatus sequencer_box_select_exec(bContext *C, wmOperator *op)
     return sequencer_retiming_box_select_exec(C, op);
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const bool handles = RNA_boolean_get(op->ptr, "include_handles");
   const bool select = (sel_op != SEL_OP_SUB);
 
@@ -2271,7 +2271,7 @@ static wmOperatorStatus vse_lasso_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH;
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
   bool changed = false;
 
@@ -2388,7 +2388,7 @@ static wmOperatorStatus vse_circle_select_exec(bContext *C, wmOperator *op)
   const int radius = RNA_int_get(op->ptr, "radius");
   const int mval[2] = {RNA_int_get(op->ptr, "x"), RNA_int_get(op->ptr, "y")};
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
 
   Scene *scene = CTX_data_sequencer_scene(C);
   View2D *v2d = ui::view2d_fromcontext(C);

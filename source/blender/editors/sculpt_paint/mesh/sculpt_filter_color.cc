@@ -418,7 +418,7 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object &ob)
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   MutableSpan<bke::pbvh::MeshNode> nodes = pbvh.nodes<bke::pbvh::MeshNode>();
 
-  const FilterType mode = FilterType(RNA_enum_get(op->ptr, "type"));
+  const FilterType mode = RNA_enum_get<FilterType>(op->ptr, "type");
   float filter_strength = RNA_float_get(op->ptr, "strength");
   const bool use_secondary_color = RNA_boolean_get(op->ptr, "use_secondary_color");
   const float3 fill_color = fill_color_resolve(C, op, use_secondary_color);
@@ -468,7 +468,7 @@ static void sculpt_color_filter_end(bContext *C, wmOperator *op, Object &ob)
 {
   SculptSession &ss = *ob.runtime->sculpt_session;
 
-  if (FilterType(RNA_enum_get(op->ptr, "type")) == FilterType::Fill &&
+  if (RNA_enum_get<FilterType>(op->ptr, "type") == FilterType::Fill &&
       !RNA_struct_property_is_set(op->ptr, "fill_color"))
   {
     fill_color_store_current(C, op);
@@ -489,7 +489,7 @@ static wmOperatorStatus sculpt_color_filter_modal(bContext *C,
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     /* For Fill: if this was a click (not a drag), apply once at the tool's configured strength */
-    if (FilterType(RNA_enum_get(op->ptr, "type")) == FilterType::Fill &&
+    if (RNA_enum_get<FilterType>(op->ptr, "type") == FilterType::Fill &&
         !ss.filter_cache->has_dragged)
     {
       RNA_float_set(op->ptr, "strength", ss.filter_cache->start_filter_strength);
@@ -647,7 +647,7 @@ static void sculpt_color_filter_ui(bContext * /*C*/, wmOperator *op)
 
   layout.prop(op->ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  if (FilterType(RNA_enum_get(op->ptr, "type")) == FilterType::Fill) {
+  if (RNA_enum_get<FilterType>(op->ptr, "type") == FilterType::Fill) {
     layout.prop(op->ptr, "fill_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }

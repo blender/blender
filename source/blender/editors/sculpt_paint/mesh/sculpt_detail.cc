@@ -362,7 +362,7 @@ static wmOperatorStatus sculpt_sample_detail_size_exec(bContext *C, wmOperator *
 {
   int ss_co[2];
   RNA_int_get_array(op->ptr, "location", ss_co);
-  const SampleDetailModeType mode = SampleDetailModeType(RNA_enum_get(op->ptr, "mode"));
+  const SampleDetailModeType mode = RNA_enum_get<SampleDetailModeType>(op->ptr, "mode");
   return sample_detail(C, ss_co, mode);
 }
 
@@ -383,7 +383,7 @@ static wmOperatorStatus sculpt_sample_detail_size_modal(bContext *C,
   switch (event->type) {
     case LEFTMOUSE:
       if (event->val == KM_PRESS) {
-        SampleDetailModeType mode = SampleDetailModeType(RNA_enum_get(op->ptr, "mode"));
+        SampleDetailModeType mode = RNA_enum_get<SampleDetailModeType>(op->ptr, "mode");
         sample_detail(C, event->xy, mode);
 
         RNA_int_set_array(op->ptr, "location", event->xy);

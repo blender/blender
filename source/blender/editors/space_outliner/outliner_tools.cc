@@ -752,7 +752,7 @@ static bool scene_fn(bContext *C,
 static wmOperatorStatus outliner_scene_operation_exec(bContext *C, wmOperator *op)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  const eOutliner_PropSceneOps event = eOutliner_PropSceneOps(RNA_enum_get(op->ptr, "type"));
+  const eOutliner_PropSceneOps event = RNA_enum_get<eOutliner_PropSceneOps>(op->ptr, "type");
 
   if (outliner_do_scene_operation(C, space_outliner, event, scene_fn) == false) {
     return OPERATOR_CANCELLED;
@@ -1921,10 +1921,10 @@ static wmOperatorStatus outliner_liboverride_operation_exec(bContext *C, wmOpera
     return OPERATOR_CANCELLED;
   }
 
-  const eOutlinerLibOpSelectionSet selection_set = static_cast<eOutlinerLibOpSelectionSet>(
-      RNA_enum_get(op->ptr, "selection_set"));
-  const eOutlinerLibOverrideOpTypes event = static_cast<eOutlinerLibOverrideOpTypes>(
-      RNA_enum_get(op->ptr, "type"));
+  const eOutlinerLibOpSelectionSet selection_set = RNA_enum_get<eOutlinerLibOpSelectionSet>(
+      op->ptr, "selection_set");
+  const eOutlinerLibOverrideOpTypes event = RNA_enum_get<eOutlinerLibOverrideOpTypes>(op->ptr,
+                                                                                      "type");
   switch (event) {
     case OUTLINER_LIBOVERRIDE_OP_CREATE_HIERARCHY: {
       OutlinerLibOverrideData override_data{};
@@ -3225,7 +3225,7 @@ static wmOperatorStatus outliner_id_operation_exec(bContext *C, wmOperator *op)
   TreeElement *te = get_target_element(space_outliner);
   get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
-  eOutlinerIdOpTypes event = eOutlinerIdOpTypes(RNA_enum_get(op->ptr, "type"));
+  eOutlinerIdOpTypes event = RNA_enum_get<eOutlinerIdOpTypes>(op->ptr, "type");
   switch (event) {
     case OUTLINER_IDOP_UNLINK: {
       /* unlink datablock from its parent */
@@ -3448,7 +3448,7 @@ static wmOperatorStatus outliner_lib_operation_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  eOutlinerLibOpTypes event = eOutlinerLibOpTypes(RNA_enum_get(op->ptr, "type"));
+  eOutlinerLibOpTypes event = RNA_enum_get<eOutlinerLibOpTypes>(op->ptr, "type");
   switch (event) {
     case OL_LIB_DELETE: {
       BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
@@ -3651,7 +3651,7 @@ static wmOperatorStatus outliner_animdata_operation_exec(bContext *C, wmOperator
   }
 
   /* perform the core operation */
-  eOutliner_AnimDataOps event = eOutliner_AnimDataOps(RNA_enum_get(op->ptr, "type"));
+  eOutliner_AnimDataOps event = RNA_enum_get<eOutliner_AnimDataOps>(op->ptr, "type");
   switch (event) {
     case OUTLINER_ANIMOP_CLEAR_ADT:
       /* Remove Animation Data - this may remove the active action, in some cases... */
@@ -3736,7 +3736,7 @@ static const EnumPropertyItem prop_constraint_op_types[] = {
 static wmOperatorStatus outliner_constraint_operation_exec(bContext *C, wmOperator *op)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  eOutliner_PropConstraintOps event = eOutliner_PropConstraintOps(RNA_enum_get(op->ptr, "type"));
+  eOutliner_PropConstraintOps event = RNA_enum_get<eOutliner_PropConstraintOps>(op->ptr, "type");
 
   outliner_do_data_operation(space_outliner, TSE_CONSTRAINT, event, constraint_fn, C);
 
@@ -3784,7 +3784,7 @@ static const EnumPropertyItem prop_modifier_op_types[] = {
 static wmOperatorStatus outliner_modifier_operation_exec(bContext *C, wmOperator *op)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  eOutliner_PropModifierOps event = eOutliner_PropModifierOps(RNA_enum_get(op->ptr, "type"));
+  eOutliner_PropModifierOps event = RNA_enum_get<eOutliner_PropModifierOps>(op->ptr, "type");
 
   ModifierFnArgs args{};
   args.C = C;
@@ -3848,7 +3848,7 @@ static wmOperatorStatus outliner_data_operation_exec(bContext *C, wmOperator *op
   TreeElement *te = get_target_element(space_outliner);
   get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
-  eOutliner_PropDataOps event = eOutliner_PropDataOps(RNA_enum_get(op->ptr, "type"));
+  eOutliner_PropDataOps event = RNA_enum_get<eOutliner_PropDataOps>(op->ptr, "type");
   switch (datalevel) {
     case TSE_POSE_CHANNEL: {
       outliner_do_data_operation(space_outliner, datalevel, event, pchan_fn, nullptr);

@@ -246,8 +246,8 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   pso->next_frame = RNA_int_get(op->ptr, "next_frame");
 
   /* Get the set of properties/axes that can be operated on. */
-  pso->channels = ePoseSlide_Channels(RNA_enum_get(op->ptr, "channels"));
-  pso->axis_mutability = ed::AxisMutable(RNA_enum_get(op->ptr, "axis_lock"));
+  pso->channels = RNA_enum_get<ePoseSlide_Channels>(op->ptr, "channels");
+  pso->axis_mutability = RNA_enum_get<ed::AxisMutable>(op->ptr, "axis_lock");
 
   pso->slider = ED_slider_create(C);
   ED_slider_factor_set(pso->slider, RNA_float_get(op->ptr, "factor"));

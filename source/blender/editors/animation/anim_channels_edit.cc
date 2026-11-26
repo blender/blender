@@ -2200,7 +2200,7 @@ static wmOperatorStatus animchannels_rearrange_exec(bContext *C, wmOperator *op)
   }
 
   /* get mode */
-  mode = eRearrangeAnimChan_Mode(RNA_enum_get(op->ptr, "direction"));
+  mode = RNA_enum_get<eRearrangeAnimChan_Mode>(op->ptr, "direction");
 
   /* method to move channels depends on the editor */
   if (ac.datatype == ANIMCONT_GPENCIL) {
@@ -3048,8 +3048,8 @@ static wmOperatorStatus animchannels_setflag_exec(bContext *C, wmOperator *op)
   }
 
   /* mode (eAnimChannels_SetFlag), setting (eAnimChannel_Settings) */
-  mode = eAnimChannels_SetFlag(RNA_enum_get(op->ptr, "mode"));
-  setting = eAnimChannel_Settings(RNA_enum_get(op->ptr, "type"));
+  mode = RNA_enum_get<eAnimChannels_SetFlag>(op->ptr, "mode");
+  setting = RNA_enum_get<eAnimChannel_Settings>(op->ptr, "type");
 
   /* check if setting is flushable */
   if (setting == ACHANNEL_SETTING_EXPAND) {
@@ -5095,8 +5095,8 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
   const bool remove_outside_range = RNA_boolean_get(op->ptr, "remove_outside_range");
   const BakeCurveRemove remove_existing = remove_outside_range ? BakeCurveRemove::ALL :
                                                                  BakeCurveRemove::IN_RANGE;
-  const eBezTriple_Interpolation interpolation_type = eBezTriple_Interpolation(
-      RNA_enum_get(op->ptr, "interpolation_type"));
+  const eBezTriple_Interpolation interpolation_type = RNA_enum_get<eBezTriple_Interpolation>(
+      op->ptr, "interpolation_type");
   const bool bake_modifiers = RNA_boolean_get(op->ptr, "bake_modifiers");
 
   for (bAnimListElem &ale : anim_data) {

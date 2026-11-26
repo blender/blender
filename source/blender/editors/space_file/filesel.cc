@@ -327,7 +327,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
 
     if ((prop = RNA_struct_find_property(op->ptr, "display_type"))) {
-      params->display = eFileDisplayType(RNA_property_enum_get(op->ptr, prop));
+      params->display = RNA_property_enum_get<eFileDisplayType>(op->ptr, prop);
     }
 
     if (params->display == FILE_DEFAULTDISPLAY) {
@@ -335,7 +335,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     }
 
     if ((prop = RNA_struct_find_property(op->ptr, "sort_method"))) {
-      params->sort = eFileSortType(RNA_property_enum_get(op->ptr, prop));
+      params->sort = RNA_property_enum_get<eFileSortType>(op->ptr, prop);
     }
 
     if (params->sort == FILE_SORT_DEFAULT) {

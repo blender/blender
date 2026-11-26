@@ -2226,7 +2226,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op, bool is_replay
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.runtime->sculpt_session;
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  const MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
+  const MeshFilterType filter_type = RNA_enum_get<MeshFilterType>(op->ptr, "type");
   const float strength = RNA_float_get(op->ptr, "strength");
 
   vert_random_access_ensure(ob);
@@ -2373,7 +2373,7 @@ static wmOperatorStatus sculpt_mesh_filter_modal(bContext *C, wmOperator *op, co
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SculptSession &ss = *ob.runtime->sculpt_session;
-  const MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
+  const MeshFilterType filter_type = RNA_enum_get<MeshFilterType>(op->ptr, "type");
 
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EW_SCROLL);
   sculpt_mesh_update_status_bar(C, op);
@@ -2496,7 +2496,7 @@ static wmOperatorStatus sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   int mval[2];
   RNA_int_get_array(op->ptr, "start_mouse", mval);
 
-  const MeshFilterType filter_type = MeshFilterType(RNA_enum_get(op->ptr, "type"));
+  const MeshFilterType filter_type = RNA_enum_get<MeshFilterType>(op->ptr, "type");
   const bool use_automasking = auto_mask::is_enabled(sd.paint, ob, nullptr);
   const bool needs_topology_info = sculpt_mesh_filter_needs_pmap(filter_type) || use_automasking;
 
@@ -2513,8 +2513,8 @@ static wmOperatorStatus sculpt_mesh_filter_start(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eMeshFilterDeformAxis deform_axis = eMeshFilterDeformAxis(
-      RNA_enum_get(op->ptr, "deform_axis"));
+  const eMeshFilterDeformAxis deform_axis = RNA_enum_get<eMeshFilterDeformAxis>(op->ptr,
+                                                                                "deform_axis");
 
   if (deform_axis == 0) {
     /* All axis are disabled, so the filter is not going to produce any deformation. */
@@ -2555,7 +2555,7 @@ static wmOperatorStatus sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   ss.filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;
   ss.filter_cache->enabled_axis[2] = deform_axis & MESH_FILTER_DEFORM_Z;
 
-  ss.filter_cache->orientation = FilterOrientation(RNA_enum_get(op->ptr, "orientation"));
+  ss.filter_cache->orientation = RNA_enum_get<FilterOrientation>(op->ptr, "orientation");
 
   return OPERATOR_PASS_THROUGH;
 }

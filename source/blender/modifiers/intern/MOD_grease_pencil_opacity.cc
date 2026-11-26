@@ -234,8 +234,8 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  const GreasePencilModifierColorMode color_mode = GreasePencilModifierColorMode(
-      RNA_enum_get(ptr, "color_mode"));
+  const GreasePencilModifierColorMode color_mode = RNA_enum_get<GreasePencilModifierColorMode>(
+      ptr, "color_mode");
 
   layout.prop(ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

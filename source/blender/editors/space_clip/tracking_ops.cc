@@ -881,7 +881,7 @@ static wmOperatorStatus clear_track_path_exec(bContext *C, wmOperator *op)
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
-  const eTrackClearAction action = eTrackClearAction(RNA_enum_get(op->ptr, "action"));
+  const eTrackClearAction action = RNA_enum_get<eTrackClearAction>(op->ptr, "action");
   const bool clear_active = RNA_boolean_get(op->ptr, "clear_active");
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
@@ -1706,7 +1706,7 @@ static wmOperatorStatus clean_tracks_exec(bContext *C, wmOperator *op)
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   int frames = RNA_int_get(op->ptr, "frames");
-  TrackingCleanAction action = TrackingCleanAction(RNA_enum_get(op->ptr, "action"));
+  TrackingCleanAction action = RNA_enum_get<TrackingCleanAction>(op->ptr, "action");
   float error = RNA_float_get(op->ptr, "error");
 
   if (error && action == TrackingCleanAction::DeleteSegment) {

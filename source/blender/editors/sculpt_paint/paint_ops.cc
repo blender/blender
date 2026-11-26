@@ -207,7 +207,7 @@ static wmOperatorStatus stencil_control_invoke(bContext *C, wmOperator *op, cons
 
   stencil_set_target(scd);
 
-  scd->mode = StencilControlMode(RNA_enum_get(op->ptr, "mode"));
+  scd->mode = RNA_enum_get<StencilControlMode>(op->ptr, "mode");
   scd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
   scd->area_size[0] = region->winx;
   scd->area_size[1] = region->winy;

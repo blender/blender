@@ -374,9 +374,9 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  const eCustomDataType cd_type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
+  const eCustomDataType cd_type = RNA_enum_get<eCustomDataType>(op->ptr, "data_type");
   const bke::AttrType type = *bke::custom_data_type_to_attr_type(cd_type);
-  const bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
+  const bke::AttrDomain domain = RNA_enum_get<bke::AttrDomain>(op->ptr, "domain");
   AttributeOwner owner = AttributeOwner::from_id(id);
 
   if (owner.type() == AttributeOwnerType::Mesh) {
@@ -538,8 +538,8 @@ static wmOperatorStatus geometry_color_attribute_add_exec(bContext *C, wmOperato
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  eCustomDataType type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
-  bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
+  eCustomDataType type = RNA_enum_get<eCustomDataType>(op->ptr, "data_type");
+  bke::AttrDomain domain = RNA_enum_get<bke::AttrDomain>(op->ptr, "domain");
 
   float color[4];
   RNA_float_get_array(op->ptr, "color", color);
@@ -696,10 +696,10 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
   Object *ob = object::context_object(C);
   ID *ob_data = ob->data;
   AttributeOwner owner = AttributeOwner::from_id(ob_data);
-  const ConvertAttributeMode mode = ConvertAttributeMode(RNA_enum_get(op->ptr, "mode"));
-  const eCustomDataType cd_type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
+  const ConvertAttributeMode mode = RNA_enum_get<ConvertAttributeMode>(op->ptr, "mode");
+  const eCustomDataType cd_type = RNA_enum_get<eCustomDataType>(op->ptr, "data_type");
   const bke::AttrType type = *bke::custom_data_type_to_attr_type(cd_type);
-  const bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
+  const bke::AttrDomain domain = RNA_enum_get<bke::AttrDomain>(op->ptr, "domain");
   const std::string name = *BKE_attributes_active_name_get(owner);
 
   if (ob->type == OB_MESH) {
@@ -997,7 +997,7 @@ static wmOperatorStatus geometry_attribute_convert_invoke(bContext *C,
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_enum_set(op->ptr, prop, int(meta_data.domain));
+    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
   }
   prop = RNA_struct_find_property(op->ptr, "data_type");
   if (!RNA_property_is_set(op->ptr, prop)) {
@@ -1020,7 +1020,7 @@ static void geometry_attribute_convert_ui(bContext *C, wmOperator *op)
   }
 
   const ConvertAttributeMode mode = ob->type == OB_MESH ?
-                                        ConvertAttributeMode(RNA_enum_get(op->ptr, "mode")) :
+                                        RNA_enum_get<ConvertAttributeMode>(op->ptr, "mode") :
                                         ConvertAttributeMode::Generic;
 
   if (mode == ConvertAttributeMode::Generic) {
@@ -1103,8 +1103,8 @@ static wmOperatorStatus geometry_color_attribute_convert_exec(bContext *C, wmOpe
       owner,
       mesh->attributes_for_write(),
       mesh->active_color_attribute,
-      bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-      *bke::custom_data_type_to_attr_type(eCustomDataType(RNA_enum_get(op->ptr, "data_type"))),
+      RNA_enum_get<bke::AttrDomain>(op->ptr, "domain"),
+      *bke::custom_data_type_to_attr_type(RNA_enum_get<eCustomDataType>(op->ptr, "data_type")),
       op->reports);
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
@@ -1122,7 +1122,7 @@ static wmOperatorStatus geometry_color_attribute_convert_invoke(bContext *C,
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "domain");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_enum_set(op->ptr, prop, int(meta_data.domain));
+    RNA_property_enum_set(op->ptr, prop, meta_data.domain);
   }
   prop = RNA_struct_find_property(op->ptr, "data_type");
   if (!RNA_property_is_set(op->ptr, prop)) {

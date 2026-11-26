@@ -86,16 +86,16 @@ static wmOperatorStatus wm_ply_export_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;
 
-  export_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
-  export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
+  export_params.forward_axis = RNA_enum_get<eIOAxis>(op->ptr, "forward_axis");
+  export_params.up_axis = RNA_enum_get<eIOAxis>(op->ptr, "up_axis");
   export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
-  export_params.evaluation_mode = eEvaluationMode(RNA_enum_get(op->ptr, "evaluation_mode"));
+  export_params.evaluation_mode = RNA_enum_get<eEvaluationMode>(op->ptr, "evaluation_mode");
 
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
-  export_params.vertex_colors = ePLYVertexColorMode(RNA_enum_get(op->ptr, "export_colors"));
+  export_params.vertex_colors = RNA_enum_get<ePLYVertexColorMode>(op->ptr, "export_colors");
   export_params.export_attributes = RNA_boolean_get(op->ptr, "export_attributes");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
@@ -273,13 +273,13 @@ void WM_OT_ply_export(wmOperatorType *ot)
 static wmOperatorStatus wm_ply_import_exec(bContext *C, wmOperator *op)
 {
   PLYImportParams params;
-  params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
-  params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
+  params.forward_axis = RNA_enum_get<eIOAxis>(op->ptr, "forward_axis");
+  params.up_axis = RNA_enum_get<eIOAxis>(op->ptr, "up_axis");
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
   params.merge_verts = RNA_boolean_get(op->ptr, "merge_verts");
   params.import_attributes = RNA_boolean_get(op->ptr, "import_attributes");
-  params.vertex_colors = ePLYVertexColorMode(RNA_enum_get(op->ptr, "import_colors"));
+  params.vertex_colors = RNA_enum_get<ePLYVertexColorMode>(op->ptr, "import_colors");
 
   params.reports = op->reports;
 

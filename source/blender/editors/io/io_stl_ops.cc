@@ -66,11 +66,11 @@ static wmOperatorStatus wm_stl_export_exec(bContext *C, wmOperator *op)
   }
   STLExportParams export_params;
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
-  export_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
-  export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
+  export_params.forward_axis = RNA_enum_get<eIOAxis>(op->ptr, "forward_axis");
+  export_params.up_axis = RNA_enum_get<eIOAxis>(op->ptr, "up_axis");
   export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
-  export_params.evaluation_mode = eEvaluationMode(RNA_enum_get(op->ptr, "evaluation_mode"));
+  export_params.evaluation_mode = RNA_enum_get<eEvaluationMode>(op->ptr, "evaluation_mode");
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
   export_params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
@@ -222,8 +222,8 @@ void WM_OT_stl_export(wmOperatorType *ot)
 static wmOperatorStatus wm_stl_import_exec(bContext *C, wmOperator *op)
 {
   STLImportParams params;
-  params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
-  params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
+  params.forward_axis = RNA_enum_get<eIOAxis>(op->ptr, "forward_axis");
+  params.up_axis = RNA_enum_get<eIOAxis>(op->ptr, "up_axis");
   params.use_facet_normal = RNA_boolean_get(op->ptr, "use_facet_normal");
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");

@@ -1804,8 +1804,8 @@ static wmOperatorStatus pack_islands_exec(bContext *C, wmOperator *op)
 
   pack_island_params.setFromUnwrapOptions(options);
   if (RNA_boolean_get(op->ptr, "rotate")) {
-    pack_island_params.rotate_method = eUVPackIsland_RotationMethod(
-        RNA_enum_get(op->ptr, "rotate_method"));
+    pack_island_params.rotate_method = RNA_enum_get<eUVPackIsland_RotationMethod>(op->ptr,
+                                                                                  "rotate_method");
   }
   else {
     pack_island_params.rotate_method = ED_UVPACK_ROTATION_NONE;
@@ -1814,17 +1814,17 @@ static wmOperatorStatus pack_islands_exec(bContext *C, wmOperator *op)
   pack_island_params.merge_overlap = RNA_boolean_get(op->ptr, "merge_overlap");
 
   if (RNA_boolean_get(op->ptr, "pin")) {
-    pack_island_params.pin_method = eUVPackIsland_PinMethod(RNA_enum_get(op->ptr, "pin_method"));
+    pack_island_params.pin_method = RNA_enum_get<eUVPackIsland_PinMethod>(op->ptr, "pin_method");
   }
   else {
     pack_island_params.pin_method = ED_UVPACK_PIN_NONE;
   }
 
-  pack_island_params.margin_method = eUVPackIsland_MarginMethod(
-      RNA_enum_get(op->ptr, "margin_method"));
+  pack_island_params.margin_method = RNA_enum_get<eUVPackIsland_MarginMethod>(op->ptr,
+                                                                              "margin_method");
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
-  pack_island_params.shape_method = eUVPackIsland_ShapeMethod(
-      RNA_enum_get(op->ptr, "shape_method"));
+  pack_island_params.shape_method = RNA_enum_get<eUVPackIsland_ShapeMethod>(op->ptr,
+                                                                            "shape_method");
 
   if (udim_source == PACK_UDIM_SRC_ACTIVE) {
     pack_island_params.setUDIMOffsetFromSpaceImage(sima);
@@ -2913,8 +2913,8 @@ static wmOperatorStatus unwrap_exec(bContext *C, wmOperator *op)
   pack_island_params.setFromUnwrapOptions(options);
   pack_island_params.rotate_method = ED_UVPACK_ROTATION_ANY;
   pack_island_params.pin_method = ED_UVPACK_PIN_IGNORE;
-  pack_island_params.margin_method = eUVPackIsland_MarginMethod(
-      RNA_enum_get(op->ptr, "margin_method"));
+  pack_island_params.margin_method = RNA_enum_get<eUVPackIsland_MarginMethod>(op->ptr,
+                                                                              "margin_method");
   pack_island_params.margin = RNA_float_get(op->ptr, "margin");
 
   if (!options.use_original_bounds) {
@@ -3387,12 +3387,12 @@ static wmOperatorStatus smart_project_exec(bContext *C, wmOperator *op)
     const bool correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
 
     geometry::UVPackIsland_Params params;
-    params.rotate_method = eUVPackIsland_RotationMethod(RNA_enum_get(op->ptr, "rotate_method"));
+    params.rotate_method = RNA_enum_get<eUVPackIsland_RotationMethod>(op->ptr, "rotate_method");
     params.only_selected_uvs = only_selected_uvs;
     params.only_selected_faces = true;
     params.correct_aspect = correct_aspect;
     params.use_seams = true;
-    params.margin_method = eUVPackIsland_MarginMethod(RNA_enum_get(op->ptr, "margin_method"));
+    params.margin_method = RNA_enum_get<eUVPackIsland_MarginMethod>(op->ptr, "margin_method");
     params.margin = RNA_float_get(op->ptr, "island_margin");
 
     uvedit_pack_islands_multi(

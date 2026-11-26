@@ -336,13 +336,13 @@ InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmO
     data->shift = RNA_float_get(op.ptr, "shift");
   }
   data->exclude_breakdowns = RNA_boolean_get(op.ptr, "exclude_breakdowns");
-  data->flipmode = InterpolateFlipMode(RNA_enum_get(op.ptr, "flip"));
+  data->flipmode = RNA_enum_get<InterpolateFlipMode>(op.ptr, "flip");
   data->smooth_factor = RNA_float_get(op.ptr, "smooth_factor");
   data->smooth_steps = RNA_int_get(op.ptr, "smooth_steps");
   data->active_layer_index = *grease_pencil.get_layer_index(active_layer);
   const bool use_selection = RNA_boolean_get(op.ptr, "use_selection");
 
-  const auto layer_mode = InterpolateLayerMode(RNA_enum_get(op.ptr, "layers"));
+  const auto layer_mode = RNA_enum_get<InterpolateLayerMode>(op.ptr, "layers");
   switch (layer_mode) {
     case InterpolateLayerMode::Active:
       data->layer_mask = IndexRange::from_single(data->active_layer_index);
@@ -747,7 +747,7 @@ static void grease_pencil_interpolate_update(bContext &C, const wmOperator &op)
   const int current_frame = scene.r.cfra;
   Object &object = *CTX_data_active_object(&C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
-  const auto flip_mode = InterpolateFlipMode(RNA_enum_get(op.ptr, "flip"));
+  const auto flip_mode = RNA_enum_get<InterpolateFlipMode>(op.ptr, "flip");
 
   opdata.layer_mask.foreach_index([&](const int layer_index) {
     Layer &layer = grease_pencil.layer(layer_index);
@@ -1264,8 +1264,8 @@ static wmOperatorStatus grease_pencil_interpolate_sequence_exec(bContext *C, wmO
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
   ToolSettings &ts = *CTX_data_tool_settings(C);
-  const InterpolationType type = InterpolationType(RNA_enum_get(op->ptr, "type"));
-  const eBezTriple_Easing easing = eBezTriple_Easing(RNA_enum_get(op->ptr, "easing"));
+  const InterpolationType type = RNA_enum_get<InterpolationType>(op->ptr, "type");
+  const eBezTriple_Easing easing = RNA_enum_get<eBezTriple_Easing>(op->ptr, "easing");
   const float back_easing = RNA_float_get(op->ptr, "back");
   const float amplitude = RNA_float_get(op->ptr, "amplitude");
   const float period = RNA_float_get(op->ptr, "period");
@@ -1339,7 +1339,7 @@ static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
 {
   ui::Layout &layout = *op->layout;
 
-  const InterpolationType type = InterpolationType(RNA_enum_get(op->ptr, "type"));
+  const InterpolationType type = RNA_enum_get<InterpolationType>(op->ptr, "type");
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);

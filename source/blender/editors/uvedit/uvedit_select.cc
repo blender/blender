@@ -4275,7 +4275,7 @@ static wmOperatorStatus uv_select_linked_internal(bContext *C,
     extend = RNA_boolean_get(op->ptr, "extend");
     deselect = RNA_boolean_get(op->ptr, "deselect");
   }
-  const UVDelimitMode delimit_mode = UVDelimitMode(RNA_enum_get(op->ptr, "delimit"));
+  const UVDelimitMode delimit_mode = RNA_enum_get<UVDelimitMode>(op->ptr, "delimit");
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
@@ -4954,7 +4954,7 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rctf(op, &rectf);
   ui::view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
 
@@ -5243,7 +5243,7 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
   bool changed_multi = false;
 
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  const eSelectOp sel_op = ED_select_op_modal(eSelectOp(RNA_enum_get(op->ptr, "mode")),
+  const eSelectOp sel_op = ED_select_op_modal(RNA_enum_get<eSelectOp>(op->ptr, "mode"),
                                               WM_gesture_is_modal_first(gesture));
   const bool select = (sel_op != SEL_OP_SUB);
   const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
@@ -5680,7 +5680,7 @@ static wmOperatorStatus uv_lasso_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH;
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   bool changed = do_lasso_select_mesh_uv(C, mcoords, sel_op);
 
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
@@ -6447,9 +6447,9 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  const eUVSelectSimilar type = eUVSelectSimilar(RNA_enum_get(op->ptr, "type"));
+  const eUVSelectSimilar type = RNA_enum_get<eUVSelectSimilar>(op->ptr, "type");
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const eSimilarCmp compare = eSimilarCmp(RNA_enum_get(op->ptr, "compare"));
+  const eSimilarCmp compare = RNA_enum_get<eSimilarCmp>(op->ptr, "compare");
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
@@ -6555,9 +6555,9 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  const eUVSelectSimilar type = eUVSelectSimilar(RNA_enum_get(op->ptr, "type"));
+  const eUVSelectSimilar type = RNA_enum_get<eUVSelectSimilar>(op->ptr, "type");
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const eSimilarCmp compare = eSimilarCmp(RNA_enum_get(op->ptr, "compare"));
+  const eSimilarCmp compare = RNA_enum_get<eSimilarCmp>(op->ptr, "compare");
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
@@ -6664,9 +6664,9 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  const eUVSelectSimilar type = eUVSelectSimilar(RNA_enum_get(op->ptr, "type"));
+  const eUVSelectSimilar type = RNA_enum_get<eUVSelectSimilar>(op->ptr, "type");
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const eSimilarCmp compare = eSimilarCmp(RNA_enum_get(op->ptr, "compare"));
+  const eSimilarCmp compare = RNA_enum_get<eSimilarCmp>(op->ptr, "compare");
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
@@ -6800,9 +6800,9 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  const eUVSelectSimilar type = eUVSelectSimilar(RNA_enum_get(op->ptr, "type"));
+  const eUVSelectSimilar type = RNA_enum_get<eUVSelectSimilar>(op->ptr, "type");
   const float threshold = RNA_float_get(op->ptr, "threshold");
-  const eSimilarCmp compare = eSimilarCmp(RNA_enum_get(op->ptr, "compare"));
+  const eSimilarCmp compare = RNA_enum_get<eSimilarCmp>(op->ptr, "compare");
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
@@ -7293,7 +7293,7 @@ static wmOperatorStatus uv_select_mode_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  const eTool_UvSelectMode new_uv_selectmode = eTool_UvSelectMode(RNA_enum_get(op->ptr, "type"));
+  const eTool_UvSelectMode new_uv_selectmode = RNA_enum_get<eTool_UvSelectMode>(op->ptr, "type");
 
   /* Early exit if no change in current selection mode */
   if (new_uv_selectmode == ts->uv_selectmode) {

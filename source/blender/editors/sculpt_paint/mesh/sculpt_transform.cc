@@ -685,7 +685,7 @@ static bool set_pivot_depends_on_cursor(bContext & /*C*/, wmOperatorType & /*ot*
   if (!ptr) {
     return true;
   }
-  const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(ptr, "mode"));
+  const PivotPositionMode mode = RNA_enum_get<PivotPositionMode>(ptr, "mode");
   return ELEM(mode, PivotPositionMode::CursorSurface, PivotPositionMode::ActiveVert);
 }
 
@@ -962,7 +962,7 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const ePaintSymmetryFlags symm = mesh_symmetry_xyz_get(ob);
 
-  const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(op->ptr, "mode"));
+  const PivotPositionMode mode = RNA_enum_get<PivotPositionMode>(op->ptr, "mode");
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -1017,7 +1017,7 @@ static bool set_pivot_position_poll_property(const bContext * /*C*/,
                                              const PropertyRNA *prop)
 {
   if (STRPREFIX(RNA_property_identifier(prop), "mouse_")) {
-    const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(op->ptr, "mode"));
+    const PivotPositionMode mode = RNA_enum_get<PivotPositionMode>(op->ptr, "mode");
     return ELEM(mode, PivotPositionMode::CursorSurface, PivotPositionMode::ActiveVert);
   }
   return true;

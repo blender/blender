@@ -146,8 +146,8 @@ static void PREFERENCES_OT_autoexec_path_remove(wmOperatorType *ot)
 
 static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperator *op)
 {
-  const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
-      RNA_enum_get(op->ptr, "type"));
+  const bUserAssetLibraryAddType library_type = RNA_enum_get<bUserAssetLibraryAddType>(op->ptr,
+                                                                                       "type");
 
   char name[sizeof(bUserAssetLibrary::name)] = "";
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "name");
@@ -185,8 +185,8 @@ static wmOperatorStatus preferences_asset_library_add_invoke(bContext *C,
                                                              wmOperator *op,
                                                              const wmEvent *event)
 {
-  const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
-      RNA_enum_get(op->ptr, "type"));
+  const bUserAssetLibraryAddType library_type = RNA_enum_get<bUserAssetLibraryAddType>(op->ptr,
+                                                                                       "type");
 
   if ((library_type == bUserAssetLibraryAddType::Local) &&
       !RNA_struct_property_is_set(op->ptr, "directory"))
@@ -206,8 +206,8 @@ static void preferences_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
   layout->use_property_decorate_set(false);
 
   PointerRNA *ptr = op->ptr;
-  const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
-      RNA_enum_get(ptr, "type"));
+  const bUserAssetLibraryAddType library_type = RNA_enum_get<bUserAssetLibraryAddType>(ptr,
+                                                                                       "type");
   switch (library_type) {
     case bUserAssetLibraryAddType::Remote: {
       layout->prop(op->ptr, "remote_url", ui::ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
@@ -410,8 +410,8 @@ static const char *preferences_extension_repo_default_name_from_type(
 
 static wmOperatorStatus preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
 {
-  const bUserExtensionRepoAddType repo_type = bUserExtensionRepoAddType(
-      RNA_enum_get(op->ptr, "type"));
+  const bUserExtensionRepoAddType repo_type = RNA_enum_get<bUserExtensionRepoAddType>(op->ptr,
+                                                                                      "type");
 
   Main *bmain = CTX_data_main(C);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
@@ -544,8 +544,8 @@ static wmOperatorStatus preferences_extension_repo_add_invoke(bContext *C,
                                                               wmOperator *op,
                                                               const wmEvent *event)
 {
-  const bUserExtensionRepoAddType repo_type = bUserExtensionRepoAddType(
-      RNA_enum_get(op->ptr, "type"));
+  const bUserExtensionRepoAddType repo_type = RNA_enum_get<bUserExtensionRepoAddType>(op->ptr,
+                                                                                      "type");
   PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
   if (!RNA_property_is_set(op->ptr, prop_name)) {
     const char *name_default = preferences_extension_repo_default_name_from_type(repo_type);
@@ -568,7 +568,7 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
   layout.use_property_decorate_set(false);
 
   PointerRNA *ptr = op->ptr;
-  const bUserExtensionRepoAddType repo_type = bUserExtensionRepoAddType(RNA_enum_get(ptr, "type"));
+  const bUserExtensionRepoAddType repo_type = RNA_enum_get<bUserExtensionRepoAddType>(ptr, "type");
 
   switch (repo_type) {
     case bUserExtensionRepoAddType::Remote: {

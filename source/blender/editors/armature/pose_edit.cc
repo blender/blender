@@ -220,8 +220,8 @@ static wmOperatorStatus pose_calculate_paths_exec(bContext *C, wmOperator *op)
   {
     bAnimVizSettings *avs = &ob->pose->avs;
 
-    avs->path_type = eMotionPaths_Types(RNA_enum_get(op->ptr, "display_type"));
-    avs->path_range = eMotionPath_Ranges(RNA_enum_get(op->ptr, "range"));
+    avs->path_type = RNA_enum_get<eMotionPaths_Types>(op->ptr, "display_type");
+    avs->path_range = RNA_enum_get<eMotionPath_Ranges>(op->ptr, "range");
     animviz_motionpath_compute_range(ob, scene);
 
     PointerRNA avs_ptr = RNA_pointer_create_discrete(nullptr, RNA_AnimVizMotionPaths, avs);
@@ -607,7 +607,7 @@ static wmOperatorStatus pose_bone_rotmode_exec(bContext *C, wmOperator *op)
   BKE_report(op->reports,
              RPT_WARNING,
              "pose.rotation_mode_set is deprecated. Use anim.rotation_mode_convert instead");
-  const eRotationModes mode = eRotationModes(RNA_enum_get(op->ptr, "type"));
+  const eRotationModes mode = RNA_enum_get<eRotationModes>(op->ptr, "type");
   Object *prev_ob = nullptr;
 
   /* Set rotation mode of selected bones. */

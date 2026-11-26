@@ -137,8 +137,8 @@ static wmOperatorStatus light_linking_link_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *emitter = context_active_object(C);
 
-  const eCollectionLightLinkingState link_state = eCollectionLightLinkingState(
-      RNA_enum_get(op->ptr, "link_state"));
+  const eCollectionLightLinkingState link_state = RNA_enum_get<eCollectionLightLinkingState>(
+      op->ptr, "link_state");
 
   Collection *collection = BKE_light_linking_collection_get(emitter, link_type);
   if (Scene *collection_scene = BKE_scene_find_from_collection(bmain, collection);

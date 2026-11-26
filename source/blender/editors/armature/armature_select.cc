@@ -1463,7 +1463,7 @@ static wmOperatorStatus armature_select_deform_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
-  const BoneDeform mode = BoneDeform(RNA_enum_get(op->ptr, "deform"));
+  const BoneDeform mode = RNA_enum_get<BoneDeform>(op->ptr, "deform");
 
   for (Object *ob : objects) {
     bArmature *arm = id_cast<bArmature *>(ob->data);

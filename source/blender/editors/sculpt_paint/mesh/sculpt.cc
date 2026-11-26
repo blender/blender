@@ -4788,8 +4788,8 @@ static void brush_init_tex(const Sculpt &sd, SculptSession &ss)
 /** Creates stroke-level toggle settings, modifies the current active brush if needed */
 static StrokeToggleSettings create_toggle_settings(const wmOperator &op, Main &bmain, Paint &paint)
 {
-  const BrushStrokeMode stroke_mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
-  const BrushSwitchMode brush_switch_mode = BrushSwitchMode(RNA_enum_get(op.ptr, "brush_toggle"));
+  const BrushStrokeMode stroke_mode = RNA_enum_get<BrushStrokeMode>(op.ptr, "mode");
+  const BrushSwitchMode brush_switch_mode = RNA_enum_get<BrushSwitchMode>(op.ptr, "brush_toggle");
   const bool pen_flip = RNA_boolean_get(op.ptr, "pen_flip");
 
   StrokeToggleSettings toggle_settings;

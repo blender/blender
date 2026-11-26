@@ -773,7 +773,7 @@ static wmOperatorStatus grease_pencil_primitive_invoke(bContext *C,
 
   ptd.start_position_2d = start_coords;
   ptd.subdivision = RNA_int_get(op->ptr, "subdivision");
-  ptd.type = PrimitiveType(RNA_enum_get(op->ptr, "type"));
+  ptd.type = RNA_enum_get<PrimitiveType>(op->ptr, "type");
   const float3 pos = ptd.placement.project(ptd.start_position_2d);
   ptd.segments = 0;
   ptd.control_points = Vector<float3>({pos});

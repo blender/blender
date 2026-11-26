@@ -841,7 +841,7 @@ static void seq_transform_handle_overlap(Scene *scene,
   eSeqRippleFlag ripple_flag = seq::tool_settings_ripple_flag_get(scene);
   /* We need to check that the props exist because "time extend" on `E` press can reach here. */
   if (op != nullptr && RNA_struct_property_is_set(op->ptr, "overlap_mode")) {
-    overlap_mode = eSeqOverlapMode(RNA_enum_get(op->ptr, "overlap_mode"));
+    overlap_mode = RNA_enum_get<eSeqOverlapMode>(op->ptr, "overlap_mode");
     SET_FLAG_FROM_TEST(
         ripple_flag, RNA_boolean_get(op->ptr, "all_channels"), SEQ_RIPPLE_ALL_CHANNELS);
     SET_FLAG_FROM_TEST(ripple_flag, RNA_boolean_get(op->ptr, "markers"), SEQ_RIPPLE_MARKERS);

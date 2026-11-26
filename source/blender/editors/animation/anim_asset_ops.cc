@@ -742,7 +742,7 @@ static wmOperatorStatus pose_asset_modify_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  AssetModifyMode mode = AssetModifyMode(RNA_enum_get(op->ptr, "mode"));
+  AssetModifyMode mode = RNA_enum_get<AssetModifyMode>(op->ptr, "mode");
   update_pose_action_from_scene(bmain, action->wrap(), *pose_object, mode);
 
   if (ID_IS_LINKED(action)) {

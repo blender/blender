@@ -518,7 +518,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
   auto *tmd = static_cast<GreasePencilTimeModifierData *>(ptr->data);
-  const auto mode = GreasePencilTimeModifierMode(RNA_enum_get(ptr, "mode"));
+  const auto mode = RNA_enum_get<GreasePencilTimeModifierMode>(ptr, "mode");
   const bool use_fixed_offset = (mode == MOD_GREASE_PENCIL_TIME_MODE_FIX);
   const bool use_custom_range = !ELEM(
       mode, MOD_GREASE_PENCIL_TIME_MODE_FIX, MOD_GREASE_PENCIL_TIME_MODE_CHAIN);

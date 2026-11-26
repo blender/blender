@@ -4456,7 +4456,7 @@ static wmOperatorStatus wm_clear_recent_files_invoke(bContext *C,
 
 static wmOperatorStatus wm_clear_recent_files_exec(bContext * /*C*/, wmOperator *op)
 {
-  ClearRecentInclude include = static_cast<ClearRecentInclude>(RNA_enum_get(op->ptr, "remove"));
+  ClearRecentInclude include = RNA_enum_get<ClearRecentInclude>(op->ptr, "remove");
 
   if (include == CLEAR_RECENT_ALL) {
     wm_history_files_free();
@@ -4513,7 +4513,7 @@ static wmOperatorStatus wm_clear_recent_projects_invoke(bContext *C,
 
 static wmOperatorStatus wm_clear_recent_projects_exec(bContext * /*C*/, wmOperator *op)
 {
-  const ClearRecentInclude include = ClearRecentInclude(RNA_enum_get(op->ptr, "remove"));
+  const ClearRecentInclude include = RNA_enum_get<ClearRecentInclude>(op->ptr, "remove");
   BKE_blender_project_recent_clear(include == CLEAR_RECENT_MISSING);
   return OPERATOR_FINISHED;
 }

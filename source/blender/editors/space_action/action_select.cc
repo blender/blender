@@ -643,7 +643,7 @@ static wmOperatorStatus actkeys_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
@@ -931,7 +931,7 @@ static wmOperatorStatus actkeys_lassoselect_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
@@ -993,7 +993,7 @@ static wmOperatorStatus action_circle_select_exec(bContext *C, wmOperator *op)
   }
 
   const eSelectOp sel_op = ED_select_op_modal(
-      eSelectOp(RNA_enum_get(op->ptr, "mode")),
+      RNA_enum_get<eSelectOp>(op->ptr, "mode"),
       WM_gesture_is_modal_first(static_cast<wmGesture *>(op->customdata)));
   const eEditKeyframes_Select selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -2172,7 +2172,7 @@ static wmOperatorStatus select_by_type_exec(bContext *C, wmOperator *op)
                                     ANIMFILTER_NODUPLIS | ANIMFILTER_FOREDIT |
                                     ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-  const eBezTriple_KeyframeType key_type = eBezTriple_KeyframeType(RNA_enum_get(op->ptr, "type"));
+  const eBezTriple_KeyframeType key_type = RNA_enum_get<eBezTriple_KeyframeType>(op->ptr, "type");
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   for (bAnimListElem &elem : anim_data) {
     FCurve *fcurve = static_cast<FCurve *>(elem.data);

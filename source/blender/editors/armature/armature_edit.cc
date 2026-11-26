@@ -282,7 +282,7 @@ static wmOperatorStatus armature_calc_roll_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob_active = CTX_data_edit_object(C);
 
-  eCalcRollTypes type = eCalcRollTypes(RNA_enum_get(op->ptr, "type"));
+  eCalcRollTypes type = RNA_enum_get<eCalcRollTypes>(op->ptr, "type");
   const bool axis_only = RNA_boolean_get(op->ptr, "axis_only");
   /* axis_flip when matching the active bone never makes sense */
   bool axis_flip = ((type >= CALC_ROLL_ACTIVE)    ? RNA_boolean_get(op->ptr, "axis_flip") :

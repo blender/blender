@@ -663,8 +663,8 @@ void PROJECT_OT_config_save(wmOperatorType *ot)
 
 static wmOperatorStatus project_asset_library_add_exec(bContext *C, wmOperator *op)
 {
-  const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
-      RNA_enum_get(op->ptr, "type"));
+  const bUserAssetLibraryAddType library_type = RNA_enum_get<bUserAssetLibraryAddType>(op->ptr,
+                                                                                       "type");
 
   char name[sizeof(bUserAssetLibrary::name)] = "";
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "name");
@@ -703,8 +703,8 @@ static wmOperatorStatus project_asset_library_add_invoke(bContext *C,
                                                          wmOperator *op,
                                                          const wmEvent *event)
 {
-  const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
-      RNA_enum_get(op->ptr, "type"));
+  const bUserAssetLibraryAddType library_type = RNA_enum_get<bUserAssetLibraryAddType>(op->ptr,
+                                                                                       "type");
 
   if ((library_type == bUserAssetLibraryAddType::Local) &&
       !RNA_struct_property_is_set(op->ptr, "directory"))
@@ -724,8 +724,8 @@ static void project_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
   layout->use_property_decorate_set(false);
 
   PointerRNA *ptr = op->ptr;
-  const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
-      RNA_enum_get(ptr, "type"));
+  const bUserAssetLibraryAddType library_type = RNA_enum_get<bUserAssetLibraryAddType>(ptr,
+                                                                                       "type");
   switch (library_type) {
     case bUserAssetLibraryAddType::Remote: {
       layout->prop(op->ptr, "remote_url", ui::ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
@@ -916,7 +916,7 @@ static constexpr EnumPropertyItem project_variable_type_items[] = {
 
 static wmOperatorStatus project_variable_add_exec(bContext *C, wmOperator *op)
 {
-  const VariableType variable_type = VariableType(RNA_enum_get(op->ptr, "variable_type"));
+  const VariableType variable_type = RNA_enum_get<VariableType>(op->ptr, "variable_type");
   Main *bmain = CTX_data_main(C);
   BKE_blender_project_write_callback(bmain, [variable_type](bke::BlenderProject *project) {
     std::string variable_name;
@@ -1028,7 +1028,7 @@ static constexpr EnumPropertyItem project_variable_move_items[] = {
 };
 static wmOperatorStatus project_variable_move_exec(bContext *C, wmOperator *op)
 {
-  const DirectionType direction = DirectionType(RNA_enum_get(op->ptr, "direction"));
+  const DirectionType direction = RNA_enum_get<DirectionType>(op->ptr, "direction");
   Main *bmain = CTX_data_main(C);
   BKE_blender_project_write_callback(bmain, [direction](bke::BlenderProject *project) {
     int index = project->active_variable_index;

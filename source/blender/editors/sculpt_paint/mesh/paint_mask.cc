@@ -706,7 +706,7 @@ static wmOperatorStatus mask_flood_fill_exec(bContext *C, wmOperator *op)
   Object &object = *CTX_data_active_object(C);
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
 
-  const FloodFillMode mode = FloodFillMode(RNA_enum_get(op->ptr, "mode"));
+  const FloodFillMode mode = RNA_enum_get<FloodFillMode>(op->ptr, "mode");
   const float value = RNA_float_get(op->ptr, "value");
 
   BKE_sculptsession_update_for_edit(&depsgraph, &object, false);
@@ -935,7 +935,7 @@ static void init_operation(bContext &C, gesture::GestureData &gesture_data, wmOp
   mask_operation->op.apply_for_symmetry_pass = gesture_apply_for_symmetry_pass;
   mask_operation->op.end = gesture_end;
 
-  mask_operation->mode = FloodFillMode(RNA_enum_get(op.ptr, "mode"));
+  mask_operation->mode = RNA_enum_get<FloodFillMode>(op.ptr, "mode");
   mask_operation->value = RNA_float_get(op.ptr, "value");
 }
 

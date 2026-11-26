@@ -125,7 +125,7 @@ static wmOperatorStatus rigidbody_con_add_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
   Object *ob = ed::object::context_active_object(C);
-  eRigidBodyCon_Type type = eRigidBodyCon_Type(RNA_enum_get(op->ptr, "type"));
+  eRigidBodyCon_Type type = RNA_enum_get<eRigidBodyCon_Type>(op->ptr, "type");
   bool changed;
   /* Poll ensures. */
   BLI_assert(scene && ob);

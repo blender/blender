@@ -253,7 +253,7 @@ inline void add_item(wmOperatorType *ot,
     std::optional<eNodeSocketDatatype> socket_type;
     if constexpr (Accessor::has_type) {
       if (!init_from_active) {
-        socket_type = eNodeSocketDatatype(RNA_enum_get(op->ptr, socket_type_id));
+        socket_type = RNA_enum_get<eNodeSocketDatatype>(op->ptr, socket_type_id);
       }
       else if (active_item) {
         socket_type = Accessor::get_socket_type(*active_item);
@@ -360,7 +360,7 @@ inline void move_active_item(wmOperatorType *ot,
       return OPERATOR_CANCELLED;
     }
     bNode &node = *static_cast<bNode *>(node_ptr.data);
-    const MoveDirection direction = MoveDirection(RNA_enum_get(op->ptr, "direction"));
+    const MoveDirection direction = RNA_enum_get<MoveDirection>(op->ptr, "direction");
 
     SocketItemsRef ref = Accessor::get_items_from_node(node);
     const int old_active_index = *ref.active_index;

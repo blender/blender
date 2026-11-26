@@ -863,7 +863,7 @@ static wmOperatorStatus node_box_select_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rctf(op, &rectf);
   ui::view2d_region_to_view_rctf(&region.v2d, &rectf, &rectf);
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     node_deselect_all(node_tree);
@@ -962,7 +962,7 @@ static wmOperatorStatus node_circleselect_exec(bContext *C, wmOperator *op)
   float zoom = float(BLI_rcti_size_x(&region->winrct)) / BLI_rctf_size_x(&region->v2d.cur);
 
   const eSelectOp sel_op = ED_select_op_modal(
-      eSelectOp(RNA_enum_get(op->ptr, "mode")),
+      RNA_enum_get<eSelectOp>(op->ptr, "mode"),
       WM_gesture_is_modal_first(static_cast<const wmGesture *>(op->customdata)));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
@@ -1120,7 +1120,7 @@ static wmOperatorStatus node_lasso_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH;
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
 
   do_lasso_select_node(C, mcoords, sel_op);
 

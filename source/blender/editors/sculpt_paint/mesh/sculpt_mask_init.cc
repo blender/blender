@@ -132,7 +132,7 @@ static wmOperatorStatus sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   undo::push_begin(scene, ob, op);
 
-  const InitMode mode = InitMode(RNA_enum_get(op->ptr, "mode"));
+  const InitMode mode = RNA_enum_get<InitMode>(op->ptr, "mode");
   const int seed = BLI_time_now_seconds();
 
   switch (pbvh.type()) {

@@ -128,8 +128,8 @@ static wmOperatorStatus multires_subdivide_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const MultiresSubdivideModeType subdivide_mode = MultiresSubdivideModeType(
-      RNA_enum_get(op->ptr, "mode"));
+  const MultiresSubdivideModeType subdivide_mode = RNA_enum_get<MultiresSubdivideModeType>(op->ptr,
+                                                                                           "mode");
   multiresModifier_subdivide(object, mmd, subdivide_mode);
 
   Mesh *mesh = id_cast<Mesh *>(object->data);

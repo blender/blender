@@ -2664,7 +2664,7 @@ static wmOperatorStatus skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
   PointerRNA ptr = edit_modifier_ptr_get(C, RNA_SkinModifier);
   Object *ob = edit_modifier_object_get(C, ptr);
   BMesh *bm = BKE_editmesh_bmesh_ensure(ob);
-  SkinLooseAction action = static_cast<SkinLooseAction>(RNA_enum_get(op->ptr, "action"));
+  SkinLooseAction action = RNA_enum_get<SkinLooseAction>(op->ptr, "action");
 
   if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT2, "skin_modifier_radius")) {
     return OPERATOR_CANCELLED;
@@ -3793,8 +3793,8 @@ static wmOperatorStatus dash_modifier_segment_move_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
-  const DashSegmentMoveDirection direction = DashSegmentMoveDirection(
-      RNA_enum_get(op->ptr, "type"));
+  const DashSegmentMoveDirection direction = RNA_enum_get<DashSegmentMoveDirection>(op->ptr,
+                                                                                    "type");
   switch (direction) {
     case DashSegmentMoveDirection::Up:
       if (dmd->segment_active_index == 0) {
@@ -4027,8 +4027,8 @@ static wmOperatorStatus time_modifier_segment_move_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
-  const TimeSegmentMoveDirection direction = TimeSegmentMoveDirection(
-      RNA_enum_get(op->ptr, "type"));
+  const TimeSegmentMoveDirection direction = RNA_enum_get<TimeSegmentMoveDirection>(op->ptr,
+                                                                                    "type");
   switch (direction) {
     case TimeSegmentMoveDirection::Up:
       if (tmd->segment_active_index == 0) {

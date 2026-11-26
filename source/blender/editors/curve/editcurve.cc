@@ -4053,7 +4053,7 @@ static wmOperatorStatus set_handle_type_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  const eBezTriple_Handle handle_type = eBezTriple_Handle(RNA_enum_get(op->ptr, "type"));
+  const eBezTriple_Handle handle_type = RNA_enum_get<eBezTriple_Handle>(op->ptr, "type");
   const bool hide_handles = (v3d && (v3d->overlay.handle_display == CURVE_HANDLE_NONE));
   const eNurbHandleTest_Mode handle_mode = hide_handles ? NURB_HANDLE_TEST_KNOT_ONLY :
                                                           NURB_HANDLE_TEST_KNOT_OR_EACH;
@@ -6557,7 +6557,7 @@ static wmOperatorStatus curve_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   View3D *v3d = CTX_wm_view3d(C);
-  eCurveElem_Types type = eCurveElem_Types(RNA_enum_get(op->ptr, "type"));
+  eCurveElem_Types type = RNA_enum_get<eCurveElem_Types>(op->ptr, "type");
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(

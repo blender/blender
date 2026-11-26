@@ -1047,7 +1047,7 @@ static wmOperatorStatus pose_select_scaled_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_object_pose_array_get_unique(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
-  const BoneScale scale_mode = BoneScale(RNA_enum_get(op->ptr, "scale"));
+  const BoneScale scale_mode = RNA_enum_get<BoneScale>(op->ptr, "scale");
 
   for (Object *pose_object : objects) {
     bArmature *arm = id_cast<bArmature *>(pose_object->data);
@@ -1136,7 +1136,7 @@ static wmOperatorStatus armature_select_deform_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_object_pose_array_get_unique(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
-  const BoneDeform mode = BoneDeform(RNA_enum_get(op->ptr, "mode"));
+  const BoneDeform mode = RNA_enum_get<BoneDeform>(op->ptr, "mode");
 
   for (Object *pose_object : objects) {
     bArmature *arm = id_cast<bArmature *>(pose_object->data);
@@ -1512,7 +1512,7 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
 static wmOperatorStatus pose_select_grouped_exec(bContext *C, wmOperator *op)
 {
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-  const SelectRelatedMode mode = SelectRelatedMode(RNA_enum_get(op->ptr, "type"));
+  const SelectRelatedMode mode = RNA_enum_get<SelectRelatedMode>(op->ptr, "type");
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   bool changed = false;
 

@@ -1339,8 +1339,8 @@ static wmOperatorStatus object_calculate_paths_invoke(bContext *C,
 static wmOperatorStatus object_calculate_paths_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  eMotionPaths_Types path_type = eMotionPaths_Types(RNA_enum_get(op->ptr, "display_type"));
-  eMotionPath_Ranges path_range = eMotionPath_Ranges(RNA_enum_get(op->ptr, "range"));
+  eMotionPaths_Types path_type = RNA_enum_get<eMotionPaths_Types>(op->ptr, "display_type");
+  eMotionPath_Ranges path_range = RNA_enum_get<eMotionPath_Ranges>(op->ptr, "range");
 
   Vector<Object *> selected_objects;
   /* set up path data for objects being calculated */
@@ -2050,7 +2050,7 @@ static wmOperatorStatus object_mode_set_exec(bContext *C, wmOperator *op)
 {
   const bool use_submode = STREQ(op->idname, "OBJECT_OT_mode_set_with_submode");
   Object *ob = CTX_data_active_object(C);
-  eObjectMode mode = eObjectMode(RNA_enum_get(op->ptr, "mode"));
+  eObjectMode mode = RNA_enum_get<eObjectMode>(op->ptr, "mode");
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 
   if (!mode_compat_test(ob, mode)) {

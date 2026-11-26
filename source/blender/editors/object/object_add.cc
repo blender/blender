@@ -1036,7 +1036,7 @@ static wmOperatorStatus lightprobe_add_exec(bContext *C, wmOperator *op)
   WM_operator_view3d_unit_defaults(C, op);
   add_generic_get_opts(C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr);
 
-  eLightProbeType type = eLightProbeType(RNA_enum_get(op->ptr, "type"));
+  eLightProbeType type = RNA_enum_get<eLightProbeType>(op->ptr, "type");
   float radius = RNA_float_get(op->ptr, "radius");
 
   Object *ob = add_type(
@@ -1126,7 +1126,7 @@ static wmOperatorStatus effector_add_exec(bContext *C, wmOperator *op)
   WM_operator_view3d_unit_defaults(C, op);
   add_generic_get_opts(C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr);
 
-  const ePFieldType type = static_cast<ePFieldType>(RNA_enum_get(op->ptr, "type"));
+  const ePFieldType type = RNA_enum_get<ePFieldType>(op->ptr, "type");
   float dia = RNA_float_get(op->ptr, "radius");
 
   Object *ob;
@@ -1852,7 +1852,7 @@ static wmOperatorStatus object_light_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob;
   Light *la;
-  eLightType type = eLightType(RNA_enum_get(op->ptr, "type"));
+  eLightType type = RNA_enum_get<eLightType>(op->ptr, "type");
   ushort local_view_bits;
   float loc[3], rot[3];
 

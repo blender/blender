@@ -1664,7 +1664,7 @@ static bool walker_select(BMesh *bm,
 
 static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator *op)
 {
-  const BMWDelimitFlag delimit = BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_loop"));
+  const BMWDelimitFlag delimit = RNA_enum_get<BMWDelimitFlag>(op->ptr, "delimit_edge_loop");
   const Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1737,7 +1737,7 @@ static wmOperatorStatus edbm_edge_loop_multiselect_exec(bContext *C, wmOperator 
 
 static wmOperatorStatus edbm_edge_ring_multiselect_exec(bContext *C, wmOperator *op)
 {
-  const BMWDelimitFlag delimit = BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_ring"));
+  const BMWDelimitFlag delimit = RNA_enum_get<BMWDelimitFlag>(op->ptr, "delimit_edge_ring");
   const Main *bmain = CTX_data_main(C);
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1839,7 +1839,7 @@ static wmOperatorStatus edbm_boundary_loop_multiselect_exec(bContext *C, wmOpera
   }
 
   const bool extend = RNA_boolean_get(op->ptr, "extend");
-  const BMWDelimitFlag delimit = BMWDelimitFlag(RNA_enum_get(op->ptr, "delimit_edge_loop"));
+  const BMWDelimitFlag delimit = RNA_enum_get<BMWDelimitFlag>(op->ptr, "delimit_edge_loop");
   bool changed_multi = false;
 
   for (const int ob_index : objects.index_range()) {
@@ -2428,7 +2428,7 @@ static wmOperatorStatus edbm_select_loop_exec(bContext *C, wmOperator *op)
   const char *delimit_prop = (em->selectmode & SCE_SELECT_FACE) ? "delimit_face_loop" :
                                                                   "delimit_edge_loop";
   return edbm_select_loop_or_ring_exec_impl(
-      C, op, false, BMWDelimitFlag(RNA_enum_get(op->ptr, delimit_prop)));
+      C, op, false, RNA_enum_get<BMWDelimitFlag>(op->ptr, delimit_prop));
 }
 
 static wmOperatorStatus edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2443,7 +2443,7 @@ static wmOperatorStatus edbm_select_ring_exec(bContext *C, wmOperator *op)
   const char *delimit_prop = (em->selectmode & SCE_SELECT_FACE) ? "delimit_face_loop" :
                                                                   "delimit_edge_ring";
   return edbm_select_loop_or_ring_exec_impl(
-      C, op, true, BMWDelimitFlag(RNA_enum_get(op->ptr, delimit_prop)));
+      C, op, true, RNA_enum_get<BMWDelimitFlag>(op->ptr, delimit_prop));
 }
 
 static wmOperatorStatus edbm_select_ring_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -4597,7 +4597,7 @@ static wmOperatorStatus edbm_select_by_pole_count_exec(bContext *C, wmOperator *
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool exclude_nonmanifold = RNA_boolean_get(op->ptr, "exclude_nonmanifold");
   const int pole_count = RNA_int_get(op->ptr, "pole_count");
-  const eElemCountType type = eElemCountType(RNA_enum_get(op->ptr, "type"));
+  const eElemCountType type = RNA_enum_get<eElemCountType>(op->ptr, "type");
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 
@@ -4728,7 +4728,7 @@ static wmOperatorStatus edbm_select_face_by_sides_exec(bContext *C, wmOperator *
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const int numverts = RNA_int_get(op->ptr, "number");
-  const eElemCountType type = eElemCountType(RNA_enum_get(op->ptr, "type"));
+  const eElemCountType type = RNA_enum_get<eElemCountType>(op->ptr, "type");
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       *bmain, scene, view_layer, CTX_wm_view3d(C));
 

@@ -872,7 +872,7 @@ static wmOperatorStatus world_space_copy_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Nothing selected to copy");
     return OPERATOR_CANCELLED;
   }
-  const CopyRange range_mode = CopyRange(RNA_enum_get(op->ptr, "range_mode"));
+  const CopyRange range_mode = RNA_enum_get<CopyRange>(op->ptr, "range_mode");
   Bounds<int> bounds;
   switch (range_mode) {
     case CopyRange::CUSTOM:
@@ -981,7 +981,7 @@ static wmOperatorStatus world_space_paste_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const AnimationPasteOffset offset = AnimationPasteOffset(RNA_enum_get(op->ptr, "offset"));
+  const AnimationPasteOffset offset = RNA_enum_get<AnimationPasteOffset>(op->ptr, "offset");
   paste_world_space(*CTX_data_main(C),
                     *CTX_data_scene(C),
                     *CTX_data_view_layer(C),

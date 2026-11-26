@@ -1649,7 +1649,7 @@ static wmOperatorStatus ed_marker_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     ED_markers_select_all(markers, SEL_DESELECT);
@@ -1757,8 +1757,8 @@ static const EnumPropertyItem prop_markers_select_leftright_modes[] = {
 
 static wmOperatorStatus ed_marker_select_leftright_exec(bContext *C, wmOperator *op)
 {
-  const eMarkers_LeftRightSelect_Mode mode = eMarkers_LeftRightSelect_Mode(
-      RNA_enum_get(op->ptr, "mode"));
+  const eMarkers_LeftRightSelect_Mode mode = RNA_enum_get<eMarkers_LeftRightSelect_Mode>(op->ptr,
+                                                                                         "mode");
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
   ListBaseT<TimeMarker> *markers = is_sequencer ? ED_sequencer_context_get_markers(C) :
@@ -1813,8 +1813,8 @@ static wmOperatorStatus ed_marker_select_leftright_invoke(bContext *C,
     return OPERATOR_PASS_THROUGH;
   }
 
-  eMarkers_LeftRightSelect_Mode mode = eMarkers_LeftRightSelect_Mode(
-      RNA_enum_get(op->ptr, "mode"));
+  eMarkers_LeftRightSelect_Mode mode = RNA_enum_get<eMarkers_LeftRightSelect_Mode>(op->ptr,
+                                                                                   "mode");
 
   if (mode == MARKERS_LRSEL_CLICK_SIDE) {
     const float mouse_frame = ui::view2d_region_to_view_x(v2d, event->mval[0]);

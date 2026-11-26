@@ -260,7 +260,7 @@ static wmOperatorStatus graphkeys_insertkey_exec(bContext *C, wmOperator *op)
   ANIM_deselect_keys_in_animation_editors(C);
 
   /* Which channels to affect? */
-  mode = eGraphKeys_InsertKey_Types(RNA_enum_get(op->ptr, "type"));
+  mode = RNA_enum_get<eGraphKeys_InsertKey_Types>(op->ptr, "type");
 
   /* Insert keyframes. */
   insert_graph_keys(&ac, mode);
@@ -576,10 +576,10 @@ static wmOperatorStatus graphkeys_paste_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  const eKeyPasteOffset offset_mode = eKeyPasteOffset(RNA_enum_get(op->ptr, "offset"));
-  const eKeyPasteValueOffset value_offset_mode = eKeyPasteValueOffset(
-      RNA_enum_get(op->ptr, "value_offset"));
-  const eKeyMergeMode merge_mode = eKeyMergeMode(RNA_enum_get(op->ptr, "merge"));
+  const eKeyPasteOffset offset_mode = RNA_enum_get<eKeyPasteOffset>(op->ptr, "offset");
+  const eKeyPasteValueOffset value_offset_mode = RNA_enum_get<eKeyPasteValueOffset>(
+      op->ptr, "value_offset");
+  const eKeyMergeMode merge_mode = RNA_enum_get<eKeyMergeMode>(op->ptr, "merge");
   const bool flipped = RNA_boolean_get(op->ptr, "flipped");
 
   /* Get editor data. */
@@ -2954,7 +2954,7 @@ static wmOperatorStatus graph_fmodifier_delete_exec(bContext *C, wmOperator *op)
   bAnimContext ac;
   ListBaseT<bAnimListElem> anim_data = {nullptr, nullptr};
 
-  const eFModifier_Types type = static_cast<eFModifier_Types>(RNA_enum_get(op->ptr, "type"));
+  const eFModifier_Types type = RNA_enum_get<eFModifier_Types>(op->ptr, "type");
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -2967,7 +2967,7 @@ static wmOperatorStatus graph_fmodifier_delete_exec(bContext *C, wmOperator *op)
 
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-  const RemovalMode mode = RemovalMode(RNA_enum_get(op->ptr, "mode"));
+  const RemovalMode mode = RNA_enum_get<RemovalMode>(op->ptr, "mode");
   int num_fmods_deleted = 0;
   int num_fcurves_affected = 0;
 

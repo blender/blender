@@ -131,7 +131,7 @@ static wmOperatorStatus wm_alembic_export_exec(bContext *C, wmOperator *op)
   params.triangulate = RNA_boolean_get(op->ptr, "triangulate");
   params.quad_method = RNA_enum_get(op->ptr, "quad_method");
   params.ngon_method = RNA_enum_get(op->ptr, "ngon_method");
-  params.evaluation_mode = eEvaluationMode(RNA_enum_get(op->ptr, "evaluation_mode"));
+  params.evaluation_mode = RNA_enum_get<eEvaluationMode>(op->ptr, "evaluation_mode");
 
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
 

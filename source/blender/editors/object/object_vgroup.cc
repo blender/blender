@@ -3061,8 +3061,7 @@ static wmOperatorStatus vertex_group_levels_exec(bContext *C, wmOperator *op)
 
   float offset = RNA_float_get(op->ptr, "offset");
   float gain = RNA_float_get(op->ptr, "gain");
-  eVGroupSelect subset_type = static_cast<eVGroupSelect>(
-      RNA_enum_get(op->ptr, "group_select_mode"));
+  eVGroupSelect subset_type = RNA_enum_get<eVGroupSelect>(op->ptr, "group_select_mode");
 
   int subset_count, vgroup_tot;
 
@@ -3181,8 +3180,7 @@ static wmOperatorStatus vertex_group_normalize_all_exec(bContext *C, wmOperator 
   RNA_enum_set(op->ptr, "group_select_mode", target_group);
 
   bool lock_active = RNA_boolean_get(op->ptr, "lock_active");
-  eVGroupSelect subset_type = static_cast<eVGroupSelect>(
-      RNA_enum_get(op->ptr, "group_select_mode"));
+  eVGroupSelect subset_type = RNA_enum_get<eVGroupSelect>(op->ptr, "group_select_mode");
   bool changed;
   int subset_count, vgroup_tot;
   const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
@@ -3368,8 +3366,7 @@ static wmOperatorStatus vertex_group_invert_exec(bContext *C, wmOperator *op)
   bool auto_assign = RNA_boolean_get(op->ptr, "auto_assign");
   bool auto_remove = RNA_boolean_get(op->ptr, "auto_remove");
 
-  eVGroupSelect subset_type = static_cast<eVGroupSelect>(
-      RNA_enum_get(op->ptr, "group_select_mode"));
+  eVGroupSelect subset_type = RNA_enum_get<eVGroupSelect>(op->ptr, "group_select_mode");
 
   int subset_count, vgroup_tot;
 
@@ -3422,8 +3419,7 @@ static wmOperatorStatus vertex_group_smooth_exec(bContext *C, wmOperator *op)
 {
   const float fac = RNA_float_get(op->ptr, "factor");
   const int repeat = RNA_int_get(op->ptr, "repeat");
-  const eVGroupSelect subset_type = static_cast<eVGroupSelect>(
-      RNA_enum_get(op->ptr, "group_select_mode"));
+  const eVGroupSelect subset_type = RNA_enum_get<eVGroupSelect>(op->ptr, "group_select_mode");
   const float fac_expand = RNA_float_get(op->ptr, "expand");
 
   bool has_vgroup_multi = false;
@@ -3514,8 +3510,7 @@ static wmOperatorStatus vertex_group_clean_exec(bContext *C, wmOperator *op)
 {
   const float limit = RNA_float_get(op->ptr, "limit");
   const bool keep_single = RNA_boolean_get(op->ptr, "keep_single");
-  const eVGroupSelect subset_type = static_cast<eVGroupSelect>(
-      RNA_enum_get(op->ptr, "group_select_mode"));
+  const eVGroupSelect subset_type = RNA_enum_get<eVGroupSelect>(op->ptr, "group_select_mode");
 
   const Vector<Object *> objects = object_array_for_wpaint(C);
   for (Object *ob : objects) {
@@ -3577,8 +3572,7 @@ static wmOperatorStatus vertex_group_quantize_exec(bContext *C, wmOperator *op)
   Object *ob = context_object(C);
 
   const int steps = RNA_int_get(op->ptr, "steps");
-  eVGroupSelect subset_type = static_cast<eVGroupSelect>(
-      RNA_enum_get(op->ptr, "group_select_mode"));
+  eVGroupSelect subset_type = RNA_enum_get<eVGroupSelect>(op->ptr, "group_select_mode");
 
   int subset_count, vgroup_tot;
 
@@ -3621,8 +3615,7 @@ void OBJECT_OT_vertex_group_quantize(wmOperatorType *ot)
 static wmOperatorStatus vertex_group_limit_total_exec(bContext *C, wmOperator *op)
 {
   const int limit = RNA_int_get(op->ptr, "limit");
-  const eVGroupSelect subset_type = static_cast<eVGroupSelect>(
-      RNA_enum_get(op->ptr, "group_select_mode"));
+  const eVGroupSelect subset_type = RNA_enum_get<eVGroupSelect>(op->ptr, "group_select_mode");
   int remove_multi_count = 0;
 
   const Vector<Object *> objects = object_array_for_wpaint(C);

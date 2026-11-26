@@ -716,7 +716,7 @@ static wmOperatorStatus workspace_reorder_to_left_right_exec(bContext *C, wmOper
 {
   Main *bmain = CTX_data_main(C);
   WorkSpace *workspace = workspace_context_get(C);
-  const ReorderDirection direction = ReorderDirection(RNA_enum_get(op->ptr, "direction"));
+  const ReorderDirection direction = RNA_enum_get<ReorderDirection>(op->ptr, "direction");
 
   const Vector<ID *> ordered_workspaces = BKE_id_ordered_list(&bmain->workspaces.cast<ID>());
   const int active_index = ordered_workspaces.first_index_of(&workspace->id);
@@ -746,7 +746,7 @@ static std::string workspace_reorder_to_left_right_description(bContext * /*C*/,
                                                                wmOperatorType * /*ot*/,
                                                                PointerRNA *ptr)
 {
-  if (ReorderDirection(RNA_enum_get(ptr, "direction")) == ReorderDirection::RIGHT) {
+  if (RNA_enum_get<ReorderDirection>(ptr, "direction") == ReorderDirection::RIGHT) {
     return TIP_("Reorder workspace to the right in the list");
   }
   return TIP_("Reorder workspace to the left in the list");

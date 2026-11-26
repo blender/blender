@@ -13,6 +13,7 @@
 #include <optional>
 #include <stdarg.h>
 #include <string>
+#include <type_traits>
 
 #include "DNA_listBase.h"
 
@@ -632,6 +633,21 @@ int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);
 int RNA_property_enum_get_default(PointerRNA *ptr, PropertyRNA *prop);
+
+template<typename T>
+  requires std::is_enum_v<T>
+T RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
+{
+  return static_cast<T>(RNA_property_enum_get(ptr, prop));
+}
+
+template<typename T>
+  requires std::is_enum_v<T>
+void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, const T value)
+{
+  RNA_property_enum_set(ptr, prop, int(value));
+}
+
 /**
  * Get the value of the item that is \a step items away from \a from_value.
  *
@@ -841,6 +857,20 @@ int RNA_enum_get(PointerRNA *ptr, const char *name);
 void RNA_enum_set(PointerRNA *ptr, const char *name, int value);
 void RNA_enum_set_identifier(bContext *C, PointerRNA *ptr, const char *name, const char *id);
 bool RNA_enum_is_equal(bContext *C, PointerRNA *ptr, const char *name, const char *enumname);
+
+template<typename T>
+  requires std::is_enum_v<T>
+T RNA_enum_get(PointerRNA *ptr, const char *name)
+{
+  return static_cast<T>(RNA_enum_get(ptr, name));
+}
+
+template<typename T>
+  requires std::is_enum_v<T>
+void RNA_enum_set(PointerRNA *ptr, const char *name, const T value)
+{
+  RNA_enum_set(ptr, name, int(value));
+}
 
 /* Lower level functions that don't use a PointerRNA. */
 bool RNA_enum_value_from_id(const EnumPropertyItem *item, const char *identifier, int *r_value);

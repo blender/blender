@@ -451,7 +451,7 @@ static wmOperatorStatus new_sequencer_scene_exec(bContext *C, wmOperator *op)
   wmWindow *win = CTX_wm_window(C);
   WorkSpace *workspace = CTX_wm_workspace(C);
   Scene *scene_old = CTX_data_sequencer_scene(C);
-  eSceneCopyMethod type = eSceneCopyMethod(RNA_enum_get(op->ptr, "type"));
+  eSceneCopyMethod type = RNA_enum_get<eSceneCopyMethod>(op->ptr, "type");
   /* When there is no scene to copy from, force new. */
   if (scene_old == nullptr) {
     type = SCE_COPY_NEW;

@@ -418,7 +418,7 @@ static wmOperatorStatus create_op_exec(bContext *C, wmOperator *op)
   Object &object = *CTX_data_active_object(C);
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
 
-  const CreateMode mode = CreateMode(RNA_enum_get(op->ptr, "mode"));
+  const CreateMode mode = RNA_enum_get<CreateMode>(op->ptr, "mode");
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -717,7 +717,7 @@ static wmOperatorStatus init_op_exec(bContext *C, wmOperator *op)
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  const InitMode mode = InitMode(RNA_enum_get(op->ptr, "mode"));
+  const InitMode mode = RNA_enum_get<InitMode>(op->ptr, "mode");
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -1018,7 +1018,7 @@ static wmOperatorStatus change_visibility_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const VisibilityMode mode = VisibilityMode(RNA_enum_get(op->ptr, "mode"));
+  const VisibilityMode mode = RNA_enum_get<VisibilityMode>(op->ptr, "mode");
   const int active_face_set = RNA_int_get(op->ptr, "active_face_set");
 
   undo::push_begin(scene, object, op);
@@ -1532,7 +1532,7 @@ static bool edit_op_init(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  const EditMode mode = EditMode(RNA_enum_get(op->ptr, "mode"));
+  const EditMode mode = RNA_enum_get<EditMode>(op->ptr, "mode");
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
   if (!edit_is_operation_valid(*ob, mode, modify_hidden)) {
@@ -1555,7 +1555,7 @@ static wmOperatorStatus edit_op_exec(bContext *C, wmOperator *op)
   Object &ob = *CTX_data_active_object(C);
 
   const int active_face_set = RNA_int_get(op->ptr, "active_face_set");
-  const EditMode mode = EditMode(RNA_enum_get(op->ptr, "mode"));
+  const EditMode mode = RNA_enum_get<EditMode>(op->ptr, "mode");
   const bool modify_hidden = RNA_boolean_get(op->ptr, "modify_hidden");
 
   if (ELEM(mode, EditMode::Grow, EditMode::Shrink)) {

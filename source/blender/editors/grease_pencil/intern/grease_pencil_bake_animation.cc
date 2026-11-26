@@ -158,7 +158,7 @@ static wmOperatorStatus bake_grease_pencil_animation_exec(bContext *C, wmOperato
 
   const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
   const int frame_offset = RNA_int_get(op->ptr, "frame_target") - frame_start;
-  const ReprojectMode reproject_mode = ReprojectMode(RNA_enum_get(op->ptr, "project_type"));
+  const ReprojectMode reproject_mode = RNA_enum_get<ReprojectMode>(op->ptr, "project_type");
 
   View3D *v3d = CTX_wm_view3d(C);
   ARegion *region = CTX_wm_region(C);

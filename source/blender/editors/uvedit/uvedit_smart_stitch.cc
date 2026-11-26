@@ -2498,7 +2498,7 @@ static StitchStateContainer *stitch_init_from_operator(bContext *C, wmOperator *
                                objects,
                                CTX_wm_region(C),
                                ssc,
-                               StitchModes(RNA_enum_get(op->ptr, "stored_mode")),
+                               RNA_enum_get<StitchModes>(op->ptr, "stored_mode"),
                                op))
   {
     MEM_SAFE_DELETE(ssc);

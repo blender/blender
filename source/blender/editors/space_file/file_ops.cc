@@ -516,7 +516,7 @@ static wmOperatorStatus file_box_select_exec(bContext *C, wmOperator *op)
 
   WM_operator_properties_border_to_rcti(op, &rect);
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     file_select_deselect_all(sfile, FILE_SEL_SELECTED);
@@ -1883,7 +1883,7 @@ static wmOperatorStatus file_external_operation_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
-  const FileExternalOperation operation = (FileExternalOperation)RNA_enum_get(op->ptr,
+  const FileExternalOperation operation = RNA_enum_get<FileExternalOperation>(op->ptr,
                                                                               "operation");
 
   char filepath[FILE_MAX_LIBEXTRA];

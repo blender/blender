@@ -524,7 +524,7 @@ static wmOperatorStatus hide_show_all_exec(bContext *C, wmOperator *op)
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
+  const VisAction action = RNA_enum_get<VisAction>(op->ptr, "action");
 
   bke::pbvh::Tree &pbvh = bke::object::pbvh_ensure(*depsgraph, ob);
 
@@ -641,7 +641,7 @@ static wmOperatorStatus hide_show_masked_exec(bContext *C, wmOperator *op)
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  const VisAction action = VisAction(RNA_enum_get(op->ptr, "action"));
+  const VisAction action = RNA_enum_get<VisAction>(op->ptr, "action");
 
   bke::pbvh::Tree &pbvh = bke::object::pbvh_ensure(*depsgraph, ob);
 
@@ -1146,7 +1146,7 @@ static wmOperatorStatus visibility_filter_exec(bContext *C, wmOperator *op)
 
   bke::pbvh::Tree &pbvh = bke::object::pbvh_ensure(depsgraph, object);
 
-  const VisAction mode = VisAction(RNA_enum_get(op->ptr, "action"));
+  const VisAction mode = RNA_enum_get<VisAction>(op->ptr, "action");
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
@@ -1383,8 +1383,8 @@ static void hide_show_init_properties(bContext & /*C*/,
   operation->op.apply_for_symmetry_pass = hide_show_apply_for_symmetry_pass;
   operation->op.end = hide_show_end;
 
-  operation->action = VisAction(RNA_enum_get(op.ptr, "action"));
-  gesture_data.selection_type = gesture::SelectionType(RNA_enum_get(op.ptr, "area"));
+  operation->action = RNA_enum_get<VisAction>(op.ptr, "action");
+  gesture_data.selection_type = RNA_enum_get<gesture::SelectionType>(op.ptr, "area");
 }
 
 static wmOperatorStatus hide_show_gesture_box_exec(bContext *C, wmOperator *op)

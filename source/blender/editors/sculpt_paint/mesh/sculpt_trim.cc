@@ -684,12 +684,12 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
   trim_operation->op.apply_for_symmetry_pass = gesture_apply_for_symmetry_pass;
   trim_operation->op.end = gesture_end;
 
-  trim_operation->mode = OperationType(RNA_enum_get(op.ptr, "trim_mode"));
+  trim_operation->mode = RNA_enum_get<OperationType>(op.ptr, "trim_mode");
   trim_operation->use_cursor_depth = RNA_boolean_get(op.ptr, "use_cursor_depth");
-  trim_operation->orientation = OrientationType(RNA_enum_get(op.ptr, "trim_orientation"));
-  trim_operation->extrude_mode = ExtrudeMode(RNA_enum_get(op.ptr, "trim_extrude_mode"));
-  trim_operation->solver_mode = blender::geometry::boolean::Solver(
-      RNA_enum_get(op.ptr, "trim_solver"));
+  trim_operation->orientation = RNA_enum_get<OrientationType>(op.ptr, "trim_orientation");
+  trim_operation->extrude_mode = RNA_enum_get<ExtrudeMode>(op.ptr, "trim_extrude_mode");
+  trim_operation->solver_mode = RNA_enum_get<blender::geometry::boolean::Solver>(op.ptr,
+                                                                                 "trim_solver");
 
   /* If the cursor was not over the mesh, force the orientation to view. */
   if (!trim_operation->initial_hit) {

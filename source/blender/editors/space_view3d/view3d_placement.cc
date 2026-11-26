@@ -723,12 +723,12 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   const int plane_axis = tool_settings->plane_axis;
 
   const enum ePlace_Origin plane_origin[2] = {
-      ePlace_Origin(RNA_enum_get(op->ptr, "plane_origin_base")),
-      ePlace_Origin(RNA_enum_get(op->ptr, "plane_origin_depth")),
+      RNA_enum_get<ePlace_Origin>(op->ptr, "plane_origin_base"),
+      RNA_enum_get<ePlace_Origin>(op->ptr, "plane_origin_depth"),
   };
   const enum ePlace_Aspect plane_aspect[2] = {
-      ePlace_Aspect(RNA_enum_get(op->ptr, "plane_aspect_base")),
-      ePlace_Aspect(RNA_enum_get(op->ptr, "plane_aspect_depth")),
+      RNA_enum_get<ePlace_Aspect>(op->ptr, "plane_aspect_base"),
+      RNA_enum_get<ePlace_Aspect>(op->ptr, "plane_aspect_depth"),
   };
 
   InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(op->customdata);
@@ -855,7 +855,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "primitive_type");
     if (RNA_property_is_set(op->ptr, prop)) {
-      ipd->primitive_type = ePlace_PrimType(RNA_property_enum_get(op->ptr, prop));
+      ipd->primitive_type = RNA_property_enum_get<ePlace_PrimType>(op->ptr, prop);
       ipd->use_tool = false;
     }
     else {

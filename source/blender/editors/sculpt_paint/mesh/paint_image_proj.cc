@@ -6914,8 +6914,8 @@ static std::optional<std::string> proj_paint_color_attribute_create(wmOperator *
   if (op) {
     RNA_string_get(op->ptr, "name", name);
     RNA_float_get_array(op->ptr, "color", color);
-    domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
-    type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
+    domain = RNA_enum_get<bke::AttrDomain>(op->ptr, "domain");
+    type = RNA_enum_get<eCustomDataType>(op->ptr, "data_type");
   }
 
   Mesh *mesh = id_cast<Mesh *>(ob.data);
@@ -7038,8 +7038,8 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     }
 
     const ePaintCanvasSource slot_type = ob->mode == OB_MODE_SCULPT ?
-                                             ePaintCanvasSource(
-                                                 RNA_enum_get(op->ptr, "slot_type")) :
+                                             RNA_enum_get<ePaintCanvasSource>(op->ptr,
+                                                                              "slot_type") :
                                              PAINT_CANVAS_SOURCE_IMAGE;
 
     /* Create a new node. */
@@ -7210,7 +7210,7 @@ static void texture_paint_add_texture_paint_slot_ui(bContext *C, wmOperator *op)
   ePaintCanvasSource slot_type = PAINT_CANVAS_SOURCE_IMAGE;
 
   if (ob->mode == OB_MODE_SCULPT) {
-    slot_type = ePaintCanvasSource(RNA_enum_get(op->ptr, "slot_type"));
+    slot_type = RNA_enum_get<ePaintCanvasSource>(op->ptr, "slot_type");
     layout.prop(op->ptr, "slot_type", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 

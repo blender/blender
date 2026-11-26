@@ -257,7 +257,7 @@ static wmOperatorStatus grease_pencil_layer_move_exec(bContext *C, wmOperator *o
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *ed::greasepencil::from_context(*C);
 
-  const LayerMoveDirection direction = LayerMoveDirection(RNA_enum_get(op->ptr, "direction"));
+  const LayerMoveDirection direction = RNA_enum_get<LayerMoveDirection>(op->ptr, "direction");
 
   TreeNode &active_node = *grease_pencil.get_active_node();
 
@@ -709,7 +709,7 @@ static wmOperatorStatus grease_pencil_merge_layer_exec(bContext *C, wmOperator *
   Main *bmain = CTX_data_main(C);
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
-  const MergeMode mode = MergeMode(RNA_enum_get(op->ptr, "mode"));
+  const MergeMode mode = RNA_enum_get<MergeMode>(op->ptr, "mode");
 
   Vector<Vector<int>> src_layer_indices_by_dst_layer;
   std::string merged_layer_name;
@@ -1066,7 +1066,7 @@ static wmOperatorStatus grease_pencil_layer_group_color_tag_exec(bContext *C, wm
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *ed::greasepencil::from_context(*C);
 
-  const GroupColorTag color_tag = GroupColorTag(RNA_enum_get(op->ptr, "color_tag"));
+  const GroupColorTag color_tag = RNA_enum_get<GroupColorTag>(op->ptr, "color_tag");
   LayerGroup *active_group = grease_pencil.get_active_group();
   active_group->color_tag = color_tag;
 
@@ -1147,7 +1147,7 @@ static wmOperatorStatus grease_pencil_layer_duplicate_object_exec(bContext *C, w
   const int current_frame = scene->r.cfra;
   const GreasePencil &src_grease_pencil = *id_cast<GreasePencil *>(src_object->data);
   const bool only_active = RNA_boolean_get(op->ptr, "only_active");
-  const DuplicateCopyMode copy_frame_mode = DuplicateCopyMode(RNA_enum_get(op->ptr, "mode"));
+  const DuplicateCopyMode copy_frame_mode = RNA_enum_get<DuplicateCopyMode>(op->ptr, "mode");
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     if (ob == src_object || ob->type != OB_GREASE_PENCIL) {

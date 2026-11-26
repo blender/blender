@@ -3069,7 +3069,7 @@ static wmOperatorStatus ui_view_item_navigate_invoke(bContext *C,
                                                      const wmEvent * /*event*/)
 {
   ARegion &region = *CTX_wm_region(C);
-  const Direction direction = Direction(RNA_enum_get(op->ptr, "direction"));
+  const Direction direction = RNA_enum_get<Direction>(op->ptr, "direction");
   AbstractView *view = get_view_focused(C);
 
   AbstractViewItem *from = view->find_active_or_visible_item();
@@ -3184,8 +3184,8 @@ static wmOperatorStatus ui_view_item_scroll_page_invoke(bContext *C,
 {
   ARegion &region = *CTX_wm_region(C);
   AbstractView *view = get_view_focused(C);
-  const PageScrollDirection direction = PageScrollDirection(
-      RNA_enum_get(op->ptr, "scroll_direction"));
+  const PageScrollDirection direction = RNA_enum_get<PageScrollDirection>(op->ptr,
+                                                                          "scroll_direction");
 
   view->page_scroll(C, direction);
 

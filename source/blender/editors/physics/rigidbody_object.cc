@@ -111,7 +111,7 @@ static wmOperatorStatus rigidbody_object_add_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = ed::object::context_active_object(C);
-  eRigidBodyOb_Type type = eRigidBodyOb_Type(RNA_enum_get(op->ptr, "type"));
+  eRigidBodyOb_Type type = RNA_enum_get<eRigidBodyOb_Type>(op->ptr, "type");
   bool changed;
   /* Poll ensures. */
   BLI_assert(scene && ob);
@@ -219,7 +219,7 @@ static wmOperatorStatus rigidbody_objects_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  eRigidBodyOb_Type type = eRigidBodyOb_Type(RNA_enum_get(op->ptr, "type"));
+  eRigidBodyOb_Type type = RNA_enum_get<eRigidBodyOb_Type>(op->ptr, "type");
   bool changed = false;
 
   /* create rigid body objects and add them to the world's group */

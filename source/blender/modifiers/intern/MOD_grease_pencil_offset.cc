@@ -397,7 +397,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
-  const auto offset_mode = GreasePencilOffsetModifierMode(RNA_enum_get(ptr, "offset_mode"));
+  const auto offset_mode = RNA_enum_get<GreasePencilOffsetModifierMode>(ptr, "offset_mode");
 
   layout.use_property_split_set(true);
   if (ui::Layout *general_panel = layout.panel_prop(

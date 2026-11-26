@@ -655,7 +655,7 @@ static wmOperatorStatus sequencer_snap_exec(bContext *C, wmOperator *op)
   const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   const bool keep_offset = RNA_boolean_get(op->ptr, "keep_offset");
   const int snap_frame = RNA_int_get(op->ptr, "frame");
-  const auto snap_side = seq::Side(RNA_enum_get(op->ptr, "side"));
+  const auto snap_side = RNA_enum_get<seq::Side>(op->ptr, "side");
 
   VectorSet<Strip *> selected = seq::query_selected_strips(ed->current_strips());
   selected.remove_if([&](Strip *strip) { return seq::transform_is_locked(channels, strip); });
@@ -771,7 +771,7 @@ static wmOperatorStatus sequencer_snap_invoke(bContext *C, wmOperator *op, const
   int snap_frame = scene->r.cfra;
   RNA_int_set(op->ptr, "frame", snap_frame);
 
-  auto snap_side = seq::Side(RNA_enum_get(op->ptr, "side"));
+  auto snap_side = RNA_enum_get<seq::Side>(op->ptr, "side");
   if (ED_operator_sequencer_active(C) && v2d) {
     snap_side = mouse_frame_side_get(v2d, event->mval[0], snap_frame);
   }
@@ -779,7 +779,7 @@ static wmOperatorStatus sequencer_snap_invoke(bContext *C, wmOperator *op, const
     snap_side = seq::Side::Left;
   }
 
-  RNA_enum_set(op->ptr, "side", int(snap_side));
+  RNA_enum_set(op->ptr, "side", snap_side);
   return sequencer_snap_exec(C, op);
 }
 
@@ -1892,7 +1892,7 @@ bool split_only_selected_get(wmOperator *op)
 /* Get the splitting side for the Split Strips's operator exec() callback. */
 static seq::Side sequence_split_side_for_exec_get(wmOperator *op)
 {
-  const auto split_side = seq::Side(RNA_enum_get(op->ptr, "side"));
+  const auto split_side = RNA_enum_get<seq::Side>(op->ptr, "side");
 
   /* The mouse position can not be resolved from the exec() as the mouse coordinate is not
    * accessible. So fall-back to the RIGHT side instead.
@@ -1923,7 +1923,7 @@ static wmOperatorStatus sequencer_split_exec(bContext *C, wmOperator *op)
                               scene->r.cfra;
   const int split_channel = RNA_int_get(op->ptr, "channel");
 
-  const seq::eSplitMethod method = seq::eSplitMethod(RNA_enum_get(op->ptr, "type"));
+  const seq::eSplitMethod method = RNA_enum_get<seq::eSplitMethod>(op->ptr, "type");
   const seq::Side split_side = sequence_split_side_for_exec_get(op);
 
   /* Only consider ignoring connections for a blade tool split on a single channel, enabled by
@@ -1994,7 +1994,7 @@ static wmOperatorStatus sequencer_split_invoke(bContext *C, wmOperator *op, cons
   Scene *scene = CTX_data_sequencer_scene(C);
   View2D *v2d = ui::view2d_fromcontext(C);
 
-  auto split_side = seq::Side(RNA_enum_get(op->ptr, "side"));
+  auto split_side = RNA_enum_get<seq::Side>(op->ptr, "side");
   int split_frame = scene->r.cfra;
 
   if (split_side == seq::Side::Mouse) {
@@ -2019,7 +2019,7 @@ static wmOperatorStatus sequencer_split_invoke(bContext *C, wmOperator *op, cons
     RNA_int_set(op->ptr, "channel", mouseloc[1]);
   }
   RNA_int_set(op->ptr, "frame", split_frame);
-  RNA_enum_set(op->ptr, "side", int(split_side));
+  RNA_enum_set(op->ptr, "side", split_side);
   // RNA_enum_set(op->ptr, "type", split_hard);
 
   return sequencer_split_exec(C, op);
@@ -2186,7 +2186,7 @@ static wmOperatorStatus sequencer_box_blade_exec(bContext *C, wmOperator *op)
                                seq::StripRelation::Connected;
   }
   const int2 rect_frames = {round_fl_to_int(box_rect.xmin), round_fl_to_int(box_rect.xmax)};
-  const seq::eSplitMethod method = seq::eSplitMethod(RNA_enum_get(op->ptr, "type"));
+  const seq::eSplitMethod method = RNA_enum_get<seq::eSplitMethod>(op->ptr, "type");
 
   int2 gap_removal_boundary = {INT_MAX, INT_MIN};
   VectorSet<Strip *> to_remove;
@@ -3027,7 +3027,7 @@ static wmOperatorStatus sequencer_ripple_trim_exec(bContext *C, wmOperator *op)
   ListBaseT<Strip> *seqbasep = seq::active_seqbase_get(ed);
   const ListBaseT<SeqTimelineChannel> *channels = seq::channels_displayed_get(ed);
   const eSeqRippleFlag ripple_flag = ripple_flag_from_properties(op);
-  const bool trim_left = seq::Side(RNA_enum_get(op->ptr, "side")) == seq::Side::Left;
+  const bool trim_left = RNA_enum_get<seq::Side>(op->ptr, "side") == seq::Side::Left;
   const int timeline_frame = scene->r.cfra;
 
   if (sequencer_view_has_preview_poll(C) && !sequencer_view_preview_only_poll(C)) {
@@ -3707,7 +3707,7 @@ static wmOperatorStatus sequencer_swap_exec(bContext *C, wmOperator *op)
   Strip *active_strip = seq::select_active_get(scene);
   ListBaseT<Strip> *seqbase = seq::active_seqbase_get(ed);
   Strip *strip;
-  auto side = seq::Side(RNA_enum_get(op->ptr, "side"));
+  auto side = RNA_enum_get<seq::Side>(op->ptr, "side");
 
   if (active_strip == nullptr) {
     return OPERATOR_CANCELLED;
@@ -3993,7 +3993,7 @@ static wmOperatorStatus sequencer_change_effect_type_exec(bContext *C, wmOperato
   Strip *strip = seq::select_active_get(scene);
   const StripType old_type = strip->type;
   const int have_inputs = strip->effect_num_inputs_get();
-  const StripType new_type = StripType(RNA_enum_get(op->ptr, "type"));
+  const StripType new_type = RNA_enum_get<StripType>(op->ptr, "type");
 
   if (!strip->is_effect()) {
     return OPERATOR_CANCELLED;
@@ -4700,7 +4700,7 @@ static wmOperatorStatus sequencer_strip_transform_fit_exec(bContext *C, wmOperat
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   const Editing *ed = seq::editing_get(scene);
-  const eSeqImageFitMethod fit_method = eSeqImageFitMethod(RNA_enum_get(op->ptr, "fit_method"));
+  const eSeqImageFitMethod fit_method = RNA_enum_get<eSeqImageFitMethod>(op->ptr, "fit_method");
 
   for (Strip &strip : *ed->current_strips()) {
     if (strip.flag & SEQ_SELECT && strip.type != STRIP_TYPE_SOUND) {
@@ -4739,7 +4739,7 @@ static wmOperatorStatus sequencer_strip_color_tag_set_exec(bContext *C, wmOperat
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   const Editing *ed = seq::editing_get(scene);
-  const StripColorTag color_tag = StripColorTag(RNA_enum_get(op->ptr, "color"));
+  const StripColorTag color_tag = RNA_enum_get<StripColorTag>(op->ptr, "color");
 
   VectorSet<Strip *> selected = seq::query_selected_strips(ed->current_strips());
   if (selected.is_empty()) {

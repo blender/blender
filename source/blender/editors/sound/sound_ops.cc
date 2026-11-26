@@ -446,11 +446,11 @@ static wmOperatorStatus sound_mixdown_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "filepath", filepath);
   bitrate = RNA_int_get(op->ptr, "bitrate") * 1000;
   accuracy = RNA_int_get(op->ptr, "accuracy");
-  specs.format = aud::SampleFormat(RNA_enum_get(op->ptr, "format"));
-  aud::Container container = aud::Container(RNA_enum_get(op->ptr, "container"));
-  aud::Codec codec = aud::Codec(RNA_enum_get(op->ptr, "codec"));
+  specs.format = RNA_enum_get<aud::SampleFormat>(op->ptr, "format");
+  aud::Container container = RNA_enum_get<aud::Container>(op->ptr, "container");
+  aud::Codec codec = RNA_enum_get<aud::Codec>(op->ptr, "codec");
   bool split = RNA_boolean_get(op->ptr, "split_channels");
-  specs.channels = aud::Channels(RNA_enum_get(op->ptr, "channels"));
+  specs.channels = RNA_enum_get<aud::Channels>(op->ptr, "channels");
   specs.rate = RNA_int_get(op->ptr, "mixrate");
 
   BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
@@ -544,7 +544,7 @@ static const char *snd_ext_sound[] = {
 
 static bool sound_mixdown_check(bContext * /*C*/, wmOperator *op)
 {
-  aud::Container container = aud::Container(RNA_enum_get(op->ptr, "container"));
+  aud::Container container = RNA_enum_get<aud::Container>(op->ptr, "container");
 
   const char *extension = nullptr;
 
@@ -668,8 +668,8 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  aud::Container container = aud::Container(RNA_enum_get(op->ptr, "container"));
-  aud::Codec codec = aud::Codec(RNA_enum_get(op->ptr, "codec"));
+  aud::Container container = RNA_enum_get<aud::Container>(op->ptr, "container");
+  aud::Codec codec = RNA_enum_get<aud::Codec>(op->ptr, "codec");
 
   prop_format = RNA_struct_find_property(op->ptr, "format");
   prop_codec = RNA_struct_find_property(op->ptr, "codec");

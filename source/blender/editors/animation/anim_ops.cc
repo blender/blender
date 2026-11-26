@@ -1718,7 +1718,7 @@ static std::string visited_slot_users_to_message(
 static wmOperatorStatus rotation_mode_convert_exec(bContext *C, wmOperator *op)
 {
 
-  const eRotationModes mode = eRotationModes(RNA_enum_get(op->ptr, "mode"));
+  const eRotationModes mode = RNA_enum_get<eRotationModes>(op->ptr, "mode");
   const bool bake = RNA_boolean_get(op->ptr, "bake");
   ID *prev_id = nullptr;
 

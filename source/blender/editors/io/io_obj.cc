@@ -100,19 +100,19 @@ static wmOperatorStatus wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.start_frame = RNA_int_get(op->ptr, "start_frame");
   export_params.end_frame = RNA_int_get(op->ptr, "end_frame");
 
-  export_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
-  export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
+  export_params.forward_axis = RNA_enum_get<eIOAxis>(op->ptr, "forward_axis");
+  export_params.up_axis = RNA_enum_get<eIOAxis>(op->ptr, "up_axis");
   export_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   export_params.apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
   export_params.apply_transform = RNA_boolean_get(op->ptr, "apply_transform");
-  export_params.export_eval_mode = eEvaluationMode(RNA_enum_get(op->ptr, "export_eval_mode"));
+  export_params.export_eval_mode = RNA_enum_get<eEvaluationMode>(op->ptr, "export_eval_mode");
 
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
   export_params.export_colors = RNA_boolean_get(op->ptr, "export_colors");
   export_params.export_materials = RNA_boolean_get(op->ptr, "export_materials");
-  export_params.path_mode = ePathReferenceMode(RNA_enum_get(op->ptr, "path_mode"));
+  export_params.path_mode = RNA_enum_get<ePathReferenceMode>(op->ptr, "path_mode");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.export_curves_as_nurbs = RNA_boolean_get(op->ptr, "export_curves_as_nurbs");
   export_params.export_pbr_extensions = RNA_boolean_get(op->ptr, "export_pbr_extensions");
@@ -428,8 +428,8 @@ static wmOperatorStatus wm_obj_import_exec(bContext *C, wmOperator *op)
   OBJImportParams import_params;
   import_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
-  import_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
-  import_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
+  import_params.forward_axis = RNA_enum_get<eIOAxis>(op->ptr, "forward_axis");
+  import_params.up_axis = RNA_enum_get<eIOAxis>(op->ptr, "up_axis");
   import_params.use_split_objects = RNA_boolean_get(op->ptr, "use_split_objects");
   import_params.use_split_groups = RNA_boolean_get(op->ptr, "use_split_groups");
   import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
@@ -440,8 +440,8 @@ static wmOperatorStatus wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.collection_separator = separator[0];
   import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
   import_params.clear_selection = true;
-  import_params.mtl_name_collision_mode = eOBJMtlNameCollisionMode(
-      RNA_enum_get(op->ptr, "mtl_name_collision_mode"));
+  import_params.mtl_name_collision_mode = RNA_enum_get<eOBJMtlNameCollisionMode>(
+      op->ptr, "mtl_name_collision_mode");
 
   import_params.reports = op->reports;
 

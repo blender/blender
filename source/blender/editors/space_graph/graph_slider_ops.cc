@@ -508,7 +508,7 @@ static wmOperatorStatus decimate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  tDecimModes mode = tDecimModes(RNA_enum_get(op->ptr, "mode"));
+  tDecimModes mode = RNA_enum_get<tDecimModes>(op->ptr, "mode");
   /* We want to be able to work on all available keyframes. */
   float factor = 1.0f;
   /* We don't want to limit the decimation to a certain error margin. */
@@ -1576,7 +1576,7 @@ static void shear_modal_update(bContext *C, wmOperator *op)
   /* Reset keyframes to the state at invoke. */
   reset_bezts(gso);
   const float factor = slider_factor_get_and_remember(op);
-  const tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+  const tShearDirection direction = RNA_enum_get<tShearDirection>(op->ptr, "direction");
 
   shear_draw_status_header(C, gso, direction);
 
@@ -1592,7 +1592,7 @@ static wmOperatorStatus shear_modal(bContext *C, wmOperator *op, const wmEvent *
 
   switch (event->type) {
     case EVT_DKEY: {
-      tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+      tShearDirection direction = RNA_enum_get<tShearDirection>(op->ptr, "direction");
       RNA_enum_set(op->ptr,
                    "direction",
                    (direction == SHEAR_FROM_LEFT) ? SHEAR_FROM_RIGHT : SHEAR_FROM_LEFT);
@@ -1618,7 +1618,7 @@ static wmOperatorStatus shear_invoke(bContext *C, wmOperator *op, const wmEvent 
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
   gso->modal_update = shear_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  const tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+  const tShearDirection direction = RNA_enum_get<tShearDirection>(op->ptr, "direction");
 
   shear_draw_status_header(C, gso, direction);
   ED_slider_factor_bounds_set(gso->slider, -1, 1);
@@ -1637,7 +1637,7 @@ static wmOperatorStatus shear_exec(bContext *C, wmOperator *op)
   }
 
   const float factor = RNA_float_get(op->ptr, "factor");
-  const tShearDirection direction = tShearDirection(RNA_enum_get(op->ptr, "direction"));
+  const tShearDirection direction = RNA_enum_get<tShearDirection>(op->ptr, "direction");
 
   shear_graph_keys(&ac, factor, direction);
 
@@ -2453,7 +2453,7 @@ static void scale_from_neighbor_draw_status_header(bContext *C, wmOperator *op)
   else {
     ED_slider_status_get(gso->slider, status);
     /* Operator specific functionality that extends beyond the slider. */
-    const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
+    const FCurveSegmentAnchor anchor = RNA_enum_get<FCurveSegmentAnchor>(op->ptr, "anchor");
     ED_slider_status_get(gso->slider, status);
     status.item(fmt::format("{} ({})",
                             IFACE_("Direction"),
@@ -2472,7 +2472,7 @@ static void scale_from_neighbor_modal_update(bContext *C, wmOperator *op)
   /* Reset keyframes to the state at invoke. */
   reset_bezts(gso);
   const float factor = slider_factor_get_and_remember(op);
-  const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
+  const FCurveSegmentAnchor anchor = RNA_enum_get<FCurveSegmentAnchor>(op->ptr, "anchor");
   scale_from_neighbor_graph_keys(&gso->ac, factor, anchor);
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
@@ -2487,14 +2487,14 @@ static wmOperatorStatus scale_from_neighbor_modal(bContext *C,
 
   switch (event->type) {
     case EVT_DKEY: {
-      FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
+      FCurveSegmentAnchor anchor = RNA_enum_get<FCurveSegmentAnchor>(op->ptr, "anchor");
       switch (anchor) {
         case FCurveSegmentAnchor::LEFT:
-          RNA_enum_set(op->ptr, "anchor", int(FCurveSegmentAnchor::RIGHT));
+          RNA_enum_set(op->ptr, "anchor", FCurveSegmentAnchor::RIGHT);
           break;
 
         case FCurveSegmentAnchor::RIGHT:
-          RNA_enum_set(op->ptr, "anchor", int(FCurveSegmentAnchor::LEFT));
+          RNA_enum_set(op->ptr, "anchor", FCurveSegmentAnchor::LEFT);
           break;
       }
       scale_from_neighbor_modal_update(C, op);
@@ -2538,7 +2538,7 @@ static wmOperatorStatus scale_from_neighbor_exec(bContext *C, wmOperator *op)
 
   const float factor = RNA_float_get(op->ptr, "factor");
 
-  const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
+  const FCurveSegmentAnchor anchor = RNA_enum_get<FCurveSegmentAnchor>(op->ptr, "anchor");
   scale_from_neighbor_graph_keys(&ac, factor, anchor);
 
   /* Set notifier that keyframes have changed. */

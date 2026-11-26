@@ -345,8 +345,8 @@ static wmOperatorStatus uv_move_on_axis_exec(bContext *C, wmOperator *op)
   SpaceImage *sima = CTX_wm_space_image(C);
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
-  UVMoveType type = UVMoveType(RNA_enum_get(op->ptr, "type"));
-  UVMoveDirection axis = UVMoveDirection(RNA_enum_get(op->ptr, "axis"));
+  UVMoveType type = RNA_enum_get<UVMoveType>(op->ptr, "type");
+  UVMoveDirection axis = RNA_enum_get<UVMoveDirection>(op->ptr, "axis");
   int distance = RNA_int_get(op->ptr, "distance");
 
   int size[2];
@@ -721,11 +721,11 @@ static wmOperatorStatus uv_arrange_islands_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       *bmain, scene, view_layer, nullptr);
 
-  const UVAlignInitialPosition initial_position = UVAlignInitialPosition(
-      RNA_enum_get(op->ptr, "initial_position"));
-  const UVAlignIslandAxis axis = UVAlignIslandAxis(RNA_enum_get(op->ptr, "axis"));
-  const UVAlignIslandMode align = UVAlignIslandMode(RNA_enum_get(op->ptr, "align"));
-  const UVAlignIslandOrder order = UVAlignIslandOrder(RNA_enum_get(op->ptr, "order"));
+  const UVAlignInitialPosition initial_position = RNA_enum_get<UVAlignInitialPosition>(
+      op->ptr, "initial_position");
+  const UVAlignIslandAxis axis = RNA_enum_get<UVAlignIslandAxis>(op->ptr, "axis");
+  const UVAlignIslandMode align = RNA_enum_get<UVAlignIslandMode>(op->ptr, "align");
+  const UVAlignIslandOrder order = RNA_enum_get<UVAlignIslandOrder>(op->ptr, "order");
   const float margin = RNA_float_get(op->ptr, "margin");
   const uint other_axis = (uint(axis) + 1) % 2;
 
@@ -986,8 +986,8 @@ static void uv_align(bContext *C, eUVWeldAlign tool, UVAlignPositionMode positio
 static wmOperatorStatus uv_align_exec(bContext *C, wmOperator *op)
 {
   uv_align(C,
-           eUVWeldAlign(RNA_enum_get(op->ptr, "axis")),
-           UVAlignPositionMode(RNA_enum_get(op->ptr, "position_mode")));
+           RNA_enum_get<eUVWeldAlign>(op->ptr, "axis"),
+           RNA_enum_get<UVAlignPositionMode>(op->ptr, "position_mode"));
 
   return OPERATOR_FINISHED;
 }

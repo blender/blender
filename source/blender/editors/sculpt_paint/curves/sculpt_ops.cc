@@ -132,8 +132,8 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
     const Object &object,
     const StrokeExtension &stroke_start)
 {
-  const auto mode = BrushStrokeMode(RNA_enum_get(op.ptr, "mode"));
-  const auto brush_switch_mode = BrushSwitchMode(RNA_enum_get(op.ptr, "brush_toggle"));
+  const auto mode = RNA_enum_get<BrushStrokeMode>(op.ptr, "mode");
+  const auto brush_switch_mode = RNA_enum_get<BrushSwitchMode>(op.ptr, "brush_toggle");
 
   const CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&curves_sculpt.paint);

@@ -367,7 +367,7 @@ static wmOperatorStatus grease_pencil_trace_image_exec(bContext *C, wmOperator *
   job->use_current_frame = RNA_boolean_get(op->ptr, "use_current_frame");
 
   /* Create a new grease pencil object or reuse selected. */
-  const TargetObjectMode target = TargetObjectMode(RNA_enum_get(op->ptr, "target"));
+  const TargetObjectMode target = RNA_enum_get<TargetObjectMode>(op->ptr, "target");
   job->ob_grease_pencil = (target == TargetObjectMode::Selected) ?
                               BKE_view_layer_non_active_selected_object(
                                   *job->bmain, scene, CTX_data_view_layer(C), job->v3d) :
@@ -387,8 +387,8 @@ static wmOperatorStatus grease_pencil_trace_image_exec(bContext *C, wmOperator *
   job->was_ob_created = false;
 
   job->threshold = RNA_float_get(op->ptr, "threshold");
-  job->turnpolicy = TurnPolicy(RNA_enum_get(op->ptr, "turnpolicy"));
-  job->mode = TraceMode(RNA_enum_get(op->ptr, "mode"));
+  job->turnpolicy = RNA_enum_get<TurnPolicy>(op->ptr, "turnpolicy");
+  job->mode = RNA_enum_get<TraceMode>(op->ptr, "mode");
   job->frame_number = RNA_int_get(op->ptr, "frame_number");
 
   job->ensure_output_object();

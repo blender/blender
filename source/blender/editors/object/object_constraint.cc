@@ -2519,7 +2519,7 @@ static wmOperatorStatus constraint_add_exec(bContext *C,
 static wmOperatorStatus object_constraint_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_active_object(C);
-  eBConstraint_Types type = eBConstraint_Types(RNA_enum_get(op->ptr, "type"));
+  eBConstraint_Types type = RNA_enum_get<eBConstraint_Types>(op->ptr, "type");
   short with_targets = 0;
 
   if (!ob) {
@@ -2541,7 +2541,7 @@ static wmOperatorStatus object_constraint_add_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = BKE_object_pose_armature_get(context_active_object(C));
-  eBConstraint_Types type = eBConstraint_Types(RNA_enum_get(op->ptr, "type"));
+  eBConstraint_Types type = RNA_enum_get<eBConstraint_Types>(op->ptr, "type");
   short with_targets = 0;
 
   if (!ob) {

@@ -102,7 +102,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_brightness_contrast_exec(bCon
   const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
-  const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
+  const VertexColorMode mode = RNA_enum_get<VertexColorMode>(op->ptr, "mode");
   const float brightness = RNA_float_get(op->ptr, "brightness");
   const float contrast = RNA_float_get(op->ptr, "contrast");
   float delta = contrast / 2.0f;
@@ -178,7 +178,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_hsv_exec(bContext *C, wmOpera
   const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
-  const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
+  const VertexColorMode mode = RNA_enum_get<VertexColorMode>(op->ptr, "mode");
   const float hue = RNA_float_get(op->ptr, "h");
   const float sat = RNA_float_get(op->ptr, "s");
   const float val = RNA_float_get(op->ptr, "v");
@@ -258,7 +258,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_invert_exec(bContext *C, wmOp
   const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
-  const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
+  const VertexColorMode mode = RNA_enum_get<VertexColorMode>(op->ptr, "mode");
   const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
   std::atomic<bool> any_changed;
@@ -311,7 +311,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_levels_exec(bContext *C, wmOp
   const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
-  const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
+  const VertexColorMode mode = RNA_enum_get<VertexColorMode>(op->ptr, "mode");
   const float gain = RNA_float_get(op->ptr, "gain");
   const float offset = RNA_float_get(op->ptr, "offset");
   const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
@@ -373,7 +373,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_set_exec(bContext *C, wmOpera
   Paint &paint = *BKE_paint_get_active_from_context(C);
   const Brush &brush = *BKE_paint_brush(&paint);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
-  const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
+  const VertexColorMode mode = RNA_enum_get<VertexColorMode>(op->ptr, "mode");
   const float factor = RNA_float_get(op->ptr, "factor");
   const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
@@ -440,7 +440,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_reset_exec(bContext *C, wmOpe
   const Scene &scene = *CTX_data_scene(C);
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
-  const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
+  const VertexColorMode mode = RNA_enum_get<VertexColorMode>(op->ptr, "mode");
   const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
   std::atomic<bool> any_changed;

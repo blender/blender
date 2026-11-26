@@ -1024,7 +1024,7 @@ static wmOperatorStatus mask_from_cavity_exec(bContext *C, wmOperator *op)
   BKE_sculptsession_update_for_edit(depsgraph, &ob, false);
   vert_random_access_ensure(ob);
 
-  const ApplyMaskMode mode = ApplyMaskMode(RNA_enum_get(op->ptr, "mix_mode"));
+  const ApplyMaskMode mode = RNA_enum_get<ApplyMaskMode>(op->ptr, "mix_mode");
   const float factor = RNA_float_get(op->ptr, "mix_factor");
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
@@ -1042,7 +1042,7 @@ static wmOperatorStatus mask_from_cavity_exec(bContext *C, wmOperator *op)
   /* TODO: This pattern of recreating the scene / brush and using them as the "settings" is weak
    * and can cause hard to find bugs due to modifying actual data. This should be refactored to
    * take in a options struct */
-  MaskSettingsSource src = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
+  MaskSettingsSource src = RNA_enum_get<MaskSettingsSource>(op->ptr, "settings_source");
   switch (src) {
     case MaskSettingsSource::Operator:
       if (RNA_boolean_get(op->ptr, "invert")) {
@@ -1144,7 +1144,7 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
-  MaskSettingsSource source = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
+  MaskSettingsSource source = RNA_enum_get<MaskSettingsSource>(op->ptr, "settings_source");
 
   if (!sd) {
     source = MaskSettingsSource::Operator;
@@ -1248,7 +1248,7 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
   BKE_sculptsession_update_for_edit(depsgraph, &ob, false);
   vert_random_access_ensure(ob);
 
-  const ApplyMaskMode mode = ApplyMaskMode(RNA_enum_get(op->ptr, "mix_mode"));
+  const ApplyMaskMode mode = RNA_enum_get<ApplyMaskMode>(op->ptr, "mix_mode");
   const float factor = RNA_float_get(op->ptr, "mix_factor");
 
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
@@ -1263,11 +1263,11 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
   MeshAutomaskingSettings automasking_settings;
   scene_copy.mesh_automasking_settings = &automasking_settings;
 
-  MaskSettingsSource src = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
+  MaskSettingsSource src = RNA_enum_get<MaskSettingsSource>(op->ptr, "settings_source");
   switch (src) {
     case MaskSettingsSource::Operator: {
-      const MaskBoundaryMode boundary_mode = MaskBoundaryMode(
-          RNA_enum_get(op->ptr, "boundary_mode"));
+      const MaskBoundaryMode boundary_mode = RNA_enum_get<MaskBoundaryMode>(op->ptr,
+                                                                            "boundary_mode");
       switch (boundary_mode) {
         case MaskBoundaryMode::Mesh:
           scene_copy.mesh_automasking_settings->flags = BRUSH_AUTOMASKING_BOUNDARY_EDGES;
@@ -1345,7 +1345,7 @@ static void mask_from_boundary_ui(bContext *C, wmOperator *op)
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
-  MaskSettingsSource source = MaskSettingsSource(RNA_enum_get(op->ptr, "settings_source"));
+  MaskSettingsSource source = RNA_enum_get<MaskSettingsSource>(op->ptr, "settings_source");
 
   if (!sd) {
     source = MaskSettingsSource::Operator;

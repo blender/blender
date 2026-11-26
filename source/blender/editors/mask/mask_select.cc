@@ -437,7 +437,7 @@ static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
   rctf rectf;
   bool changed = false;
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     ED_mask_select_toggle_all(mask_orig, SEL_DESELECT);
@@ -608,7 +608,7 @@ static wmOperatorStatus clip_lasso_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH;
   }
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   do_lasso_select_mask(C, mcoords, sel_op);
 
   return OPERATOR_FINISHED;
@@ -684,7 +684,7 @@ static wmOperatorStatus circle_select_exec(bContext *C, wmOperator *op)
   ED_mask_point_pos(area, region, x, y, &offset[0], &offset[1]);
 
   const eSelectOp sel_op = ED_select_op_modal(
-      eSelectOp(RNA_enum_get(op->ptr, "mode")),
+      RNA_enum_get<eSelectOp>(op->ptr, "mode"),
       WM_gesture_is_modal_first(static_cast<wmGesture *>(op->customdata)));
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {

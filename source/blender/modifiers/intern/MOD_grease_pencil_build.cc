@@ -798,8 +798,8 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  const GreasePencilBuildMode mode = GreasePencilBuildMode(RNA_enum_get(ptr, "mode"));
-  GreasePencilBuildTimeMode time_mode = GreasePencilBuildTimeMode(RNA_enum_get(ptr, "time_mode"));
+  const GreasePencilBuildMode mode = RNA_enum_get<GreasePencilBuildMode>(ptr, "mode");
+  GreasePencilBuildTimeMode time_mode = RNA_enum_get<GreasePencilBuildTimeMode>(ptr, "time_mode");
 
   layout.use_property_split_set(true);
 

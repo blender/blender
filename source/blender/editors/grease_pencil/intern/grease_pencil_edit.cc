@@ -280,7 +280,7 @@ static wmOperatorStatus grease_pencil_stroke_simplify_exec(bContext *C, wmOperat
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const SimplifyMode mode = SimplifyMode(RNA_enum_get(op->ptr, "mode"));
+  const SimplifyMode mode = RNA_enum_get<SimplifyMode>(op->ptr, "mode");
 
   bool changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
@@ -385,7 +385,7 @@ static void grease_pencil_simplify_ui(bContext *C, wmOperator *op)
 
   layout.prop(&ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  const SimplifyMode mode = SimplifyMode(RNA_enum_get(op->ptr, "mode"));
+  const SimplifyMode mode = RNA_enum_get<SimplifyMode>(op->ptr, "mode");
 
   switch (mode) {
     case SimplifyMode::FIXED:
@@ -534,7 +534,7 @@ static wmOperatorStatus grease_pencil_delete_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const auto mode = DeleteMode(RNA_enum_get(op->ptr, "mode"));
+  const auto mode = RNA_enum_get<DeleteMode>(op->ptr, "mode");
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene->toolsettings);
 
@@ -703,7 +703,7 @@ static wmOperatorStatus grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
   const eHandleDisplay handle_display = view3d_handle_type_or_default(v3d);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const DissolveMode mode = DissolveMode(RNA_enum_get(op->ptr, "type"));
+  const DissolveMode mode = RNA_enum_get<DissolveMode>(op->ptr, "type");
 
   bool changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
@@ -793,7 +793,7 @@ static wmOperatorStatus grease_pencil_delete_frame_exec(bContext *C, wmOperator 
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
   const int current_frame = scene->r.cfra;
 
-  const DeleteFrameMode mode = DeleteFrameMode(RNA_enum_get(op->ptr, "type"));
+  const DeleteFrameMode mode = RNA_enum_get<DeleteFrameMode>(op->ptr, "type");
 
   bool changed = false;
   if (mode == DeleteFrameMode::ACTIVE_FRAME && grease_pencil.has_active_layer()) {
@@ -977,7 +977,7 @@ static wmOperatorStatus grease_pencil_cyclical_set_exec(bContext *C, wmOperator 
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const CyclicalMode mode = CyclicalMode(RNA_enum_get(op->ptr, "type"));
+  const CyclicalMode mode = RNA_enum_get<CyclicalMode>(op->ptr, "type");
   const bool subdivide_cyclic_segment = RNA_boolean_get(op->ptr, "subdivide_cyclic_segment");
 
   bool changed = false;
@@ -1431,7 +1431,7 @@ static wmOperatorStatus grease_pencil_caps_set_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const CapsMode mode = CapsMode(RNA_enum_get(op->ptr, "type"));
+  const CapsMode mode = RNA_enum_get<CapsMode>(op->ptr, "type");
 
   bool changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
@@ -1940,7 +1940,7 @@ static wmOperatorStatus grease_pencil_stroke_reorder_exec(bContext *C, wmOperato
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const ReorderDirection direction = ReorderDirection(RNA_enum_get(op->ptr, "direction"));
+  const ReorderDirection direction = RNA_enum_get<ReorderDirection>(op->ptr, "direction");
 
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
@@ -2471,7 +2471,7 @@ static wmOperatorStatus grease_pencil_separate_exec(bContext *C, wmOperator *op)
   Object *object_src = CTX_data_active_object(C);
   GreasePencil &grease_pencil_src = *id_cast<GreasePencil *>(object_src->data);
 
-  const SeparateMode mode = SeparateMode(RNA_enum_get(op->ptr, "mode"));
+  const SeparateMode mode = RNA_enum_get<SeparateMode>(op->ptr, "mode");
   bool changed = false;
 
   WM_cursor_wait(true);
@@ -2837,7 +2837,7 @@ static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator
       scene.toolsettings);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const PasteType type = PasteType(RNA_enum_get(op->ptr, "type"));
+  const PasteType type = RNA_enum_get<PasteType>(op->ptr, "type");
 
   const bool keep_world_transform = RNA_boolean_get(op->ptr, "keep_world_transform");
   const bool paste_on_back = RNA_boolean_get(op->ptr, "paste_back");
@@ -3347,7 +3347,7 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
 
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
-  const ReprojectMode mode = ReprojectMode(RNA_enum_get(op->ptr, "type"));
+  const ReprojectMode mode = RNA_enum_get<ReprojectMode>(op->ptr, "type");
   const bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
 
   Object *object = CTX_data_active_object(C);
@@ -3534,7 +3534,7 @@ static void grease_pencil_reproject_ui(bContext * /*C*/, wmOperator *op)
 {
   ui::Layout &layout = *op->layout;
 
-  const ReprojectMode type = ReprojectMode(RNA_enum_get(op->ptr, "type"));
+  const ReprojectMode type = RNA_enum_get<ReprojectMode>(op->ptr, "type");
 
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
@@ -4115,7 +4115,7 @@ static wmOperatorStatus grease_pencil_set_curve_type_exec(bContext *C, wmOperato
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const CurveType dst_type = CurveType(RNA_enum_get(op->ptr, "type"));
+  const CurveType dst_type = RNA_enum_get<CurveType>(op->ptr, "type");
   const bool use_handles = RNA_boolean_get(op->ptr, "use_handles");
 
   bool changed = false;
@@ -4184,7 +4184,7 @@ static wmOperatorStatus grease_pencil_set_handle_type_exec(bContext *C, wmOperat
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
   using namespace ed::curves;
-  const SetHandleType dst_type = SetHandleType(RNA_enum_get(op->ptr, "type"));
+  const SetHandleType dst_type = RNA_enum_get<SetHandleType>(op->ptr, "type");
 
   auto new_handle_type = [&](const int8_t handle_type) {
     switch (dst_type) {
@@ -4501,7 +4501,7 @@ static wmOperatorStatus grease_pencil_remove_fill_guides_exec(bContext *C, wmOpe
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object.data);
 
-  const RemoveFillGuidesMode mode = RemoveFillGuidesMode(RNA_enum_get(op->ptr, "mode"));
+  const RemoveFillGuidesMode mode = RNA_enum_get<RemoveFillGuidesMode>(op->ptr, "mode");
 
   std::atomic<bool> changed = false;
   Vector<MutableDrawingInfo> drawings;
@@ -4601,7 +4601,7 @@ static wmOperatorStatus grease_pencil_outline_exec(bContext *C, wmOperator *op)
   const float outline_offset = radius * offset_factor;
   const int mat_nr = -1;
 
-  const OutlineMode mode = OutlineMode(RNA_enum_get(op->ptr, "type"));
+  const OutlineMode mode = RNA_enum_get<OutlineMode>(op->ptr, "type");
 
   float4x4 viewinv = float4x4::identity();
   switch (mode) {
@@ -4833,7 +4833,7 @@ static wmOperatorStatus grease_pencil_convert_curve_type_exec(bContext *C, wmOpe
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const CurveType dst_type = CurveType(RNA_enum_get(op->ptr, "type"));
+  const CurveType dst_type = RNA_enum_get<CurveType>(op->ptr, "type");
   const float threshold = RNA_float_get(op->ptr, "threshold");
 
   std::atomic<bool> changed = false;
@@ -4886,7 +4886,7 @@ static void grease_pencil_convert_curve_type_ui(bContext *C, wmOperator *op)
 
   layout.prop(&ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  const CurveType dst_type = CurveType(RNA_enum_get(op->ptr, "type"));
+  const CurveType dst_type = RNA_enum_get<CurveType>(op->ptr, "type");
 
   if (dst_type == CURVE_TYPE_POLY) {
     return;
@@ -4954,7 +4954,7 @@ static wmOperatorStatus grease_pencil_set_corner_type_exec(bContext *C, wmOperat
   const eHandleDisplay handle_display = view3d_handle_type_or_default(v3d);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const CornerType corner_type = CornerType(RNA_enum_get(op->ptr, "corner_type"));
+  const CornerType corner_type = RNA_enum_get<CornerType>(op->ptr, "corner_type");
   float miter_angle = RNA_float_get(op->ptr, "miter_angle");
 
   if (corner_type == CornerType::Round) {
@@ -5024,7 +5024,7 @@ static void grease_pencil_set_corner_type_ui(bContext *C, wmOperator *op)
 
   layout.prop(&ptr, "corner_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  const CornerType corner_type = CornerType(RNA_enum_get(op->ptr, "corner_type"));
+  const CornerType corner_type = RNA_enum_get<CornerType>(op->ptr, "corner_type");
 
   if (corner_type != CornerType::Miter) {
     return;
@@ -5074,8 +5074,8 @@ static wmOperatorStatus grease_pencil_set_stroke_type_exec(bContext *C, wmOperat
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *id_cast<GreasePencil *>(object->data);
 
-  const bke::greasepencil::StrokeType type = bke::greasepencil::StrokeType(
-      RNA_enum_get(op->ptr, "type"));
+  const bke::greasepencil::StrokeType type = RNA_enum_get<bke::greasepencil::StrokeType>(op->ptr,
+                                                                                         "type");
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {

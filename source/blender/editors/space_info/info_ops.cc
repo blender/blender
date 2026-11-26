@@ -243,7 +243,7 @@ static const EnumPropertyItem unpack_all_method_items[] = {
 static wmOperatorStatus unpack_all_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  ePF_FileStatus method = ePF_FileStatus(RNA_enum_get(op->ptr, "method"));
+  ePF_FileStatus method = RNA_enum_get<ePF_FileStatus>(op->ptr, "method");
 
   if (method != PF_KEEP) {
     WM_cursor_wait(true);
@@ -334,7 +334,7 @@ static wmOperatorStatus unpack_item_exec(bContext *C, wmOperator *op)
   ID *id;
   char idname[MAX_ID_NAME - 2];
   const short type = RNA_int_get(op->ptr, "id_type");
-  ePF_FileStatus method = ePF_FileStatus(RNA_enum_get(op->ptr, "method"));
+  ePF_FileStatus method = RNA_enum_get<ePF_FileStatus>(op->ptr, "method");
 
   /* Ideally this would be an enum, since it's not - use the list lookup as a type check. */
   if (which_libbase(bmain, type) == nullptr) [[unlikely]] {

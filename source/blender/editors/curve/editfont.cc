@@ -993,7 +993,7 @@ static wmOperatorStatus set_style(bContext *C, const eCharInfoFlag style, const 
 
 static wmOperatorStatus set_style_exec(bContext *C, wmOperator *op)
 {
-  const eCharInfoFlag style = eCharInfoFlag(RNA_enum_get(op->ptr, "style"));
+  const eCharInfoFlag style = RNA_enum_get<eCharInfoFlag>(op->ptr, "style");
   const bool clear = RNA_boolean_get(op->ptr, "clear");
 
   return set_style(C, style, clear);
@@ -1031,7 +1031,7 @@ static wmOperatorStatus toggle_style_exec(bContext *C, wmOperator *op)
   Curve *cu = id_cast<Curve *>(obedit->data);
   int clear, selstart, selend;
 
-  const eCharInfoFlag style = eCharInfoFlag(RNA_enum_get(op->ptr, "style"));
+  const eCharInfoFlag style = RNA_enum_get<eCharInfoFlag>(op->ptr, "style");
   cu->curinfo.flag ^= style;
   if (BKE_vfont_select_get(cu, &selstart, &selend)) {
     clear = (cu->curinfo.flag & style) == eCharInfoFlag{};

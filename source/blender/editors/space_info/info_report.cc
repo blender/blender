@@ -240,7 +240,7 @@ static wmOperatorStatus box_select_exec(bContext *C, wmOperator *op)
 
   WM_operator_properties_border_to_rcti(op, &rect);
 
-  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const eSelectOp sel_op = RNA_enum_get<eSelectOp>(op->ptr, "mode");
   const int select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     for (Report &report : reports->list) {
