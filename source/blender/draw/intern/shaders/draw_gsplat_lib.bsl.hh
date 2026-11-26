@@ -43,7 +43,6 @@
 #include "gpu_shader_math_octahedral.bsl.hh"
 #include "gpu_shader_math_quaternion.bsl.hh"
 #include "gpu_shader_math_vector.bsl.hh"
-#include "gpu_shader_math_vector_reduce.bsl.hh"
 
 namespace draw::gsplat {
 
@@ -177,15 +176,17 @@ float2 get_shape_offset(uint vert_id)
 {
   /* Flip vertices 1,2 for ccw winding order by flipping their sign. */
   const float winding_order_mult = get_shape_winding_ccw(vert_id) ? -1.0f : 1.0f;
+  /* Offset chosen s.t. cut-off boundaries are minimally visible. */
+  constexpr float shape_offset_v = 2.25f;
   switch (vert_id % DRW_GSPLAT_STRIP_TILE_SIZE) {
     case 0:
-      return float2(-1.0f, -1.0f);
+      return float2(-shape_offset_v, -shape_offset_v);
     case 1:
-      return float2(1.0f, -1.0f) * winding_order_mult;
+      return float2(shape_offset_v, -shape_offset_v) * winding_order_mult;
     case 2:
-      return float2(-1.0f, 1.0f) * winding_order_mult;
+      return float2(-shape_offset_v, shape_offset_v) * winding_order_mult;
     case 3:
-      return float2(1.0f, 1.0f);
+      return float2(shape_offset_v, shape_offset_v);
     default:
       return float2(NAN_FLT);
   };
@@ -306,8 +307,8 @@ float3 project_gaussian(ObjectMatrices object, ViewMatrices view, Gaussian gs)
   const float tan_fov_y = 1.0f / view.winmat[1][1];
   const float lim_x = 1.3f * tan_fov_x;
   const float lim_y = 1.3f * tan_fov_y;
-  const float focal_x = 0.5f * view.winmat[0][0];
-  const float focal_y = 0.5f * view.winmat[1][1];
+  const float focal_x = view.winmat[0][0];
+  const float focal_y = view.winmat[1][1];
   const float4x4 model_to_view = view.viewmat * object.model;
 
   /* Parameter `t` in [ewas2002], effectively projected point. */
@@ -352,8 +353,6 @@ float3 project_gaussian(ObjectMatrices object, ViewMatrices view, Gaussian gs)
  */
 AxisTuple covmat_to_axes(float3 covmat_2d_v)
 {
-  constexpr float std_dev = 3.0f;
-
   const float mid = 0.5f * (covmat_2d_v.x + covmat_2d_v.z);
   const float radius = length(float2((covmat_2d_v.x - covmat_2d_v.z) * 0.5f, covmat_2d_v.y));
 
@@ -361,8 +360,8 @@ AxisTuple covmat_to_axes(float3 covmat_2d_v)
   const float lambda_2 = max(mid - radius, 1e-8f);
 
   const float2 diag = normalize(float2(covmat_2d_v.y, lambda_1 - covmat_2d_v.x));
-  const float2 axis_0 = min(std_dev * sqrt(lambda_1), 1.0f) * diag;
-  const float2 axis_1 = min(std_dev * sqrt(lambda_2), 1.0f) * float2(diag.y, -diag.x);
+  const float2 axis_0 = min(sqrt(2.0f * lambda_1), 1.0f) * diag;
+  const float2 axis_1 = min(sqrt(2.0f * lambda_2), 1.0f) * float2(diag.y, -diag.x);
   return AxisTuple::from(axis_0, axis_1);
 }
 
@@ -474,7 +473,7 @@ struct ShapeResource {
       return SplatShape::culled();
     }
 
-    SplatShape shape = {.id = detail::get_shape_id(vert_id), .shape_offset = 2.0f * shape_offset};
+    SplatShape shape = {.id = detail::get_shape_id(vert_id), .shape_offset = shape_offset};
     AxisTuple axes;
 
     /* TODO(not_mark): Load of precomputed data is disabled until we can address
