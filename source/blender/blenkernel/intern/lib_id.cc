@@ -1381,6 +1381,22 @@ void BKE_libblock_runtime_ensure(ID &id)
   }
 }
 
+void BKE_libblock_link_placeholder_clear_data(ID &id, const bool is_undo)
+{
+  /* For placeholders (references to linked data), zero-initialize, and only explicitly copy the
+   * very small subset of required data. */
+  ID temp_id = ID{};
+  temp_id.lib = id.lib;
+  STRNCPY(temp_id.name, id.name);
+  temp_id.flag = id.flag;
+  temp_id.session_uid = id.session_uid;
+  if (is_undo) {
+    temp_id.recalc_up_to_undo_push = id.recalc_up_to_undo_push;
+    temp_id.tag = id.tag & ID_TAG_KEEP_ON_UNDO;
+  }
+  id = temp_id;
+}
+
 void BKE_libblock_owner_bmain_set(ID &id, Main *bmain, const bool assert_contained)
 {
   BKE_libblock_runtime_ensure(id);

@@ -153,6 +153,16 @@ void BKE_libblock_init_empty(ID *id) ATTR_NONNULL(1);
 void BKE_libblock_runtime_ensure(ID &id);
 
 /**
+ * Clear all data of the given ID that is not needed by a linked ID placeholder (the reference to
+ * a linked ID stored in a blend-file).
+ *
+ * Only resets/clears fields in-place, does not free anything.
+ *
+ * \param is_undo: When true, preserve additional fields needed for memfile undo.
+ */
+void BKE_libblock_link_placeholder_clear_data(ID &id, bool is_undo);
+
+/**
  * Set the #Main currently containing this ID, or null if it is not in any Main. Must be called
  * whenever an ID is added to, removed from, or moved between Mains.
  */
@@ -550,8 +560,8 @@ void BKE_libblock_free_data_py(ID *id);
 /**
  * Only free generic runtime data (ID::runtime).
  *
- * In most cases #BKE_libblock_free_data handles this, but in rare cases (currently in readfile,
- * when freeing linked ID placeholders), it is necessary.
+ * In most cases #BKE_libblock_free_data handles this, but in rare cases (currently some node tree
+ * freeing code), it is necessary.
  */
 void BKE_libblock_free_runtime_data(ID *id);
 

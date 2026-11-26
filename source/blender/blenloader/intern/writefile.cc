@@ -1385,7 +1385,7 @@ static void write_id_placeholder(WriteData *wd, ID *id)
   /* Only copy required data for the placeholder ID. */
   BLO_Write_IDBuffer id_buffer{*id, wd->use_memfile, true};
 
-  writestruct_at_address(wd, ID_LINK_PLACEHOLDER, ID, 1, id, &id_buffer, nullptr);
+  writestruct_at_address(wd, ID_LINK_PLACEHOLDER, ID, 1, id, id_buffer.get(), nullptr);
 
   mywrite_id_end(wd, id);
 }
@@ -1651,17 +1651,10 @@ BLO_Write_IDBuffer::BLO_Write_IDBuffer(ID &id, const bool is_undo, const bool is
   /* Copy ID data itself into buffer, to be able to freely modify it. */
 
   if (is_placeholder) {
-    /* For placeholders (references to linked data), zero-initialize, and only explicitly copy the
-     * very small subset of required data. */
-    *temp_id = ID{};
-    temp_id->lib = id.lib;
-    STRNCPY(temp_id->name, id.name);
-    temp_id->flag = id.flag;
-    temp_id->session_uid = id.session_uid;
-    if (is_undo) {
-      temp_id->recalc_up_to_undo_push = id.recalc_up_to_undo_push;
-      temp_id->tag = id.tag & ID_TAG_KEEP_ON_UNDO;
-    }
+    /* For placeholders (references to linked data), only preserve the very small subset of
+     * required data. */
+    *temp_id = id;
+    BKE_libblock_link_placeholder_clear_data(*temp_id, is_undo);
     return;
   }
 

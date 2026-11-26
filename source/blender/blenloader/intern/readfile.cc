@@ -3712,6 +3712,12 @@ static BHead *read_libblock(FileData *fd,
     return blo_bhead_next(fd, bhead);
   }
 
+  if ((bhead->code == ID_LINK_PLACEHOLDER) && !(fd->flags & FD_FLAGS_IS_MEMFILE)) {
+    /* Always clear placeholder data regardless of file version: older versions could write
+     * placeholders with invalid pointers, and newer files could still be corrupted or forged. */
+    BKE_libblock_link_placeholder_clear_data(*id, false);
+  }
+
   /* Determine ID type and add to main database list. */
   const short idcode = id->id_type();
   ListBaseT<ID> *lb = which_libbase(main, idcode);
@@ -6100,14 +6106,17 @@ static void read_library_linked_id(
                      library_parent_filepath(mainvar->curlib));
   }
 
-  BLO_readfile_id_runtime_tags_for_write(*id).is_link_placeholder = false;
   id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
 
   if (bhead) {
-    BLO_readfile_id_runtime_tags_for_write(*id).needs_expanding = true;
+    /* It is important to forward the placeholder ID read tags to the real read ID, but the
+     * placeholder ID itself should not be marked as 'not a placeholder anymore', so a local copy
+     * of its read tags needs to be made here. */
+    ID_Readfile_Data::Tags id_read_tags = BLO_readfile_id_runtime_tags(*id);
+    id_read_tags.is_link_placeholder = false;
+    id_read_tags.needs_expanding = true;
     // printf("read lib block %s\n", id->name);
-    read_libblock(
-        fd, mainvar, bhead, eID_Tag(id->tag), BLO_readfile_id_runtime_tags(*id), false, r_id);
+    read_libblock(fd, mainvar, bhead, eID_Tag(id->tag), id_read_tags, false, r_id);
   }
   else {
     CLOG_DEBUG(&LOG,
@@ -6169,22 +6178,12 @@ static void read_library_linked_ids(FileData *basefd, FileData *fd, Main *mainva
          * libraries since multiple might be referencing this ID. */
         change_link_placeholder_to_real_ID_pointer(basefd, id, realid);
 
-        /* Transfer the readfile data from the placeholder to the real ID, but
-         * only if the real ID has no readfile data yet. The same realid may be
-         * referred to by multiple placeholders. */
-        if (realid && !realid->runtime->readfile_data) {
-          realid->runtime->readfile_data = id->runtime->readfile_data;
-          id->runtime->readfile_data = nullptr;
-        }
-
         /* Ensure that the runtime pointer, and its 'readfile' sub-data, are properly freed, as
          * this ID placeholder does not go through versioning (the usual place where this data is
-         * freed). Since `id` is not a real ID, this shouldn't follow any pointers to embedded IDs.
-         *
-         * WARNING! This placeholder ID is only an ID struct, with a very small subset of regular
-         * ID common data actually valid and needing to be freed. Therefore, calling
-         * #BKE_libblock_free_data on it would not work. */
-        BKE_libblock_free_runtime_data(id);
+         * freed). The placeholder must still be tagged as such here, since it is only an ID
+         * struct (see e.g. #id_can_have_animdata). */
+        BLI_assert(BLO_readfile_id_runtime_tags(*id).is_link_placeholder);
+        BKE_libblock_free_data(id, false);
         MEM_delete(id);
 
         /* A failed on-demand block read only clears `FD_FLAGS_FILE_OK` on `fd` (as for the
@@ -6340,7 +6339,7 @@ static void read_libraries_free_placeholders(FileData *basefd)
         if (libmain->id_map != nullptr) {
           BKE_main_idmap_remove_id(libmain->id_map, &id);
         }
-        BKE_libblock_free_runtime_data(&id);
+        BKE_libblock_free_data(&id, false);
         MEM_delete(&id);
       }
     }
