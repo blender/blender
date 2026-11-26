@@ -34,7 +34,12 @@ def generate_extras(blender_element, blender_data_type, export_settings):
 
     extras = {}
 
-    if export_settings['gltf_export_anim_pointer'] is True:
+    extras_type_gltf_not_animatable = [
+        'scenes',  # Not implemented
+        'animations'  # Not possible in Blender to animation a custom property on action
+    ]
+
+    if export_settings['gltf_export_anim_pointer'] is True and blender_data_type not in extras_type_gltf_not_animatable:
         export_settings['KHR_animation_pointer']['extras'][blender_data_type][id(blender_element)] = {}
         export_settings['KHR_animation_pointer']['extras'][blender_data_type][id(blender_element)]['paths'] = {}
 
@@ -48,7 +53,7 @@ def generate_extras(blender_element, blender_data_type, export_settings):
         if value is not None:
             extras[custom_property] = value
 
-            if export_settings['gltf_export_anim_pointer'] is True:
+            if export_settings['gltf_export_anim_pointer'] is True and blender_data_type not in extras_type_gltf_not_animatable:
                 # We are supporting only 1 item custom properties for now
                 if not isinstance(value, (int, float, bool)):
                     continue

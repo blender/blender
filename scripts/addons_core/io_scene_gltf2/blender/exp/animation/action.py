@@ -567,9 +567,6 @@ def gather_data_action_animations(blender_main_type, blender_type_data, blender_
                 samplers=[],  # This will be generated later, in link_samplers
                 extensions=None
             )
-            if export_settings['gltf_extras'] and export_settings['gltf_export_anim_pointer']:
-                export_settings['KHR_animation_pointer']['extras']['animations'][id(
-                    blender_action)]['glTF_extras'] = animation
 
             # Hook for user extensions
             export_user_extensions(
@@ -703,9 +700,6 @@ def gather_material_action_animations(mat_uuid, tracks, offset, export_settings)
                 samplers=[],  # This will be generated later, in link_samplers
                 extensions=None
             )
-            if export_settings['gltf_extras'] and export_settings['gltf_export_anim_pointer']:
-                export_settings['KHR_animation_pointer']['extras']['animations'][id(
-                    blender_action)]['glTF_extras'] = animation
 
             # Hook for user extensions
             export_user_extensions(
@@ -1091,9 +1085,6 @@ def gather_obj_action_animations(obj_uuid: int,
                 samplers=[],  # This will be generated later, in link_samplers
                 extensions=None
             )
-            if export_settings['gltf_extras'] and export_settings['gltf_export_anim_pointer']:
-                export_settings['KHR_animation_pointer']['extras']['animations'][id(
-                    blender_action)]['glTF_extras'] = animation
 
             # Hook for user extensions
             export_user_extensions(
