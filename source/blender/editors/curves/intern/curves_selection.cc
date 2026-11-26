@@ -666,7 +666,9 @@ void select_adjacent(bke::CurvesGeometry &curves,
           selection_typed[point] = true;
         }
       }
-      if (deselect) {
+      if (deselect && !selection_typed.slice(points).contains(true)) {
+        /* Deselect end points if entire curve is selected, see: !165572. Also selection attribute
+         * is inverted above. */
         if (!selection_typed[first_point]) {
           selection_typed[first_point] = true;
         }
