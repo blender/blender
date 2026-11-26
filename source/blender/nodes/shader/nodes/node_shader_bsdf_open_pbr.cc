@@ -319,7 +319,7 @@ static void node_declare(NodeDeclarationBuilder &b)
    */
   PanelDeclarationBuilder &thinfilm = b.add_panel("Thin Film"_ustr).default_closed(true);
   thinfilm.description(
-      "Simulates the effect of rainbow-like color fringes due to inteference of a thin film "
+      "Simulates the effect of rainbow-like color fringes due to interference of a thin film "
       "sitting on top of the material");
   thinfilm.add_input<decl::Float>("Thin Film Weight"_ustr)
       .default_value(0.0f)
@@ -661,8 +661,9 @@ void register_node_type_sh_bsdf_open_pbr()
   static bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, "ShaderNodeBsdfOpenPBR"_ustr, SH_NODE_BSDF_OPEN_PBR);
-  ntype.ui_name = "OpenPBR";
-  ntype.ui_description = "OpenPBR Ueber-Shader material model (based on rev. 1.1.2).";
+  ntype.ui_name = "OpenPBR BSDF";
+  ntype.ui_description =
+      "OpenPBR Surface ueber-shader for general-purpose CG materials (spec v1.1.2).";
   ntype.enum_name_legacy = "BSDF_OPEN_PBR";
   ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
