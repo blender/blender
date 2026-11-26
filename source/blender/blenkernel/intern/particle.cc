@@ -4056,7 +4056,7 @@ void object_remove_particle_system(Main *bmain,
       }
     }
     /* Clear particle flag in domain settings when removing particle system manually. */
-    if (fmd->type == MOD_FLUID_TYPE_DOMAIN) {
+    if (psys->part && fmd->type == MOD_FLUID_TYPE_DOMAIN) {
       if (psys->part->type == PART_FLUID_FLIP) {
         fmd->domain->particle_type &= ~FLUID_DOMAIN_PARTICLE_FLIP;
       }

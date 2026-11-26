@@ -1090,17 +1090,11 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
      * empty placeholder is created for it by readfile code. Only some serious corruption of data
      * should be able to trigger this code nowadays. */
 
-    ob->type = OB_EMPTY;
-
-    if (ob->pose) {
-      /* This code is now executed after _all_ ID pointers have been lib-linked,so it's safe to do
-       * a proper cleanup. Further more, since user count of IDs is not done in read-code anymore,
-       * `BKE_pose_free_ex(ob->pose, false)` can be called (instead of
-       * `BKE_pose_free_ex(ob->pose)`), avoiding any access to other IDs altogether. */
-      BKE_pose_free_ex(ob->pose, false);
-      ob->pose = nullptr;
-      ob->mode &= ~OB_MODE_POSE;
-    }
+    /* This code is now executed after _all_ ID pointers have been lib-linked, so it's safe to do
+     * a proper cleanup. Further more, since user count of IDs is not done in read-code anymore,
+     * `BKE_pose_free_ex(ob->pose, false)` can be called (instead of
+     * `BKE_pose_free_ex(ob->pose)`), avoiding any access to other IDs altogether. */
+    BKE_object_missing_data_as_empty(ob, false);
 
     if (ob->id.lib) {
       BLO_reportf_wrap(reports,
@@ -1953,6 +1947,18 @@ bool BKE_object_data_is_in_editmode(const Object *ob, const ID *id)
     default:
       BLI_assert_unreachable();
       return false;
+  }
+}
+
+void BKE_object_missing_data_as_empty(Object *ob, const bool do_id_user)
+{
+  BLI_assert(ob->type != OB_EMPTY && !ob->data);
+  ob->type = OB_EMPTY;
+  ob->mode = OB_MODE_OBJECT;
+
+  if (ob->pose) {
+    BKE_pose_free_ex(ob->pose, do_id_user);
+    ob->pose = nullptr;
   }
 }
 

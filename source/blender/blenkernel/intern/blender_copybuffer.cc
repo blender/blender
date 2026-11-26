@@ -38,6 +38,8 @@ static void copybuffer_append(BlendfileLinkAppendContext *lapp_context,
   /* Tag existing IDs in given `bmain_dst` as already existing. */
   BKE_main_id_tag_all(bmain, ID_TAG_PRE_EXISTING, true);
 
+  lapp_context->params->flag |= BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES;
+
   BKE_blendfile_link_append_context_init_done(lapp_context);
 
   BKE_blendfile_link(lapp_context, reports);

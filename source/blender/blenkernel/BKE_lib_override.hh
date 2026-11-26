@@ -496,12 +496,23 @@ void BKE_lib_override_library_property_operation_ui_info_set(
 
 /**
  * Check against potential \a bmain.
+ *
+ * \param local_reference_is_possible to be used together with
+ * `BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES` when validating linked data.
  */
-void BKE_lib_override_library_validate(Main *bmain, ID *id, ReportList *reports);
+void BKE_lib_override_library_validate(Main *bmain,
+                                       ID *id,
+                                       bool local_reference_is_possible,
+                                       ReportList *reports);
 /**
  * Check against potential \a bmain.
+ *
+ * \param local_reference_is_possible to be used together with
+ * `BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES` when validating linked data.
  */
-void BKE_lib_override_library_main_validate(Main *bmain, ReportList *reports);
+void BKE_lib_override_library_main_validate(Main *bmain,
+                                            bool local_reference_is_possible,
+                                            ReportList *reports);
 
 /**
  * Check that status of local data-block is still valid against current reference one.

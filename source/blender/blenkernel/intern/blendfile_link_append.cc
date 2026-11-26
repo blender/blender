@@ -58,6 +58,7 @@
 #include "BKE_material.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_object.hh"
+#include "BKE_particle.h"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.hh"
@@ -547,6 +548,15 @@ static void loose_data_instantiate_object_base_instance_init(Main *bmain,
   BKE_collection_object_add(bmain, collection, ob);
   BKE_view_layer_synced_ensure(*bmain, scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, ob);
+
+  /* Not common, but might happen when e.g. pasting data which _links_ from the _current local
+   * blendfile_, in case e.g. this would add an empty instantiating the active local collection.
+   *
+   * See also eBLOLibLinkFlags::BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES.
+   */
+  if (!base) {
+    return;
+  }
 
   if (v3d != nullptr) {
     base->local_view_bits |= v3d->local_view_uid;
@@ -1041,7 +1051,12 @@ static bool foreach_libblock_link_append_common_processing(
   if (id == nullptr) {
     return false;
   }
-  if (!ID_IS_LINKED(id)) {
+
+  const BlendfileLinkAppendContextCallBack *data =
+      static_cast<BlendfileLinkAppendContextCallBack *>(cb_data->user_data);
+  if (!ID_IS_LINKED(id) &&
+      (data->lapp_context->params->flag & BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES) == 0)
+  {
     CLOG_ERROR(
         &LOG,
         "Local ID '%s' found as part of the linked data hierarchy, this should never happen",
@@ -1079,6 +1094,8 @@ static bool foreach_libblock_link_append_common_processing(
 void BKE_blendfile_link_pack(BlendfileLinkAppendContext *lapp_context, ReportList * /*reports*/)
 {
   Main *bmain = lapp_context->params->bmain;
+
+  BLI_assert((lapp_context->params->flag & BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES) == 0);
 
   new_id_to_item_mapping_create(*lapp_context);
 
@@ -1171,6 +1188,12 @@ static int foreach_libblock_append_add_dependencies_callback(LibraryIDLinkCallba
   const BlendfileLinkAppendContextCallBack *data =
       static_cast<BlendfileLinkAppendContextCallBack *>(cb_data->user_data);
 
+  if (!ID_IS_LINKED(id)) {
+    /* Local dependencies do not need to be added to the appended items list. */
+    BLI_assert(data->lapp_context->params->flag & BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES);
+    return IDWALK_RET_NOP;
+  }
+
   /* NOTE: In append case, all dependencies are needed in the items list, to cover potential
    * complex cases (e.g. linked data from another library referencing other IDs from the main
    * appended library). */
@@ -1234,6 +1257,12 @@ static int foreach_libblock_append_ensure_reusable_local_id_callback(
   const BlendfileLinkAppendContextCallBack *data =
       static_cast<BlendfileLinkAppendContextCallBack *>(cb_data->user_data);
 
+  if (!ID_IS_LINKED(id)) {
+    /* Local dependencies do not need to be added to be processed here. */
+    BLI_assert(data->lapp_context->params->flag & BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES);
+    return IDWALK_RET_NOP;
+  }
+
   if (!data->item->reusable_local_id) {
     return IDWALK_RET_NOP;
   }
@@ -1265,6 +1294,12 @@ static int foreach_libblock_append_finalize_action_callback(LibraryIDLinkCallbac
   ID *id = *cb_data->id_pointer;
   BlendfileLinkAppendContextCallBack *data = static_cast<BlendfileLinkAppendContextCallBack *>(
       cb_data->user_data);
+
+  if (!ID_IS_LINKED(id)) {
+    /* Local dependencies do not need to be added to be processed here. */
+    BLI_assert(data->lapp_context->params->flag & BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES);
+    return IDWALK_RET_NOP;
+  }
 
   BlendfileLinkAppendContextItem *item = data->lapp_context->new_id_to_item.lookup(id);
   BLI_assert(item != nullptr);
@@ -1322,13 +1357,14 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
      *  - Newly appended data need to get their weak reference, such that it can be reused later
      * if requested.
      *  - Existing appended data may need to get this 'reuse' weak reference cleared, e.g. if a
-     * new version of it is made local. */
-    item.reusable_local_id = BKE_idtype_idcode_append_is_reusable(id->id_type()) ?
-                                 BKE_main_library_weak_reference_search_item(
-                                     lapp_context.library_weak_reference_mapping,
-                                     id->lib->filepath,
-                                     id->name) :
-                                 nullptr;
+     * new version of it is made local.
+     *
+     * NOTE: ID may be local in case `BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES` is used. */
+    item.reusable_local_id =
+        ID_IS_LINKED(id) && BKE_idtype_idcode_append_is_reusable(id->id_type()) ?
+            BKE_main_library_weak_reference_search_item(
+                lapp_context.library_weak_reference_mapping, id->lib->filepath, id->name) :
+            nullptr;
 
     BlendfileLinkAppendContextCallBack cb_data{};
     cb_data.lapp_context = &lapp_context;
@@ -1509,6 +1545,79 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
   }
 }
 
+static void blendfile_append_cleanup_linked_to_local_id_usages(
+    BlendfileLinkAppendContext &lapp_context, ReportList *reports)
+{
+  Main *bmain = lapp_context.params->bmain;
+
+  /* Using remapping code, as it will take care automatically of most additional processing (ID
+   * refcounting, collections updates...). Only remaining process to do here is to turn linked
+   * objects with null obdata into empties. */
+
+  VectorSet<ID *> users_to_remap;
+  id::IDRemapper remapper;
+
+  for (ID &id : MainAllIDsIterator(*bmain)) {
+    if (!ID_IS_LINKED(&id)) {
+      continue;
+    }
+    BKE_library_foreach_ID_link(
+        bmain,
+        &id,
+        [&users_to_remap, &remapper, &reports](LibraryIDLinkCallbackData *cb_data) -> int {
+          /* Loop-back pointers (e.g. `Collection::runtime::parents`) and embedded/internal ones
+           * are not actual usages, and a linked collection having a local parent is perfectly
+           * valid. */
+          if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING |
+                                  IDWALK_CB_INTERNAL | IDWALK_CB_LOOPBACK))
+          {
+            return IDWALK_RET_NOP;
+          }
+          if (*cb_data->id_pointer && !ID_IS_LINKED(*cb_data->id_pointer) &&
+              ID_IS_LINKED(cb_data->owner_id))
+          {
+            BKE_reportf(reports,
+                        RPT_WARNING,
+                        "ID '%s' from library '%s' usage of the local ID '%s' has been cleared",
+                        BKE_id_name(*cb_data->owner_id),
+                        cb_data->owner_id->lib->runtime->filepath_abs,
+                        BKE_id_name(**cb_data->id_pointer));
+            users_to_remap.add_as(cb_data->owner_id);
+            remapper.add(*cb_data->id_pointer, nullptr);
+          }
+          return IDWALK_RET_NOP;
+        },
+        nullptr,
+        IDWALK_NOP);
+  }
+
+  BKE_libblock_relink_multiple(bmain,
+                               users_to_remap.as_span(),
+                               ID_REMAP_TYPE_REMAP,
+                               remapper,
+                               ID_REMAP_STORE_NEVER_NULL_USAGE | ID_REMAP_FORCE_NEVER_NULL_USAGE);
+
+  for (ID *id : remapper.never_null_users()) {
+    switch (GS(id->name)) {
+      case ID_OB: {
+        Object *ob = id_cast<Object *>(id);
+        if (!ob->data && ob->type != OB_EMPTY) {
+          BKE_object_missing_data_as_empty(ob, true);
+        }
+        for (ParticleSystem &psys : ob->particlesystem.items_mutable()) {
+          if (!psys.part) {
+            object_remove_particle_system(bmain, nullptr, ob, &psys);
+          }
+        }
+        break;
+      }
+      default:
+        CLOG_ERROR(&LOG, "Unexpected 'never null' usage remapped to nullptr in '%s'", id->name);
+        BLI_assert_unreachable();
+    }
+  }
+}
+
 void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
 {
   BLI_assert(lapp_context->process_stage == BlendfileLinkAppendContext::ProcessStage::Linking);
@@ -1547,6 +1656,10 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   for (BlendfileLinkAppendContextItem &item : lapp_context->items) {
     ID *id = item.new_id;
     if (id == nullptr) {
+      continue;
+    }
+    /* ID may be local in case `BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES` is used. */
+    if (!ID_IS_LINKED(id)) {
       continue;
     }
 
@@ -1662,6 +1775,14 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   BKE_id_multi_tagged_delete(bmain);
 
   BKE_main_id_newptr_and_tag_clear(bmain);
+
+  /* In case not all data was made local, and linked IDs are allowed to reference local data,
+   * ensure no linked data remain doing so at this stage. */
+  if ((lapp_context->params->flag & BLO_LIBLINK_APPEND_RECURSIVE) == 0 &&
+      (lapp_context->params->flag & BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES) != 0)
+  {
+    blendfile_append_cleanup_linked_to_local_id_usages(*lapp_context, reports);
+  }
 
   BlendFileReadReport bf_reports{};
   bf_reports.reports = reports;
@@ -1878,6 +1999,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
    * In append case, the finalizing process is much more complex and requires and additional call
    * to #BKE_blendfile_append for caller code. */
   if (lapp_context->params->flag & FILE_LINK) {
+    BLI_assert((lapp_context->params->flag & BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES) == 0);
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
     BLO_read_do_version_after_setup(lapp_context->params->bmain, lapp_context, &bf_reports);

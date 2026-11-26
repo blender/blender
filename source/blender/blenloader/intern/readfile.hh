@@ -230,6 +230,18 @@ struct FileData {
    * Set when reading a file from undo with incomplete preview, to trigger restart of preview jobs.
    */
   bool need_preview_render_restart = false;
+
+  /**
+   * Allow readfile code to accept references from linked to local data.
+   *
+   * \warning Use with caution! This can produce fully invalid data for a regular global Main
+   * data-base!
+   *
+   * \note Typically used for specific situation, e.g. the
+   * eBLOLibLinkFlags::BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES flag from linking code, to allow
+   * copy-pasting data with (linked) dependencies into the current open blendfile.
+   */
+  bool allow_linked_to_local_references = false;
 };
 
 /**

@@ -422,6 +422,16 @@ enum eBLOLibLinkFlags {
    * Pack the linked data-blocks to keep them working even if the source file is not available.
    */
   BLO_LIBLINK_PACK = 1 << 27,
+  /**
+   * Allow linked data to reference data from the current local blendfile.
+   *
+   * \warning Use with caution! Should always only be used in 'append' mode typically (currently
+   * asserts on this condition).
+   *
+   * \note Currently used to allow pasted data to also (directly) use data from the local
+   * blendfile.
+   */
+  BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES = 1 << 28,
 };
 
 /**
@@ -586,6 +596,15 @@ struct ID_Readfile_Data {
      * updated from the 'UID' values stored in `.blend` files to the new, actual pointers.
      */
     bool needs_linking : 1;
+
+    /**
+     * Mark ID expected to be in local Main.
+     *
+     * Exception handling allowing linked data to reference local ones, used e.g. in paste code to
+     * allow data copied from another file to be pasted back into a dependency library of that
+     * source blendfile. See also eBLOLibLinkFlags::BLO_LIBLINK_ALLOW_LOCAL_ID_REFERENCES.
+     */
+    bool is_local_id : 1;
 
     /**
      * Memfile undo only: mark IDs used by 'no undo' IDs (e.g. brush dependencies).

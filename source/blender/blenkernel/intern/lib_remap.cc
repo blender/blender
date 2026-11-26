@@ -420,7 +420,9 @@ static void libblock_remap_data_postprocess_collection_update(Main *bmain,
 
 static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *ob, ID *new_id)
 {
-  if (ob->data == new_id) {
+  /* Do not do anything if obdata has been set to null (remapping to nullptr with
+   * `ID_REMAP_FORCE_NEVER_NULL_USAGE`). */
+  if (ob->data && ob->data == new_id) {
     switch (GS(new_id->name)) {
       case ID_ME:
         multires_force_sculpt_rebuild(ob);

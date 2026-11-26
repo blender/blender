@@ -140,6 +140,13 @@ bool BKE_object_is_mode_compat(const Object *ob, eObjectMode object_mode);
 
 bool BKE_object_data_is_in_editmode(const Object *ob, const ID *id);
 
+/**
+ * Convert a non-Empty object to an Empty one, because it has lost its Object::data pointer.
+ *
+ * Note: Also performs additional cleanup, e.g. taking a previously armature object out of Pose
+ * mode, and deleting Pose data.. */
+void BKE_object_missing_data_as_empty(Object *ob, bool do_id_user);
+
 char *BKE_object_data_editmode_flush_ptr_get(ID *id);
 
 /**
