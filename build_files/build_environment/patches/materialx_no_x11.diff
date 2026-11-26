@@ -1,0 +1,37 @@
+commit 72cefe0fc7d02577c1fe8a60108a43bf70fefe67
+Author: JacksonSun-adsk <wingfire@gmail.com>
+Date:   Fri Sep 4 16:04:30 2026 -0400
+
+    Avoid find X11 on WASM (#3059)
+    
+    Emscripten sets UNIX and clears APPLE, but provides no X11. X11 is only needed by the MaterialXRenderHw / MaterialXRenderGlsl modules, which are never built for Emscripten.
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index acb1afbc..1f8a7b93 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -558,10 +558,10 @@ if(MATERIALX_BUILD_GEN_GLSL OR MATERIALX_BUILD_GEN_OSL OR MATERIALX_BUILD_GEN_MD
+ endif()
+ 
+ # Add rendering and viewer subdirectories
++set(MATERIALX_BUILD_RENDER_HW OFF)
+ if(MATERIALX_BUILD_RENDER)
+     add_subdirectory(source/MaterialXRender)
+     if(MATERIALX_BUILD_RENDER_PLATFORMS)
+-        set(MATERIALX_BUILD_RENDER_HW OFF)
+         if(MATERIALX_BUILD_GEN_GLSL AND NOT MATERIALX_BUILD_APPLE_EMBEDDED)
+             set(MATERIALX_BUILD_RENDER_HW ON)
+             add_subdirectory(source/MaterialXRenderGlsl)
+diff --git a/cmake/modules/MaterialXConfig.cmake.in b/cmake/modules/MaterialXConfig.cmake.in
+index 6731afb8..a59e260a 100644
+--- a/cmake/modules/MaterialXConfig.cmake.in
++++ b/cmake/modules/MaterialXConfig.cmake.in
+@@ -39,7 +39,7 @@ if(@MATERIALX_BUILD_RENDER@ AND @MATERIALX_INSTALL_RESOURCES@)
+     set_and_check(MATERIALX_RESOURCES_DIR "@PACKAGE_CMAKE_INSTALL_PREFIX@/resources")
+ endif()
+ 
+-if(UNIX AND NOT APPLE)
++if(@MATERIALX_BUILD_RENDER_HW@ AND UNIX AND NOT APPLE)
+     find_dependency(X11 REQUIRED COMPONENTS Xt)
+     if("RenderGlsl" IN_LIST MaterialX_FIND_COMPONENTS)
+         find_dependency(OpenGL REQUIRED)

@@ -7,8 +7,7 @@
 
 set(GLSLANG_EXTRA_ARGS
   -DALLOW_EXTERNAL_SPIRV_TOOLS=ON
-  -DSPIRV-Tools-opt_DIR=${LIBDIR}/spirv_tools/lib/cmake/SPIRV-Tools-opt
-  -DSPIRV-Tools_DIR=${LIBDIR}/spirv_tools/lib/cmake/SPIRV-Tools
+  -DCMAKE_PREFIX_PATH=${LIBDIR}/spirv_tools
   -DPython3_FIND_REGISTRY=NEVER
   -DPython3_EXECUTABLE=${PYTHON_BINARY}
   -DBUILD_SHARED_LIBS=ON
