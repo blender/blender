@@ -404,7 +404,7 @@ void blo_do_versions_503(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 503, 6)) {
     for (Brush &brush : bmain->brushes) {
-      if (ELEM(brush.ob_mode, OB_MODE_WEIGHT_PAINT, OB_MODE_VERTEX_PAINT)) {
+      if (brush.ob_mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT)) {
         if (brush.mesh_automasking_settings == nullptr) {
           brush.mesh_automasking_settings = MEM_new<MeshAutomaskingSettings>(__func__);
           brush.mesh_automasking_settings->cavity_curve = BKE_sculpt_default_cavity_curve();
