@@ -245,3 +245,9 @@ A node group interface with its root panel changed to socket type (buffer overfl
 
 A screen with a scene custom property, failing to read due to an edge without first vertex.
 Freeing the screen decremented users of the unresolved scene pointer (crash).
+
+`invalid_list_last_pointer.blend`
+---------------------------------
+
+An image's empty packed files list with an arbitrary last pointer (crash).
+

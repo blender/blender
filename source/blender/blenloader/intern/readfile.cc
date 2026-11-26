@@ -2049,6 +2049,8 @@ static void link_glob_list(FileData *fd, ListBase *lb) /* for glob data */
   void *poin;
 
   if (BLI_listbase_is_empty(lb)) {
+    /* Corrupt file may have a non-null last pointer. */
+    lb->last_ = nullptr;
     return;
   }
   poin = newdataadr(fd, lb->first_);
@@ -6553,6 +6555,8 @@ void BLO_read_struct_list_with_size(BlendDataReader *reader,
                                     ListBase *list)
 {
   if (BLI_listbase_is_empty(list)) {
+    /* Corrupt file may have a non-null last pointer. */
+    list->last_ = nullptr;
     return;
   }
 
