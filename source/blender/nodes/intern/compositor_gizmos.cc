@@ -415,7 +415,7 @@ void box_mask_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, nullptr, &lock);
 
   if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
@@ -667,7 +667,7 @@ void crop_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, nullptr, &lock);
 
   if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
@@ -859,7 +859,7 @@ void glare_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, nullptr, &lock);
 
   if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
@@ -1010,7 +1010,7 @@ void corner_pin_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, nullptr, &lock);
 
   if (ibuf == nullptr) [[unlikely]] {
     for (int i = 0; i < 4; i++) {
@@ -1218,7 +1218,7 @@ void split_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, nullptr, &lock);
 
   if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
@@ -1399,7 +1399,7 @@ void viewer_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, nullptr, &lock);
 
   if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(cage, WM_GIZMO_HIDDEN, true);
@@ -1529,7 +1529,7 @@ void translate_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, nullptr, &lock);
 
   if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
@@ -1842,7 +1842,7 @@ void transform_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, nullptr, &lock);
 
   if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
@@ -1978,7 +1978,7 @@ void scale_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf_gpu(ima, nullptr, &lock);
 
   if (ibuf == nullptr) [[unlikely]] {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
