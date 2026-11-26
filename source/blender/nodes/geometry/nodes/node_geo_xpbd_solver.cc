@@ -2270,18 +2270,21 @@ class XpbdSolverStep {
         }
         const PinPositionConstraint &constraint =
             constraints_.pin_position_constraints[constraint_usage.constraint_i];
-        if (bke::SpanAttributeWriter<float> lambda_attr = this->get_output_attribute_writer<float>(
-                data_key_i, constraint.lambda_attr, geo_data.domain))
-        {
-          for (const int pin_i : constraint_usage.points.index_range()) {
-            const int point_i = constraint_usage.points[pin_i];
-            lambda_attr.span[point_i] = constraint_usage.lambdas[pin_i];
+        if (!constraint.lambda_attr.empty()) {
+          if (bke::SpanAttributeWriter<float> lambda_attr =
+                  this->get_output_attribute_writer<float>(
+                      data_key_i, constraint.lambda_attr, geo_data.domain))
+          {
+            for (const int pin_i : constraint_usage.points.index_range()) {
+              const int point_i = constraint_usage.points[pin_i];
+              lambda_attr.span[point_i] = constraint_usage.lambdas[pin_i];
+            }
+            lambda_attr.finish();
           }
-          lambda_attr.finish();
-        }
-        else {
-          this->report_attribute_write_error(
-              constraint.lambda_attr, geo_data.domain, bke::AttrType::Float);
+          else {
+            this->report_attribute_write_error(
+                constraint.lambda_attr, geo_data.domain, bke::AttrType::Float);
+          }
         }
       }
     }
