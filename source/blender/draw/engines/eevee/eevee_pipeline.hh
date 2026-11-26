@@ -165,8 +165,6 @@ class Prepass {
   Texture dummy_raycast_id_tx_{"prepass.dummy_raycast_id_tx_"};
   Texture dummy_raycast_normal_tx_{"prepass.dummy_raycast_normal_tx_"};
 
-  gpu::Texture *fb_depth_tx_;
-
  public:
   Prepass(Instance &inst) : inst_(inst) {};
 
