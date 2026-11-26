@@ -322,6 +322,16 @@ static bool oldnewmap_insert(
 
   return onm->map.add_overwrite(oldaddr, NewAddress{newaddr, alloc_len, nr});
 }
+/** Same as above, but never overwrites a key already present in the oldnew map. */
+static bool oldnewmap_insert_no_overwrite(
+    OldNewMap *onm, const void *oldaddr, void *newaddr, const int nr, const int64_t alloc_len = 0)
+{
+  if (!oldnewmap_key_is_valid(oldaddr) || newaddr == nullptr) {
+    return false;
+  }
+
+  return onm->map.add(oldaddr, NewAddress{newaddr, alloc_len, nr});
+}
 
 static void oldnewmap_lib_insert(FileData *fd, const void *oldaddr, ID *newaddr, const int id_code)
 {
@@ -2995,12 +3005,16 @@ static BHead *read_data_into_datamap(FileData *fd,
     int64_t alloc_len = 0;
     void *data = read_struct(fd, bhead, allocname, id_type_index, &alloc_len);
     if (data) {
-      const bool is_new = oldnewmap_insert(fd->datamap, bhead->old, data, 0, alloc_len);
+      const bool is_new = oldnewmap_insert_no_overwrite(
+          fd->datamap, bhead->old, data, 0, alloc_len);
       if (!is_new) {
         CLOG_ERROR(&LOG,
                    "Blendfile corruption: Invalid, or multiple `bhead` with same old address "
                    "value (%p) for a given ID.",
                    bhead->old);
+        /* If insertion in datamap fails, that bhead's data will not be usable/accessible from
+         * anywhere in readfile code. Prevent memleaks by freeing it immediately. */
+        MEM_delete_void(data);
       }
     }
 
