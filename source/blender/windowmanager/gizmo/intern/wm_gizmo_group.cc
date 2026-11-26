@@ -479,7 +479,7 @@ static wmOperatorStatus gizmo_tweak_modal(bContext *C, wmOperator *op, const wmE
 {
   GizmoTweakData *mtweak = static_cast<GizmoTweakData *>(op->customdata);
   wmGizmo *gz = mtweak->gz_modal;
-  wmOperatorStatus retval = OPERATOR_PASS_THROUGH;
+  wmOperatorStatus retval = OPERATOR_RUNNING_MODAL;
   bool clear_modal = true;
 
   if (gz == nullptr) {
@@ -517,7 +517,7 @@ static wmOperatorStatus gizmo_tweak_modal(bContext *C, wmOperator *op, const wmE
     }
   }
 
-  if (retval != OPERATOR_PASS_THROUGH) {
+  if (retval != OPERATOR_RUNNING_MODAL) {
     gizmo_tweak_finish(C, op, retval != OPERATOR_FINISHED, clear_modal);
     return retval;
   }
@@ -551,7 +551,7 @@ static wmOperatorStatus gizmo_tweak_modal(bContext *C, wmOperator *op, const wmE
     }
   }
 
-  BLI_assert(retval == OPERATOR_PASS_THROUGH);
+  BLI_assert(retval == OPERATOR_RUNNING_MODAL);
   return OPERATOR_RUNNING_MODAL;
 }
 
