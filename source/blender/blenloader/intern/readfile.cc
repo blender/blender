@@ -293,13 +293,30 @@ static OldNewMap *oldnewmap_new()
 }
 
 /**
+ * Old addresses come from the file and can be any value, including the keys the map reserves
+ * for empty and removed slots.
+ */
+static bool oldnewmap_key_is_valid(const void *oldaddr)
+{
+  return oldaddr != nullptr && PointerKeyInfo<const void *>::is_not_empty_or_removed(oldaddr);
+}
+
+static NewAddress *oldnewmap_lookup_entry(OldNewMap *onm, const void *oldaddr)
+{
+  if (!oldnewmap_key_is_valid(oldaddr)) {
+    return nullptr;
+  }
+  return onm->map.lookup_ptr(oldaddr);
+}
+
+/**
  * \return `true` if the \a oldaddr key has been successfully added to the \a onm, and no existing
  * entry was overwritten.
  */
 static bool oldnewmap_insert(
     OldNewMap *onm, const void *oldaddr, void *newaddr, const int nr, const int64_t alloc_len = 0)
 {
-  if (oldaddr == nullptr || newaddr == nullptr) {
+  if (!oldnewmap_key_is_valid(oldaddr) || newaddr == nullptr) {
     return false;
   }
 
@@ -324,7 +341,7 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm,
                                       const bool increase_users,
                                       int64_t *r_alloc_len = nullptr)
 {
-  NewAddress *entry = onm->map.lookup_ptr(addr);
+  NewAddress *entry = oldnewmap_lookup_entry(onm, addr);
   if (entry == nullptr) {
     return nullptr;
   }
@@ -1529,7 +1546,7 @@ static void *newdataadr_no_us(FileData *fd, const void *adr, int64_t *r_alloc_le
  */
 static NewAddress *newdataadr_entry(FileData *fd, const void *adr)
 {
-  return fd->datamap->map.lookup_ptr(adr);
+  return oldnewmap_lookup_entry(fd->datamap, adr);
 }
 
 void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr)
@@ -3745,7 +3762,7 @@ static BHead *read_libblock(FileData *fd,
   if (!success) {
     /* Only happens with corrupt files. Remove the ID from the library mapping,
      * so pointers to it resolve to null instead of the freed ID. */
-    const NewAddress *entry = fd->libmap->map.lookup_ptr(id_address_old);
+    const NewAddress *entry = oldnewmap_lookup_entry(fd->libmap, id_address_old);
     if (entry && entry->newp == id) {
       fd->libmap->map.remove(id_address_old);
     }
