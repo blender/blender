@@ -174,16 +174,16 @@ static void graph_init(wmWindowManager *wm, ScrArea *area)
 
 static SpaceLink *graph_duplicate(SpaceLink *sl)
 {
-  SpaceGraph *sipon = MEM_dupalloc(reinterpret_cast<SpaceGraph *>(sl));
+  SpaceGraph *source = reinterpret_cast<SpaceGraph *>(sl);
+  SpaceGraph *dupli_ge = MEM_dupalloc(source);
 
-  sipon->runtime = MEM_new<SpaceGraph_Runtime>(__func__);
+  dupli_ge->runtime = MEM_new<SpaceGraph_Runtime>(__func__);
 
   /* clear or remove stuff from old */
-  BLI_duplicatelist(&sipon->runtime->ghost_curves,
-                    &(reinterpret_cast<SpaceGraph *>(sl))->runtime->ghost_curves);
-  sipon->ads = MEM_dupalloc(sipon->ads);
+  BKE_fcurves_copy(&dupli_ge->runtime->ghost_curves, &source->runtime->ghost_curves);
+  dupli_ge->ads = MEM_dupalloc(source->ads);
 
-  return reinterpret_cast<SpaceLink *>(sipon);
+  return reinterpret_cast<SpaceLink *>(dupli_ge);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
