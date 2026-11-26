@@ -713,7 +713,7 @@ class VExportTree:
         self.remove_filtered_nodes()
 
     def filter_modes(self):
-        # Check what kind of filtering we need to apply based on export settings (or KHR_node_visibility)
+        # Check what kind of filtering we need to apply based on export settings
         self.filter_visibility = self.export_settings['gltf_visible']
         self.filter_selectability = self.export_settings['gltf_selected']
         self.filter_renderability = self.export_settings['gltf_renderable']
@@ -787,7 +787,7 @@ class VExportTree:
         # There were kept to be able to manage the visibility/renderability recursive propagation
         # But the collection itself can be removed
         # (We managed it after recursion on children, so the properties are correctly propagated)
-        # We may have to keep the collection in case of export of KHR_node_visibility animation pointer (in the future)
+        # We can not animate collection visibility itself, so really no need to keep it, even for animation pointer
         if self.export_settings['gltf_hierarchy_full_collections'] is False \
                 and self.nodes[uuid].blender_type == VExportNode.COLLECTION:
             self.nodes[uuid].keep_tag = False

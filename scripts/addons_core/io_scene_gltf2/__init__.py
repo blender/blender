@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 4, 20),
+    "version": (5, 4, 21),
     'blender': (5, 3, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1041,6 +1041,12 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         default=False
     )
 
+    export_khr_node_visibility: BoolProperty(
+        name='KHR Node Visibility',
+        description='Export node visibility using KHR_node_visibility extension',
+        default=False
+    )
+
     export_action_filter: BoolProperty(
         name='Filter Actions',
         description='Filter Actions to be exported',
@@ -1370,6 +1376,7 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         export_settings['gltf_lighting_mode'] = self.export_import_convert_lighting_mode
 
         export_settings['gltf_gpu_instances'] = self.export_gpu_instances
+        export_settings['gltf_khr_node_visibility'] = self.export_khr_node_visibility
 
         export_settings['gltf_try_sparse_sk'] = self.export_try_sparse_sk
         export_settings['gltf_try_omit_sparse_sk'] = self.export_try_omit_sparse_sk
@@ -1571,9 +1578,17 @@ def export_panel_data_scene_graph(layout, operator):
     header.label(text="Scene Graph")
     if body:
         body.prop(operator, 'export_gn_mesh')
-        body.prop(operator, 'export_gpu_instances')
         body.prop(operator, 'export_hierarchy_flatten_objs')
         body.prop(operator, 'export_hierarchy_full_collections')
+        export_panel_data_scene_graph_extensions(body, operator)
+
+
+def export_panel_data_scene_graph_extensions(layout, operator):
+    header, body = layout.panel("GLTF_export_data_scene_graph_extensions", default_closed=True)
+    header.label(text="Scene Graph Extensions")
+    if body:
+        body.prop(operator, 'export_gpu_instances')
+        body.prop(operator, 'export_khr_node_visibility')
 
 
 def export_panel_data_mesh(layout, operator):

@@ -6,6 +6,9 @@ None
     "generator": "glTF-Blender-IO Test Suite",
     "version": "2.0"
   },
+  "extensionsUsed": [
+    "KHR_node_visibility"
+  ],
   "scene": 0,
   "scenes": [
     {
@@ -28,6 +31,11 @@ None
       ]
     },
     {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
       "name": "Bone.002_not_visible",
       "translation": [
         2,
@@ -44,6 +52,11 @@ None
       ]
     },
     {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
       "name": "Bone.004_not_visible",
       "translation": [
         4,
@@ -52,6 +65,11 @@ None
       ]
     },
     {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
       "name": "Bone.005_not_visible",
       "translation": [
         5,
@@ -60,6 +78,11 @@ None
       ]
     },
     {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
       "name": "Bone.006_not_visible",
       "translation": [
         6,

@@ -1,0 +1,199 @@
+None
+None
+None
+{
+  "asset": {
+    "generator": "glTF-Blender-IO Test Suite",
+    "version": "2.0"
+  },
+  "extensionsUsed": [
+    "KHR_node_visibility"
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        9
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
+      "name": "Bone"
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
+      "name": "Bone.001",
+      "translation": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
+      "name": "Bone.002_not_visible",
+      "translation": [
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
+      "name": "Bone.003",
+      "translation": [
+        3,
+        0,
+        0
+      ]
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
+      "name": "Bone.004_not_visible",
+      "translation": [
+        4,
+        0,
+        0
+      ]
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
+      "name": "Bone.005_not_visible",
+      "translation": [
+        5,
+        0,
+        0
+      ]
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
+      "name": "Bone.006_not_visible",
+      "translation": [
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Bone.007_solo",
+      "translation": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "extensions": {
+        "KHR_node_visibility": {
+          "visible": false
+        }
+      },
+      "name": "Bone.007_solo_hide",
+      "translation": [
+        7,
+        0,
+        1
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "name": "Armature"
+    }
+  ],
+  "skins": [
+    {
+      "inverseBindMatrices": 0,
+      "joints": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "name": "Armature"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 9,
+      "type": "MAT4"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 576,
+      "byteOffset": 0
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 576,
+      "uri": "bone_visibility_solo.bin"
+    }
+  ]
+}[[1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000
+  0.000 0.000 0.000 1.000]
+ [1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000
+  -1.000 0.000 0.000 1.000]
+ [1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000
+  -2.000 0.000 0.000 1.000]
+ [1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000
+  -3.000 0.000 0.000 1.000]
+ [1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000
+  -4.000 0.000 0.000 1.000]
+ [1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000
+  -5.000 0.000 0.000 1.000]
+ [1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000
+  -6.000 0.000 0.000 1.000]
+ [1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000
+  -7.000 0.000 0.000 1.000]
+ [1.000 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000 0.000 1.000 0.000
+  -7.000 0.000 -1.000 1.000]]

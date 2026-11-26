@@ -4,6 +4,7 @@
 
 from mathutils import Quaternion, Vector
 from ...io.com import gltf2_io
+from ...io.com import gltf2_io_extensions
 from ...io.exp.user_extensions import export_user_extensions
 from ..com.extras import generate_extras
 from .cache import cached
@@ -85,7 +86,7 @@ def gather_joint_vnode(vnode, export_settings):
     node = gltf2_io.Node(
         camera=None,
         children=children,
-        extensions=None,
+        extensions=__gather_extensions(vnode, export_settings),
         extras=__gather_extras(blender_bone, export_settings),
         matrix=None,
         mesh=None,
@@ -118,3 +119,21 @@ def __gather_extras(blender_bone, export_settings):
     if export_settings['gltf_extras']:
         return generate_extras(blender_bone, 'bones', export_settings)
     return None
+
+
+def __gather_extensions(vnode, export_settings):
+
+    extensions = {}
+
+    if not export_settings['gltf_khr_node_visibility']:
+        return None
+
+    # Check visibility, base of the flag defined during Vtree processing
+    if export_settings['vtree'].nodes[vnode].flag_status.is_visible is False:
+        extensions["KHR_node_visibility"] = gltf2_io_extensions.Extension(
+            name="KHR_node_visibility",
+            extension={"visible": False},
+            required=False
+        )
+
+    return extensions if extensions else None
