@@ -214,8 +214,8 @@ StringImage::StringImage(Context &context,
   BLF_buffer(font_identifier,
              static_cast<float *>(result_cpu.cpu_data_for_write().data()),
              nullptr,
-             total_width,
-             total_height,
+             result_cpu.domain().data_size.x,
+             result_cpu.domain().data_size.y,
              1,
              nullptr);
 
