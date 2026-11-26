@@ -563,7 +563,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
     case SOCK_MENU: {
       if (socket.flag & NODE_INTERFACE_SOCKET_MENU_EXPANDED) {
         /* Use a single space when the name is empty to work around a bug with expanded enums. Also
-         * see #ui_item_enum_expand_exec. */
+         * see #item_enum_expand_exec. */
         row.prop(socket_props_ptr,
                  "value",
                  ui::ITEM_R_EXPAND,
