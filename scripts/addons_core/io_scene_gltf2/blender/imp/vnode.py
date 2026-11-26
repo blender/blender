@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018-2021 The glTF-Blender-IO authors
+# SPDX-FileCopyrightText: 2018-2026 The glTF-Blender-IO authors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -60,6 +60,11 @@ class VNode:
 
         # Store in which glTF scene(s) this node is used.
         self.scenes = []
+
+        # Note that visibility will be overridden by KHR_node_visibility extension if present.
+        # This default value is mostly set for fake/additional nodes that do not come from glTF,
+        # During VNodeTree construction
+        self.visibility = True  # Default to visible (for KHR_node_visibility)
 
     def trs(self):
         # (final TRS) = (rotation after) (base TRS) (rotation before)
@@ -124,6 +129,14 @@ def init_vnodes(gltf):
         if 'KHR_lights_punctual' in (pynode.extensions or {}):
             vnode.light_node_idx = i
 
+        # Define visibility at node level
+        # As this is recursive, we will overwrite children visibility in recursive
+        # function below, during assigning node to scene(s)
+        if 'KHR_node_visibility' in (pynode.extensions or {}):
+            vnode.visibility = pynode.extensions['KHR_node_visibility'].get('visible', True)
+        else:
+            vnode.visibility = True
+
     for id in gltf.vnodes:
         for child in gltf.vnodes[id].children:
             assert gltf.vnodes[child].parent is None
@@ -133,14 +146,17 @@ def init_vnodes(gltf):
 
     # Create a recursive function to find all the nodes in a scene
     # add assign the nodes to the scene(s)
-    def add_nodes_to_scene(idx_scene, node):
+    def add_nodes_to_scene(idx_scene, node, visibility):
         gltf.vnodes[node].scenes.append(idx_scene)
+
+        # Set visibility to False if any parent node is invisible, otherwise keep the node visibility as is
+        gltf.vnodes[node].visibility = visibility if visibility is False else gltf.vnodes[node].visibility
         for child in gltf.vnodes[node].children:
-            add_nodes_to_scene(idx_scene, child)
+            add_nodes_to_scene(idx_scene, child, gltf.vnodes[node].visibility)
 
     for idx_scene, scene in enumerate(gltf.data.scenes or []):
         for node in scene.nodes or []:
-            add_nodes_to_scene(idx_scene, node)
+            add_nodes_to_scene(idx_scene, node, gltf.vnodes[node].visibility)
 
     # Create a map of all scene / blender collections
     gltf.blender_collections = {}
