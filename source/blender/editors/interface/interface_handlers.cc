@@ -9482,6 +9482,7 @@ static void button_tooltip_timer_reset(bContext *C, Button *but)
 static bool button_modal_state(HandleButtonState state)
 {
   return ELEM(state,
+              BUTTON_STATE_WAIT_DRAG,
               BUTTON_STATE_WAIT_RELEASE,
               BUTTON_STATE_WAIT_KEY_EVENT,
               BUTTON_STATE_NUM_EDITING,
