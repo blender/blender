@@ -852,11 +852,11 @@ class Slot : public ActionSlot {
    */
   Vector<ID *> runtime_users();
   /**
-   * Directly return the runtime users vector, containing the real IDs.
+   * Directly return the runtime owners vector, containing the real IDs.
    *
-   * Even when the actual'slot user' is an embedded ID, this contains the real ID that owns it.
+   * Even when the actual 'slot user' is an embedded ID, this contains the real ID that owns it.
    * This makes this function inconsistent with #Slot::users(), but that is temporary until
-   * #167041 has been implemented.
+   * #167041 is implemented.
    *
    * This function does not refresh the users cache, so it may be out of date.
    *
