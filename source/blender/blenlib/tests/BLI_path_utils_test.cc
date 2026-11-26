@@ -169,6 +169,26 @@ TEST(path_utils, Normalize_UnbalancedRelativeTrailing)
   NORMALIZE("../a/../../..", "../../..");
 }
 
+/* #BLI_path_normalize: data after the null terminator must be ignored. */
+TEST(path_utils, Normalize_TrailingData)
+{
+  /* The first collapse leaves `../` after the null terminator. */
+  NORMALIZE("/a/.X./b/../../c/c/d/..", "/a/c/c/");
+
+  {
+    char path[FILE_MAX] = SEP_STR "..\0.." SEP_STR ".." SEP_STR "a";
+    const int path_len_test = BLI_path_normalize(path);
+    EXPECT_STREQ(path, SEP_STR);
+    EXPECT_EQ(path_len_test, strlen(path));
+  }
+  {
+    char path[FILE_MAX] = "..\0.." SEP_STR ".." SEP_STR "a";
+    const int path_len_test = BLI_path_normalize(path);
+    EXPECT_STREQ(path, "..");
+    EXPECT_EQ(path_len_test, strlen(path));
+  }
+}
+
 #undef NORMALIZE
 
 /** \} */

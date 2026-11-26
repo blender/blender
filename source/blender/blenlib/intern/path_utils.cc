@@ -262,9 +262,10 @@ static int path_normalize_impl(char *path, bool check_blend_relative_prefix)
   }
 
   /* Maintain a pointer to the end of leading `..` component.
-   * Skip leading parent directories because logically they cannot be collapsed. */
+   * Skip leading parent directories because logically they cannot be collapsed.
+   * Bounds check since a trailing `..` steps past the null terminator. */
   char *start_base = path_first_non_slash_part;
-  while (IS_PARENT_DIR(start_base)) {
+  while (start_base < path + path_len && IS_PARENT_DIR(start_base)) {
     start_base += 3;
   }
 
@@ -284,13 +285,14 @@ static int path_normalize_impl(char *path, bool check_blend_relative_prefix)
       start = start_temp + 1; /* Skip the `/`. */
       BLI_assert(start_base != start);
 
-      /* Step `end_all` forwards (over all `..`). */
+      /* Step `end_all` forwards (over all `..`).
+       * Bounds check to avoid reading stale data past the null terminator. */
       char *end_all = start;
       do {
         BLI_assert(IS_PARENT_DIR(end_all));
         end_all += 3;
         BLI_assert(end_all <= path + path_len + 1);
-      } while (IS_PARENT_DIR(end_all));
+      } while (end_all < path + path_len && IS_PARENT_DIR(end_all));
 
       /* Step `start` backwards (until `end` meets `end_all` or `start` meets `start_base`). */
       char *end = start;
