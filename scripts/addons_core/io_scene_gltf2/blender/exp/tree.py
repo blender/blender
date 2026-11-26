@@ -1204,7 +1204,8 @@ class VExportTree:
         if any_solo:
             for bone in node.bone_collections.bones:
                 node.bone_collections.bone_visibility[bone] = any(
-                    node.bone_collections.collections[coll].is_solo for coll in node.bone_collections.bones[bone])
+                    node.bone_collections.collections[coll].is_solo for coll in node.bone_collections.bones[bone]) \
+                    and not node.blender_object.pose.bones[bone].hide
 
             # Some bones may not belong to any collection
             # In that case, the bone is considered not visible, whatever its hidden state in the pose
