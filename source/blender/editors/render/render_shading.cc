@@ -2904,7 +2904,6 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
 
   /* Keep animation by moving local animation to the paste node-tree. */
   if (ma->nodetree && ma_from->nodetree) {
-    BLI_assert(ma_from->nodetree->adt == nullptr);
     std::swap(ma->nodetree->adt, ma_from->nodetree->adt);
   }
 
@@ -2987,6 +2986,7 @@ static wmOperatorStatus paste_material_exec(bContext *C, wmOperator *op)
 
   /* There are some custom updates to the node tree above, better do a full update pass. */
   BKE_ntree_update_tag_all(ma->nodetree);
+  bke::animdata::action_slots_user_cache_invalidate(*bmain);
   BKE_main_ensure_invariants(*bmain);
 
   DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
