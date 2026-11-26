@@ -2279,6 +2279,10 @@ class XpbdSolverStep {
           }
           lambda_attr.finish();
         }
+        else {
+          this->report_attribute_write_error(
+              constraint.lambda_attr, geo_data.domain, bke::AttrType::Float);
+        }
       }
     }
   }
