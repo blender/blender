@@ -374,9 +374,6 @@ enum wmEventType : int16_t {
   /* When value is 0, re-activate, when 1, don't re-activate the button under the cursor. */
   EVT_BUT_CANCEL = 0x5024, /* 20516 */
 
-  /* Could become gizmo callback. */
-  EVT_GIZMO_UPDATE = 0x5025, /* 20517 */
-
   /* XR events: 0x503x. */
   EVT_XR_ACTION = 0x5030, /* 20528 */
   /* ********** End of Blender internal events. ********** */

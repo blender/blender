@@ -549,15 +549,10 @@ static wmOperatorStatus gizmo_tweak_modal(bContext *C, wmOperator *op, const wmE
       gizmo_tweak_finish(C, op, (modal_retval & OPERATOR_CANCELLED) != 0, true);
       return OPERATOR_FINISHED;
     }
-
-    /* Ugly hack to send gizmo events. */
-    evil_event->type = EVT_GIZMO_UPDATE;
   }
 
-  /* Always return PASS_THROUGH so modal handlers
-   * with gizmos attached can update. */
   BLI_assert(retval == OPERATOR_PASS_THROUGH);
-  return OPERATOR_PASS_THROUGH;
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static wmOperatorStatus gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
