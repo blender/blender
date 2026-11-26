@@ -42,7 +42,7 @@ shader node_glossy_bsdf(color Color = 0.8,
     }
   }
 
-  if (distribution == "Multiscatter GGX") {
+  if (distribution == "multi_ggx") {
     BSDF = base_color * microfacet_multi_ggx_aniso(Normal, T, alpha_x, alpha_y, base_color);
   }
   else {
