@@ -1441,10 +1441,10 @@ bool BKE_curvemapping_is_map_identity(const CurveMapping *curve_mapping, int ind
   if (curve_map->totpoint != 2) {
     return false;
   }
-  if (curve_map->curve[0].x != 0 || curve_map->curve[0].y != 0) {
+  if (curve_map->curve[0].x != 0.0f || curve_map->curve[0].y != 0.0f) {
     return false;
   }
-  if (curve_map->curve[1].x != 0 || curve_map->curve[1].y != 0) {
+  if (curve_map->curve[1].x != 1.0f || curve_map->curve[1].y != 1.0f) {
     return false;
   }
   return true;
