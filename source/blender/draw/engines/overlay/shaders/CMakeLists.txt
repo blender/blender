@@ -28,10 +28,6 @@ set(INC_GLSL
 
 set(SRC_GLSL_VERT
   overlay_clipbound_vert.glsl
-  overlay_edit_curve_handle_vert.glsl
-  overlay_edit_curve_normals_vert.glsl
-  overlay_edit_curve_point_vert.glsl
-  overlay_edit_curve_wire_vert.glsl
   overlay_edit_curves_handle_vert.glsl
   overlay_edit_pointcloud_vert.glsl
   overlay_edit_mesh_skin_root_vert.glsl

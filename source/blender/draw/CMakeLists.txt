@@ -561,10 +561,7 @@ set(SHADER_SRC_OVERLAY
   engines/overlay/shaders/overlay_common.bsl.hh
   engines/overlay/shaders/overlay_depth_only_vert.glsl
   engines/overlay/shaders/overlay_depth_only.bsl.hh
-  engines/overlay/shaders/overlay_edit_curve_handle_vert.glsl
-  engines/overlay/shaders/overlay_edit_curve_normals_vert.glsl
-  engines/overlay/shaders/overlay_edit_curve_point_vert.glsl
-  engines/overlay/shaders/overlay_edit_curve_wire_vert.glsl
+  engines/overlay/shaders/overlay_edit_curve.bsl.hh
   engines/overlay/shaders/overlay_edit_curves_handle_vert.glsl
   engines/overlay/shaders/overlay_edit_gpencil_canvas.bsl.hh
   engines/overlay/shaders/overlay_edit_lattice.bsl.hh

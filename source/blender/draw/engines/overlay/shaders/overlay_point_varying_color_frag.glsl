@@ -4,7 +4,7 @@
 
 #include "infos/overlay_edit_mode_infos.hh"
 
-FRAGMENT_SHADER_CREATE_INFO(overlay_edit_curve_point)
+FRAGMENT_SHADER_CREATE_INFO(overlay_edit_particle_point)
 
 #include "select_lib.glsl"
 
