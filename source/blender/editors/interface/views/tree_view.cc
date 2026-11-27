@@ -659,33 +659,24 @@ void AbstractTreeViewItem::add_indent(Layout &row) const
   block_layout_set_current(block, &row);
 }
 
-void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
-                                                     void * /*but_arg1*/,
-                                                     void * /*arg2*/)
+void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C, void *but_arg1, void * /*arg2*/)
 {
-  /* There's no data we could pass to this callback. It must be either the button itself or a
-   * consistent address to match buttons over redraws. So instead of passing it somehow, just
-   * lookup the hovered item via context here. */
+  /* Use the item owning the button, not the hovered one: drag-toggle runs this for every chevron
+   * the cursor passed over. Passing the button as argument runs this immediately rather than
+   * deferred, while the item still exists. A closing popup may free it before deferred
+   * callbacks run. */
+  const Button *but = static_cast<const Button *>(but_arg1);
+  AbstractTreeViewItem *item = static_cast<AbstractTreeViewItem *>(but->custom_data);
 
-  const wmWindow *win = CTX_wm_window(C);
-  const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
-  AbstractViewItem *hovered_abstract_item = region_views_find_item_at(
-      *region, win->runtime->eventstate->xy);
-
-  if (!hovered_abstract_item) {
-    return;
-  }
-
-  auto *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(hovered_abstract_item);
-  hovered_item->toggle_collapsed_from_view(*C);
+  item->toggle_collapsed_from_view(*C);
   /* When collapsing an item with an active child, make this collapsed item active instead so the
    * active item stays visible. */
-  if (hovered_item->has_active_child()) {
-    hovered_item->activate(*C);
+  if (item->has_active_child()) {
+    item->activate(*C);
   }
 }
 
-void AbstractTreeViewItem::add_collapse_chevron(Block &block) const
+void AbstractTreeViewItem::add_collapse_chevron(Block &block)
 {
   if (!this->is_collapsible()) {
     return;
@@ -694,7 +685,8 @@ void AbstractTreeViewItem::add_collapse_chevron(Block &block) const
   const BIFIconID icon = this->is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
   Button *but = uiDefIconBut(
       &block, ButtonType::ButToggle, icon, 0, 0, UI_TREEVIEW_INDENT, UI_UNIT_Y, nullptr, 0, 0, "");
-  button_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
+  button_func_set(but, collapse_chevron_click_fn, but, nullptr);
+  but->custom_data = this;
   /* To make drag toggle work. */
   button_func_pushed_state_set(but, [this](const Button &) { return this->is_collapsed(); });
   button_flag_disable(but, BUT_UNDO);

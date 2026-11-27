@@ -381,7 +381,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   void add_treerow_button(Block &block);
   int indent_width() const;
   void add_indent(Layout &row) const;
-  void add_collapse_chevron(Block &block) const;
+  void add_collapse_chevron(Block &block);
   void add_rename_button(Layout &row);
 
   bool has_active_child() const;
