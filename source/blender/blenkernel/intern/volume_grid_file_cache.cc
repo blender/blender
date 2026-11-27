@@ -90,13 +90,7 @@ static FileCache create_file_cache(const StringRef file_path)
   openvdb::io::File file(file_path);
   openvdb::GridPtrVec vdb_grids;
   try {
-    /* Disable delay loading and file copying, this has poor performance
-     * on network drives. */
-    const bool delay_load = false;
-#  ifdef OPENVDB_USE_DELAYED_LOADING
-    file.setCopyMaxBytes(0);
-#  endif
-    file.open(delay_load);
+    file.open();
     vdb_grids = *(file.readAllGridMetadata());
     file_cache.meta_data = *file.getMetadata();
   }
@@ -187,15 +181,8 @@ class GridReadValue : public memory_cache::CachedValue {
 static openvdb::GridBase::Ptr load_single_grid_from_disk(const StringRef file_path,
                                                          const StringRef grid_name)
 {
-  /* Disable delay loading and file copying, this has poor performance
-   * on network drivers. */
-  const bool delay_load = false;
-
   openvdb::io::File file(file_path);
-#  ifdef OPENVDB_USE_DELAYED_LOADING
-  file.setCopyMaxBytes(0);
-#  endif
-  file.open(delay_load);
+  file.open();
   return file.readGrid(grid_name);
 }
 
