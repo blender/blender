@@ -194,7 +194,6 @@ enum class Diag {
   InitializerListAnonymous,
   InitializerListArray,
   InitializerListBitfield,
-  InitializerListBuiltin,
   InitializerListEmptyBaseClass,
   InitializerListNoSelfReference,
   InitializerListRequiresExplicitType,
@@ -489,9 +488,6 @@ static inline std::string_view diagnostic_message_get(Diag diag)
     case Diag::InitializerListBitfield:
       return "Initializer list is not supported on '{}' because it contains bitfield '{}', "
              "use designated initializer list instead";
-    case Diag::InitializerListBuiltin:
-      return "Initializer list is not supported on builtin type '{}', use constructor function "
-             "instead";
     case Diag::InitializerListUnion:
       return "Initializer list is not supported on union '{}'";
     case Diag::InitializerListEmptyBaseClass:

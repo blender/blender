@@ -3393,14 +3393,10 @@ struct CodegenContext : NodeErrorHandler {
         }
       }
     }
-    else if (array_dim == 0 && !is_empty) {
+    else if (array_dim == 0 && !is_empty && !cls.is_builtin()) {
       /* Positional initializer lists are mapped onto the members in declaration order. This
        * doesn't match the lowered layout of unions, derived classes, bitfields and anonymous
        * structs, and array members aren't supported. */
-      if (cls.is_builtin()) {
-        error(list, Diag::InitializerListBuiltin, cls.original);
-        return {"", cls};
-      }
       if (cls.is_union) {
         error(list, Diag::InitializerListUnion, cls.original);
         return {"", cls};
