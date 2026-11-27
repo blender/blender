@@ -815,10 +815,10 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
 
   Result realize_layer_transformation(Result &layer)
   {
-    const InputDescriptor input_descriptor = {layer.type(), InputRealizationMode::Transforms};
+    const InputDescriptor input_descriptor = {layer.type(), InputRealizationMode::OperationDomain};
     std::unique_ptr<SimpleOperation> realization_operation(
         RealizeOnDomainOperation::construct_if_needed(
-            this->context(), layer, input_descriptor, layer.domain()));
+            this->context(), layer, input_descriptor, this->compute_domain()));
 
     if (!realization_operation) {
       return layer;
@@ -871,8 +871,8 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     return Domain::identity();
   }
 
-  /* In case of an image source, the domain should be centered with the same size as the source
-   * image. In case of an invalid image, fall back to the domain inferred from the input. */
+  /* In case of an image source, the domain should match that of the one returned by CacheImage. In
+   * case of an invalid image, fall back to the domain inferred from the input. */
   Domain compute_image_domain()
   {
     BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE);
@@ -888,11 +888,16 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
       return NodeOperation::compute_domain();
     }
 
-    const int2 image_size = int2(image_buffer->x, image_buffer->y);
+    Domain domain = Domain(int2(image_buffer->x, image_buffer->y));
+    if (flag_is_set(image_buffer->flags, ImBufFlags::HasDisplayWindow)) {
+      domain.display_size = int2(image_buffer->display_size);
+      domain.data_offset = int2(image_buffer->data_offset);
+      domain.transform(math::from_location<float3x3>(float2(int2(image_buffer->display_offset))));
+    }
     BKE_image_release_ibuf(image, image_buffer, nullptr);
 
     const float2 pixel_size = this->context().get_compositing_domain().pixel_size;
-    Domain domain = Domain(image_size, math::from_scale<float3x3>(pixel_size));
+    domain.transform(math::from_scale<float3x3>(pixel_size));
     domain.pixel_size = pixel_size;
     return domain.realize_transformation();
   }
