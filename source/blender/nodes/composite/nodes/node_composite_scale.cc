@@ -336,10 +336,10 @@ class ScaleOperation : public NodeOperation {
   float2 get_scale_render_size_stretch()
   {
     const Result &input = this->get_input("Image");
-    const float2 input_size = float2(input.domain().display_size);
-    const float2 input_scale = math::to_scale(float2x2(input.domain().transformation));
-    const float2 render_size = float2(context().get_compositing_domain().display_size);
-    return render_size / (input_size * input_scale);
+    const float2 input_size = float2(input.domain().realize_transformation().display_size);
+    const float2 render_size = float2(
+        this->context().get_compositing_domain().realize_transformation().display_size);
+    return render_size / input_size;
   }
 
   /* Scale such that the dimension with the smaller scaling factor matches that of the render size
@@ -348,11 +348,7 @@ class ScaleOperation : public NodeOperation {
    * inside that region, hence the name. */
   float2 get_scale_render_size_fit()
   {
-    const Result &input = this->get_input("Image");
-    const float2 input_size = float2(input.domain().display_size);
-    const float2 input_scale = math::to_scale(float2x2(input.domain().transformation));
-    const float2 render_size = float2(context().get_compositing_domain().display_size);
-    const float2 scale = render_size / (input_size * input_scale);
+    const float2 scale = this->get_scale_render_size_stretch();
     return float2(math::min(scale.x, scale.y));
   }
 
@@ -362,11 +358,7 @@ class ScaleOperation : public NodeOperation {
    * region, hence the name. */
   float2 get_scale_render_size_crop()
   {
-    const Result &input = this->get_input("Image");
-    const float2 input_size = float2(input.domain().display_size);
-    const float2 input_scale = math::to_scale(float2x2(input.domain().transformation));
-    const float2 render_size = float2(context().get_compositing_domain().display_size);
-    const float2 scale = render_size / (input_size * input_scale);
+    const float2 scale = this->get_scale_render_size_stretch();
     return float2(math::max(scale.x, scale.y));
   }
 
