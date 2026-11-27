@@ -1274,16 +1274,16 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
   return true;
 }
 
-GHash *BM_select_history_map_create(BMesh *bm)
+Map<BMElem *, BMEditSelection *> BM_select_history_map_create(BMesh *bm)
 {
+  Map<BMElem *, BMEditSelection *> map;
+
   if (bm->selected.is_empty()) {
-    return nullptr;
+    return map;
   }
 
-  GHash *map = BLI_ghash_ptr_new(__func__);
-
   for (BMEditSelection &ese : bm->selected) {
-    BLI_ghash_insert(map, ese.ele, &ese);
+    map.add_new(ese.ele, &ese);
   }
 
   return map;

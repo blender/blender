@@ -12,6 +12,7 @@
 
 #include "DNA_meshdata_types.h"
 
+#include "BLI_map.hh"
 #include "BLI_math_geom_c.hh"
 #include "BLI_math_vector_c.hh"
 #include "BLI_vector.hh"
@@ -42,8 +43,7 @@ enum {
 void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 {
   const bool use_select_history = BMO_slot_bool_get(op->slots_in, "use_select_history");
-  GHash *select_history_map = nullptr;
-
+  Map<BMElem *, BMEditSelection *> select_history_map;
   BMOIter siter;
   BMFace *f_org;
 
@@ -61,9 +61,9 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
     f_new = BM_face_copy(bm, f_org, true, true);
     BMO_face_flag_enable(bm, f_new, EXT_KEEP);
 
-    if (select_history_map) {
-      BMEditSelection *ese;
-      ese = static_cast<BMEditSelection *>(BLI_ghash_lookup(select_history_map, f_org));
+    if (!select_history_map.is_empty()) {
+      BMEditSelection *ese = select_history_map.lookup_default(reinterpret_cast<BMElem *>(f_org),
+                                                               nullptr);
       if (ese) {
         ese->ele = reinterpret_cast<BMElem *>(f_new);
       }
@@ -91,24 +91,20 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
       l_side_iter = l_side_iter->next;
       BM_elem_attrs_copy(bm, l_org, l_side_iter);
 
-      if (select_history_map) {
+      if (!select_history_map.is_empty()) {
         BMEditSelection *ese;
 
-        ese = static_cast<BMEditSelection *>(BLI_ghash_lookup(select_history_map, l_org->v));
+        ese = select_history_map.lookup_default(reinterpret_cast<BMElem *>(l_org->v), nullptr);
         if (ese) {
           ese->ele = reinterpret_cast<BMElem *>(l_new->v);
         }
-        ese = static_cast<BMEditSelection *>(BLI_ghash_lookup(select_history_map, l_org->e));
+        ese = select_history_map.lookup_default(reinterpret_cast<BMElem *>(l_org->e), nullptr);
         if (ese) {
           ese->ele = reinterpret_cast<BMElem *>(l_new->e);
         }
       }
 
     } while (((void)(l_new = l_new->next), (l_org = l_org->next)) != l_org_first);
-  }
-
-  if (select_history_map) {
-    BLI_ghash_free(select_history_map, nullptr, nullptr);
   }
 
   BMO_op_callf(bm, op->flag, "delete geom=%ff context=%i", EXT_DEL, DEL_ONLYFACES);
@@ -239,7 +235,7 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
   BMEdge *e;
   const bool has_vskin = CustomData_has_layer_named(
       &bm->vdata, CD_PROP_BOOL, "skin_modifier_root");
-  GHash *select_history_map = nullptr;
+  Map<BMElem *, BMEditSelection *> select_history_map;
 
   if (use_select_history) {
     select_history_map = BM_select_history_map_create(bm);
@@ -255,9 +251,9 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
       bm_extrude_disable_skin_root(bm, v);
     }
 
-    if (select_history_map) {
-      BMEditSelection *ese;
-      ese = static_cast<BMEditSelection *>(BLI_ghash_lookup(select_history_map, v));
+    if (!select_history_map.is_empty()) {
+      BMEditSelection *ese = select_history_map.lookup_default(reinterpret_cast<BMElem *>(v),
+                                                               nullptr);
       if (ese) {
         ese->ele = reinterpret_cast<BMElem *>(dupev);
       }
@@ -272,10 +268,6 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 
     e = BM_edge_create(bm, v, dupev, nullptr, BM_CREATE_NOP);
     BMO_edge_flag_enable(bm, e, EXT_KEEP);
-  }
-
-  if (select_history_map) {
-    BLI_ghash_free(select_history_map, nullptr, nullptr);
   }
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, EXT_KEEP);

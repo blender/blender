@@ -208,7 +208,7 @@ bool BM_select_history_active_get(BMesh *bm, struct BMEditSelection *ese);
 /**
  * Return a map from #BMVert/#BMEdge/#BMFace -> #BMEditSelection.
  */
-struct GHash *BM_select_history_map_create(BMesh *bm);
+Map<BMElem *, BMEditSelection *> BM_select_history_map_create(BMesh *bm);
 
 /**
  * Map arguments may all be the same pointer.
