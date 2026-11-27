@@ -1561,6 +1561,13 @@ static void blendfile_append_cleanup_linked_to_local_id_usages(
     if (!ID_IS_LINKED(&id)) {
       continue;
     }
+
+    /* Linked IDs that existed before this operation can validly reference local data (e.g. a
+     * linked brush asset with a pinned local material), only check newly read ones. */
+    if (id.tag & ID_TAG_PRE_EXISTING) {
+      continue;
+    }
+
     BKE_library_foreach_ID_link(
         bmain,
         &id,
