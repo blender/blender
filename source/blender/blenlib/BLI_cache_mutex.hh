@@ -108,11 +108,12 @@ class CacheMutex {
   }
 
   /**
-   * Return true if the cache exists and is valid.
+   * Return true if the cache exists and is valid. When true, the data computed by #ensure is
+   * visible to the calling thread, so it can be accessed without calling #ensure.
    */
   bool is_cached() const
   {
-    return cache_valid_.load(std::memory_order_relaxed);
+    return cache_valid_.load(std::memory_order_acquire);
   }
 
  private:
