@@ -3393,10 +3393,42 @@ struct CodegenContext : NodeErrorHandler {
         }
       }
     }
-    else if (array_dim == 0 && !is_empty && !cls.is_builtin()) {
+    else if (array_dim == 0 && !is_empty) {
+      /* Positional initializer lists are mapped onto the members in declaration order. This
+       * doesn't match the lowered layout of unions, derived classes, bitfields and anonymous
+       * structs, and array members aren't supported. */
+      if (cls.is_builtin()) {
+        error(designated, Diag::InitializerListBuiltin, cls.original);
+        return {"", cls};
+      }
+      if (cls.is_union) {
+        error(designated, Diag::InitializerListUnion, cls.original);
+        return {"", cls};
+      }
+      for (const auto &[_, base] : cls.base_classes) {
+        /* Empty base classes are not stored. */
+        if (base->size > 0) {
+          error(designated, Diag::InitializerListEmptyBaseClass, cls.original);
+          return {"", cls};
+        }
+      }
+
       Node child(list.child_first());
       /* Iterate over the list of members, default initializing the omitted members. */
       for (SymbolVariable *var : cls.non_static_variables_in_declaration_order()) {
+        if (var->array_dimensions > 0) {
+          error(designated, Diag::InitializerListArray, cls.original, var->original);
+          return {"", cls};
+        }
+        if (var->type.is_anonymous) {
+          error(designated, Diag::InitializerListAnonymous, cls.original);
+          return {"", cls};
+        }
+        if (var->is_bitfield) {
+          error(designated, Diag::InitializerListBitfield, cls.original, var->original);
+          return {"", cls};
+        }
+
         if (child.is_valid()) {
           content +=
               init_expression_or_initializer_list(child.child_last(), scope, false, var->type).str;

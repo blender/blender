@@ -191,8 +191,14 @@ enum class Diag {
   ImplicitPaddingAtEndOfStruct,
   ImplicitPaddingBeforeMember,
 
-  InitializerListRequiresExplicitType,
+  InitializerListAnonymous,
+  InitializerListArray,
+  InitializerListBitfield,
+  InitializerListBuiltin,
+  InitializerListEmptyBaseClass,
   InitializerListNoSelfReference,
+  InitializerListRequiresExplicitType,
+  InitializerListUnion,
 
   InliningNoDefinition,
 
@@ -473,6 +479,23 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Implicit {} bytes padding before '{}', add manual padding";
     case Diag::InitializerListRequiresExplicitType:
       return "Initializer list requires explicit type";
+    case Diag::InitializerListAnonymous:
+      return "Initializer list is not supported on '{}' because it contains an anonymous member, "
+             "use designated initializer list instead";
+    case Diag::InitializerListArray:
+      return "Initializer list is not supported on '{}' because it contains the array member "
+             "'{}', use designated initializer list instead";
+    case Diag::InitializerListBitfield:
+      return "Initializer list is not supported on '{}' because it contains bitfield '{}', "
+             "use designated initializer list instead";
+    case Diag::InitializerListBuiltin:
+      return "Initializer list is not supported on builtin type '{}', use constructor function "
+             "instead";
+    case Diag::InitializerListUnion:
+      return "Initializer list is not supported on union '{}'";
+    case Diag::InitializerListEmptyBaseClass:
+      return "Initializer list is not supported on '{}' because it inherit empty base class '{}', "
+             "use designated initializer list instead";
     case Diag::InitializerListNoSelfReference:
       return "Initializer list cannot call methods or access members";
     case Diag::InliningNoDefinition:
