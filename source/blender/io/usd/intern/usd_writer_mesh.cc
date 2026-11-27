@@ -454,19 +454,13 @@ pxr::TfToken USDGenericMeshWriter::get_subdiv_scheme(const SubsurfModifierData *
   pxr::TfToken subdiv_scheme = pxr::UsdGeomTokens->none;
 
   if (subsurfData) {
-    if (subsurfData->subdivType == SUBSURF_TYPE_CATMULL_CLARK) {
-      if (usd_export_context_.export_params.export_subdiv == SubdivExportMode::Match) {
-        /* If a subdivision modifier exists, and it uses Catmull-Clark, then apply Catmull-Clark
-         * SubD scheme. */
+    if (usd_export_context_.export_params.export_subdiv == SubdivExportMode::Match) {
+      if (subsurfData->subdivType == SUBSURF_TYPE_CATMULL_CLARK) {
         subdiv_scheme = pxr::UsdGeomTokens->catmullClark;
       }
-    }
-    else {
-      /* "Simple" is currently the only other subdivision type provided by Blender, */
-      /* and we do not yet provide a corresponding representation for USD export. */
-      BKE_reportf(reports(),
-                  RPT_WARNING,
-                  "USD export: Simple subdivision not supported, exporting subdivided mesh");
+      else if (subsurfData->subdivType == SUBSURF_TYPE_SIMPLE) {
+        subdiv_scheme = pxr::UsdGeomTokens->bilinear;
+      }
     }
   }
 
@@ -477,48 +471,51 @@ void USDGenericMeshWriter::write_subdiv(const pxr::TfToken &subdiv_scheme,
                                         const pxr::UsdGeomMesh &usd_mesh,
                                         const SubsurfModifierData *subsurfData)
 {
+  /* Always write the scheme since USD defaults to catmullClark. */
   usd_mesh.CreateSubdivisionSchemeAttr().Set(subdiv_scheme);
-  if (subdiv_scheme == pxr::UsdGeomTokens->catmullClark) {
-    /* For Catmull-Clark, also consider the various interpolation modes. */
-    /* For reference, see
-     * https://graphics.pixar.com/opensubdiv/docs/subdivision_surfaces.html#face-varying-interpolation-rules
-     */
-    switch (subsurfData->uv_smooth) {
-      case SUBSURF_UV_SMOOTH_NONE:
-        usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->all);
-        break;
-      case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS:
-        usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->cornersOnly);
-        break;
-      case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS:
-        usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->cornersPlus1);
-        break;
-      case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
-        usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->cornersPlus2);
-        break;
-      case SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES:
-        usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->boundaries);
-        break;
-      case SUBSURF_UV_SMOOTH_ALL:
-        usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->none);
-        break;
-      default:
-        BLI_assert_msg(0, "Unsupported UV smoothing mode.");
-    }
 
-    /* For reference, see
-     * https://graphics.pixar.com/opensubdiv/docs/subdivision_surfaces.html#boundary-interpolation-rules
-     */
-    switch (subsurfData->boundary_smooth) {
-      case SUBSURF_BOUNDARY_SMOOTH_ALL:
-        usd_mesh.CreateInterpolateBoundaryAttr().Set(pxr::UsdGeomTokens->edgeOnly);
-        break;
-      case SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS:
-        usd_mesh.CreateInterpolateBoundaryAttr().Set(pxr::UsdGeomTokens->edgeAndCorner);
-        break;
-      default:
-        BLI_assert_msg(0, "Unsupported boundary smoothing mode.");
-    }
+  if (!subsurfData) {
+    return;
+  }
+
+  /* For reference, see
+   * https://graphics.pixar.com/opensubdiv/docs/subdivision_surfaces.html#face-varying-interpolation-rules
+   */
+  switch (subsurfData->uv_smooth) {
+    case SUBSURF_UV_SMOOTH_NONE:
+      usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->all);
+      break;
+    case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS:
+      usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->cornersOnly);
+      break;
+    case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS:
+      usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->cornersPlus1);
+      break;
+    case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
+      usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->cornersPlus2);
+      break;
+    case SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES:
+      usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->boundaries);
+      break;
+    case SUBSURF_UV_SMOOTH_ALL:
+      usd_mesh.CreateFaceVaryingLinearInterpolationAttr().Set(pxr::UsdGeomTokens->none);
+      break;
+    default:
+      BLI_assert_msg(0, "Unsupported UV smoothing mode.");
+  }
+
+  /* For reference, see
+   * https://graphics.pixar.com/opensubdiv/docs/subdivision_surfaces.html#boundary-interpolation-rules
+   */
+  switch (subsurfData->boundary_smooth) {
+    case SUBSURF_BOUNDARY_SMOOTH_ALL:
+      usd_mesh.CreateInterpolateBoundaryAttr().Set(pxr::UsdGeomTokens->edgeOnly);
+      break;
+    case SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS:
+      usd_mesh.CreateInterpolateBoundaryAttr().Set(pxr::UsdGeomTokens->edgeAndCorner);
+      break;
+    default:
+      BLI_assert_msg(0, "Unsupported boundary smoothing mode.");
   }
 }
 

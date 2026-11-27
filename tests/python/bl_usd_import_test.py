@@ -204,20 +204,22 @@ class USDImportTest(AbstractUSDTest):
              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
         # Validate SubdivisionSurface modifier settings
-        def check_mod(mesh_name, levels, render_levels, uv_smooth, boundary_smooth):
+        def check_mod(mesh_name, levels, render_levels, subd_type, uv_smooth, boundary_smooth):
             mod = bpy.data.objects[mesh_name].modifiers[0]
             self.assertEqual(mod.levels, levels)
             self.assertEqual(mod.render_levels, render_levels)
+            self.assertEqual(mod.subdivision_type, subd_type)
             self.assertEqual(mod.uv_smooth, uv_smooth)
             self.assertEqual(mod.boundary_smooth, boundary_smooth)
 
-        check_mod("mesh1", 1, 2, 'NONE', 'ALL')
-        check_mod("mesh2", 1, 2, 'PRESERVE_CORNERS', 'ALL')
-        check_mod("mesh3", 1, 2, 'PRESERVE_CORNERS_AND_JUNCTIONS', 'ALL')
-        check_mod("mesh4", 1, 2, 'PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE', 'ALL')
-        check_mod("mesh5", 1, 2, 'PRESERVE_BOUNDARIES', 'ALL')
-        check_mod("mesh6", 1, 2, 'SMOOTH_ALL', 'ALL')
-        check_mod("mesh7", 1, 2, 'PRESERVE_BOUNDARIES', 'PRESERVE_CORNERS')
+        check_mod("mesh1", 1, 2, 'CATMULL_CLARK', 'NONE', 'ALL')
+        check_mod("mesh2", 1, 2, 'CATMULL_CLARK', 'PRESERVE_CORNERS', 'ALL')
+        check_mod("mesh3", 1, 2, 'CATMULL_CLARK', 'PRESERVE_CORNERS_AND_JUNCTIONS', 'ALL')
+        check_mod("mesh4", 1, 2, 'CATMULL_CLARK', 'PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE', 'ALL')
+        check_mod("mesh5", 1, 2, 'CATMULL_CLARK', 'PRESERVE_BOUNDARIES', 'ALL')
+        check_mod("mesh6", 1, 2, 'CATMULL_CLARK', 'SMOOTH_ALL', 'ALL')
+        check_mod("mesh7", 1, 2, 'CATMULL_CLARK', 'PRESERVE_BOUNDARIES', 'PRESERVE_CORNERS')
+        check_mod("simple", 1, 2, 'SIMPLE', 'PRESERVE_BOUNDARIES', 'ALL')
 
     def test_import_mesh_subd_varying(self):
         """Test importing meshes with subdivision crease values varying over time."""

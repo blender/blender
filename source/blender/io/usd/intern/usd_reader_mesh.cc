@@ -250,8 +250,10 @@ void USDMeshReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
     pxr::TfToken subdivScheme;
     mesh_prim_.GetSubdivisionSchemeAttr().Get(&subdivScheme, time);
 
-    if (subdivScheme == pxr::UsdGeomTokens->catmullClark) {
-      add_subdiv_modifier();
+    const bool is_simple = subdivScheme == pxr::UsdGeomTokens->bilinear;
+    const bool is_catmullClark = subdivScheme == pxr::UsdGeomTokens->catmullClark;
+    if (is_catmullClark || is_simple) {
+      add_subdiv_modifier(is_simple);
       read_subdiv();
     }
   }

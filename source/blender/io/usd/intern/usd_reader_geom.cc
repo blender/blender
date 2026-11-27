@@ -35,11 +35,14 @@ void USDGeomReader::add_cache_modifier()
   STRNCPY(mcmd->object_path, prim_.GetPath().GetString().c_str());
 }
 
-void USDGeomReader::add_subdiv_modifier()
+void USDGeomReader::add_subdiv_modifier(bool is_simple)
 {
   ModifierData *md = BKE_modifier_new(eModifierType_Subsurf);
   BLI_addtail(&object_->modifiers, md);
   BKE_modifiers_persistent_uid_init(*object_, *md);
+
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(md);
+  smd->subdivType = is_simple ? SUBSURF_TYPE_SIMPLE : SUBSURF_TYPE_CATMULL_CLARK;
 }
 
 }  // namespace blender::io::usd

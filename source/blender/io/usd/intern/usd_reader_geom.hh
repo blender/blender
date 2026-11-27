@@ -37,7 +37,7 @@ class USDGeomReader : public USDXformReader {
   }
 
   void add_cache_modifier();
-  void add_subdiv_modifier();
+  void add_subdiv_modifier(bool is_simple);
 };
 
 }  // namespace io::usd

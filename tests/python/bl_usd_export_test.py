@@ -877,6 +877,11 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'boundaries')
         self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeAndCorner')
 
+        mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/simple/simple"))
+        self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'bilinear')
+        self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'boundaries')
+        self.assertEqual(mesh.GetInterpolateBoundaryAttr().Get(), 'edgeOnly')
+
         mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/root/crease_verts/crease_verts"))
         self.assertEqual(mesh.GetSubdivisionSchemeAttr().Get(), 'catmullClark')
         self.assertEqual(mesh.GetFaceVaryingLinearInterpolationAttr().Get(), 'boundaries')
