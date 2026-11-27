@@ -67,13 +67,13 @@ OPERATOR_IGNORE = (
     "gizmogroup.gizmo_tweak",
     "gpencil.draw",  # Interactive drawing.
     "gpencil.select_lasso",
-    "gpencil.select_linked_pick",
     "gpencil.vertex_paint",
     "gpencil.weight_paint",
     "graph.click_insert",
     "graph.clickselect",
     "graph.cursor_set",  # Interactive cursor placement.
     "graph.select_lasso",
+    "grease_pencil.select_linked_pick",
     "mask.select_lasso",
     "mask.select_linked_pick",
     "mesh.polybuild_*",  # Only accessed via tool.
