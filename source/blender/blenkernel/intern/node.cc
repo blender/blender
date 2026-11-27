@@ -1642,6 +1642,12 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
     return;
   }
 
+  if (!is_node_socket_supported(sock)) {
+    /* Avoid keeping this dangling pointer for unknown socket types. */
+    sock->default_value = nullptr;
+    return;
+  }
+
   if (BLO_read_fileversion_get(reader) >=
       versioning_internal::MIN_BLENDFILE_VERSION_FOR_MODERN_NODE_SOCKET_DEFAULT_VALUE_READING)
   {
@@ -1713,7 +1719,9 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
       case SOCK_BUNDLE:
       case SOCK_CLOSURE:
       case SOCK_DYNAMIC:
-        BLI_assert_unreachable();
+        /* These types may have values in the future which the current Blender version does not
+         * know about. */
+        sock->default_value = nullptr;
         break;
     }
   }
@@ -1888,6 +1896,9 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
       case SOCK_INT_VECTOR:
       case SOCK_DYNAMIC:
         BLI_assert_unreachable();
+        /* This should never happen in non-tampered-with .blend files but still handle it
+         * gracefully. */
+        sock->default_value = nullptr;
         break;
     }
   }
