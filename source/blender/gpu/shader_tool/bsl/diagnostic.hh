@@ -329,6 +329,7 @@ enum class Diag {
   UnsupportedDeletedBody,
   UnsupportedDoubleLiteral,
   UnsupportedPureVirtualFunctionBody,
+  UnsupportedDefaultMemberInitializerInUnion,
 
   UsingNamespaceNotSupported,
 };
@@ -733,6 +734,8 @@ static inline std::string_view diagnostic_message_get(Diag diag)
       return "Double literals are not supported, add 'f' suffix";
     case Diag::UnsupportedPureVirtualFunctionBody:
       return "Pure virtual function with body are not supported";
+    case Diag::UnsupportedDefaultMemberInitializerInUnion:
+      return "Default member initializers are not supported in unions";
     case Diag::UsingNamespaceNotSupported:
       return "Using namespace statements are not supported";
   }

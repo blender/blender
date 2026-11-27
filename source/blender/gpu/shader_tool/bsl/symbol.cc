@@ -708,6 +708,11 @@ struct SymbolParser : NodeErrorHandler {
         }
         var.set_offset(parent_class.is_union(), offset);
 
+        if (parent_class.is_union() && cls.is_default_initialized) {
+          /* The union constructor only zero initializes its storage. */
+          error(decl, Diag::UnsupportedDefaultMemberInitializerInUnion);
+        }
+
         SymbolClass *parent_cls = scope.as_class();
         if (parent_cls && !parent_cls->is_union) {
           parent_cls->is_default_initialized |= cls.is_default_initialized;
@@ -1504,6 +1509,13 @@ struct SymbolParser : NodeErrorHandler {
         else if (list.is_valid()) {
           cls->is_default_initialized = true;
         }
+      }
+
+      if (cls && cls->is_union && !sym.is_static &&
+          (sym.default_value.is_valid() || type.is_default_initialized))
+      {
+        /* The union constructor only zero initializes its storage. */
+        error(decl, Diag::UnsupportedDefaultMemberInitializerInUnion);
       }
 
       if (sym.is_ptr) {
