@@ -60,8 +60,10 @@ class INFO_MT_info(Menu):
         # layout.operator("info.report_replay")
         # layout.separator()
 
-        layout.operator("info.report_delete", text="Delete")
-        layout.operator("info.report_copy", text="Copy")
+        layout.operator("info.report_copy", text="Copy", icon='COPYDOWN')
+
+        layout.separator()
+        layout.operator("info.report_delete", text="Delete", icon='X')
 
 
 class INFO_MT_area(Menu):
@@ -98,8 +100,9 @@ class INFO_MT_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("info.report_copy", text="Copy")
-        layout.operator("info.report_delete", text="Delete")
+        layout.operator("info.report_copy", text="Copy", icon='COPYDOWN')
+        layout.separator()
+        layout.operator("info.report_delete", text="Delete", icon='X')
 
 
 classes = (

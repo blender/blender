@@ -97,8 +97,8 @@ class TEXT_MT_editor_menus(Menu):
         layout.menu("TEXT_MT_text")
 
         if text:
-            layout.menu("TEXT_MT_edit")
             layout.menu("TEXT_MT_select")
+            layout.menu("TEXT_MT_edit")
             layout.menu("TEXT_MT_format")
 
         layout.menu("TEXT_MT_templates")
@@ -256,7 +256,7 @@ class TEXT_MT_text(Menu):
         if text:
             layout.separator()
             row = layout.row()
-            row.operator("text.reload")
+            row.operator("text.reload", icon='FILE_REFRESH')
             row.enabled = not text.is_in_memory
 
             row = layout.row()
@@ -434,7 +434,7 @@ class TEXT_MT_context_menu(Menu):
         layout.operator("text.cut")
         layout.operator("text.copy", icon='COPYDOWN')
         layout.operator("text.paste", icon='PASTEDOWN')
-        layout.operator("text.duplicate_line")
+        layout.operator("text.duplicate_line", icon='DUPLICATE')
 
         layout.separator()
 

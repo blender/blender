@@ -72,7 +72,7 @@ class VIEW3D_AST_pose_library(bpy.types.AssetShelf):
         layout.separator()
         layout.operator("poselib.asset_modify", text="Adjust Pose Asset").mode = 'ADJUST'
         layout.menu("VIEW3D_MT_pose_modify")
-        layout.operator("poselib.asset_delete")
+        layout.operator("poselib.asset_delete", icon='X')
 
         layout.separator()
         layout.operator("asset.open_containing_blend_file", icon='FILE_BLEND')
@@ -112,7 +112,7 @@ def pose_library_asset_browser_context_menu(self: UIList, context: Context) -> N
     layout.operator("poselib.asset_modify", text="Adjust Pose Asset").mode = 'ADJUST'
     layout.menu("VIEW3D_MT_pose_modify")
     with operator_context(layout, 'INVOKE_DEFAULT'):
-        layout.operator("poselib.asset_delete")
+        layout.operator("poselib.asset_delete", icon='X')
 
     layout.separator()
     layout.operator("asset.assign_action")

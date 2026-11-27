@@ -45,18 +45,18 @@ class VIEW3D_MT_brush_context_menu(Menu):
 
         settings = UnifiedPaintPanel.paint_settings_from_active_tool(context)
         brush = getattr(settings, "brush", None)
+        is_editable_asset = brush.library and brush.library.is_editable
 
         # skip if no active brush
         if not brush:
             layout.label(text="No brush selected", icon='STATUS_INFO')
             return
 
-        if brush.library and brush.library.is_editable:
-            layout.operator("brush.asset_save_as", text="Duplicate Asset...", icon='DUPLICATE')
-            layout.operator("brush.asset_delete", text="Delete Asset")
-        else:
-            layout.operator("brush.asset_save_as", text="Save As Asset...", icon='FILE_TICK')
-            layout.operator("brush.asset_delete", text="Delete")
+        op_text = (
+            iface_("Duplicate Asset...", i18n_contexts.operator_default) if is_editable_asset
+            else iface_("Save As Asset...", i18n_contexts.operator_default)
+        )
+        layout.operator("brush.asset_save_as", text=op_text, icon='DUPLICATE', translate=False)
 
         layout.separator()
 
@@ -64,6 +64,14 @@ class VIEW3D_MT_brush_context_menu(Menu):
         layout.operator("brush.asset_load_preview", text="Edit Preview Image...")
         layout.operator("brush.asset_save", text="Save Changes to Asset")
         layout.operator("brush.asset_revert", text="Revert to Asset")
+
+        layout.separator()
+
+        op_text = (
+            iface_("Delete Asset", i18n_contexts.operator_default) if is_editable_asset
+            else iface_("Delete", i18n_contexts.operator_default)
+        )
+        layout.operator("brush.asset_delete", text=op_text)
 
 
 class View3DPanel:

@@ -216,7 +216,7 @@ class IMAGE_MT_image(Menu):
 
             if not show_render:
                 layout.operator("image.replace", text="Replace...")
-                layout.operator("image.reload", text="Reload")
+                layout.operator("image.reload", text="Reload", icon='FILE_REFRESH')
 
             layout.operator("image.external_edit", text="Edit Externally")
 
@@ -250,7 +250,7 @@ class IMAGE_MT_image(Menu):
             layout.separator()
 
             layout.menu("IMAGE_MT_image_invert")
-            layout.operator("image.resize", text="Resize")
+            layout.operator("image.resize", text="Resize...")
             layout.menu("IMAGE_MT_image_transform")
 
             if ima.packed_file:
@@ -453,7 +453,7 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
-        layout.operator("uv.rip_move")
+        layout.operator("uv.rip_move", text="Rip UVs and Move")
 
         layout.separator()
 

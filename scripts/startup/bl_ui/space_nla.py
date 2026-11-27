@@ -253,7 +253,7 @@ class NLA_MT_strips(Menu):
 
         layout.separator()
         layout.operator("nla.duplicate", text="Duplicate", icon='DUPLICATE').linked = False
-        layout.operator("nla.duplicate", text="Linked Duplicate").linked = True
+        layout.operator("nla.duplicate", text="Duplicate Linked").linked = True
 
         layout.separator()
 
@@ -362,11 +362,14 @@ class NLA_MT_context_menu(Menu):
 
         layout.separator()
 
-        props = layout.operator("wm.call_panel", text="Rename...")
-        props.name = "TOPBAR_PT_name"
-        props.keep_open = False
         layout.operator("nla.duplicate_move", icon='DUPLICATE')
         layout.operator("nla.duplicate_linked_move")
+
+        layout.separator()
+
+        props = layout.operator("wm.call_panel", text="Rename Active Strip...")
+        props.name = "TOPBAR_PT_name"
+        props.keep_open = False
 
         layout.separator()
 
@@ -392,12 +395,12 @@ class NLA_MT_channel_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering")
-
-        layout.separator()
-
         layout.operator("nla.tracks_add", text="Add Track").above_selected = False
         layout.operator("nla.tracks_add", text="Add Track Above Selected").above_selected = True
+
+        layout.separator()
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering")
+
         layout.separator()
         layout.operator("anim.channels_clean_empty")
         layout.separator()

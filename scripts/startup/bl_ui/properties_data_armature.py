@@ -319,10 +319,11 @@ class POSE_MT_selection_sets_context_menu(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("pose.selection_set_delete_all", icon='X')
-        layout.operator("pose.selection_set_remove_bones", icon='X')
         layout.operator("pose.selection_set_copy", icon='COPYDOWN')
         layout.operator("pose.selection_set_paste", icon='PASTEDOWN')
+        layout.separator()
+        layout.operator("pose.selection_set_remove_bones")
+        layout.operator("pose.selection_set_delete_all", icon='X')
 
 
 class POSE_PT_selection_sets(Panel):

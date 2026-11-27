@@ -553,7 +553,7 @@ class TOPBAR_MT_file_previews(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("wm.previews_ensure")
+        layout.operator("wm.previews_ensure", icon='FILE_REFRESH')
         layout.operator("wm.previews_batch_generate", text="Batch-Generate Previews...")
 
         layout.separator()
@@ -773,8 +773,6 @@ class TOPBAR_MT_workspace_menu(Menu):
         if len(bpy.data.workspaces) <= 1:
             return
 
-        layout.operator("workspace.delete", text="Delete", icon='REMOVE')
-
         layout.separator()
 
         layout.operator("workspace.reorder_to_front", text="Reorder to Front", icon='TRIA_LEFT_BAR')
@@ -796,6 +794,7 @@ class TOPBAR_MT_workspace_menu(Menu):
         layout.separator()
 
         layout.operator("workspace.delete_all_others")
+        layout.operator("workspace.delete", text="Delete", icon='X')
 
 
 # Grease Pencil Object - Primitive curve

@@ -178,9 +178,10 @@ class COLLECTION_MT_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("object.collection_unlink", icon='X')
         layout.operator("object.collection_objects_select")
         layout.operator("object.instance_offset_from_cursor")
+        layout.separator()
+        layout.operator("object.collection_unlink", icon='X')
 
 
 class OBJECT_PT_collections(ObjectButtonsPanel, Panel):

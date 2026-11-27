@@ -272,11 +272,12 @@ class FILEBROWSER_MT_bookmarks_context_menu(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator("file.bookmark_cleanup", icon='X', text="Cleanup")
 
-        layout.separator()
         layout.operator("file.bookmark_move", icon='TRIA_UP_BAR', text="Move to Top").direction = 'TOP'
         layout.operator("file.bookmark_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").direction = 'BOTTOM'
+
+        layout.separator()
+        layout.operator("file.bookmark_cleanup", icon='X', text="Delete Invalid Bookmarks")
 
 
 class FILEBROWSER_PT_bookmarks_favorites(FileBrowserPanel, Panel):
@@ -926,9 +927,9 @@ class ASSETBROWSER_MT_metadata_preview_menu(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.operator("ed.lib_id_generate_preview_from_object", text="Render Active Object")
-        layout.separator()
-        layout.operator("ed.lib_id_remove_preview")
         layout.operator("asset.screenshot_preview")
+        layout.separator()
+        layout.operator("ed.lib_id_remove_preview", icon='X')
 
 
 class ASSETBROWSER_PT_metadata_tags(asset_utils.AssetMetaDataPanel, Panel):

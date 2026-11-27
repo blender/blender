@@ -603,8 +603,7 @@ class DOPESHEET_MT_channel(Menu):
 
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
-        layout.operator("anim.channels_delete")
-        layout.operator("action.clean", text="Clean Channels").channels = True
+        layout.operator("anim.channels_view_selected")
 
         layout.separator()
         layout.operator("anim.channels_group", text="Group Channels...")
@@ -633,7 +632,8 @@ class DOPESHEET_MT_channel(Menu):
         layout.operator("anim.channels_bake")
 
         layout.separator()
-        layout.operator("anim.channels_view_selected")
+        layout.operator("action.clean", text="Clean Channels").channels = True
+        layout.operator("anim.channels_delete", icon='X')
 
 
 class DOPESHEET_MT_action(Menu):
@@ -680,23 +680,20 @@ class DOPESHEET_MT_key(Menu):
         layout.operator("action.duplicate_move", icon='DUPLICATE')
 
         layout.separator()
-
-        if ob and ob.type == 'GREASEPENCIL':
-            layout.operator("grease_pencil.delete_breakdown")
-
-        layout.separator()
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
         layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
         layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
-        layout.operator_menu_enum("action.easing_type", "type", text="Easing Mode")
+        layout.operator_menu_enum("action.easing_type", "type", text="Easing Type")
 
         layout.separator()
-        layout.operator("action.clean").channels = False
         layout.operator("action.bake_keys")
 
         layout.separator()
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
         layout.separator()
+        layout.operator("action.clean").channels = False
+        if ob and ob.type == 'GREASEPENCIL':
+            layout.operator("grease_pencil.delete_breakdown")
         layout.operator("action.delete", icon='X')
 
 
@@ -805,7 +802,7 @@ class DOPESHEET_MT_gpencil_channel(Menu):
 
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
-        layout.operator("anim.channels_delete")
+        layout.operator("anim.channels_view_selected")
 
         layout.separator()
         layout.operator("anim.channels_setting_toggle")
@@ -824,7 +821,7 @@ class DOPESHEET_MT_gpencil_channel(Menu):
         layout.operator_menu_enum("anim.channels_move", "direction", text="Move Channels")
 
         layout.separator()
-        layout.operator("anim.channels_view_selected")
+        layout.operator("anim.channels_delete", icon='X')
 
 
 class DOPESHEET_MT_delete(Menu):
@@ -833,7 +830,7 @@ class DOPESHEET_MT_delete(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("action.delete")
+        layout.operator("action.delete", icon='X')
 
         layout.separator()
 
@@ -864,11 +861,7 @@ class DOPESHEET_MT_context_menu(Menu):
         if st.mode != 'GPENCIL':
             layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
             layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
-            layout.operator_menu_enum("action.easing_type", "type", text="Easing Mode")
-
-        if st.mode == 'GPENCIL':
-            layout.separator()
-            layout.operator("grease_pencil.delete_breakdown")
+            layout.operator_menu_enum("action.easing_type", "type", text="Easing Type")
 
         layout.separator()
 
@@ -876,7 +869,8 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.operator_menu_enum("action.snap", "type", text="Snap")
 
         layout.separator()
-
+        if st.mode == 'GPENCIL':
+            layout.operator("grease_pencil.delete_breakdown")
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("action.delete", icon='X')
 
@@ -895,6 +889,7 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         layout.separator()
         layout.operator("anim.channels_view_selected")
 
+        layout.separator()
         layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
         layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
         layout.separator()
@@ -931,10 +926,9 @@ class DOPESHEET_MT_channel_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("anim.channels_delete")
-
         if is_graph_editor and context.space_data.mode == 'DRIVERS':
             layout.operator("graph.driver_delete_invalid")
+        layout.operator("anim.channels_delete", icon='X')
 
 
 class DOPESHEET_MT_snap_pie(Menu):

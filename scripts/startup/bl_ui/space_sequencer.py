@@ -915,12 +915,13 @@ class SEQUENCER_MT_strip_text(Menu):
         layout.operator("sequencer.text_edit_paste", icon='PASTEDOWN')
         layout.operator("sequencer.text_edit_cut")
         layout.separator()
-        props = layout.operator("sequencer.text_delete")
-        props.type = 'PREVIOUS_OR_SELECTION'
         layout.operator("sequencer.text_line_break")
         layout.separator()
         layout.operator("sequencer.text_select_all")
         layout.operator("sequencer.text_deselect_all")
+        layout.separator()
+        props = layout.operator("sequencer.text_delete", icon='X')
+        props.type = 'PREVIOUS_OR_SELECTION'
 
 
 class SEQUENCER_MT_strip_show_hide(Menu):
@@ -988,9 +989,9 @@ class SEQUENCER_MT_strip_input(Menu):
         layout = self.layout
         strip = context.active_strip
 
-        layout.operator("sequencer.reload", text="Reload Strips")
+        layout.operator("sequencer.reload", text="Reload Strips", icon='FILE_REFRESH')
         layout.operator("sequencer.reload", text="Reload Strips and Adjust Length").adjust_length = True
-        props = layout.operator("sequencer.change_path", text="Change Path/Files")
+        props = layout.operator("sequencer.change_path", text="Change Path/Files...")
         layout.operator("sequencer.swap_data", text="Swap Data")
 
         if strip:
@@ -1112,19 +1113,19 @@ class SEQUENCER_MT_strip_retiming(Menu):
 
         layout.separator()
 
-        layout.operator("sequencer.retiming_key_delete")
-        col = layout.column()
-        col.operator("sequencer.retiming_reset")
-        col.enabled = not is_retiming
-
-        layout.separator()
-
         layout.operator("sequencer.retiming_segment_speed_set")
         layout.operator(
             "sequencer.retiming_show",
             icon='CHECKBOX_HLT' if (strip and strip.show_retiming_keys) else 'CHECKBOX_DEHLT',
             text="Show Retiming Keys",
         )
+
+        layout.separator()
+
+        col = layout.column()
+        col.operator("sequencer.retiming_reset")
+        col.enabled = not is_retiming
+        layout.operator("sequencer.retiming_key_delete", icon='X')
 
 
 class SEQUENCER_MT_strip(Menu):
@@ -1193,40 +1194,37 @@ class SEQUENCER_MT_strip(Menu):
                         'GAMMA_CROSS', 'COMPOSITOR', 'MULTIPLY', 'WIPE', 'GLOW',
                         'SPEED', 'MULTICAM', 'ADJUSTMENT', 'GAUSSIAN_BLUR',
                 }:
-                    layout.separator()
                     layout.menu("SEQUENCER_MT_strip_effect")
-                elif strip_type == 'MOVIE':
+
+                elif strip_type != 'SOUND':
                     layout.separator()
                     layout.operator("sequencer.rendersize")
+                if strip_type == 'MOVIE':
+                    layout.separator()
                     layout.operator("sequencer.deinterlace_selected_movies")
-                elif strip_type == 'IMAGE':
+                if strip_type == 'IMAGE':
                     layout.separator()
-                    layout.operator("sequencer.rendersize")
                     layout.operator("sequencer.images_separate")
                 elif strip_type == 'META':
                     layout.separator()
                     layout.operator("sequencer.meta_make")
                     layout.operator("sequencer.meta_separate")
-                    layout.operator("sequencer.meta_toggle", text="Toggle Meta")
+                layout.operator("sequencer.meta_toggle", text="Toggle Meta")
                 elif strip_type != 'SOUND':
                     layout.separator()
                     layout.operator("sequencer.rendersize")
-                if strip_type != 'META':
-                    layout.separator()
-                    layout.operator("sequencer.meta_make")
-                    layout.operator("sequencer.meta_toggle", text="Toggle Meta")
 
         if has_sequencer:
+            layout.separator()
+            layout.operator("sequencer.connect", icon='LINKED').toggle = True
+            layout.operator("sequencer.disconnect")
+
             layout.separator()
             row = layout.row(align=True)
             row.operator_enum("sequencer.strip_color_tag_set", "color", icon_only=True)
 
             layout.separator()
             layout.menu("SEQUENCER_MT_strip_lock_mute")
-
-            layout.separator()
-            layout.operator("sequencer.connect", icon='LINKED').toggle = True
-            layout.operator("sequencer.disconnect")
 
             layout.separator()
             layout.menu("SEQUENCER_MT_strip_input")
@@ -1290,6 +1288,8 @@ class SEQUENCER_MT_image_clear(Menu):
             text="Rotation",
             text_ctxt=i18n_contexts.default,
         ).property = 'ROTATION'
+
+        layout.separator()
         layout.operator(
             "sequencer.strip_transform_clear",
             text="All Transforms",

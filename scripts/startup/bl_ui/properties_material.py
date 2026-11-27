@@ -20,6 +20,8 @@ class MATERIAL_MT_context_menu(Menu):
         layout.operator("material.copy", icon='COPYDOWN')
         layout.operator("object.material_slot_copy")
         layout.operator("material.paste", icon='PASTEDOWN')
+
+        layout.separator()
         layout.operator("object.material_slot_remove_unused")
         layout.operator("object.material_slot_remove_all")
 

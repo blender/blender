@@ -334,10 +334,7 @@ class GRAPH_MT_channel(Menu):
         operator_context = layout.operator_context
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
-        layout.operator("anim.channels_delete")
-
-        if context.space_data.mode == 'DRIVERS':
-            layout.operator("graph.driver_delete_invalid")
+        layout.operator("anim.channels_view_selected")
 
         layout.separator()
         layout.operator("anim.channels_group", text="Group Channels...")
@@ -381,7 +378,9 @@ class GRAPH_MT_channel(Menu):
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
 
         layout.separator()
-        layout.operator("anim.channels_view_selected")
+        if context.space_data.mode == 'DRIVERS':
+            layout.operator("graph.driver_delete_invalid")
+        layout.operator("anim.channels_delete", icon='X')
 
 
 class GRAPH_MT_key_density(Menu):
@@ -441,18 +440,19 @@ class GRAPH_MT_key(Menu):
         layout = self.layout
 
         layout.menu("GRAPH_MT_key_transform", text="Transform")
-        layout.menu("GRAPH_MT_key_snap", text="Snap")
         layout.operator_menu_enum("graph.mirror", "type", text="Mirror")
+        layout.menu("GRAPH_MT_key_snap", text="Snap")
 
         layout.separator()
         layout.operator("graph.frame_jump", text="Jump to Selected")
 
+        layout.separator()
         layout.operator("graph.copy", text="Copy", icon='COPYDOWN')
         layout.operator("graph.paste", text="Paste", icon='PASTEDOWN')
         layout.operator("graph.paste", text="Paste Flipped", icon='PASTEFLIPDOWN').flipped = True
 
         layout.separator()
-        layout.operator_menu_enum("graph.keyframe_insert", "type", text="Insert")
+        layout.operator_menu_enum("graph.keyframe_insert", "type", text="Insert Keyframes")
         layout.operator("graph.duplicate_move", icon='DUPLICATE')
 
         layout.separator()
@@ -492,6 +492,7 @@ class GRAPH_MT_key_snap(Menu):
         layout.operator("graph.snap", text="Selection to Nearest Frame").type = 'NEAREST_FRAME'
         layout.operator("graph.snap", text="Selection to Nearest Second").type = 'NEAREST_SECOND'
         layout.operator("graph.snap", text="Selection to Nearest Marker").type = 'NEAREST_MARKER'
+        layout.separator()
         layout.operator("graph.snap", text="Flatten Handles").type = 'HORIZONTAL'
         layout.operator("graph.equalize_handles", text="Equalize Handles").side = 'BOTH'
         layout.separator()
@@ -521,7 +522,7 @@ class GRAPH_MT_delete(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("graph.delete")
+        layout.operator("graph.delete", icon='X')
 
         layout.separator()
 
@@ -543,14 +544,14 @@ class GRAPH_MT_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("graph.handle_type", "type", text="Handle Type")
-        layout.operator_menu_enum("graph.interpolation_type", "type", text="Interpolation Mode")
-        layout.operator_menu_enum("graph.easing_type", "type", text="Easing Type")
+        layout.operator("graph.keyframe_insert").type = 'SEL'
+        layout.operator("graph.duplicate_move", icon='DUPLICATE')
 
         layout.separator()
 
-        layout.operator("graph.keyframe_insert").type = 'SEL'
-        layout.operator("graph.duplicate_move", icon='DUPLICATE')
+        layout.operator_menu_enum("graph.handle_type", "type", text="Handle Type")
+        layout.operator_menu_enum("graph.interpolation_type", "type", text="Interpolation Mode")
+        layout.operator_menu_enum("graph.easing_type", "type", text="Easing Type")
 
         layout.separator()
 

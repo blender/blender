@@ -12,13 +12,14 @@ from bl_ui import anim
 
 # Use by both image & clip context menus.
 def draw_mask_context_menu(layout, _context):
+    layout.operator("mask.copy_splines", icon='COPYDOWN')
+    layout.operator("mask.paste_splines", icon='PASTEDOWN')
+
+    layout.separator()
+
     layout.operator_menu_enum("mask.handle_type_set", "type")
     layout.operator("mask.switch_direction")
     layout.operator("mask.cyclic_toggle")
-
-    layout.separator()
-    layout.operator("mask.copy_splines", icon='COPYDOWN')
-    layout.operator("mask.paste_splines", icon='PASTEDOWN')
 
     layout.separator()
 
@@ -33,7 +34,7 @@ def draw_mask_context_menu(layout, _context):
 
     layout.separator()
 
-    layout.operator("mask.delete")
+    layout.operator("mask.delete", icon='X')
 
 
 class MASK_UL_layers(UIList):
@@ -351,14 +352,14 @@ class MASK_MT_mask(Menu):
         layout.operator("mask.feather_weight_clear")
 
         layout.separator()
-        layout.operator("mask.cyclic_toggle")
         layout.operator("mask.handle_type_set")
-        layout.operator("mask.normals_make_consistent")
+        layout.operator("mask.cyclic_toggle")
         layout.operator("mask.switch_direction")
+        layout.operator("mask.normals_make_consistent")
 
         layout.separator()
-        layout.operator("mask.copy_splines")
-        layout.operator("mask.paste_splines")
+        layout.operator("mask.copy_splines", icon='COPYDOWN')
+        layout.operator("mask.paste_splines", icon='PASTEDOWN')
 
         layout.separator()
         layout.operator("mask.parent_clear")
@@ -369,7 +370,9 @@ class MASK_MT_mask(Menu):
 
         layout.separator()
         layout.menu("MASK_MT_visibility")
-        layout.operator("mask.delete")
+
+        layout.separator()
+        layout.operator("mask.delete", icon='X')
 
 
 class MASK_MT_add(Menu):
@@ -411,7 +414,8 @@ class MASK_MT_visibility(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("mask.hide_view_clear")
+        layout.operator("mask.hide_view_clear", text="Reveal Hidden")
+        layout.separator()
         layout.operator("mask.hide_view_set", text="Hide Selected").unselected = False
         layout.operator("mask.hide_view_set", text="Hide Unselected").unselected = True
 
