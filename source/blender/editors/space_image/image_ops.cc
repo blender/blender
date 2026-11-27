@@ -22,6 +22,7 @@
 
 #include "BLI_fileops.hh"
 #include "BLI_listbase.hh"
+#include "BLI_math_vector_c.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.hh"
@@ -3684,6 +3685,10 @@ bool ED_space_image_get_position(SpaceImage *sima,
   }
 
   ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &r_fpos[0], &r_fpos[1]);
+  if (sima->mode == SI_MODE_VIEW && flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow)) {
+    const float2 normalized_offset = float2(ibuf->display_offset) / float2(ibuf->x, ibuf->y);
+    sub_v2_v2(r_fpos, normalized_offset);
+  }
 
   ED_space_image_release_buffer(sima, ibuf, lock);
   return true;

@@ -542,6 +542,11 @@ bool ED_space_node_get_position(
   fpos[1] = (bufy > 0.0f ? (float(mval[1]) - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
                            0.0f);
 
+  if (flag_is_set(ibuf->flags, ImBufFlags::HasDisplayWindow)) {
+    const float2 normalized_offset = float2(ibuf->display_offset) / float2(ibuf->x, ibuf->y);
+    sub_v2_v2(fpos, normalized_offset);
+  }
+
   BKE_image_release_ibuf(ima, ibuf, lock);
   return true;
 }
