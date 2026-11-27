@@ -81,13 +81,8 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DJPEG_ROOT=${LIBDIR}/jpeg/
   -Dlibjpeg-turbo_ROOT=${LIBDIR}/jpeg/
   ${OPENJPEG_FLAGS}
-  -DOPENEXR_ILMTHREAD_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmThread${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
-  -DOPENEXR_IEX_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}Iex${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
-  -DOPENEXR_ILMIMF_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
   -DSTOP_ON_WARNING=OFF
   -DUSE_EXTERNAL_PUGIXML=ON
-  -DPUGIXML_LIBRARY=${LIBDIR}/pugixml/lib/${LIBPREFIX}pugixml${LIBEXT}
-  -DPUGIXML_INCLUDE_DIR=${LIBDIR}/pugixml/include/
   -Dpugixml_DIR=${LIBDIR}/pugixml/lib/cmake/pugixml
   -DOpenColorIO_DIR=${LIBDIR}/opencolorio/lib/cmake/OpenColorIO
   -DOpenImageIO_BUILD_MISSING_DEPS=""
@@ -97,7 +92,6 @@ set(OPENIMAGEIO_EXTRA_ARGS
   ${OIIO_SIMD_FLAGS}
   -DOpenEXR_ROOT=${LIBDIR}/openexr
   -DImath_ROOT=${LIBDIR}/imath
-  -Dpybind11_ROOT=${LIBDIR}/pybind11
   -DPython_EXECUTABLE=${PYTHON_BINARY}
   -DPython3_EXECUTABLE=${PYTHON_BINARY}
   -DTBB_ROOT=${LIBDIR}/tbb
@@ -105,6 +99,7 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -Dfmt_ROOT=${LIBDIR}/fmt
   -Dopenjph_DIR=${LIBDIR}/openjph/lib/cmake/openjph
   -DLibheif_DIR=${LIBDIR}/libheif/lib/cmake/libheif
+  -Dnanobind_DIR=${LIBDIR}/nanobind/nanobind/cmake/
 )
 
 if(WIN32)
@@ -132,10 +127,7 @@ ExternalProject_Add(external_openimageio
   PATCH_COMMAND
     ${PATCH_CMD} -p 1 -N -d
       ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/openimageio.diff &&
-    ${PATCH_CMD} -p 1 -N -d
-      ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/openimageio_dds_3d_5133.diff
+      ${PATCH_DIR}/openimageio.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimageio
     ${DEFAULT_CMAKE_FLAGS}
@@ -159,7 +151,7 @@ add_dependencies(
   external_openjpeg${OPENJPEG_POSTFIX}
   external_webp
   external_python
-  external_pybind11
+  external_nanobind
   external_tbb
   external_libheif
 )

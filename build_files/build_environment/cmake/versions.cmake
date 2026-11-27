@@ -295,10 +295,10 @@ set(LLVM_HOMEPAGE https://github.com/llvm/llvm-project/)
 set(LLVM_LICENSE SPDX:Apache-2.0 WITH LLVM-exception)
 set(LLVM_COPYRIGHT "Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.")
 
-set(OPENIMAGEIO_VERSION v3.1.16.0)
+set(OPENIMAGEIO_VERSION v3.2.2.0)
 set(OPENIMAGEIO_NAME OpenImageIO)
 set(OPENIMAGEIO_URI https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/${OPENIMAGEIO_VERSION}.tar.gz)
-set(OPENIMAGEIO_HASH 34e4f68d174c6768ce1d035d6f2f072f)
+set(OPENIMAGEIO_HASH 1609bba58a1ba15c11032b29ac23de46)
 set(OPENIMAGEIO_HASH_TYPE MD5)
 set(OPENIMAGEIO_FILE OpenImageIO-${OPENIMAGEIO_VERSION}.tar.gz)
 set(OPENIMAGEIO_CPE "cpe:2.3:a:openimageio:openimageio:${OPENIMAGEIO_VERSION}:*:*:*:*:*:*:*")
@@ -408,7 +408,7 @@ Copyright © 1991-1995 Stichting Mathematisch Centrum. All rights reserved.
 set(PYTHON_PIP_VERSION 25.2)
 set(PYTHON_PIP_CPE "cpe:2.3:a:pypa:pip:${PYTHON_PIP_VERSION}:*:*:*:*:*:*:*")
 
-set(TBB_YEAR 2022)
+set(TBB_YEAR 2023)
 set(TBB_NAME oneTBB)
 set(TBB_VERSION v2023.1.0)
 set(TBB_URI https://github.com/uxlfoundation/oneTBB/archive/refs/tags/${TBB_VERSION}.tar.gz)
@@ -762,9 +762,9 @@ Copyright (c) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper.
 Copyright (c) 2001-2025 Expat maintainers.
 ]=])
 
-set(PUGIXML_VERSION 1.10)
+set(PUGIXML_VERSION 1.16)
 set(PUGIXML_URI https://github.com/zeux/pugixml/archive/v${PUGIXML_VERSION}.tar.gz)
-set(PUGIXML_HASH 0c208b0664c7fb822bf1b49ad035e8fd)
+set(PUGIXML_HASH a7cd32a3d9e7f92ebddad2a4a6352b63)
 set(PUGIXML_HASH_TYPE MD5)
 set(PUGIXML_FILE pugixml-${PUGIXML_VERSION}.tar.gz)
 set(PUGIXML_CPE "cpe:2.3:a:pugixml_project:pugixml:${PUGIXML_VERSION}:*:*:*:*:*:*:*")

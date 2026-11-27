@@ -51,10 +51,7 @@ set(OSL_EXTRA_ARGS
   -DImath_ROOT=${LIBDIR}/imath
   -DCMAKE_DEBUG_POSTFIX=_d
   -Dpybind11_ROOT=${LIBDIR}/pybind11
-  -DPython_ROOT=${LIBDIR}/python
-  -DPython_EXECUTABLE=${PYTHON_BINARY}
   -DPython3_EXECUTABLE=${PYTHON_BINARY}
-  -Dlibdeflate_DIR=${LIBDIR}/deflate/lib/cmake/libdeflate
 )
 
 if(NOT APPLE)
