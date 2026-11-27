@@ -1210,9 +1210,6 @@ class SEQUENCER_MT_strip(Menu):
                     layout.operator("sequencer.meta_make")
                     layout.operator("sequencer.meta_separate")
                 layout.operator("sequencer.meta_toggle", text="Toggle Meta")
-                elif strip_type != 'SOUND':
-                    layout.separator()
-                    layout.operator("sequencer.rendersize")
 
         if has_sequencer:
             layout.separator()
