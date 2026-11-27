@@ -966,9 +966,9 @@ static void drawObjectConstraint(TransInfo *t)
       const float (*axismtx)[3];
 
       if (t->flag & T_PROP_EDIT) {
-        /* We're sorted, so skip the rest. */
+        /* Skip points with zero influence. */
         if (td->factor == 0.0f) {
-          break;
+          continue;
         }
       }
 
