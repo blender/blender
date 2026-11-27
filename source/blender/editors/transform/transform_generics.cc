@@ -505,7 +505,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
 
     BLI_assert(!ELEM(-1, orient_type_default, orient_type_set));
-    if (orient_type_matrix_set == orient_type_set) {
+    const bool use_orient_matrix = (orient_type_matrix_set == orient_type_set);
+    if (use_orient_matrix) {
       /* Constraints are forced to use the custom matrix when redoing. */
       orient_type_set = V3D_ORIENT_CUSTOM_MATRIX;
     }
@@ -527,6 +528,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         t->orient[i].type = transform_orientation_matrix_get(
             C, t, orient_types[i], custom_matrix, t->orient[i].matrix);
       }
+    }
+
+    /* `orient_type_set` was set to #V3D_ORIENT_CUSTOM_MATRIX to reuse the orientation
+     * matrix for redo. At this point, the orientation type needs to be restored to the
+     * original. */
+    if (use_orient_matrix) {
+      t->orient[O_SET].type = orient_type_matrix_set;
     }
 
     t->orient_type_mask = 0;
