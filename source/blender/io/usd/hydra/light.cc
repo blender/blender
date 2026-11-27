@@ -76,6 +76,7 @@ static pxr::HdContainerDataSourceHandle build_light_params_data_source(const Obj
           b.add(pxr::HdLightTokens->radius, (light->area_size + light->area_sizey) / 4.0f);
           break;
       }
+      b.add(pxr::HdLightTokens->shapingConeAngle, RAD2DEGF(light->area_spread * 0.5f));
       break;
     case LA_LOCAL:
     case LA_SPOT:
@@ -84,8 +85,8 @@ static pxr::HdContainerDataSourceHandle build_light_params_data_source(const Obj
         b.add(pxr::UsdLuxTokens->treatAsPoint, true);
       }
       if (light->type == LA_SPOT) {
-        b.add(pxr::UsdLuxTokens->inputsShapingConeAngle, RAD2DEGF(light->spotsize * 0.5f));
-        b.add(pxr::UsdLuxTokens->inputsShapingConeSoftness, light->spotblend);
+        b.add(pxr::HdLightTokens->shapingConeAngle, RAD2DEGF(light->spotsize * 0.5f));
+        b.add(pxr::HdLightTokens->shapingConeSoftness, light->spotblend);
       }
       break;
     case LA_SUN:

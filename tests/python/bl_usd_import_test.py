@@ -968,18 +968,21 @@ class USDImportTest(AbstractUSDTest):
         bpy.context.active_object.data.shape = 'RECTANGLE'
         bpy.context.active_object.data.size = 0.5
         bpy.context.active_object.data.size_y = 1.5
+        bpy.context.active_object.data.spread = math.radians(45)
 
         bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
         rename_active("Area_square")
         bpy.context.active_object.data.energy = 5.5
         bpy.context.active_object.data.shape = 'SQUARE'
         bpy.context.active_object.data.size = 0.7
+        bpy.context.active_object.data.spread = math.radians(60)
 
         bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
         rename_active("Area_disk")
         bpy.context.active_object.data.energy = 6
         bpy.context.active_object.data.shape = 'DISK'
         bpy.context.active_object.data.size = 2
+        bpy.context.active_object.data.spread = math.radians(75)
 
         bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
         rename_active("Area_ellipse")
@@ -987,17 +990,20 @@ class USDImportTest(AbstractUSDTest):
         bpy.context.active_object.data.shape = 'ELLIPSE'
         bpy.context.active_object.data.size = 3
         bpy.context.active_object.data.size_y = 5
+        bpy.context.active_object.data.spread = math.radians(90)
 
+        # Export the scene and import back in
         test_path = self.tempdir / "temp_lights.usda"
         res = bpy.ops.wm.usd_export(filepath=str(test_path), evaluation_mode="RENDER")
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path}")
 
-        # Reload the empty file and import back in
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+
         infile = str(test_path)
         res = bpy.ops.wm.usd_import(filepath=infile)
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
 
+        # Validate all properties of the lights that we expect to have been written
         lights = [o for o in bpy.data.objects if o.type == 'LIGHT']
         self.assertEqual(8, len(lights), f"Test scene {infile} should have 8 lights; found {len(lights)}")
 
@@ -1026,21 +1032,25 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(blender_light.shape, 'RECTANGLE')
         self.assertAlmostEqual(blender_light.size, 0.5, 3)
         self.assertAlmostEqual(blender_light.size_y, 1.5, 3)
+        self.assertAlmostEqual(blender_light.spread, math.radians(45), 3)
 
         blender_light = bpy.data.lights["Area_square"]
         self.assertAlmostEqual(blender_light.energy, 5.5, 3)
         self.assertEqual(blender_light.shape, 'RECTANGLE')  # We read as rectangle to mirror what USD supports
         self.assertAlmostEqual(blender_light.size, 0.7, 3)
+        self.assertAlmostEqual(blender_light.spread, math.radians(60), 3)
 
         blender_light = bpy.data.lights["Area_disk"]
         self.assertAlmostEqual(blender_light.energy, 6, 3)
         self.assertEqual(blender_light.shape, 'DISK')
         self.assertAlmostEqual(blender_light.size, 2, 3)
+        self.assertAlmostEqual(blender_light.spread, math.radians(75), 3)
 
         blender_light = bpy.data.lights["Area_ellipse"]
         self.assertAlmostEqual(blender_light.energy, 6.5, 3)
         self.assertEqual(blender_light.shape, 'DISK')  # We read as disk to mirror what USD supports
         self.assertAlmostEqual(blender_light.size, 4, 3)
+        self.assertAlmostEqual(blender_light.spread, math.radians(90), 3)
 
     def test_import_dome_lights(self):
         """Test importing dome lights and verify their rotations."""

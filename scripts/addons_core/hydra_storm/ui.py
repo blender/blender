@@ -189,13 +189,6 @@ class STORM_HYDRA_LIGHT_PT_light(Panel):
             row = main_col.row(align=True)
             row.prop(light, "shadow_soft_size", text="Radius")
 
-        elif light.type == 'SPOT':
-            col = main_col.column(align=True)
-            col.prop(light, 'spot_size', text="Angle", slider=True)
-            col.prop(light, 'spot_blend', slider=True)
-
-            main_col.prop(light, 'show_cone')
-
         elif light.type == 'SUN':
             main_col.prop(light, "angle")
 
@@ -213,6 +206,31 @@ class STORM_HYDRA_LIGHT_PT_light(Panel):
                 main_col.prop(light, 'size')
 
 
+class STORM_HYDRA_LIGHT_PT_beam_shape(Panel):
+    bl_label = "Beam Shape"
+    bl_parent_id = "STORM_HYDRA_LIGHT_PT_light"
+    bl_context = "data"
+
+    @classmethod
+    def poll(cls, context):
+        if context.light.type in {'SPOT', 'AREA'}:
+            return context.light
+
+    def draw(self, context):
+        layout = self.layout
+        light = context.light
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        if light.type == 'SPOT':
+            col.prop(light, "spot_size", text="Angle")
+            col.prop(light, "spot_blend", text="Blend", slider=True)
+            col.prop(light, "show_cone")
+        elif light.type == 'AREA':
+            col.prop(light, "spread", text="Spread")
+
+
 register_classes, unregister_classes = bpy.utils.register_classes_factory((
     STORM_HYDRA_RENDER_PT_quality,
     STORM_HYDRA_RENDER_PT_quality_viewport,
@@ -222,6 +240,7 @@ register_classes, unregister_classes = bpy.utils.register_classes_factory((
     STORM_HYDRA_RENDER_PT_volumes_render,
     STORM_HYDRA_RENDER_PT_film,
     STORM_HYDRA_LIGHT_PT_light,
+    STORM_HYDRA_LIGHT_PT_beam_shape,
     STORM_HYDRA_RENDER_PT_passes,
     STORM_HYDRA_RENDER_PT_passes_data,
 ))

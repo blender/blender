@@ -39,49 +39,48 @@ void USDLightWriter::do_write(HierarchyContext &context)
   switch (light->type) {
     case LA_AREA: {
       switch (light->area_shape) {
-        case LA_AREA_RECT: {
-          pxr::UsdLuxRectLight rect_light = pxr::UsdLuxRectLight::Define(stage, usd_path);
-          set_attribute(rect_light.CreateWidthAttr(pxr::VtValue(), true),
-                        light->area_size,
-                        time,
-                        usd_value_writer_);
-          set_attribute(rect_light.CreateHeightAttr(pxr::VtValue(), true),
-                        light->area_sizey,
-                        time,
-                        usd_value_writer_);
-          usd_light_api = rect_light.LightAPI();
-          break;
-        }
+        case LA_AREA_RECT:
         case LA_AREA_SQUARE: {
+          const float width = light->area_size;
+          const float height = (light->area_shape == LA_AREA_RECT) ? light->area_sizey :
+                                                                     light->area_size;
           pxr::UsdLuxRectLight rect_light = pxr::UsdLuxRectLight::Define(stage, usd_path);
-          set_attribute(rect_light.CreateWidthAttr(pxr::VtValue(), true),
-                        light->area_size,
-                        time,
-                        usd_value_writer_);
-          set_attribute(rect_light.CreateHeightAttr(pxr::VtValue(), true),
-                        light->area_size,
-                        time,
-                        usd_value_writer_);
+          set_attribute(
+              rect_light.CreateWidthAttr(pxr::VtValue(), true), width, time, usd_value_writer_);
+          set_attribute(
+              rect_light.CreateHeightAttr(pxr::VtValue(), true), height, time, usd_value_writer_);
           usd_light_api = rect_light.LightAPI();
+
+          pxr::UsdLuxShapingAPI shaping_api = pxr::UsdLuxShapingAPI::Apply(rect_light.GetPrim());
+          if (shaping_api) {
+            set_attribute(shaping_api.CreateShapingConeAngleAttr(pxr::VtValue(), true),
+                          RAD2DEGF(light->area_spread) / 2.0f,
+                          time,
+                          usd_value_writer_);
+          }
+
           break;
         }
-        case LA_AREA_DISK: {
-          pxr::UsdLuxDiskLight disk_light = pxr::UsdLuxDiskLight::Define(stage, usd_path);
-          set_attribute(disk_light.CreateRadiusAttr(pxr::VtValue(), true),
-                        light->area_size / 2.0f,
-                        time,
-                        usd_value_writer_);
-          usd_light_api = disk_light.LightAPI();
-          break;
-        }
+
+        case LA_AREA_DISK:
         case LA_AREA_ELLIPSE: {
-          /* An ellipse light deteriorates into a disk light. */
+          const float radius = (light->area_shape == LA_AREA_DISK) ?
+                                   (light->area_size / 2.0f) :
+                                   (light->area_size + light->area_sizey) / 4.0f;
+
           pxr::UsdLuxDiskLight disk_light = pxr::UsdLuxDiskLight::Define(stage, usd_path);
-          set_attribute(disk_light.CreateRadiusAttr(pxr::VtValue(), true),
-                        (light->area_size + light->area_sizey) / 4.0f,
-                        time,
-                        usd_value_writer_);
+          set_attribute(
+              disk_light.CreateRadiusAttr(pxr::VtValue(), true), radius, time, usd_value_writer_);
           usd_light_api = disk_light.LightAPI();
+
+          pxr::UsdLuxShapingAPI shaping_api = pxr::UsdLuxShapingAPI::Apply(disk_light.GetPrim());
+          if (shaping_api) {
+            set_attribute(shaping_api.CreateShapingConeAngleAttr(pxr::VtValue(), true),
+                          RAD2DEGF(light->area_spread) / 2.0f,
+                          time,
+                          usd_value_writer_);
+          }
+
           break;
         }
       }

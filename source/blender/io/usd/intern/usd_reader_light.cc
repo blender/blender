@@ -19,7 +19,39 @@
 #include <pxr/usd/usdLux/shapingAPI.h>
 #include <pxr/usd/usdLux/sphereLight.h>
 
+#include <optional>
+
 namespace blender::io::usd {
+
+struct UsdShapingData {
+  std::optional<float> cone_angle;
+  std::optional<float> cone_softness;
+};
+
+static UsdShapingData get_shaping_data(const pxr::UsdPrim &prim, const pxr::UsdTimeCode time)
+{
+  pxr::UsdLuxShapingAPI shaping_api = pxr::UsdLuxShapingAPI(prim);
+  if (!shaping_api) {
+    return {};
+  }
+
+  UsdShapingData shaping_data;
+
+  if (pxr::UsdAttribute cone_angle_attr = shaping_api.GetShapingConeAngleAttr()) {
+    float cone_angle = 0.0f;
+    if (cone_angle_attr.IsAuthored() && cone_angle_attr.Get(&cone_angle, time)) {
+      shaping_data.cone_angle = cone_angle;
+    }
+  }
+
+  if (pxr::UsdAttribute cone_softness_attr = shaping_api.GetShapingConeSoftnessAttr()) {
+    float cone_softness = 0.0f;
+    if (cone_softness_attr.IsAuthored() && cone_softness_attr.Get(&cone_softness, time)) {
+      shaping_data.cone_softness = cone_softness;
+    }
+  }
+  return shaping_data;
+}
 
 void USDLightReader::create_object(Main *bmain)
 {
@@ -42,6 +74,8 @@ void USDLightReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
     return;
   }
 
+  const UsdShapingData shaping_data = get_shaping_data(prim_, time);
+
   if (prim_.IsA<pxr::UsdLuxDiskLight>()) {
     /* Disk area light. */
     blight->type = LA_AREA;
@@ -55,6 +89,10 @@ void USDLightReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
           blight->area_size = radius * 2.0f;
         }
       }
+    }
+
+    if (shaping_data.cone_angle.has_value()) {
+      blight->area_spread = DEG2RADF(*shaping_data.cone_angle) * 2.0f;
     }
   }
   else if (prim_.IsA<pxr::UsdLuxRectLight>()) {
@@ -78,6 +116,10 @@ void USDLightReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
         }
       }
     }
+
+    if (shaping_data.cone_angle.has_value()) {
+      blight->area_spread = DEG2RADF(*shaping_data.cone_angle) * 2.0f;
+    }
   }
   else if (prim_.IsA<pxr::UsdLuxSphereLight>()) {
     /* Point and spot light. */
@@ -98,22 +140,12 @@ void USDLightReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
       }
     }
 
-    pxr::UsdLuxShapingAPI shaping_api = pxr::UsdLuxShapingAPI(prim_);
-    if (shaping_api && shaping_api.GetShapingConeAngleAttr().IsAuthored()) {
+    if (shaping_data.cone_angle.has_value()) {
       blight->type = LA_SPOT;
+      blight->spotsize = DEG2RADF(*shaping_data.cone_angle) * 2.0f;
 
-      if (pxr::UsdAttribute cone_angle_attr = shaping_api.GetShapingConeAngleAttr()) {
-        float cone_angle = 0.0f;
-        if (cone_angle_attr.Get(&cone_angle, time)) {
-          blight->spotsize = DEG2RADF(cone_angle) * 2.0f;
-        }
-      }
-
-      if (pxr::UsdAttribute cone_softness_attr = shaping_api.GetShapingConeSoftnessAttr()) {
-        float cone_softness = 0.0f;
-        if (cone_softness_attr.Get(&cone_softness, time)) {
-          blight->spotblend = cone_softness;
-        }
+      if (shaping_data.cone_softness.has_value()) {
+        blight->spotblend = *shaping_data.cone_softness;
       }
     }
   }
