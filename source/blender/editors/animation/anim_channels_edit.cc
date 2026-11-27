@@ -3499,7 +3499,7 @@ static wmOperatorStatus animchannels_select_filter_invoke(bContext *C,
    * the modal callback function; by the time it runs, the screen has been redrawn and the UI
    * element is there to activate. */
   if (region_channels->flag & RGN_FLAG_HIDDEN) {
-    ED_region_toggle_hidden(C, region_channels);
+    ED_region_toggle_hidden(C, area, region_channels);
     ED_region_tag_redraw(region_channels);
   }
   bAnimContext ac;

@@ -3424,7 +3424,7 @@ static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd, bool do
     ui::view2d_curRect_validate(&rmd->region->v2d);
   }
 
-  region_toggle_hidden(C, rmd->region, do_fade);
+  region_toggle_hidden(C, rmd->area, rmd->region, do_fade);
   region_scale_validate_size(rmd);
 
   if ((rmd->region->flag & RGN_FLAG_HIDDEN) == 0) {
@@ -3434,7 +3434,7 @@ static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd, bool do
         if ((region_tool_header->flag & RGN_FLAG_HIDDEN_BY_USER) == 0 &&
             (region_tool_header->flag & RGN_FLAG_HIDDEN) != 0)
         {
-          region_toggle_hidden(C, region_tool_header, do_fade);
+          region_toggle_hidden(C, rmd->area, region_tool_header, do_fade);
         }
       }
     }
@@ -6048,16 +6048,17 @@ static wmOperatorStatus region_toggle_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "region_type");
 
+  ScrArea *area = CTX_wm_area(C);
   ARegion *region;
   if (RNA_property_is_set(op->ptr, prop)) {
-    region = BKE_area_find_region_type(CTX_wm_area(C), RNA_property_enum_get(op->ptr, prop));
+    region = BKE_area_find_region_type(area, RNA_property_enum_get(op->ptr, prop));
   }
   else {
     region = CTX_wm_region(C);
   }
 
-  if (region && (region->alignment != RGN_ALIGN_NONE)) {
-    ED_region_toggle_hidden(C, region);
+  if (region && (region->alignment != RGN_ALIGN_NONE) && area != nullptr) {
+    ED_region_toggle_hidden(C, area, region);
   }
   ED_region_tag_redraw(region);
 

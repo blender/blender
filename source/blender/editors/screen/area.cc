@@ -701,7 +701,10 @@ void ED_region_activate_rna_prop(bContext *C,
       });
 
   if (region->flag & RGN_FLAG_HIDDEN) {
-    ED_region_toggle_hidden(C, region);
+    ScrArea *area = CTX_wm_area(C);
+    if (area != nullptr) {
+      ED_region_toggle_hidden(C, area, region);
+    }
   }
   ED_region_tag_redraw(region);
 }
@@ -2592,14 +2595,14 @@ void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *reg
   ED_region_visibility_change_update_ex(C, area, region, is_hidden, do_init);
 }
 
-void region_toggle_hidden(bContext *C, ARegion *region, const bool do_fade)
+void region_toggle_hidden(bContext *C, ScrArea *area, ARegion *region, const bool do_fade)
 {
-  ScrArea *area = CTX_wm_area(C);
+  BLI_assert(area != nullptr);
 
   region->flag ^= RGN_FLAG_HIDDEN;
 
   if (do_fade && region->overlap && !(U.uiflag & USER_REDUCE_MOTION) &&
-      !region->runtime->regiontimer)
+      !region->runtime->regiontimer && (area == CTX_wm_area(C)))
   {
     /* starts a timer, and in end calls the stuff below itself (region_sblend_invoke()) */
     ED_region_visibility_change_update_animated(C, area, region);
@@ -2609,9 +2612,9 @@ void region_toggle_hidden(bContext *C, ARegion *region, const bool do_fade)
   }
 }
 
-void ED_region_toggle_hidden(bContext *C, ARegion *region)
+void ED_region_toggle_hidden(bContext *C, ScrArea *area, ARegion *region)
 {
-  region_toggle_hidden(C, region, true);
+  region_toggle_hidden(C, area, region, true);
 }
 
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free)

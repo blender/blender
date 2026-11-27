@@ -165,7 +165,7 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *area, ARegion *region);
 /**
  * Exported to all editors, uses fading default.
  */
-void ED_region_toggle_hidden(bContext *C, ARegion *region);
+void ED_region_toggle_hidden(bContext *C, ScrArea *area, ARegion *region);
 /**
  * For use after changing visibility of regions.
  */

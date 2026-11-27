@@ -960,7 +960,7 @@ static void rna_Space_bool_from_region_flag_update_by_type(bContext *C,
     }
     else if (region_flag == RGN_FLAG_HIDDEN_BY_USER) {
       if (!(region->flag & RGN_FLAG_HIDDEN_BY_USER) != !(region->flag & RGN_FLAG_HIDDEN)) {
-        ED_region_toggle_hidden(C, region);
+        ED_region_toggle_hidden(C, area, region);
 
         if ((region->flag & RGN_FLAG_HIDDEN_BY_USER) == 0) {
           ui::ED_area_type_hud_ensure(C, area);

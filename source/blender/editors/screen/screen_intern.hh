@@ -102,7 +102,7 @@ enum class AreaDockTarget {
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, bool do_free);
 void ED_area_data_swap(ScrArea *area_dst, ScrArea *area_src);
 /* for quick toggle, can skip fades */
-void region_toggle_hidden(bContext *C, ARegion *region, bool do_fade);
+void region_toggle_hidden(bContext *C, ScrArea *area, ARegion *region, bool do_fade);
 
 /* `screen_draw.cc` */
 
