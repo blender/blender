@@ -3455,7 +3455,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
   prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
   // RNA_def_property_pointer_sdna(prop, nullptr, "part");
   RNA_def_property_struct_type(prop, "ParticleSettings");
-  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL | PROP_ID_REFCOUNT);
   RNA_def_property_pointer_funcs(
       prop, "rna_particle_settings_get", "rna_particle_settings_set", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Settings", "Particle system settings");
