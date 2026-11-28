@@ -119,7 +119,9 @@ bool validSnap(const TransInfo *t)
 void transform_snap_flag_from_modifiers_set(TransInfo *t)
 {
   if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
-    /* Those space-types define their own invert behavior instead of toggling it on/off. */
+    /* These space-types define their own invert behavior (invert button swaps between frames and
+     * seconds snapping). However, we still want toggle behavior, so set that flag here. */
+    SET_FLAG_FROM_TEST(t->tsnap.flag, t->modifiers & MOD_SNAP, SCE_SNAP);
     return;
   }
   if (t->spacetype == SPACE_GRAPH) {
