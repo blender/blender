@@ -1262,6 +1262,7 @@ static void screen_global_area_refresh(wmWindow *win,
 
   if (area) {
     screen_area_set_geometry_rect(area, rect);
+    screen->do_refresh = true;
   }
   else {
     area = screen_area_create_with_geometry(&win->global_areas, rect, space_type);
