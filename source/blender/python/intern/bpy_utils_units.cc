@@ -41,24 +41,10 @@ static const char *bpyunits_usystem_items[] = {
 };
 
 static const char *bpyunits_ucategories_items[] = {
-    "NONE",
-    "LENGTH",
-    "AREA",
-    "VOLUME",
-    "MASS",
-    "ROTATION",
-    "TIME",
-    "TIME_ABSOLUTE",
-    "VELOCITY",
-    "ACCELERATION",
-    "CAMERA",
-    "POWER",
-    "TEMPERATURE",
-    "WAVELENGTH",
-    "COLOR_TEMPERATURE",
-    "FREQUENCY",
-    "WAVELENGTH_UM",
-    nullptr,
+    "NONE",      "LENGTH",        "AREA",          "VOLUME",     "MASS",
+    "ROTATION",  "TIME",          "TIME_ABSOLUTE", "VELOCITY",   "ACCELERATION",
+    "CAMERA",    "POWER",         "TEMPERATURE",   "WAVELENGTH", "COLOR_TEMPERATURE",
+    "FREQUENCY", "WAVELENGTH_UM", "AUDIO_LEVEL",   nullptr,
 };
 
 BLI_STATIC_ASSERT(

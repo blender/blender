@@ -1563,6 +1563,29 @@ static bUnitCollection buFrequencyCollection = {
     /*length*/ UNIT_COLLECTION_LENGTH(buFrequencyDef),
 };
 
+/* Decibels */
+static bUnitDef buDecibelDef[] = {
+    /* Base unit. */
+    {
+        /*name*/ "decibel",
+        /*name_plural*/ "decibels",
+        /*name_short*/ "dB",
+        /*name_alt*/ nullptr,
+        /*name_display*/ "Decibels",
+        /*identifier*/ "DECIBELS",
+        /*scalar*/ 1.0,
+        /*bias*/ 0.0,
+        /*flag*/ B_UNIT_DEF_NONE,
+    },
+    NULL_UNIT,
+};
+static bUnitCollection buAudioLevelCollection = {
+    /*units*/ buDecibelDef,
+    /*base_unit*/ 0,
+    /*flag*/ 0,
+    /*length*/ UNIT_COLLECTION_LENGTH(buDecibelDef),
+};
+
 #define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / B_UNIT_TYPE_TOT) / sizeof(void *)) - 1)
 static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
     /* Natural. */
@@ -1584,6 +1607,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_COLOR_TEMPERATURE*/ nullptr,
         /*B_UNIT_FREQUENCY*/ nullptr,
         /*B_UNIT_WAVELENGTH_UM*/ nullptr,
+        /*B_UNIT_AUDIO_LEVEL*/ &buAudioLevelCollection,
     },
     /* Metric. */
     {
@@ -1604,6 +1628,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_COLOR_TEMPERATURE*/ &buColorTempCollection,
         /*B_UNIT_FREQUENCY*/ &buFrequencyCollection,
         /*B_UNIT_WAVELENGTH_UM*/ &buWavelengthLenUmCollection,
+        /*B_UNIT_AUDIO_LEVEL*/ &buAudioLevelCollection,
     },
     /* Imperial. */
     {
@@ -1624,6 +1649,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_COLOR_TEMPERATURE*/ &buColorTempCollection,
         /*B_UNIT_FREQUENCY*/ &buFrequencyCollection,
         /*B_UNIT_WAVELENGTH_UM*/ &buWavelengthLenUmCollection,
+        /*B_UNIT_AUDIO_LEVEL*/ &buAudioLevelCollection,
     },
     {nullptr},
 };

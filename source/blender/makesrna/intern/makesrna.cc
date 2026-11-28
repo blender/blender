@@ -2917,6 +2917,8 @@ static const char *rna_property_subtype_unit(PropertySubType type)
       return "PROP_UNIT_FREQUENCY";
     case PROP_UNIT_WAVELENGTH_UM:
       return "PROP_UNIT_WAVELENGTH_UM";
+    case PROP_UNIT_AUDIO_LEVEL:
+      return "PROP_UNIT_AUDIO_LEVEL";
     default:
       return "PROP_UNIT_UNKNOWN";
   }

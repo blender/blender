@@ -52,6 +52,13 @@ class UnitsTesting(unittest.TestCase):
 
         ('METRIC', 'LENGTH', "", "~ + - 32m", ~+-32),
         ('METRIC', 'LENGTH', "", "- + ~ 32m", -+~32),
+
+        # AUDIO_LEVEL
+        ('NONE', 'AUDIO_LEVEL', "", "-6dB", -6.0),
+        ('NONE', 'AUDIO_LEVEL', "", "0dB", 0.0),
+        ('NONE', 'AUDIO_LEVEL', "", "3.5dB", 3.5),
+        ('METRIC', 'AUDIO_LEVEL', "", "-12.5dB", -12.5),
+        ('IMPERIAL', 'AUDIO_LEVEL', "", "6dB", 6.0),
     )
 
     # From 'internal' Blender value to user-friendly printing
@@ -81,6 +88,13 @@ class UnitsTesting(unittest.TestCase):
         ('METRIC', 'LENGTH', -7, True, False, 0, "0.000000 m"),
         ('METRIC', 'LENGTH', -3, False, False, 0.001004, "1.004 mm"),
         ('METRIC', 'LENGTH', -3, False, False, 0.0005, "0.500 mm"),
+
+        # AUDIO_LEVEL
+        ('NONE', 'AUDIO_LEVEL', 3, False, False, -6.0, "-6 dB"),
+        ('NONE', 'AUDIO_LEVEL', 3, False, False, 0.0, "0 dB"),
+        ('NONE', 'AUDIO_LEVEL', 3, False, False, 3.5, "3.5 dB"),
+        ('METRIC', 'AUDIO_LEVEL', 3, False, False, -12.5, "-12.5 dB"),
+        ('IMPERIAL', 'AUDIO_LEVEL', 3, False, False, 6.0, "6 dB"),
     )
 
     def test_units_inputs(self):

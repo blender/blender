@@ -160,6 +160,7 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
     {PROP_UNIT_COLOR_TEMPERATURE, "COLOR_TEMPERATURE", 0, "Color Temperature", ""},
     {PROP_UNIT_FREQUENCY, "FREQUENCY", 0, "Frequency", ""},
     {PROP_UNIT_WAVELENGTH_UM, "WAVELENGTH_UM", 0, "Wavelength (um)", ""},
+    {PROP_UNIT_AUDIO_LEVEL, "AUDIO_LEVEL", 0, "Audio Level", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

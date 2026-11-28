@@ -2842,7 +2842,7 @@ bool button_is_unit(const Button *but)
 
   if (unit->system == USER_UNIT_NONE) {
     /* These types have units irrespective of scene units. */
-    if (!ELEM(unit_type, PROP_UNIT_ROTATION, PROP_UNIT_TIME_ABSOLUTE)) {
+    if (!ELEM(unit_type, PROP_UNIT_ROTATION, PROP_UNIT_TIME_ABSOLUTE, PROP_UNIT_AUDIO_LEVEL)) {
       return false;
     }
   }

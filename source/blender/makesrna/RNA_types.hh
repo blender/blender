@@ -235,6 +235,7 @@ enum PropertyUnit {
   PROP_UNIT_COLOR_TEMPERATURE = (14 << 16), /* K */
   PROP_UNIT_FREQUENCY = (15 << 16),         /* Hz */
   PROP_UNIT_WAVELENGTH_UM = (16 << 16),     /* `um` (independent of scene). */
+  PROP_UNIT_AUDIO_LEVEL = (17 << 16),       /* dB (independent of scene). */
 };
 ENUM_OPERATORS(PropertyUnit)
 
