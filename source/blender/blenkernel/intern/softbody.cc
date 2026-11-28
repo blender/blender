@@ -948,7 +948,7 @@ static void free_softbody_intern(SoftBody *sb)
  * flaw of this: 'fast' particles as well as 'fast' colliding faces
  * give a 'tunnel' effect such that the particle passes through the force field
  * without ever 'seeing' it
- * this is fully compliant to heisenberg: h >= fuzzy(location) * fuzzy(time)
+ * this is fully compliant to Heisenberg: h >= fuzzy(location) * fuzzy(time)
  * besides our h is way larger than in QM because forces propagate way slower here
  * we have to deal with fuzzy(time) in the range of 1/25 seconds (typical frame rate)
  * yup collision targets are not known here any better
@@ -2666,7 +2666,7 @@ static void mesh_to_softbody(Object *ob)
     /* get scalar values needed  *per vertex* from vertex group functions,
      * so we can *paint* them nicely ..
      * they are normalized [0.0..1.0] so may be we need amplitude for scale
-     * which can be done by caller but still .. i'd like it to go this way
+     * which can be done by caller but still .. I'd like it to go this way
      */
 
     if (ob->softflag & OB_SB_GOAL) {

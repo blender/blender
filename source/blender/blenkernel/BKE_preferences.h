@@ -111,7 +111,7 @@ void BKE_preferences_remote_asset_library_auth_token_set(bUserAssetLibrary *libr
 
 /**
  * Unlink and free a library preference member.
- * \note Free's \a library itself.
+ * \note Frees \a library itself.
  */
 void BKE_preferences_asset_library_remove(struct UserDef *userdef,
                                           struct bUserAssetLibrary *library) ATTR_NONNULL();

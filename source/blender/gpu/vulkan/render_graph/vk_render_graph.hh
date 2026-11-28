@@ -88,7 +88,7 @@ class VKRenderGraph : public NonCopyable {
    * Node read/write links to buffer and image resources.
    */
   VKRenderGraphLinks links_;
-  /** Storage for large node datas to improve CPU cache pre-loading. */
+  /** Storage for large node data to improve CPU cache pre-loading. */
   VKRenderGraphStorage storage_;
 
   /**

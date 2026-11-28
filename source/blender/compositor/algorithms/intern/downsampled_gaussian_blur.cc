@@ -246,7 +246,7 @@ static Result gaussian_axis(Context &context,
   /* Note: clamp before integer conversion; a radius coming from a socket can exceed the UI range.
    */
   int tap_count = int(std::ceil(math::min(float(max_tap_pairs), 2.0f * sigma)));
-  /* Gaussian kernel, with a smoothstep taper towards zero over the last sigma. */
+  /* Gaussian kernel, with a `smoothstep` taper towards zero over the last sigma. */
   const auto weight = [sigma](const int i) {
     const float x = i / sigma;
     const float t = math::clamp(4.0f - x, 0.0f, 1.0f);

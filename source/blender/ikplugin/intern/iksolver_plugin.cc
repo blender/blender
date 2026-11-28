@@ -239,7 +239,7 @@ static void make_dmats(bPoseChannel *pchan)
 /* formula: pose_mat(b) = pose_mat(b-1) * diffmat(b-1, b) * ik_mat(b) */
 /* to make this work, the diffmats have to be precalculated! Stored in chan_mat */
 static void where_is_ik_bone(const bke::PChanBone pchanbone,
-                             float ik_mat[3][3]) /* nr = to detect if this is first bone */
+                             float ik_mat[3][3]) /* `nr` = to detect if this is first bone */
 {
   float vec[3], ikmat[4][4];
   bPoseChannel *pchan = pchanbone.pchan;

@@ -161,7 +161,7 @@
  * This Gesture Handler class owns and coordinates Gesture Recognizers for a given window, acting
  * as the recognizers' target and delegate, translating Sidecar touch gestures into GHOST events.
  *
- * The different gesture recognizers are allowed to run simulatenously. For continuous gestures,
+ * The different gesture recognizers are allowed to run simultaneously. For continuous gestures,
  * the recognizers actions are only in charge of pressing the left-click down. The mouse cursor
  * location and final left click release being handled by the contact observer recognizer.
  */
@@ -175,7 +175,7 @@
   /* List of managed recognizers. */
   NSMutableArray<NSGestureRecognizer *> *recognizers_;
 
-  /* Contact observer recognizer providing conitnuous position of all touch contacts. */
+  /* Contact observer recognizer providing continuous position of all touch contacts. */
   BlenderContactObserver *contact_observer_;
 
   /* Left button state shared by press and drag gestures. */
@@ -510,7 +510,7 @@
   const double delta = recognizer.magnification - magnify_prev_;
   magnify_prev_ = recognizer.magnification;
 
-  /* Using the same manignification constant as existing trackpad code (in SystemCocoa.mm). */
+  /* Using the same magnification constant as existing trackpad code (in SystemCocoa.mm). */
   const int32_t whole = [self computeGestureDelta:delta * 125.0 remainder:magnify_rem_];
 
   if (whole != 0) {

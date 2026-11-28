@@ -485,7 +485,7 @@ static int mg_distNoiseTex(const Tex *tex, const float texvec[3], TexResult *tex
 /* ------------------------------------------------------------------------- */
 /* newnoise: Voronoi texture type
  *
- * probably the slowest, especially with minkovsky, bump-mapping, could be done another way.
+ * probably the slowest, especially with Minkowski, bump-mapping, could be done another way.
  */
 
 static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)

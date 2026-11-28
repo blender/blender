@@ -166,7 +166,7 @@ TEST(parsed_rna_path, operator_lt)
   ASSERT_EQ(parsed_paths.size(), expected_paths.size())
       << "Sorting changed the length of the vector";
 
-  /* Don't write this via EXPECT_EQ(), because it'll just log the UString binar values, not
+  /* Don't write this via EXPECT_EQ(), because it'll just log the UString binary values, not
    * anything human-readable. */
   constexpr int width = 41; /* Length of the longest path. */
   if (parsed_paths != expected_paths) {

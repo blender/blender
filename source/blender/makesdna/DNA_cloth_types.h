@@ -167,11 +167,11 @@ struct ClothSimSettings {
   DNA_DEPRECATED int preroll = 0;
   /** In percent!; if tearing enabled, a spring will get cut. */
   int maxspringlen = 10;
-  /** Which solver should be used? txold. */
+  /** Which solver should be used? `txold`. */
   short solver_type = 0;
   /** Vertex group for scaling bending stiffness. */
   short vgroup_bend = 0;
-  /** Optional vertexgroup name for assigning weight. */
+  /** Optional vertex group name for assigning weight. */
   short vgroup_mass = 0;
   /** Vertex group for scaling structural stiffness. */
   short vgroup_struct = 0;

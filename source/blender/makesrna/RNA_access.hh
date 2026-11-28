@@ -748,7 +748,7 @@ RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
  * properties match the current RNA definition.
  *
  * \param do_cleanup If `true` (default), remove unused/unknown IDProperties. Pass `false` when
- * e.g. updating runtime RNA of a missing (linked) ID, or other cases wher data is temporarily
+ * e.g. updating runtime RNA of a missing (linked) ID, or other cases where data is temporarily
  * missing, and cleaning up IDProps may lead to loss of valid data.
  */
 void RNA_sync_system_properties(Main &bmain,

@@ -108,7 +108,7 @@ inline void set_spherical_harmonics(const Span<MutableSpan<float3>> sh_attrs,
  * and its opacity.
  *
  * This class encapsulates implementation of these functions. Formulas are from supplemental code
- * of the paper "Gaussian Point Splatting" (2026) by Joris Rijsdijk et. al.
+ * of the paper "Gaussian Point Splatting" (2026) by Joris Rijsdijk et al.
  * See gaussian_loader.cu, recordToCPUGaussian(). */
 struct OriginalActivationFunctions {
   static float decode_opacity(const float opacity)

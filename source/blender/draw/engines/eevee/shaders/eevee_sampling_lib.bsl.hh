@@ -112,7 +112,7 @@ float interleaved_gradient(float2 v, float offset = 0.0f)
 }
 
 /**
- * Permutated congruential generator (PCG) integer sequence [onei2014].
+ * Permuted congruential generator (PCG) integer sequence [onei2014].
  * Good and fast.
  */
 uint pcg(uint u)

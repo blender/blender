@@ -585,7 +585,7 @@ struct GHOST_InstanceVK {
     }
 
     /* Disable ray query & acceleration structure extensions.
-     * Some driver have issue with capture replay in renderdoc with these specific extensions.
+     * Some drivers have issues with capture replay in RenderDoc with these specific extensions.
      */
     if (no_hw_rt) {
       device.extensions.disable(VK_KHR_RAY_QUERY_EXTENSION_NAME);
@@ -1957,7 +1957,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     optional_device_extensions.append(VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME);
     optional_device_extensions.append(VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME);
 #if 0
-    /* VK_EXT_host_image_copy isn't supported by Renderdoc and also isn't working as expected. */
+    /* VK_EXT_host_image_copy isn't supported by RenderDoc and also isn't working as expected. */
     optional_device_extensions.append(VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME);
 #endif
 

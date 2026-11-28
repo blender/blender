@@ -37,7 +37,7 @@ struct MovieReader {
   enum class State { Uninitialized, Failed, Valid };
   ImBufFlags ib_flags = ImBufFlags::Zero;
   State state = State::Uninitialized;
-  int cur_frame_index = 0; /* index  0 = 1e,  1 = 2e, enz. */
+  int cur_frame_index = 0; /* index 0 = 1st, 1 = 2nd, etc. */
   int duration_in_frames = 0;
   int frs_sec = 0;
   double frs_sec_base = 0.0;

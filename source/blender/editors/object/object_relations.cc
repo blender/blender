@@ -555,7 +555,7 @@ static bool parent_set_with_depsgraph(ReportList *reports,
         cu_eval->flag |= CU_FOLLOW;
       }
 
-      /* if follow, add F-Curve for ctime (i.e. "eval_time") so that path-follow works */
+      /* if follow, add F-Curve for `ctime` (i.e. "eval_time") so that path-follow works */
       if (partype == PAR_FOLLOW) {
         /* get or create F-Curve */
         bAction *act = animrig::id_action_ensure(bmain, &cu->id);

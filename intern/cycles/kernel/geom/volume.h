@@ -117,7 +117,7 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
                                                                            INTERPOLATION_NONE;
     const float4 value = kernel_image_interp_3d(kg, sd, desc.offset, P, interp, stochastic);
     if (value.w > 1e-6f && value.w != 1.0f) {
-      /* For RGBA colors, unpremultiply after interpolation. */
+      /* For RGBA colors, un-premultiply after interpolation. */
       return make_float4(make_float3(value) / value.w, value.w);
     }
     return value;

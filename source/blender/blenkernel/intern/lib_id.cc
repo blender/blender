@@ -1186,7 +1186,7 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
     return;
   }
 
-  /* We cannot allow non-userrefcounting IDs in Main database! */
+  /* We cannot allow non-user-refcounting IDs in Main database! */
   if ((id->tag & ID_TAG_NO_USER_REFCOUNT) != 0) {
     BKE_library_foreach_ID_link(bmain, id, libblock_management_us_plus, nullptr, IDWALK_NOP);
   }
@@ -1227,7 +1227,7 @@ void BKE_libblock_management_main_remove(Main *bmain, void *idv)
     return;
   }
 
-  /* For now, allow userrefcounting IDs to get out of Main - can be handy in some cases... */
+  /* For now, allow user-refcounting IDs to get out of Main - can be handy in some cases... */
 
   ListBaseT<ID> *lb = which_libbase(bmain, id->id_type());
   BKE_main_lock(bmain);
@@ -1255,7 +1255,7 @@ void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv)
 {
   ID *id = static_cast<ID *>(idv);
 
-  /* We do not allow IDs in Main database to not be userrefcounting. */
+  /* We do not allow IDs in Main database to not be user-refcounting. */
   if ((id->tag & ID_TAG_NO_USER_REFCOUNT) != 0 || (id->tag & ID_TAG_NO_MAIN) != 0) {
     return;
   }

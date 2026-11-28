@@ -204,7 +204,7 @@ struct AxisTuple {
 
   static AxisTuple from(float2 axis_0, float2 axis_1)
   {
-    /* Flip/swap so axis_0 lies in the 1st and axis_1 in the 2nd quadrant of a hemicircle. */
+    /* Flip/swap so axis_0 lies in the 1st and axis_1 in the 2nd quadrant of a semicircle. */
     axis_0 = (axis_0.y < 0) ? -axis_0 : axis_0;
     axis_1 = (axis_1.y < 0) ? -axis_1 : axis_1;
     if (axis_0.x < 0.0f) {

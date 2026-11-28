@@ -59,7 +59,7 @@ namespace blender::draw {
  * 3 spherical harmonics degrees for performance and memory reasons. */
 constexpr uint32_t radiance_degs_max = 3;
 
-/* Nr. of coefficients matching 3 degree spherical harmonics. */
+/* Number of coefficients matching 3 degree spherical harmonics. */
 constexpr uint32_t radiance_coeffs_max = (radiance_degs_max + 1u) * (radiance_degs_max + 1u);
 
 /* Sane defaults for missing but non-zero attribute data. */

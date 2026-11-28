@@ -1356,7 +1356,7 @@ static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
 static size_t modifier_struct_size(const ModifierType type)
 {
   switch (type) {
-    /* Deprecated modifier types without typeinfo, still needed for versioning. */
+    /* Deprecated modifier types without type-info, still needed for versioning. */
     case eModifierType_Fluidsim:
       return sizeof(FluidsimModifierData);
     case eModifierType_Smoke:

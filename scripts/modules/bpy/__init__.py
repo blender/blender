@@ -63,10 +63,10 @@ def main():
         "bpy.types": types,
     })
 
-    # Denormals are flushed to zero on all threads, which makes numpy (before 2.4)
-    # warn when it computes `finfo` for a type. Remove once numpy 2.4+ is shipped.
+    # Denormals are flushed to zero on all threads, which makes `numpy` (before 2.4)
+    # warn when it computes `finfo` for a type. Remove once `numpy` 2.4+ is shipped.
     # See #164118 for more info.
-    # *DEPRECATED* 2028/01/01 (date is arbitrary) we should have bumped to numpy 2.4+ by now.
+    # *DEPRECATED* 2028/01/01 (date is arbitrary) we should have bumped to `numpy` 2.4+ by now.
     if not app.module:
         import warnings
         warnings.filterwarnings(

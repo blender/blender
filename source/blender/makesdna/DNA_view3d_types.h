@@ -467,7 +467,7 @@ struct RegionView3D {
   float viewmat[4][4] = {};
   /** Inverse of viewmat. */
   float viewinv[4][4] = {};
-  /** Viewmat*winmat. */
+  /** `viewmat * winmat`. */
   float persmat[4][4] = {};
   /** Inverse of persmat. */
   float persinv[4][4] = {};

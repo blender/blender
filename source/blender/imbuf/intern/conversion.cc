@@ -291,7 +291,7 @@ void IMB_byte_from_float(ImBuf *ibuf)
         Array<float, grain_size * 4> buffer(range.size() * ibuf->channels);
         buffer.as_mutable_span().copy_from(
             Span(float_data + range.first() * ibuf->channels, buffer.size()));
-        /* Unpremultiply alpha if needed. */
+        /* Un-premultiply alpha if needed. */
         if (predivide) {
           IMB_unpremultiply_rect_float(buffer.data(), ibuf->channels, range.size(), 1);
         }

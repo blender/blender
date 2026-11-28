@@ -16,7 +16,7 @@
 #include <libavutil/display.h>
 #include <libswscale/swscale.h>
 
-/* Mininum FFmpeg we attempt to support is 7.1 (libavformat 61.7.100). */
+/* Minimum FFmpeg we attempt to support is 7.1 (libavformat 61.7.100). */
 #if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(61, 7, 100)
 #  error "FFmpeg 7.1 or newer is needed, upgrade your FFmpeg or disable it"
 #endif

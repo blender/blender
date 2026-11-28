@@ -41,7 +41,7 @@ enum class BLFWrapMode;
 #define BLF_SUBPIXEL_POSITION
 
 /**
- * If enabled, glyphs are rendered at multiple horizontal subpixel positions.
+ * If enabled, glyphs are rendered at multiple horizontal sub-pixel positions.
  */
 #define BLF_SUBPIXEL_AA
 

@@ -93,7 +93,7 @@ float4 texture_read_as_linearrgb(sampler2D tex, bool premultiplied, float2 co)
   /* By convention image textures return scene linear colors, but
    * overlays still assume srgb. */
   float4 col = texture(tex, co);
-  /* Un-pre-multiply if stored multiplied, since straight alpha is expected by shaders. */
+  /* Un-premultiply if stored multiplied, since straight alpha is expected by shaders. */
   if (premultiplied && !(col.a == 0.0f || col.a == 1.0f)) {
     col.rgb = col.rgb / col.a;
   }

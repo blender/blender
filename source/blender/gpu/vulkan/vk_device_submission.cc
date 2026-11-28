@@ -264,7 +264,7 @@ void VKDevice::submission_runner(VKDevice *device)
 
     render_graph.reset();
     /* Signal only after the graph's resource references are released. Otherwise swapchain images
-     * aren't dereffed in correct order. */
+     * aren't dereferenced in correct order. */
     if (submit_task->wait_for_submission != nullptr) {
       std::unique_lock<Mutex> lock(submit_task->wait_for_submission->is_submitted_mutex);
       submit_task->wait_for_submission->is_submitted = true;

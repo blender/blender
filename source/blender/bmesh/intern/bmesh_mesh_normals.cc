@@ -509,7 +509,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
 
   /* NOTE: In theory, we could make bm_mesh_loop_check_cyclic_smooth_fan() store
    * mlfan_pivot's in a stack, to avoid having to fan again around
-   * the vert during actual computation of clnor & clnorspace. However, this would complicate
+   * the vert during actual computation of `clnor` & `clnorspace`. However, this would complicate
    * the code, add more memory usage, and
    * BM_vert_step_fan_loop() is quite cheap in term of CPU cycles,
    * so really think it's not worth it. */

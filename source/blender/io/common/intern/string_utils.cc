@@ -4,7 +4,7 @@
 
 #include "IO_string_utils.hh"
 
-/* NOTE: we could use C++17 <charconv> from_chars to parse
+/* NOTE: we could use C++17 `<charconv>` `from_chars` to parse
  * floats, but even if some compilers claim full support,
  * their standard libraries are not quite there yet.
  * LLVM/libc++ only has a float parser since LLVM 14,

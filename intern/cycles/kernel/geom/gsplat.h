@@ -15,7 +15,7 @@
  *
  * References:
  *
- *  [chen2024pgsr]  Nicolas Moenne-Loccoz et. al.
+ *  [chen2024pgsr]  Nicolas Moenne-Loccoz et al.
  *                  "PGSR: Planar-based Gaussian Splatting for Efficient and High-Fidelity Surface
  *                  Reconstruction" (2024)
  *                  https://zju3dv.github.io/pgsr/

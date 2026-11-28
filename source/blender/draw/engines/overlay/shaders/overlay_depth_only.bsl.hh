@@ -125,7 +125,7 @@ void frag_main([[resource_table, condition(selectable)]] const Uniform &uni,
 }
 
 /* Modify triangle vertices position by half a pixel to (hopefully) make it cover at least one
- * pixel if the triangle is subpixel sized. This is important to not loose small objects during
+ * pixel if the triangle is sub-pixel sized. This is important to not lose small objects during
  * selection. */
 namespace conservative {
 
@@ -177,7 +177,7 @@ struct Resources {
 
     out_ws_pos = geom_in.ws_P;
 
-    /* WORKAROUND: The subpixel hack that does the small triangle expansion needs to have correct
+    /* WORKAROUND: The sub-pixel hack that does the small triangle expansion needs to have correct
      * winding w.r.t. the culling mode. Otherwise, the fragment shader will discard valid triangles
      * and objects will become unselectable (see #85015). */
     if ((any(is_subpixel) || is_coplanar) && is_negative(obj.model)) {

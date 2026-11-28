@@ -394,7 +394,7 @@ void bmo_duplicate_exec(BMesh *bm, BMOperator *op)
 #if 0 /* UNUSED */
 /**
  * executes the duplicate operation, feeding elements of
- * type flag etypeflag and header flag to it.
+ * type flag `etypeflag` and header flag to it.
  * \note to get more useful information (such as the mapping from
  * original to new elements) you should run the dupe op manually.
  */

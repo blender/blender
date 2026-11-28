@@ -4,7 +4,7 @@
 
 #pragma once
 
-/* Kahan summation, Same as +=, but reduces the numerical error when summing a sequence of numbers,
+/* Kahan summation, same as +=, but reduces the numerical error when summing a sequence of numbers,
  * by keeping a running compensation. */
 struct KahanSum {
   /* Running compensation for lost lower-order bits. */

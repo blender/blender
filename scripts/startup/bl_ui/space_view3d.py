@@ -2631,7 +2631,7 @@ class VIEW3D_MT_curve_add(Menu):
         layout.separator()
 
         layout.operator("object.curves_empty_hair_add", text="Empty Hair", icon='CURVES_DATA')
-        # Greyed out here instead of the operator's poll function, see: #163934.
+        # Grayed out here instead of the operator's poll function, see: #163934.
         col = layout.column()
         col.enabled = _has_selected_object_type(context, {'MESH'})
         col.operator("object.quick_fur", text="Fur", icon='CURVES_DATA')
@@ -3548,7 +3548,7 @@ class VIEW3D_MT_object_quick_effects(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # NOTE: greying out the menu item would be better handled by the operator's poll function,
+        # NOTE: graying out the menu item would be better handled by the operator's poll function,
         # however `execute` changes the active object & selection (adding curves objects),
         # so a poll that checks for mesh objects fails on redo, see: #163934.
         col = layout.column()

@@ -365,7 +365,7 @@ class Context : public compositor::Context {
     compositor::SceneCompositorEffectsOperation operation =
         compositor::SceneCompositorEffectsOperation(*this);
 
-    /* Use original scene since it contains viewlayers that get_pass() relies on.*/
+    /* Use original scene since it contains view layers that get_pass() relies on.*/
     const Scene *original_scene = DEG_get_original(scene_);
     const int active_view_layer_index = BLI_findstringindex(&original_scene->view_layers,
                                                             DRW_context_get()->view_layer->name,

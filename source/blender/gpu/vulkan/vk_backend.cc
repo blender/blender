@@ -647,7 +647,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
       /* Intel Gen11 and older iGPUs (Intel 7th to 10th Gen Processor Graphics driver) show a black
        * screen at application startup when using VK_EXT_vertex_input_dynamic_state.
        *
-       * Driver reports support, but returns nullpointer for the needed functions.
+       * Driver reports support, but returns a null pointer for the needed functions.
        *
        * See #147721
        */

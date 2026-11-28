@@ -158,7 +158,7 @@ static GPUTextureConversion imb_gpu_texture_conversion(const ImBuf *ibuf,
   if (ibuf->float_data()) {
     /* Float images are already in scene linear color space or contain non-color data with
      * premultiplied alpha by convention, so no color space conversion is needed. But we need to
-     * convert to RGBA and unpremultiply alpha if needed. */
+     * convert to RGBA and un-premultiply alpha if needed. */
     return (ibuf->channels != 4 || !store_premultiplied) ? GPUTextureConversion::Float :
                                                            GPUTextureConversion::None;
   }

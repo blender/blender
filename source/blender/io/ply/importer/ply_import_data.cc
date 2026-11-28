@@ -336,7 +336,7 @@ static const char *load_vertex_element(PlyReadBuffer &file,
     return -1;
   };
 
-  /* Byte color attributes are exported as `<name>_r`, `<name>_g`, `<name>_b`, `<name>_a` uchar
+  /* Byte color attributes are exported as `<name>_r`, `<name>_g`, `<name>_b`, `<name>_a` `uchar`
    * properties; turn them back into byte color attributes. Alpha is optional. */
   Set<int> color_props;
   for (const int prop_idx : custom_props) {

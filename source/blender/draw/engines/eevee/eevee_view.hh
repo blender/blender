@@ -40,7 +40,7 @@ class ShadingView {
   Instance &inst_;
   /** Static string pointer. Used as debug name and as UUID for texture pool. */
   const char *name_;
-  /** Matrix to apply to the viewmat. */
+  /** Matrix to apply to the `viewmat`. */
   float4x4 face_matrix_;
   /** Cubemap face index. Used by panoramic views and film reprojection. */
   ePanoramicFace face_id_;

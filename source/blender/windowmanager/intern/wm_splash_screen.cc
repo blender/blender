@@ -145,7 +145,7 @@ static void wm_project_splash_logo_add(ImBuf *ibuf)
     return;
   }
 
-  /* The monochrome logo has alpha in all channels, unpremultiply to get white with alpha. */
+  /* The monochrome logo has alpha in all channels, un-premultiply to get white with alpha. */
   IMB_unpremultiply_alpha(logo);
 
   /* Rows are stored bottom to top. */

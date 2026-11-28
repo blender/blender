@@ -3722,7 +3722,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
     return 0;
   }
 
-  /* augment the filter-flags with settings based on the dopesheet filterflags
+  /* augment the filter-flags with settings based on the dopesheet `filterflag`
    * so that some temp settings can get added automagically...
    */
   if (ac->filters.flag & ADS_FILTER_SELEDIT) {

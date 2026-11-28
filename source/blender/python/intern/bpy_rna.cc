@@ -9541,13 +9541,13 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 
   if (py_ret) {
     Py_DECREF(py_ret);
-    Py_DECREF(args_fake); /* Free's py_srna_cobject too. */
+    Py_DECREF(args_fake); /* Frees py_srna_cobject too. */
   }
   else {
     /* _must_ print before decrefing args_fake. */
     PyErr_Print();
 
-    Py_DECREF(args_fake); /* Free's py_srna_cobject too. */
+    Py_DECREF(args_fake); /* Frees py_srna_cobject too. */
 
     PyErr_Format(PyExc_ValueError,
                  "bpy_struct \"%.200s\" registration error: "

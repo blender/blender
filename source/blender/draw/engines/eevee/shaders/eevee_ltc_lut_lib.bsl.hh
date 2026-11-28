@@ -26,7 +26,7 @@ struct CoordParam {
 };
 
 /**
- * Given UV coordintes of an isotropic LTC LUT, return BxDF parameters.
+ * Given UV coordinates of an isotropic LTC LUT, return BxDF parameters.
  */
 CoordParam from_isotropic_coords(const float3 coords)
 {

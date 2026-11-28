@@ -1831,7 +1831,7 @@ static void display_buffer_apply_threaded(ImBuf *ibuf,
       }
     }
 
-    /* Byte input has straight alpha; float input may need predivision. */
+    /* Byte input has straight alpha; float input may need pre-division. */
     const bool output_predivide = predivide && use_display_buffer;
     const char *from_colorspace = use_display_buffer ? float_colorspace : byte_colorspace;
     if (from_colorspace && !is_data && !is_data_display) {

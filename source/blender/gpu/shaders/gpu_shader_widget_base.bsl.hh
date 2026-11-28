@@ -378,7 +378,7 @@ struct FragOut {
   frag_out.color += masks.x * v_out.border_color;
   frag_out.color += masks.z * v_out.emboss_color;
 
-  /* Un-pre-multiply because the blend equation is already doing the multiplication. */
+  /* Un-premultiply because the blend equation is already doing the multiplication. */
   if (frag_out.color.a > 0.0f) {
     frag_out.color.rgb /= frag_out.color.a;
   }

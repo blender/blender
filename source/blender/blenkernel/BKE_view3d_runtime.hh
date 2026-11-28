@@ -46,7 +46,7 @@ class RegionView3DRuntime : NonCopyable, NonMovable {
   /** Offset/scale for camera GLSL texture-coordinates. */
   float viewcamtexcofac[4] = {};
 
-  /** viewmat/persmat multiplied with object matrix, while drawing and selection. */
+  /** `viewmat` & `persmat` multiplied with object matrix, while drawing and selection. */
   float viewmatob[4][4] = {};
   float persmatob[4][4] = {};
 

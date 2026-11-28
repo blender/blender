@@ -404,7 +404,7 @@ struct LUT {
  *    Oren-Nayar.
  * 2. Instead of m23, which will amount to 0 in the end, the following code fits with parameters at
  *    the 4 corners as described in the paper, and ensures that the determinant of M is 1, so that
- *    we don't need to compute and store det(M) additionally.
+ *    we don't need to compute and store `det(M)` additionally.
  */
 struct LTCFitter {
   /* Parametric representation. */

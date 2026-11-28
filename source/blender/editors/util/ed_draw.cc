@@ -726,7 +726,7 @@ BLI_INLINE bool metadata_is_custom_drawable(const char *field)
   if (STREQ(field, "BlenderMultiChannel")) {
     return false;
   }
-  /* Is almost always has value "scanlineimage", also useless to be seen
+  /* It almost always has the value `"scanlineimage"`, also useless to be seen
    * all the time. */
   if (STREQ(field, "type")) {
     return false;

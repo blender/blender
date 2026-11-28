@@ -692,7 +692,7 @@ class MTLContext : public Context {
 
   /* Null buffers for empty/uninitialized bindings.
    * Null attribute buffer follows default attribute format of OpenGL Backend. */
-  id<MTLBuffer> null_buffer_;           /* All zero's. */
+  id<MTLBuffer> null_buffer_;           /* All zeros. */
   id<MTLBuffer> null_attribute_buffer_; /* Value float4(0.0,0.0,0.0,1.0). */
 
   /** Dummy Resources */

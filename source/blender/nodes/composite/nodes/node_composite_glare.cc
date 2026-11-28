@@ -155,7 +155,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Adjusts the saturation of the glare");
   mix_panel.add_input<decl::Color>("Tint"_ustr)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .description("Tints the glare. Consider desaturating the glare to more accurate tinting");
+      .description("Tints the glare. Consider desaturating the glare for more accurate tinting");
 
   PanelDeclarationBuilder &glare_panel = b.add_panel("Glare"_ustr);
   glare_panel.add_input<decl::Float>("Size"_ustr)

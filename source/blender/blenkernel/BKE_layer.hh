@@ -175,11 +175,11 @@ void BKE_layer_collection_resync_allow(Main &bmain);
 void BKE_layer_collection_doversion_2_80(const Scene *scene, ViewLayer *view_layer);
 
 /**
- * Tag all viewlayers of all the scenes of the given `main` as being #VIEW_LAYER_OUT_OF_SYNC.
+ * Tag all view layers of all the scenes of the given `main` as being #VIEW_LAYER_OUT_OF_SYNC.
  *
- * Also directly update all local viewlayers (used in 3DView in local mode).
+ * Also directly update all local view layers (used in 3DView in local mode).
  *
- * \return `true` if all viewlayers were successfully tagged (or resynced for the local ones),
+ * \return `true` if all view layers were successfully tagged (or resynced for the local ones),
  * `false` otherwise. See also #BKE_layer_collection_sync.
  */
 bool BKE_main_collection_sync(const Main *bmain);
@@ -189,7 +189,7 @@ bool BKE_scene_collection_sync(const Main &bmain, const Scene *scene);
  * Similar to #BKE_main_collection_sync, but does additional cache cleanups and depsgraph tagging,
  * required after remapping objects/collections ID pointers.
  *
- * \return `true` if all viewlayers were successfully tagged (or resynced for the local ones),
+ * \return `true` if all view layers were successfully tagged (or resynced for the local ones),
  * `false` otherwise. See also #BKE_layer_collection_sync.
  */
 bool BKE_main_collection_sync_remap(const Main *bmain);
@@ -693,12 +693,12 @@ bool BKE_view_layer_is_synced(const ViewLayer &view_layer);
  */
 bool BKE_view_layer_synced_ensure(const Main &bmain, const Scene *scene, ViewLayer *view_layer);
 /**
- * \return `true` if all viewlayers were successfully resynced, `false` otherwise. See also
+ * \return `true` if all view layers were successfully resynced, `false` otherwise. See also
  * #BKE_layer_collection_sync.
  */
 bool BKE_scene_view_layers_synced_ensure(const Main &bmain, const Scene *scene);
 /**
- * \return `true` if all viewlayers were successfully resynced, `false` otherwise. See also
+ * \return `true` if all view layers were successfully resynced, `false` otherwise. See also
  * #BKE_layer_collection_sync.
  */
 bool BKE_main_view_layers_synced_ensure(const Main *bmain);

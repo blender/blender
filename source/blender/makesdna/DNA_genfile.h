@@ -146,7 +146,7 @@ int DNA_struct_find_index_without_alias_ex(const struct SDNA *sdna,
                                            unsigned int *struct_index_last);
 /**
  * \return The index of the struct or -1 on failure.
- * \note Note that the type may have no struct members in the SDNA because they were not written to
+ * \note The type may have no struct members in the SDNA because they were not written to
  * the .blend file since they were unused.
  */
 int DNA_struct_find_with_alias(const struct SDNA *sdna, StringRef str);

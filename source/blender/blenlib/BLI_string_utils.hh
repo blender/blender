@@ -94,8 +94,8 @@ size_t BLI_string_replace_range(MutableCStr string, int src_beg, int src_end, co
 
 /**
  * Looks for a numeric suffix preceded by `delim` character on the end of
- * name, puts preceding part into *left and value of suffix into *nr.
- * Returns the length of *left.
+ * name, puts preceding part into `*left` and value of suffix into `*nr`.
+ * Returns the length of `*left`.
  *
  * Foo.001 -> "Foo", 1
  * Returning the length of "Foo"

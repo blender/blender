@@ -26,7 +26,7 @@
 
 int rgb9e5_floor_log2(float x)
 {
-  /* Ok, rgb9e5_floor_log2 is not correct for the denorm and zero values, but we
+  /* Ok, rgb9e5_floor_log2 is not correct for the denormal and zero values, but we
    * are going to do a max of this value with the minimum rgb9e5 exponent
    * that will hide these problem cases. */
   int biased_exponent = floatBitsToInt(x) >> 23;

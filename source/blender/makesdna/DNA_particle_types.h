@@ -403,7 +403,7 @@ struct HairKey {
   float time;
   /** Softbody weight. */
   float weight;
-  /** Saved particled edit mode flags. */
+  /** Saved particle edit mode flags. */
   short editflag;
   char _pad[2];
   float world_co[3];

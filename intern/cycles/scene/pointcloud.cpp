@@ -305,7 +305,7 @@ void PointCloud::update_gsplat_radii()
    *
    * Calculation is based on
    *
-   *     Nicolas Moenne-Loccoz et. al.
+   *     Nicolas Moenne-Loccoz et al.
    *     "3D Gaussian Ray Tracing: Fast Tracing of Particle Scenes" (2024)
    *     ACM Transactions on Graphics and SIGGRAPH Asia
    *     https://gaussiantracer.github.io/

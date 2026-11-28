@@ -564,7 +564,7 @@ struct Film {
   }
 
   /* Load color using a special filter to avoid losing detail.
-   * \a texel is sample position with subpixel accuracy. */
+   * \a texel is sample position with sub-pixel accuracy. */
   float4 sample_catmull_rom(sampler2D color_tx, float2 input_texel)
   {
 

@@ -52,7 +52,7 @@ namespace blender {
 struct BoneSplineHandle {
   wmGizmo *gizmo;
 
-  /* These cannot be packed into a bke::PChanBone, as this struct is allocated with
+  /* These cannot be packed into a #bke::PChanBone, as this struct is allocated with
    * MEM_new_zeroed() and therefore must be trivial. */
   bPoseChannel *pchan;
   Bone *pchan_bone;

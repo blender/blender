@@ -947,7 +947,7 @@ static Array<float3> calc_tri_automask_factors(const Depsgraph &depsgraph,
         tri_factors[i] = factors;
       },
       exec_mode::grain_size(512));
-  /* Update #brush_test for triangles that have been compelety masked. */
+  /* Update #brush_test for triangles that have been completely masked. */
   tested_tris.foreach_index([&](const int64_t i) {
     if (math::is_zero(tri_factors[i])) {
       brush_test[i].reset();

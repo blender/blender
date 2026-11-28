@@ -298,7 +298,7 @@ float3 eval_limit_point(Subdiv *subdiv, const int ptex_face_index, const float u
 #ifdef WITH_OPENSUBDIV
 /**
  * In a very rare occasions derivatives are evaluated to zeros or are exactly equal.
- * This happens, for example, in single vertex on Suzannne's nose (where two quads have 2 common
+ * This happens, for example, in single vertex on Suzanne's nose (where two quads have 2 common
  * edges).
  *
  * This makes tangent space displacement (such as multi-resolution) impossible to be used in

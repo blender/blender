@@ -185,7 +185,7 @@ static void grease_pencil_set_runtime_visibilities(ID &id_dst, GreasePencil &gre
  *
  * They can't be created anymore, but older versions could write them. Replace them with regular
  * frames using an empty drawing, instead of treating them as corrupt, since there could exist
- * valid blendfiles containing them.
+ * valid blend-files containing them.
  */
 static void grease_pencil_replace_end_frames_after_read(GreasePencil &grease_pencil)
 {

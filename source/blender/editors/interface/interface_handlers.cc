@@ -1365,9 +1365,9 @@ static void apply_but_TEX(bContext *C, Button *but, HandleButtonData *data)
                                                             nullptr;
   /* only if there are afterfuncs, otherwise 'rename_orig' isn't freed */
   if (text_button && afterfunc_check(but->block, but)) {
-    /* give butfunc a copy of the original text too.
+    /* give `butfunc` a copy of the original text too.
      * feature used for bone renaming, channels, etc.
-     * afterfunc frees rename_orig */
+     * `afterfunc` frees `rename_orig` */
     if (data->text_edit.original_string && (but->flag & BUT_TEXTEDIT_UPDATE)) {
       /* In this case, we need to keep `original_string` available,
        * to restore real org string in case we cancel after having typed something already. */
@@ -8127,7 +8127,7 @@ static bool numedit_but_COLORBAND(
   CLAMP(data->dragcbd->pos, 0.0f, 1.0f);
 
   BKE_colorband_update_sort(data->coba);
-  data->dragcbd = data->coba->data + data->coba->cur; /* because qsort */
+  data->dragcbd = data->coba->data + data->coba->cur; /* because `qsort` */
 
 #ifdef USE_CONT_MOUSE_CORRECT
   if (button_is_cursor_warp(but)) {

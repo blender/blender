@@ -947,7 +947,7 @@ static SUID_Int bm_face_region_vert_pass_id(const Map<BMVert *, SUID_Int> &gh, B
     if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
       BMVert *v_other = BM_edge_other_vert(e, v);
       if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-        /* non-zero values aren't allowed... so no need to check haskey */
+        /* non-zero values aren't allowed... so no need to check `haskey` */
         SUID_Int v_other_id = gh.lookup_default(v_other, 0);
         if (v_other_id > 0) {
           v_sum_id += v_other_id;

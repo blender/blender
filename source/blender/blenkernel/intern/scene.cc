@@ -2819,7 +2819,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
   /* Cannot limit this to the currently evaluated scene/view layer, as the depsgraph may have
    * dependencies on others, see e.g. #158225, which pulls in another scene. */
   /* TODO: If this becomes a performance issue, we'll likely have to find a way in the depsgraph
-   * itself to gather all 'known' scenes, and ensure that their viewlayers / collections
+   * itself to gather all 'known' scenes, and ensure that their view layers / collections
    * hierarchies are in sync. */
   BKE_main_view_layers_synced_ensure(bmain);
 
@@ -2901,7 +2901,7 @@ void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool cle
   /* Cannot limit this to the currently evaluated scene/view layer, as the depsgraph may have
    * dependencies on others, see e.g. #158225, which pulls in another scene. */
   /* TODO: If this becomes a performance issue, we'll likely have to find a way in the depsgraph
-   * itself to gather all 'known' scenes, and ensure that their viewlayers / collections
+   * itself to gather all 'known' scenes, and ensure that their view layers / collections
    * hierarchies are in sync. */
   BKE_main_view_layers_synced_ensure(bmain);
 

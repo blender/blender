@@ -1149,7 +1149,7 @@ void BMO_slot_buffer_flag_disable(BMesh *bm,
  * BMESH_TODO:
  * Investigate not freeing flag layers until
  * all operators have been executed. This would
- * save a lot of realloc potentially.
+ * save a lot of `realloc` potentially.
  */
 static void bmo_flag_layer_alloc(BMesh *bm)
 {

@@ -731,7 +731,7 @@ static bool interpolate_averaged_track_contributions(StabContext *ctx,
 
 /* Reorder tracks starting with those providing a tracking data frame
  * closest to the global anchor_frame. Tracks with a gap at anchor_frame or
- * starting farer away from anchor_frame altogether will be visited later.
+ * starting farther away from anchor_frame altogether will be visited later.
  * This allows to build up baseline contributions incrementally.
  *
  * order is an array for sorting the tracks. Must be of suitable size to hold

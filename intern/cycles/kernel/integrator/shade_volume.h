@@ -1015,7 +1015,7 @@ ccl_device_inline bool volume_integrate_advance(KernelGlobals kg,
 /* -------------------------------------------------------------------- */
 /** \name Volume Scattering Probability Guiding
  *
- * Following https://kehanxuuu.github.io/vspg-website/ by Kehan Xu et. al.
+ * Following https://kehanxuuu.github.io/vspg-website/ by Kehan Xu et al.
  *
  * Instead of stopping at the first real scatter event, we step through the entire ray to gather
  * candidate scatter positions, and guide the probability of scattering inside a volume or
@@ -1426,7 +1426,7 @@ ccl_device_inline void volume_sample_indirect_scatter(
  * Integrate volume based on weighted delta tracking, from
  * [Spectral and Decomposition Tracking for Rendering Heterogeneous Volumes]
  * (https://disneyanimation.com/publications/spectral-and-decomposition-tracking-for-rendering-heterogeneous-volumes)
- * by Peter Kutz et. al.
+ * by Peter Kutz et al.
  *
  * The recursive Monte Carlo estimation of the Radiative Transfer Equation is
  * <L> = T(x -> y) / p(x -> y) * (L_e + sigma_s * L_s + sigma_n * L),

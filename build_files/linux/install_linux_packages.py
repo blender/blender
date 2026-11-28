@@ -1090,7 +1090,7 @@ class PackageInstallerArch(PackageInstaller):
 
 
 class PackageInstallerVoid(PackageInstaller):
-    """Void package installer, using xbps."""
+    """Void package installer, using ``xbps``."""
     _instance = None
 
     def __new__(cls, settings):

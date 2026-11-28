@@ -165,10 +165,10 @@ ccl_device_forceinline float bssrdf_burley_inverse_cdf(const float xi)
     return 0.0f;
   }
 
-  /* The substitution x = exp(-r / 3) turns the CDF into x^3 + 3x = 4(1 - xi).
-   * Its only real root is x = 2 * sinh(asinh(2 * (1 - xi)) / 3). The identity
-   * asinh(y) = log(y + sqrt(y^2 + 1)) avoids requiring an asinh implementation on every device.
-   */
+  /* The substitution `x = exp(-r / 3)` turns the CDF into `x^3 + 3x = 4(1 - xi)`.
+   * Its only real root is `x = 2 * sinh(asinh(2 * (1 - xi)) / 3)`.
+   * The identity `asinh(y) = log(y + sqrt(y^2 + 1))`
+   * avoids requiring an `asinh` implementation on every device. */
   const float y = 2.0f - 2.0f * xi;
   const float x = 2.0f * sinhf(logf(y + sqrtf(y * y + 1.0f)) / 3.0f);
   /* Keep rounding near the endpoints inside the sampled range. */

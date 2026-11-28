@@ -322,7 +322,7 @@ static bool oldnewmap_insert(
 
   return onm->map.add_overwrite(oldaddr, NewAddress{newaddr, alloc_len, nr});
 }
-/** Same as above, but never overwrites a key already present in the oldnew map. */
+/** Same as above, but never overwrites a key already present in the #OldNewMap. */
 static bool oldnewmap_insert_no_overwrite(
     OldNewMap *onm, const void *oldaddr, void *newaddr, const int nr, const int64_t alloc_len = 0)
 {
@@ -3013,7 +3013,7 @@ static BHead *read_data_into_datamap(FileData *fd,
                    "value (%p) for a given ID.",
                    bhead->old);
         /* If insertion in datamap fails, that bhead's data will not be usable/accessible from
-         * anywhere in readfile code. Prevent memleaks by freeing it immediately. */
+         * anywhere in readfile code. Prevent memory leaks by freeing it immediately. */
         MEM_delete_void(data);
       }
     }
@@ -5941,7 +5941,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag, ReportL
     after_liblink_merged_bmain_process(mainvar, (*fd)->reports);
   }
 
-  /* Some versioning code does expect some proper userrefcounting, e.g. in conversion from
+  /* Some versioning code does expect some proper user-refcounting, e.g. in conversion from
    * groups to collections... We could optimize out that first call when we are reading a
    * current version file, but again this is really not a bottle neck currently. So not worth
    * it. */

@@ -21,7 +21,7 @@ float4 pack_line_data(float2 frag_co, float2 edge_start, float2 edge_pos)
   if (len > 0.0f) {
     edge /= len;
 
-    /* Get perpendicular in direction of upper hemicircle. */
+    /* Get perpendicular in direction of upper semicircle. */
     float2 perp = float2(-edge.y, edge.x);
     if (perp.y < 0.0f) {
       perp = -perp;

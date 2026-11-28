@@ -36,10 +36,10 @@ template<typename T, bool UseSoa = false>
 using OutputParamTag = ParamTag<ParamCategory::Output, T, UseSoa>;
 
 /**
- * This provides a more convenient way to build a TypeSequence<ParamTags...> using simple strings.
- * For example, instead of passing TypeSequence<InputParamTag<float>, OutputParamTag<int>>, one can
- * just pass <"io"> as template parameter. The type (float/int) is derived from the passed in
- * arguments.
+ * This provides a more convenient way to build a `TypeSequence<ParamTags...>` using simple
+ * strings. For example, instead of passing
+ * `TypeSequence<InputParamTag<float>, OutputParamTag<int>>`, one can just pass `<"io">` as
+ * template parameter. The type (float/int) is derived from the passed in arguments.
  *
  * Full string rules:
  * - "i": Add input parameter.

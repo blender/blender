@@ -681,7 +681,7 @@ UnitMapping ANIM_unit_mapping_get(Scene *scene, ID *id, FCurve *fcu, short flag)
       break;
     /* Units that BKE_unit_value_scale() also scales by the scene's unit scale.
      * Assumption: BKE_unit_value_scale() is linear and zero maps to zero for these
-     * unit types, so the scaled value can be used as a scaler factor. */
+     * unit types, so the scaled value can be used as a scalar factor. */
     case PROP_UNIT_LENGTH:
     case PROP_UNIT_MASS: {
       unit_conversion = BKE_unit_preferred_conversion_get(scene->unit, b_unit);

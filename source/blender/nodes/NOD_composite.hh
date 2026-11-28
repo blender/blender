@@ -31,7 +31,7 @@ void node_cmp_rlayers_outputs(bNodeTree *ntree, bNode *node);
 void ntreeCompositTagRender(Scene *scene);
 
 /**
- * \note: Requires that viewlayers are in sync (call `BKE_main_view_layers_synced_ensure` or
+ * \note: Requires that view layers are in sync (call `BKE_main_view_layers_synced_ensure` or
  * similar before).
  */
 void ntreeCompositCryptomatteSyncFromAdd(bNode *node);
@@ -48,7 +48,7 @@ void ntreeCompositCryptomatteLayerPrefix(const bNode *node, MutableCStr r_prefix
 void ntreeCompositCryptomatteUpdateLayerNames(bNode *node);
 
 /**
- * \note: Requires that viewlayers are in sync (call `BKE_main_view_layers_synced_ensure` or
+ * \note: Requires that view layers are in sync (call `BKE_main_view_layers_synced_ensure` or
  * similar before).
  */
 CryptomatteSession *ntreeCompositCryptomatteSession(bNode *node);

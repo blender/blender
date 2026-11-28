@@ -62,7 +62,7 @@ static TransferFunction system_extended_srgb_transfer_function(const LibOCIOView
    * - When using a HDR swapchain and the display + view is HDR, ensure we pass on
    *   values linearly by doing gamma 2.2 encode here + gamma 2.2 decode in the
    *   Vulkan HDR swapchain blitting.
-   * - When using HDR swapain and the display + view is SDR, use sRGB encode to
+   * - When using HDR swapchain and the display + view is SDR, use sRGB encode to
    *   emulate what happens on a typical SDR monitor.
    * - When using an SDR swapchain, the buffer is always sRGB.
    */

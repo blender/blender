@@ -11,7 +11,7 @@
  * - SoA: Store each component in a separate array. For example, to store 3D positions, there are
  *   separate arrays for all the x values, y values and z values.
  * - AoS: The more common way of storing data like positions. All vector components are stored
- *   interleaved: xyzxyzxyz. This is the case when just storing Vector<float3>.
+ *   interleaved: `xyzxyzxyz`. This is the case when just storing Vector<float3>.
  *
  * This and related headers provide common tooling to work with structure-of-array data more
  * easily. It provides ways to pass related buffers around and to convert from one format to the

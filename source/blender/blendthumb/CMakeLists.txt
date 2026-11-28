@@ -80,7 +80,7 @@ elseif(APPLE)
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
   )
   # The app extension needs to be ad-hoc signed with custom entitlements to be able to generate
-  # thumbnails. Skip the linker's ad-hoc signature so codesign can apply the entitlements without
+  # thumbnails. Skip the linker's ad-hoc signature so `codesign` can apply the entitlements without
   # printing a "replacing existing signature" message.
   target_link_options(blender-thumbnailer PRIVATE "LINKER:-no_adhoc_codesign")
   add_custom_command(

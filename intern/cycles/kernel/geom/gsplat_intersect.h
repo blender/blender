@@ -17,7 +17,7 @@ CCL_NAMESPACE_BEGIN
  *
  * References:
  *
- *  [3dgrt2024]  Nicolas Moenne-Loccoz et. al.
+ *  [3dgrt2024]  Nicolas Moenne-Loccoz et al.
  *               "3D Gaussian Ray Tracing: Fast Tracing of Particle Scenes" (2024)
  *               ACM Transactions on Graphics and SIGGRAPH Asia
  *               https://gaussiantracer.github.io/
@@ -27,17 +27,17 @@ CCL_NAMESPACE_BEGIN
  *             EGSR conference proceedings
  *             https://iliyan.com/publications/GaussianRayTracing/
  *
- *  [Rijsdijk2026] Joris Rijsdijk et. al.
+ *  [Rijsdijk2026] Joris Rijsdijk et al.
  *                 "Gaussian Point Splatting" (2026)
  *                 ACM Trans. Graph.
  *                 https://jorisar.nl/gaussian_point_splatting/
  *
- *  [chen2024pgsr]  Nicolas Moenne-Loccoz et. al.
+ *  [chen2024pgsr]  Nicolas Moenne-Loccoz et al.
  *                  "PGSR: Planar-based Gaussian Splatting for Efficient and High-Fidelity Surface
  *                  Reconstruction" (2024)
  *                  https://zju3dv.github.io/pgsr/
  *
- *  [ptir-gs]  Junke Zhu et. al.
+ *  [ptir-gs]  Junke Zhu et al.
  *             "Path-Traced Inverse Rendering with Global Illumination in 3D Gaussian Fields"
  *             (2026)
  *             https://junkzhu.github.io/project_pages/PTIR/ */

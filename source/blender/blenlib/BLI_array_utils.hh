@@ -148,7 +148,7 @@ BLI_NOINLINE_NOCLONE void gather_to_groups_impl(const OffsetIndices<int> dst_off
 
 /**
  * The trivial versions of functions that copy contiguous ranges of values can be even simpler by
- * using memcpy.
+ * using `memcpy`.
  */
 
 void copy_bytes(const void *src, void *dst, int64_t size, int64_t type_size, exec_mode::Mode mode);

@@ -225,7 +225,7 @@ static void def_fn_input_vector(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "vector", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_flag(prop, PROP_DYNAMIC);
-  /* Note: Must be called before function definitions below, so that arraydimension is set. */
+  /* Note: Must be called before function definitions below, so that `arraydimension` is set. */
   RNA_def_property_array(prop, 4);
   RNA_def_property_float_funcs(
       prop, "rna_NodeInputVector_vector_get", "rna_NodeInputVector_vector_set", nullptr);
@@ -249,7 +249,7 @@ static void def_fn_input_int_vector(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "vector", PROP_INT, PROP_NONE);
   RNA_def_property_flag(prop, PROP_DYNAMIC);
-  /* Note: Must be called before function definitions below, so that arraydimension is set. */
+  /* Note: Must be called before function definitions below, so that `arraydimension` is set. */
   RNA_def_property_array(prop, 3);
   RNA_def_property_int_funcs(
       prop, "rna_NodeInputIntVector_vector_get", "rna_NodeInputIntVector_vector_set", nullptr);

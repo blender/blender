@@ -8106,7 +8106,7 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_new_datablock_id_selector", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(prop,
                            "Use New Data-Block ID Selector",
-                           "Uses the new data-block ID selector that has a dropdown menu with "
+                           "Uses the new data-block ID selector that has a drop-down menu with "
                            "extended options, but removes quick access buttons");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 

@@ -3410,7 +3410,7 @@ Vector<IndexMask> perlin_split_mask(LinearAllocator<> &allocator,
     return {mask};
   }
   /* This could be optimized further in the future probably but it's a rare use-case and typically
-   * the actual noise code is the bottlneck anyway. */
+   * the actual noise code is the bottleneck anyway. */
   MultiValueMap<PerlinSplitKey, int64_t> indices_by_key;
   mask.foreach_index([&](const int64_t i) {
     const float detail = perlin_clamp_detail(detail_varray[i]);

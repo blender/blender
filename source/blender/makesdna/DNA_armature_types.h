@@ -59,7 +59,7 @@ enum eArmature_Flag : int {
   ARM_NO_CUSTOM = (1 << 10),
   /** Draw custom colors. */
   ARM_COL_CUSTOM = (1 << 11),
-  /** When ghosting, only show selected bones (this should belong to ghostflag instead). */
+  /** When ghosting, only show selected bones (this should belong to `ghostflag` instead). */
   ARM_FLAG_UNUSED_12 = (1 << 12), /* cleared */
   /** Dope-sheet channel is expanded */
   ARM_DS_EXPAND = (1 << 13),

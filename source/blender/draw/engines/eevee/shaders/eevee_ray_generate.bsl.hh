@@ -35,7 +35,7 @@ BsdfSample ray_generate_direction(
   float3 Vt = V * tangent_to_world;
   /* Sample in tangent space. */
   BsdfSample samp = cl.sample(util_tx, random_point_on_cylinder, Vt, thickness);
-  /* Transform back to world space space. */
+  /* Transform back to world space. */
   samp.direction = tangent_to_world * float3(samp.direction);
   return samp;
 }

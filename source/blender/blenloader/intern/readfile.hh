@@ -131,7 +131,7 @@ struct FileData {
   int id_flag_offset = 0;
   int id_deep_hash_offset = 0;
   /**
-   * Gives access to libraries' filepath and flag, useful for introspection of blendfiles'
+   * Gives access to libraries' filepath and flag, useful for introspection of blend-files'
    * dependencies _without_ having to fully read them.
    */
   int library_filepath_offset = 0;

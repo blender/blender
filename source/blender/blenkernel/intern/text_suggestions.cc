@@ -105,7 +105,7 @@ void texttool_suggest_add(const char *name, char type)
     for (item = suggestions.last; item; item = item->prev) {
       cmp = BLI_strncasecmp(name, item->name, len);
 
-      /* Newitem comes after this item, insert here */
+      /* `newitem` comes after this item, insert here */
       if (cmp >= 0) {
         newitem->prev = item;
         if (item->next) {

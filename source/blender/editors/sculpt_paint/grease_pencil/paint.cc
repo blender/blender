@@ -159,7 +159,7 @@ static Brush *create_fill_guide_brush()
   /* Don't use unified paint settings (since we want to set own color and size). */
   fill_guides_brush->unified_paint_flags = {};
 
-  /* Dont use pressure. */
+  /* Don't use pressure. */
   fill_guides_brush->flag &= ~BRUSH_ALPHA_PRESSURE;
   fill_guides_brush->flag &= ~BRUSH_SIZE_PRESSURE;
   settings->flag &= ~GP_BRUSH_USE_PRESSURE;

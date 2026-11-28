@@ -856,7 +856,7 @@ static void set_quality_rate_options(const MovieWriter *context,
  * https://docs.nvidia.com/video-technologies/video-codec-sdk/13.1/nvenc-video-encoder-api-prog-guide/index.html#rate-control
  *
  * So, we pick the max bitrate that still fits within the regular level of the resolution /
- * framerate that we are rendering at. */
+ * frame rate that we are rendering at. */
 static int64_t nvenc_quality_max_rate(const AVCodecContext *c,
                                       const AVCodecID codec_id,
                                       const AVPixelFormat sw_format,

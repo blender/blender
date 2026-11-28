@@ -373,7 +373,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   }
   MeshBufferList &buffers = mbc.buff;
 
-  /* Allow printf. */
+  /* Allow `printf`. */
   GPU_render_begin();
 
   mesh_render_data_update_corner_normals(mr);

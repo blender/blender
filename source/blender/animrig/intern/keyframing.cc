@@ -669,7 +669,7 @@ static std::pair<Layer *, Slot *> prep_action_layer_for_keying(Action &action, I
   BLI_assert_msg(
       slot,
       "The conditions that would cause this Slot assignment to fail (such as the ID not being "
-      "animatible) should have been caught and handled by higher-level functions.");
+      "animatable) should have been caught and handled by higher-level functions.");
 
   action.layer_keystrip_ensure();
 

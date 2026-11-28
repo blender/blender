@@ -1727,7 +1727,7 @@ static size_t unit_as_string(MutableCStr str,
 
   /* Add unit prefix and strip zeros. */
 
-  /* Replace trailing zero's with spaces so the number
+  /* Replace trailing zeros with spaces so the number
    * is less complicated but alignment in a button won't
    * jump about while dragging. */
   size_t i = len - 1;

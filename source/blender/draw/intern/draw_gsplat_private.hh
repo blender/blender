@@ -115,7 +115,7 @@ struct GSplatEvalCache {
    */
   int last_attr_matching_time;
 
-  /* Nr. of batches in surface_per_mat. */
+  /* Number of batches in `surface_per_mat`. */
   int mat_len;
 
   /* --- API --- */

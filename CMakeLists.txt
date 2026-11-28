@@ -1026,7 +1026,7 @@ Can cause linking issues due to too large binary size."
 mark_as_advanced(WITH_COMPILER_ASAN_EXTERN)
 # Note: The TBB malloc proxy replaces the global allocator, which conflicts with ASAN's
 # allocator interposition. Depending on compiler and runtime this reports false
-# "alloc-dealloc-mismatch" errors, see #165242.
+# `alloc-dealloc-mismatch` errors, see #165242.
 if(DEFINED WITH_TBB_MALLOC_PROXY)
   set_and_warn_incompatible(WITH_COMPILER_ASAN WITH_TBB_MALLOC_PROXY OFF)
 endif()

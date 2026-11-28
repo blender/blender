@@ -1773,7 +1773,7 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
   int old_start = active_strip->start;
 
   /* Force time position update for reassigned effects.
-   * TODO(Richard): This is because internally startdisp is still used, due to poor performance
+   * TODO(Richard): This is because internally `startdisp` is still used, due to poor performance
    * of mapping effect range to inputs. This mapping could be cached though. */
   seq::strip_lookup_invalidate(scene->ed);
   input1->left_handle_set(scene, input1->left_handle());

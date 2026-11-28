@@ -353,7 +353,7 @@ struct GreasePencil {
         /* Prevent the limit from becoming to small. */
         miter_limit = max(miter_limit, 0.5f);
 
-        /* Mitter tangent vector. */
+        /* Miter tangent vector. */
         float2 miter_tan = safe_normalize(line_adj + line);
         float miter_dot = dot(miter_tan, line_adj);
         float cos_angle_adj = (use_curr) ? cos_angle1 : cos_angle2;
